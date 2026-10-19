@@ -4,16 +4,17 @@
 ##
 ## This file may be distributed under the terms of the GNU GPLv3 license
 
-from ui import Button
-from ..parameter_controls import control_row
-from .actions import PreviewAction, PreviewRoute
+from ..parameter_controls import control_row_pitch
 
 
-def current_view_row(state):
-    control = Button(PreviewAction(PreviewRoute.CAPTURE_VIEW), "USE CURRENT",
-                     font="JetBrainsMono 8pt").size(180, 46).align("left", "top").offset(495, 9)
+def current_view_content(state):
     values = "YAW %.1f / TILT %.1f / %.0f%%" % (state["yaw"], state["pitch"], state["scale"] * 100)
-    return control_row("DEFAULT VIEW", values, "Save current rotation, tilt and scale.", control)
+    return "DEFAULT VIEW", values, "Save current rotation, tilt and scale."
+
+
+def current_view_pitch(state, row_width):
+    label, _values, description = current_view_content(state)
+    return control_row_pitch(label, description, row_width)
 
 
 def parameter_keys(style, mode):

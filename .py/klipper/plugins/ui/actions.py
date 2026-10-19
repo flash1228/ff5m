@@ -10,7 +10,7 @@ import json
 from dataclasses import dataclass, fields, is_dataclass
 from enum import Enum
 
-from .bindings import Binding, StateStore, resolve_deep, state_spec
+from .bindings import Binding, ItemBinding, StateStore, resolve_deep, state_spec
 from .identity import CommandKey, PageKey, StateKey, serialize_key
 
 
@@ -72,6 +72,9 @@ def _fingerprint(value):
         _json_value(value), sort_keys=True, separators=(",", ":"),
         ensure_ascii=True).encode("ascii")
     return hashlib.sha1(encoded).hexdigest()[:12]
+
+
+_ACTION_VALIDATED = object()
 
 
 class Action:
@@ -365,9 +368,13 @@ class Command(Action):
         # The transport identity covers the complete semantic invocation. A
         # project may reuse one CommandKey with several typed payloads without
         # creating collisions or teaching the renderer about domain behavior.
-        value = self.key.value
-        prefix = str(value) if isinstance(value, str) else "command"
-        return "%s.%s" % (prefix, _fingerprint(self.as_dict()))
+        cached = getattr(self, "_wire_id", None)
+        if cached is None:
+            value = self.key.value
+            prefix = str(value) if isinstance(value, str) else "command"
+            cached = "%s.%s" % (prefix, _fingerprint(self.as_dict()))
+            object.__setattr__(self, "_wire_id", cached)
+        return cached
 
     def as_dict(self):
         return {
@@ -414,7 +421,8 @@ class ItemCommand(Action):
 
     def resolve(self, scope):
         return Command(
-            self.key, payload=resolve_deep(self.payload, scope), hint=self.hint)
+            self.key, payload=resolve_deep(
+                self._payload if type(self._payload) is ItemBinding else self.payload, scope), hint=self.hint)
 
     def as_dict(self):
         payload = (self.payload.as_dict()
@@ -437,7 +445,9 @@ def validate_action(action):
     """Action replacements must be immutable, portable value objects."""
     if not isinstance(action, Action):
         raise TypeError("Interactive components require a semantic Action")
-    _validate_payload(action)
+    if getattr(action, "_validated_action", None) is not _ACTION_VALIDATED:
+        _validate_payload(action)
+        object.__setattr__(action, "_validated_action", _ACTION_VALIDATED)
     return action
 
 

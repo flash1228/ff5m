@@ -107,7 +107,7 @@ def _category_runs(manager, parameters):
     return runs
 
 
-def category_pages(manager, parameters, label=None, leading_height=0):
+def category_pages(manager, parameters, label=None, leading_height=0, capacity=None, item_pitch=ITEM_PITCH):
     """Split the parameter list into pages of category sections.
 
     A band is placed only when at least one of its rows fits below it, so a
@@ -115,7 +115,7 @@ def category_pages(manager, parameters, label=None, leading_height=0):
     category too long for the remaining space continues on the next page and
     repeats its band there.
     """
-    capacity = LIST_BOTTOM - LIST_TOP
+    capacity = LIST_BOTTOM - LIST_TOP if capacity is None else capacity
     pages = [[]]
     used = leading_height
     runs = [(label, list(enumerate(parameters)))] if label is not None else _category_runs(manager, parameters)
@@ -123,26 +123,37 @@ def category_pages(manager, parameters, label=None, leading_height=0):
         shown = 0
         while shown < len(entries):
             pitch = band_pitch(len(pages[-1]))
-            if used + pitch + ITEM_PITCH > capacity:
+            first_height = item_pitch(*entries[shown]) if callable(item_pitch) else item_pitch
+            if used + pitch + first_height > capacity:
+                if not pages[-1] and not used:
+                    raise ValueError("The content area is too short for a parameter row")
                 pages.append([])
                 used = 0
                 pitch = band_pitch(0)
-            rows = (capacity - used - pitch) // ITEM_PITCH
+            if pitch + first_height > capacity:
+                raise ValueError("The content area is too short for a parameter row")
+            rows, height = 0, 0
+            for entry in entries[shown:]:
+                row_height = item_pitch(*entry) if callable(item_pitch) else item_pitch
+                if used + pitch + height + row_height > capacity:
+                    break
+                rows += 1
+                height += row_height
             chunk = tuple(entries[shown:shown + rows])
             pages[-1].append(CategorySection(
                 label, shown > 0, shown + 1, len(entries), chunk))
-            used += pitch + len(chunk) * ITEM_PITCH
+            used += pitch + height
             shown += len(chunk)
     return pages
 
 
-def page_height(sections):
+def page_height(sections, item_pitch=ITEM_PITCH):
     """Pixels taken by one page of sections, bands and rows together."""
-    return sum(band_pitch(position) + len(section.items) * ITEM_PITCH
+    return sum(band_pitch(position) + sum(item_pitch(*entry) if callable(item_pitch) else item_pitch for entry in section.items)
                for position, section in enumerate(sections))
 
 
-def next_category_hint(pages, page, leading_height=0):
+def next_category_hint(pages, page, leading_height=0, capacity=None, item_pitch=ITEM_PITCH):
     """Return the category the next page opens with, when there is room to say.
 
     A postponed category leaves a hole at least as tall as a row, so the page
@@ -150,8 +161,9 @@ def next_category_hint(pages, page, leading_height=0):
     """
     if page + 1 >= len(pages):
         return None
-    used = page_height(pages[page]) + (leading_height if page == 0 else 0)
-    if LIST_BOTTOM - LIST_TOP - used < ITEM_PITCH:
+    used = page_height(pages[page], item_pitch) + (leading_height if page == 0 else 0)
+    capacity = LIST_BOTTOM - LIST_TOP if capacity is None else capacity
+    if capacity - used < ITEM_PITCH:
         return None
     return pages[page + 1][0].label
 

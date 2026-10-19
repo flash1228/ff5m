@@ -4,7 +4,7 @@
 
 ## Public Feather UI package.
 
-__version__ = "2.10.0"
+__version__ = "2.11.0"
 FRAMEWORK_API_VERSION = 2
 REFLECTION_SCHEMA_VERSION = "2.4.0"
 FRAMEWORK_CAPABILITIES = (
@@ -21,6 +21,7 @@ FRAMEWORK_CAPABILITIES = (
     "package-relative-themes",
     "typed-theme-tokens",
     "data-driven-list-templates",
+    "list-item-reuse",
     "painted-content-frame",
     "typed-styles",
     "style-inheritance",

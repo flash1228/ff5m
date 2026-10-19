@@ -39,6 +39,7 @@ from ff5m_ui.home import page as HOME_PAGE
 from ff5m_ui.home import state as HOME_STATE
 from ff5m_ui.z_offset import runtime as z_offset_ui
 from ff5m_ui.keys import AppPage
+from ff5m_ui.parameter_controls import parameter_action
 from feather.previews import PreviewCache
 from feather.features.filament import FilamentFeature
 from feather.calibration.z import (
@@ -1785,7 +1786,7 @@ class ControllerSafetyTest(unittest.TestCase):
         self.assertIn("01-05 / 07", first)
         self.assertEqual(
             set(controller.renderer._toggles),
-            {"mod.item.%d" % index for index in range(5)})
+            {parameter_action(params[index].key) for index in range(5)})
         self.assertIn("mod.next", controller.renderer._buttons)
         self.assertNotIn("mod.prev", controller.renderer._buttons)
         self.assertNotIn('-t "^"', first)
@@ -1796,7 +1797,7 @@ class ControllerSafetyTest(unittest.TestCase):
         self.assertIn("06-07 / 07", second)
         self.assertEqual(
             set(controller.renderer._toggles),
-            {"mod.item.5", "mod.item.6"})
+            {parameter_action(params[5].key), parameter_action(params[6].key)})
         self.assertIn("mod.prev", controller.renderer._buttons)
         self.assertNotIn("mod.next", controller.renderer._buttons)
 
@@ -1817,7 +1818,7 @@ class ControllerSafetyTest(unittest.TestCase):
         self.assertNotIn("SECOND", first)
         self.assertEqual(
             set(controller.renderer._toggles),
-            {"mod.item.%d" % index for index in range(5)})
+            {parameter_action(params[index].key) for index in range(5)})
 
         # The last row of FIRST keeps a heading of its own instead of leaving
         # the reader without context, and SECOND opens its own section below.
@@ -1828,7 +1829,7 @@ class ControllerSafetyTest(unittest.TestCase):
         self.assertIn('-t "SECOND"', second)
         self.assertIn('-t "01-01 / 01"', second)
         self.assertEqual(set(controller.renderer._toggles),
-                         {"mod.item.5", "mod.item.6"})
+                         {parameter_action(params[5].key), parameter_action(params[6].key)})
 
         controller._handle_mod_action("mod.prev")
         back = "\n".join(controller.draw_batches[-1])
@@ -1856,7 +1857,7 @@ class ControllerSafetyTest(unittest.TestCase):
         self.assertIn('-t "NEXT: SECOND >"', second)
         self.assertEqual(
             set(controller.renderer._toggles),
-            {"mod.item.%d" % index for index in range(5, 9)})
+            {parameter_action(params[index].key) for index in range(5, 9)})
 
         # The card is an ordinary list block that happens to be touchable, not
         # a button, so it fills one row slot inside the list without button
@@ -1905,8 +1906,8 @@ class ControllerSafetyTest(unittest.TestCase):
         self.assertIn('-t "06-06 / 06"', expanded_second)
         self.assertIn('-t "SECOND"', expanded_second)
         self.assertEqual(
-            set(controller.renderer._buttons) & {"mod.item.5", "mod.item.6"},
-            {"mod.item.5"})
+            set(controller.renderer._buttons) & {parameter_action(params[5].key), parameter_action(params[6].key)},
+            {parameter_action(params[5].key)})
 
         controller._handle_mod_action("mod.prev")
         controller._handle_mod_action("mod.item.4")
@@ -2015,7 +2016,7 @@ class ControllerSafetyTest(unittest.TestCase):
         controller._render_mod_settings()
 
         states = [
-            controller.renderer._toggles["mod.item.%d" % index][4]
+            controller.renderer._toggles[parameter_action(params[index].key)][4]
             for index in range(4)
         ]
         self.assertEqual(states, [False, True, True, False])
@@ -2028,8 +2029,8 @@ class ControllerSafetyTest(unittest.TestCase):
 
         self.assertEqual(controller.params.updated, [("camera", True)])
         self.assertIsNone(controller.mod_parameter)
-        self.assertIn("mod.item.0", controller.renderer._toggles)
-        self.assertTrue(controller.renderer._toggles["mod.item.0"][4])
+        self.assertIn(parameter_action(flag.key), controller.renderer._toggles)
+        self.assertTrue(controller.renderer._toggles[parameter_action(flag.key)][4])
 
     def test_inverted_mod_toggle_animates_display_but_saves_raw_value(self):
         flag = mod_param(
@@ -2037,13 +2038,13 @@ class ControllerSafetyTest(unittest.TestCase):
             ui_inverted=True)
         controller = mod_controller([flag], {"disable_priming": False})
         controller._render_mod_settings()
-        self.assertTrue(controller.renderer._toggles["mod.item.0"][4])
+        self.assertTrue(controller.renderer._toggles[parameter_action(flag.key)][4])
 
         controller._handle_mod_action("mod.item.0")
 
         self.assertEqual(controller.params.updated,
                          [("disable_priming", True)])
-        self.assertFalse(controller.renderer._toggles["mod.item.0"][4])
+        self.assertFalse(controller.renderer._toggles[parameter_action(flag.key)][4])
 
         controller._handle_mod_action("mod.item.0")
 
@@ -2051,7 +2052,7 @@ class ControllerSafetyTest(unittest.TestCase):
             ("disable_priming", True),
             ("disable_priming", False),
         ])
-        self.assertTrue(controller.renderer._toggles["mod.item.0"][4])
+        self.assertTrue(controller.renderer._toggles[parameter_action(flag.key)][4])
 
     def test_theme_parameter_refreshes_users_once_and_uses_stable_snapshot(self):
         theme = mod_param("feather_theme", str, "DEFAULT",

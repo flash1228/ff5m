@@ -33,16 +33,44 @@ class ModSettingsPagesMixin:
             return [self.params.params_map[key] for key in keys]
         return mod_ui.visible_parameters(self.params)
 
-    def _mod_category_pages(self, parameters):
+    def _mod_list_geometry(self):
+        bounds = parameter_ui.content_bounds(self.renderer, kind="list")
+        width = parameter_ui.list_width(bounds)
+        leading_height = preview_ui.current_view_pitch(self.model_preview, width) if self._preview_parameter_context() else 0
+        if width >= 600:
+            return bounds, leading_height, mod_ui.ITEM_PITCH
+        heights = {}
+
+        def item_pitch(index, param):
+            if param.key not in heights:
+                heights[param.key] = parameter_ui.parameter_pitch(param, width)
+            return heights[param.key]
+
+        return bounds, leading_height, item_pitch
+
+    def _mod_category_pages(self, parameters, geometry=None):
         preview = self._preview_parameter_context()
+        bounds, leading_height, item_pitch = geometry or self._mod_list_geometry()
         return mod_ui.category_pages(self.params, parameters,
                                      label="PRINT PREVIEW" if preview else None,
-                                     leading_height=mod_ui.ITEM_PITCH if preview else 0)
+                                     leading_height=leading_height, capacity=bounds.height, item_pitch=item_pitch)
+
+    def _mod_list_tree(self, bounds, preview, state):
+        tree = getattr(self, "_mod_tree", None)
+        variant = preview, parameter_ui.list_width(bounds) < 600
+        if tree is None or getattr(self, "_mod_tree_variant", None) != variant:
+            kinds = set(row["kind"] for row in state[parameter_ui.ParameterListState.ROWS])
+            tree = self._mod_tree = parameter_ui.create_list_tree(preview=preview, bounds=bounds, kinds=kinds)
+            self._mod_tree_variant = variant
+        tree.bounds = bounds
+        parameter_ui.ensure_list_templates(tree, state)
+        return tree
 
     def _render_mod_settings(self, anchor_key=None):
         self._require_idle()
         parameters = self._mod_parameters()
-        pages = self._mod_category_pages(parameters)
+        geometry = self._mod_list_geometry()
+        pages = self._mod_category_pages(parameters, geometry)
         if anchor_key is None:
             anchor_key = getattr(self, "mod_restore_anchor_key", None)
         self.mod_restore_anchor_key = None
@@ -58,13 +86,15 @@ class ModSettingsPagesMixin:
             for index, param in mod_ui.page_parameters(sections))
 
         preview = self._preview_parameter_context()
-        commands = self.renderer.begin_page("Preview settings" if preview else "Mod settings", back=True)
-        commands += parameter_ui.create_list_page(
+        bounds, leading_height, item_pitch = geometry
+        state = parameter_ui.list_state(
             self.params, sections, self.mod_page, len(pages),
-            mod_ui.next_category_hint(pages, self.mod_page, leading_height=mod_ui.ITEM_PITCH if preview else 0),
-            preview=preview,
-            leading_row=preview_ui.current_view_row(self.model_preview) if preview and self.mod_page == 0 else None,
-            measure_text=self.renderer.text_width).draw(self.renderer)
+            mod_ui.next_category_hint(pages, self.mod_page, leading_height=leading_height,
+                                      capacity=bounds.height, item_pitch=item_pitch),
+            preview_ui.current_view_content(self.model_preview) if preview and self.mod_page == 0 else None)
+        tree = self._mod_list_tree(bounds, preview, state)
+        commands = self.renderer.begin_page("Preview settings" if preview else "Mod settings", back=True)
+        commands += tree.draw(self.renderer, state, reuse_layout=True)
         self.renderer.send(commands)
 
     def _open_mod_parameter(self, index, return_page=ScreenPage.MOD_SETTINGS):
@@ -94,7 +124,7 @@ class ModSettingsPagesMixin:
         if kind == "bool":
             current = bool(self.params.variables.get(param.key, param.default))
             new_value = not current
-            action = "mod.item.%d" % index
+            action = parameter_ui.parameter_action(param.key)
             scheduler = lambda callback, delay: self.reactor.register_callback(
                 callback, self.reactor.monotonic() + delay)
             animate = getattr(self.renderer, "animate_toggle", None)

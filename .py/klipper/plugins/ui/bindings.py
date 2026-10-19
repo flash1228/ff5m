@@ -467,13 +467,25 @@ class ItemScope:
 
     __slots__ = ("state", "item")
 
-    def __init__(self, state, current):
+    @staticmethod
+    def _validate_scope(state, current):
         if not isinstance(state, StateStore):
             raise TypeError("ItemScope requires a StateStore")
         if not isinstance(current, dict):
             raise TypeError("Template item scope requires a mapping")
+
+    def __init__(self, state, current):
+        self._validate_scope(state, current)
         self.state = state
         self.item = copy.deepcopy(current)
+
+    @classmethod
+    def _from_snapshot(cls, state, current):
+        """Adopt the already isolated collection item owned by ListView."""
+        cls._validate_scope(state, current)
+        scope = object.__new__(cls)
+        scope.state, scope.item = state, current
+        return scope
 
     def __getitem__(self, key):
         return self.state[key]

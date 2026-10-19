@@ -21,6 +21,8 @@ from feather.files import FileEntry
 from feather.settings.mod import visible_parameters
 from ff5m_ui.screen import ScreenPage
 from ui import FeatherRenderer
+from ui.renderer import BinaryCommand
+from feather.previews import decode_fxi1
 import feather_screen as FEATHER
 
 
@@ -143,7 +145,8 @@ class PreviewSettingsTest(unittest.TestCase):
         self.assertTrue(self.capture.latest.has_action("nav.back"))
         self.assertTrue(self.capture.latest.has_text(self.manager.params_map["feather_preview_type"].label.upper()))
         cache = next(index for index, key in feature.mod_action_keys.items() if key == "feather_preview_cache")
-        self.assertIn("mod.item.%d" % cache, self.capture.latest.toggles)
+        from ff5m_ui.parameter_controls import parameter_action
+        self.assertIn(parameter_action(feature.mod_action_keys[cache]), self.capture.latest.toggles)
         self.tap("model.print")
         self.assertEqual(self.controller.page, ScreenPage.PREVIEW_SETTINGS)
         self.tap("nav.back")
@@ -158,7 +161,7 @@ class PreviewSettingsTest(unittest.TestCase):
         while True:
             seen.update(feature.mod_action_keys.values())
             for button in self.capture.latest.buttons.values():
-                if button.action.startswith("mod.item."):
+                if button.action.startswith("mod.parameter."):
                     self.assertGreaterEqual(button.bounds.y, 55)
                     self.assertLessEqual(button.bounds.bottom, 442)
             if not self.capture.latest.has_action("mod.next"):
@@ -166,6 +169,50 @@ class PreviewSettingsTest(unittest.TestCase):
             self.tap("mod.next")
         self.assertEqual(seen, {"feather_preview_" + key for key in
                                ("type", "cache", "grid", "yaw", "pitch", "scale", "fit", "fps")})
+
+    def test_option_explanations_fit_beside_the_selected_icon(self):
+        self.open_settings()
+        for suffix in ("grid", "fit", "type"):
+            self.edit(suffix)
+            feature = self.controller.feature_manager.peek("settings")
+            frame = self.capture.latest
+            title = feature.mod_parameter.label.upper()
+            header = next(item for item in frame.texts if item.value == title)
+            self.assertLessEqual(self.controller.renderer.text_width(title, header.font), header.max_width)
+            for index, entry in enumerate(feature.parameter_option_entries):
+                with self.subTest(parameter=suffix, value=entry.value):
+                    self.option(entry.value, apply=False)
+                    frame = self.capture.latest
+                    button = frame.button("mod.option.%d" % index)
+                    expected = str(entry.label).upper() + " // " + entry.description.upper()
+                    caption = next(item for item in frame.texts if item.value == expected)
+                    self.assertLessEqual(self.controller.renderer.text_width(expected, caption.font), caption.max_width)
+                    images = [command for command in self.capture.batches[-1] if isinstance(command, BinaryCommand)]
+                    self.assertEqual(len(images), 1)
+                    icon = decode_fxi1(images[0].payload)
+                    self.assertEqual((icon["width"], icon["height"], icon["bpp"]), (24, 24, 1))
+                    self.assertGreaterEqual(button.bounds.y, 55)
+                    self.assertLessEqual(button.bounds.bottom, 442)
+            self.tap("mod.cancel")
+
+    def test_parameter_descriptions_fit_without_truncation_for_every_style(self):
+        feature = self.open_settings()
+        for mode, style in ((mode, style) for mode in ("file", "lab")
+                            for style in ("SOLID", "STACKED", "POINTS", "MODEL_EDGES", "LAYER_LINES")):
+            self.state["mode"] = mode
+            self.style(style)
+            while feature.mod_page:
+                self.tap("mod.prev")
+            while True:
+                frame = self.capture.latest
+                for key in feature.mod_action_keys.values():
+                    with self.subTest(mode=mode, style=style, page=feature.mod_page, parameter=key):
+                        description = self.manager.params_map[key].description
+                        text = next(item for item in frame.texts if item.value == description)
+                        self.assertLessEqual(self.controller.renderer.text_width(description, text.font), text.max_width)
+                if not frame.has_action("mod.next"):
+                    break
+                self.tap("mod.next")
 
     def test_style_selection_uses_the_mod_editor_and_changes_only_on_apply(self):
         self.load_frame()

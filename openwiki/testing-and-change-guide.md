@@ -290,8 +290,8 @@ screen visible even though the calibration itself has finished.
 The screw page's schematic nut and clockwise/counterclockwise arrows
 are small raw FXI1 resources in `ff5m_ui/assets/calibration/`. Regenerate them locally with
 `.venv/bin/python -m tests.visual_checks.generate_screw_icons`. The generator
-owns the geometry and precomputes horizontal reflection. Runtime caches only
-the three immutable source blobs and replaces their palette before sending
+owns the geometry and precomputes horizontal reflection. The shared
+`ff5m_ui/icons.py` loader caches only immutable source blobs and replaces their palette before sending
 them with the existing binary `image` command. Nut palette slots are
 transparent/bright/dim/panel;
 arrow slots are transparent/current accent.
@@ -299,6 +299,25 @@ No decoded image or per-theme cache is retained in Python. Designer decodes
 the same payload through its generic image renderer. Visual review must
 include a theme change, BASE without an arrow, and both turn directions.
 Both host and printer UI fingerprints include `.fxi1` resources.
+
+Selection buttons use `ff5m_ui/assets/controls/check.fxi1`: a native 24 x 24
+one-bit mask with transparent/foreground palette entries. Regenerate this set
+locally with `.venv/bin/python -m tests.visual_checks.generate_control_icons`.
+`OptionButton` owns the caption and image as complete normal/pressed surfaces;
+native press feedback must retain both. Review an enum choice, a theme choice,
+and a theme change through Designer. Tests cover the binary payload, palette
+updates, resource retry, disabled choices, press/restore, and caption bounds.
+
+`tests.test_parameter_controls` exercises the actual settings page factories at
+800 x 480, 640 x 400, 480 x 480 and 1024 x 600. It checks component and hitbox
+bounds, wrapped descriptions and choice captions, readable keyboard keys,
+complete parameter reachability, and save/cancel after responsive pagination.
+It also guards the pagination cost: opening or paging settings may construct
+parameter controls only for rows visible on the current page. Off-screen row
+heights come from the shared sizing policy, never from throwaway component trees.
+For visual review, render these factories at the requested content bounds and
+replay their drawing operations in Designer; its catalog otherwise indexes
+static pages at the default viewport before applying viewport insets.
 
 The harness validates live page generations and hitboxes before synthetic taps,
 blocks physical non-emergency input plus every persistent Save action during a

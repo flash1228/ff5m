@@ -11,7 +11,7 @@ import uuid
 from enum import Enum, IntEnum
 from functools import lru_cache
 
-from .bindings import Binding, ItemScope, StateStore, derived, page_state_keys, resolve
+from .bindings import Binding, DirectBinding, ItemScope, StateStore, derived, page_state_keys, resolve
 from .actions import ItemCommand, action_wire_id, collect_actions, validate_action
 from .font_metrics import get_font_metrics
 from .identity import PageKey, serialize_key
@@ -514,7 +514,7 @@ LAYOUT_SCHEMA = property_schema(
 class LayoutResult:
     """Arranged bounds and nodes indexed by object identity and stable refs."""
 
-    __slots__ = ("_nodes", "_names", "_named_nodes", "_slots", "_reuse_clean", "_set_names")
+    __slots__ = ("_nodes", "_names", "_named_nodes", "_slots", "_reuse_clean", "_set_names", "_captures")
 
     def __init__(self, previous=None):
         self._nodes = {} if previous is None else dict(previous._nodes)
@@ -523,12 +523,15 @@ class LayoutResult:
         self._slots = {} if previous is None else dict(previous._slots)
         self._reuse_clean = previous is not None
         self._set_names = set()
+        self._captures = []
 
     @staticmethod
     def _name(value):
         return value.value if isinstance(value, Enum) else value
 
     def set(self, node, rect, slot=None):
+        for capture in self._captures:
+            capture.append((node, rect, slot))
         self._nodes[id(node)] = rect
         self._slots[id(node)] = slot
         if node.key is not None:
@@ -989,6 +992,7 @@ class Node(metaclass=_NodeMeta):
         self.layout_options = LayoutOptions()
         self.parent = None
         self._dirty = Dirty.CLEAN
+        self._layout_revision = 0
         self._actions_dirty = True
         self._blocks_input = False
         self._last_signature = _UNSET
@@ -1163,6 +1167,11 @@ class Node(metaclass=_NodeMeta):
 
     def invalidate(self, dirty=Dirty.PAINT):
         dirty = Dirty(dirty)
+        if dirty == Dirty.LAYOUT:
+            self._layout_revision = getattr(self, "_layout_revision", 0) + 1
+        return self._mark_dirty(dirty)
+
+    def _mark_dirty(self, dirty):
         node = self
         while node is not None:
             if dirty > node._dirty:
@@ -1187,7 +1196,9 @@ class Node(metaclass=_NodeMeta):
                 continue
             child.parent = self
         self.invalidate_actions()
-        self.invalidate_layout()
+        # Membership changes dirty flow geometry. Explicit layout edits also
+        # advance the revision used by recyclable descendants.
+        self._mark_dirty(Dirty.LAYOUT)
 
     def _box(self, bounds):
         options = self.layout_options
@@ -1772,6 +1783,10 @@ class List(Node):
     def preferred_extent(self, direction, cross_extent=None):
         if direction != self.direction or not self.items:
             return None
+        if cross_extent is not None:
+            padding = self.layout_options.padding
+            cross_extent = max(0, int(cross_extent) - (
+                padding.vertical if direction == "horizontal" else padding.horizontal))
         extents = [self._main_extent(child, cross_extent)
                    for child in self.items]
         if any(value is None for value in extents):
@@ -1830,7 +1845,10 @@ class List(Node):
                     else:
                         cursor += gap
         for area, child in zip(areas, self.items):
-            child.arrange(area, result)
+            self._arrange_item(child, area, result)
+
+    def _arrange_item(self, child, bounds, result):
+        child.arrange(bounds, result)
 
     def render_children(self):
         return self.items
@@ -1883,11 +1901,62 @@ _LIST_VIEW_CREATION = CreationContract(
             validation=ValidationSpec(minimum=0, maximum=4000),
             editor=EditorSpec("number", label="Gap", group="Layout"),
             bindings=()),
+        CreationFieldSpec(
+            "reuse_items", bool, default=False,
+            editor=EditorSpec("checkbox", label="Reuse items", group="Data"),
+            bindings=()),
     ), source=_LIST_VIEW_CREATION_SOURCE)
 
 
+def _clone_template_root(root):
+    """Clone ordinary node dictionaries without reconstructing every scalar field.
+
+    Preserve Python's copy protocol for custom slots, allocation and copy hooks.
+    One memo keeps parent links and shared fields scoped to the cloned subtree.
+    """
+    nodes = tuple(root.walk())
+    for cls in {type(node) for node in nodes}:
+        if (cls.__new__ is not object.__new__
+                or any("__slots__" in base.__dict__ for base in cls.__mro__)
+                or getattr(cls, "__copy__", None) is not None
+                or getattr(cls, "__deepcopy__", None) is not None
+                or cls.__reduce__ is not object.__reduce__
+                or cls.__reduce_ex__ is not object.__reduce_ex__):
+            return copy.deepcopy(root)
+    memo = {id(node): object.__new__(type(node)) for node in nodes}
+    scalars = (str, int, float, bool, type(None))
+    for node in nodes:
+        options = node.layout_options
+        insets = (options.margin, options.padding)
+        defaults = node._authoring_layout_defaults or {}
+        insets += (defaults.get("margin"), defaults.get("padding"))
+        for value in insets:
+            if type(value) is Insets and id(value) not in memo:
+                clone = object.__new__(Insets)
+                memo[id(value)] = clone
+                for name in Insets.__slots__:
+                    setattr(clone, name, copy.deepcopy(getattr(value, name), memo))
+        if type(options) is LayoutOptions:
+            clone = object.__new__(LayoutOptions)
+            memo[id(options)] = clone
+            for name in LayoutOptions.__slots__:
+                value = getattr(options, name)
+                setattr(clone, name, value if type(value) in scalars else copy.deepcopy(value, memo))
+    for node in nodes:
+        clone = memo[id(node)]
+        clone.__dict__.update((name, value if type(value) in scalars
+                              else copy.deepcopy(value, memo))
+                             for name, value in node.__dict__.items())
+    return memo[id(root)]
+
+
 class ListView(List):
-    """Materialize named templates from a bound collection."""
+    """Materialize named templates, optionally recycling model-owned rows.
+
+    Reuse is opt-in. Recyclable templates keep item state in bindings rather
+    than local delegate fields. The detached pool retains at most as many
+    instances as the current collection, and is released for an empty list.
+    """
 
     property_schema = property_schema(
         PropertySpec(
@@ -1927,6 +1996,10 @@ class ListView(List):
                 placeholder="Auto", auto_label="Auto"),
             bindings=(), invalidation=Invalidation.LAYOUT),
         PropertySpec(
+            "reuse_items", bool, default=False,
+            editor=EditorSpec("checkbox", label="Reuse items", group="Data"),
+            bindings=(), invalidation=Invalidation.STRUCTURE),
+        PropertySpec(
             "templates", tuple, default=(),
             editor=EditorSpec(
                 "template_catalog", label="Templates", group="Data"),
@@ -1939,7 +2012,7 @@ class ListView(List):
     creation_contract = _LIST_VIEW_CREATION
 
     def __init__(self, items, item_key, template_key, templates,
-                 direction="vertical", gap=0, fallback_template=None, key=None):
+                 direction="vertical", gap=0, fallback_template=None, key=None, reuse_items=False):
         Node.__init__(self, key=key)
         if not isinstance(items, (Binding, list, tuple)):
             raise TypeError("ListView items must be a binding, list or tuple")
@@ -1960,6 +2033,10 @@ class ListView(List):
             fallback_template = fallback_template.name
         if fallback_template is not None and fallback_template not in names:
             raise ValueError("ListView fallback template is not declared")
+        if not isinstance(reuse_items, bool):
+            raise TypeError("ListView reuse_items must be a boolean")
+        self.reuse_items = reuse_items
+        self._reuse_pool = ()
         self.items_binding = items
         self.item_key_binding = item_key
         self.template_key_binding = template_key
@@ -2004,30 +2081,35 @@ class ListView(List):
         result = []
         for index, value in enumerate(values):
             _validate_template_item(value, "ListView item %d" % index)
-            result.append(copy.deepcopy(dict(value)))
+            # DirectBinding has already defensively copied the collection.
+            result.append(dict(value) if type(self.items_binding) is DirectBinding
+                          else copy.deepcopy(dict(value)))
         return result
 
     def _scoped_ref(self, item_key, local):
         return "%s[%s]::%s" % (self._list_scope, item_key, local)
 
     def _prepare_tree(self, root, scope, metadata, definition=False):
+        declarations = []
         for node in root.walk():
+            commands = tuple((name, value) for name, value in node.__dict__.items()
+                             if self._contains_item_command(value))
+            if self.reuse_items and not definition:
+                declarations.append((node, node.key, commands))
             is_root = node is root
             if node.key is not None:
                 local = node.key.value if isinstance(node.key, Enum) else node.key
                 node.key = self._scoped_ref(metadata["item_key"], local)
             if definition:
                 node._template_definition = {
-                    "template": metadata["template"],
-                    "sample": True,
-                    "root": is_root,
+                    "template": metadata["template"], "sample": True, "root": is_root,
                 }
             else:
                 node._template_instance = dict(metadata, root=is_root)
-            for name, value in tuple(node.__dict__.items()):
-                resolved = self._resolve_item_commands(value, scope)
-                if resolved is not value:
-                    setattr(node, name, resolved)
+            for name, value in commands:
+                setattr(node, name, self._resolve_item_commands(value, scope))
+        if self.reuse_items and not definition:
+            root._reuse_declarations = tuple(declarations)
         root._item_scope = scope
         return root
 
@@ -2046,9 +2128,19 @@ class ListView(List):
                         for key, item in value.items())
         return value
 
+    @classmethod
+    def _contains_item_command(cls, value):
+        if isinstance(value, ItemCommand):
+            return True
+        if isinstance(value, (tuple, list)):
+            return any(cls._contains_item_command(part) for part in value)
+        if isinstance(value, dict):
+            return any(cls._contains_item_command(part) for part in value.values())
+        return False
+
     def _materialize(self, state, scopes, selectors):
         templates = dict((value.name, value) for value in self.templates)
-        children = []
+        plan = []
         seen = set()
         for index, (scope, (item_key, selected)) in enumerate(zip(scopes, selectors)):
             if item_key is None or isinstance(item_key, (list, tuple, dict)):
@@ -2056,24 +2148,86 @@ class ListView(List):
             if item_key in seen:
                 raise ValueError("Duplicate ListView item key: %s" % item_key)
             seen.add(item_key)
-            selected = str(selected)
-            template = templates.get(selected)
+            template = templates.get(str(selected))
             if template is None and self.fallback_template is not None:
                 template = templates[self.fallback_template]
             if template is None:
                 raise ValueError("Unknown ListView template: %s" % selected)
-            metadata = {
-                "template": template.name,
-                "item_key": item_key,
-                "index": index,
-            }
-            root = self._prepare_tree(
-                copy.deepcopy(template.root), scope, metadata)
-            children.append(root)
-        self.items = tuple(children)
+            plan.append((scope, template, {
+                "template": template.name, "item_key": item_key, "index": index,
+            }))
+
+        if self.reuse_items:
+            children = self._recycle_items(plan)
+        else:
+            children = tuple(self._prepare_tree(
+                _clone_template_root(template.root), scope, metadata)
+                for scope, template, metadata in plan)
+            self._reuse_pool = ()
+        previous = self.items
+        self.items = children
         self._item_scopes = scopes
-        self._adopt(*self.items)
+        if previous != children:
+            self._adopt(*children)
         self._template_samples = self._materialize_samples(state)
+
+    def _recycle_items(self, plan):
+        # Reserve surviving identities before offering removed rows for reuse.
+        available = list(self._reuse_pool) + list(self.items)
+        assigned = []
+        for _scope, template, metadata in plan:
+            match = next((node for node in self.items
+                          if getattr(node, "_reuse_template", None) is template
+                          and getattr(node, "_reuse_prototype", None) is template.root
+                          and node._template_instance["item_key"] == metadata["item_key"]), None)
+            assigned.append(match)
+            if match is not None:
+                available.remove(match)
+
+        changes = []
+        for index, (scope, template, metadata) in enumerate(plan):
+            node = assigned[index]
+            if node is None:
+                node = next((candidate for candidate in available
+                             if getattr(candidate, "_reuse_template", None) is template
+                             and getattr(candidate, "_reuse_prototype", None) is template.root), None)
+                if node is None:
+                    node = self._prepare_tree(_clone_template_root(template.root), scope, metadata)
+                    node._reuse_template = template
+                    node._reuse_prototype = template.root
+                else:
+                    available.remove(node)
+                assigned[index] = node
+            # Resolve every invocation before mutating any retained delegate.
+            fields = []
+            for child, local, commands in node._reuse_declarations:
+                key = None if local is None else self._scoped_ref(
+                    metadata["item_key"], local.value if isinstance(local, Enum) else local)
+                fields.append((child, key, tuple(
+                    (name, self._resolve_item_commands(value, scope))
+                    for name, value in commands)))
+            changes.append((node, scope, metadata, fields))
+
+        for node, scope, metadata, fields in changes:
+            for child, key, commands in fields:
+                if child.key != key:
+                    child.key = key
+                    child.invalidate_actions()
+                    child.invalidate_layout()
+                child._template_instance = dict(metadata, root=child is node)
+                for name, value in commands:
+                    if getattr(child, name) != value:
+                        setattr(child, name, value)
+                        child.invalidate_actions()
+            node._item_scope = scope
+        pool = tuple(node for node in available
+                     if any(getattr(node, "_reuse_template", None) is template
+                            and getattr(node, "_reuse_prototype", None) is template.root
+                            for template in self.templates))[:len(plan)]
+        for node in available:
+            node.parent = None
+        self._reuse_pool = pool
+        return tuple(assigned)
 
     def _materialize_samples(self, state):
         if not self._designer_mode:
@@ -2090,7 +2244,7 @@ class ListView(List):
                 "index": None,
             }
             root = self._prepare_tree(
-                copy.deepcopy(template.root), scope, metadata, definition=True)
+                _clone_template_root(template.root), scope, metadata, definition=True)
             for node in root.walk():
                 node._designer_template_visible = visible
             root.parent = self
@@ -2112,19 +2266,24 @@ class ListView(List):
         refresh_keys = (initialize or self._dirty != Dirty.CLEAN
                         or self._update_state is None)
         values = self._resolved_items(state)
-        scopes = tuple(ItemScope(state, value) for value in values)
+        scopes = tuple(ItemScope._from_snapshot(state, value) for value in values)
         selectors = tuple((
             self._selector_value(self.item_key_binding, scope),
             self._selector_value(self.template_key_binding, scope),
         ) for scope in scopes)
         signature = (values, selectors)
+        if self.reuse_items:
+            signature += (tuple((id(template), id(template.root))
+                                for template in self.templates),)
         if (signature != self._materialized_signature
                 or (self._designer_mode and not self._template_samples)):
             self._materialize(state, scopes, selectors)
+            declarations_changed = (self._materialized_signature is None or not self.reuse_items
+                                    or signature[2:] != self._materialized_signature[2:])
             self._materialized_signature = copy.deepcopy(signature)
-            refresh_keys = True
+            refresh_keys = refresh_keys or declarations_changed
             if not initialize:
-                self.invalidate(Dirty.LAYOUT)
+                self.invalidate(Dirty.PAINT if self.reuse_items else Dirty.LAYOUT)
         else:
             self._item_scopes = scopes
             for child, template in zip(
@@ -2141,6 +2300,35 @@ class ListView(List):
         self._update_state = state
         self._update_input_blocking(state)
 
+    def _arrange_item(self, child, bounds, result):
+        if not self.reuse_items or result._reuse_clean or self._designer_mode:
+            child._reuse_geometry = None
+            return child.arrange(bounds, result)
+        metrics = get_font_metrics().cache_key
+        ancestors = []
+        parent = child.parent
+        while parent is not None:
+            ancestors.append((parent, getattr(parent, "_layout_revision", 0)))
+            parent = parent.parent
+        ancestors = tuple(ancestors)
+        cached = getattr(child, "_reuse_geometry", None)
+        if (cached is not None and child._dirty < Dirty.LAYOUT
+                and cached[1] == metrics and cached[2] == ancestors
+                and cached[0].width == bounds.width and cached[0].height == bounds.height):
+            previous, _metrics, _ancestors, records = cached
+            dx, dy = bounds.x - previous.x, bounds.y - previous.y
+            for node, rect, slot in records:
+                result.set(node, rect.offset(dx, dy) if dx or dy else rect,
+                           slot.offset(dx, dy) if slot is not None and (dx or dy) else slot)
+            return
+        records = []
+        result._captures.append(records)
+        try:
+            child.arrange(bounds, result)
+        finally:
+            result._captures.pop()
+        child._reuse_geometry = bounds, metrics, ancestors, tuple(records)
+
     def _arrange(self, bounds, result):
         rendered = self._designer_render_items()
         original = self.items
@@ -2148,7 +2336,7 @@ class ListView(List):
         try:
             if self.direction == "overlay":
                 for child in rendered:
-                    child.arrange(bounds, result)
+                    self._arrange_item(child, bounds, result)
             else:
                 List._arrange(self, bounds, result)
         finally:

@@ -6,21 +6,11 @@
 
 import math
 from pathlib import Path
-import struct
+from .fxi1_assets import encode
 
 
 OUTPUT = (Path(__file__).resolve().parents[2] / ".py/klipper/plugins/"
           "ff5m_ui/assets/calibration")
-
-
-def encode(width, height, pixels, palette_size):
-    bpp = 1 if palette_size <= 2 else 2
-    packed = bytearray((width * height * bpp + 7) // 8)
-    for offset, value in enumerate(pixels):
-        packed[offset * bpp // 8] |= value << (8 - bpp - offset * bpp % 8)
-    return (struct.pack("<4sBBBBHHII", b"FXI1", 1, 0, palette_size, bpp,
-                        width, height, len(packed), len(packed))
-            + bytes(palette_size * 4) + packed)
 
 
 def nut():

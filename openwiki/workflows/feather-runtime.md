@@ -476,11 +476,29 @@ The file Preview header offers Settings immediately to the left of Print.
 Settings navigates to `ScreenPage.PREVIEW_SETTINGS`, owned by the lazy settings
 feature. It uses the same list, enum editor, numeric editor, paging and commit
 flow as Mod Settings. `ff5m_ui/parameter_controls.py` declares their common
-rows, category bands, paging controls, choices and NumericKeypad through the
-component model. `ff5m_ui/model_preview/settings.py` supplies only the relevant
+rows, category bands, paging controls, theme preview, text editor and
+NumericKeypad through the component model. Row, Column and Grid allocate the
+available content area instead of placing controls at screen coordinates.
+Narrow lists stack the label, value and description; pagination uses measured
+row heights. Pagination reads the row's shared sizing policy and font metrics
+without constructing off-screen controls. Wide rows use their uniform pitch;
+only the current page constructs component trees. Values and visibility are
+still read again on every render, with no retained parameter-value cache.
+Enum and theme capacities follow the available height. The theme
+preview stacks below its choices on narrow screens, and text keyboard rows
+reflow while retaining `TEXT_KEYBOARD`'s keys and editing behavior.
+`ff5m_ui/model_preview/settings.py` supplies only the relevant
 parameter keys for the selected style. Both UI modules load on demand.
 The settings feature owns the temporary editor text and selection;
 `mod_params` remains the sole owner of persisted values.
+
+Enum and theme choices share `ff5m_ui/selection_controls.py`'s `OptionButton`.
+The selected choice keeps its theme highlight and a native-size one-bit FXI1
+checkmark instead of a textual selection suffix. The complete normal and
+pressed button surfaces own both the caption and image, so press feedback
+cannot erase either. `ff5m_ui/icons.py` provides one bounded immutable resource
+cache for the controls and calibration icon sets; only palette bytes change
+with the theme. No runtime image generation or per-theme pixel cache is used.
 
 The existing `feather_preview_*` parameters remain compatible with stored
 configuration and SET_MOD, but are hidden from the general mod settings list.

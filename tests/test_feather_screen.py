@@ -921,7 +921,8 @@ class FeatherUtilitiesTest(unittest.TestCase):
                     if text.truncate and text.max_width is not None:
                         self.assertLessEqual(feature.renderer.text_width(
                             text.value, text.font), text.max_width)
-                value_button = row.button("mod.item.0")
+                from ff5m_ui.parameter_controls import parameter_action
+                value_button = row.button(parameter_action(parameter.key))
                 self.assertLessEqual(feature.renderer.text_width(
                     value_button.label, value_button.font), value_button.bounds.width
                     - 2 * feature.renderer.BUTTON_TEXT_PADDING)

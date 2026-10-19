@@ -1,4 +1,8 @@
 ## Settings and Mod Settings feature for Feather.
+##
+## Copyright (C) 2026, Alexander K <https://github.com/drA1ex>
+##
+## This file may be distributed under the terms of the GNU GPLv3 license
 
 from collections import namedtuple
 
@@ -159,6 +163,23 @@ class SettingsFeature(
             self._handle_mod_action(action)
             return True
         return False
+
+    def resolve_semantic_action(self, page, wire_id):
+        if page not in (ScreenPage.MOD_SETTINGS, ScreenPage.PREVIEW_SETTINGS):
+            return None
+        tree = getattr(self, "_mod_tree", None)
+        return tree.resolve_action(wire_id) if tree is not None else None
+
+    def handle_semantic_action(self, page, action):
+        from ff5m_ui.parameter_controls import ParameterCommand
+        from ui.actions import Command
+        if isinstance(action, Command) and action.key == ParameterCommand.OPEN:
+            index = next((index for index, key in self.mod_action_keys.items() if key == action.payload), None)
+            if index is None:
+                return False
+            self._open_mod_parameter(index, page)
+            return True
+        return self.handle_action(page, action.wire_id)
 
     def back(self, page):
         self._reset_benchmark_taps()
