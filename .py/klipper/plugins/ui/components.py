@@ -88,6 +88,8 @@ def _signature_value(value, state):
     # without allocating an intermediate dict/list for every frame.
     if value is None or type(value) in (str, int, float, bool):
         return value
+    if type(value) in (dict, list, tuple) and not value:
+        return ()
     value = resolve(value, state)
     if isinstance(value, Enum):
         return serialize_key(value)
@@ -159,18 +161,24 @@ class Component(Node):
         self._active_action_wire_id = None if value is None else action_wire_id(value)
 
     def state_signature(self, state):
-        # Cache field selection only. Values, bindings and nested containers
-        # remain live; adding/removing even one attribute refreshes the list.
+        # Reuse field selection and immutable literal pairs. Read properties
+        # every time; bindings, containers and replaced fields remain live.
         keys = tuple(self.__dict__)
         cached = getattr(self, "_signature_fields", None)
         if cached is None or cached[0] != keys:
-            fields = tuple(name for name in keys if not name.startswith("_")
-                           and name not in ("key", "layout_options", "parent"))
-            self._signature_fields = (keys, fields)
+            fields = []
+            for name in keys:
+                if name.startswith("_") or name in ("key", "layout_options", "parent"):
+                    continue
+                value = self.__dict__[name]
+                literal = value is None or type(value) in (str, int, float, bool)
+                fields.append((name, value if literal else None, (name, value) if literal else None))
+            self._signature_fields = (keys, tuple(fields))
         else:
             fields = cached[1]
-        return tuple((name, _signature_value(self.__dict__[name], state))
-                     for name in fields)
+        return tuple(pair if pair is not None and self.__dict__[name] is original
+                     else (name, _signature_value(self.__dict__[name], state))
+                     for name, original, pair in fields)
 
 
 class Fill(Component):
@@ -406,6 +414,14 @@ class Button(Component):
         return resolve(self.state, state) not in ("disabled", "busy")
 
     def draw(self, renderer, state, bounds):
+        if type(self.kwargs) is dict and not self.kwargs:
+            button_state = resolve(self.state, state)
+            if self.font is None:
+                return renderer.button(resolve(self.action, state), *bounds,
+                                       resolve(self.label, state), state=button_state)
+            font = resolve(self.font, state)
+            return renderer.button(resolve(self.action, state), *bounds,
+                                   resolve(self.label, state), state=button_state, font=font)
         kwargs = dict(
             (name, resolve(value, state))
             for name, value in self.kwargs.items())

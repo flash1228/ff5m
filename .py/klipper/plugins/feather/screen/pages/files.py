@@ -11,6 +11,7 @@ import threading
 
 from ui import ThemeColor, ThemeRole
 from ui.layout_helpers import centered_button_row
+from ui.lazy import LazyModule
 from ff5m_ui.screen import ScreenPage
 
 from feather.files import FileEntry, FileTaskSuperseded, scan_gcode_files
@@ -29,6 +30,7 @@ FILE_TILE_Y = 68
 FILE_TILE_WIDTH = 240
 FILE_TILE_HEIGHT = 306
 FILE_TILE_IMAGE_Y = 78
+file_list_ui = LazyModule("ff5m_ui.file_list")
 
 
 class FileBrowserPagesMixin:
@@ -227,15 +229,15 @@ class FileBrowserPagesMixin:
         if self.file_view == "tiles":
             commands += self._render_file_tiles(rows)
         else:
-            for index, entry in enumerate(rows):
-                y = 62 + index * 65
-                commands += self.renderer.button(
-                    "file.item%d" % index, 30, y, 740, 56,
-                    (entry.name + "  >" if entry.directory else entry.name),
-                    font="JetBrainsMono 12pt")
+            tree = getattr(self, "_file_list_tree", None)
+            bounds = file_list_ui.content_bounds(self.renderer)
+            if tree is None:
+                tree = self._file_list_tree = file_list_ui.create_page(FILE_ROWS, bounds)
+            tree.bounds = bounds
+            commands += file_list_ui.draw(tree, self.renderer, pagination)
         commands += pagination_footer(
             self.renderer, pagination, "file.prev", "file.next")
-        if not rows:
+        if not rows and self.file_view == "tiles":
             commands.append(self.renderer.text(
                 400, 230, "No G-code files", ThemeColor.DIM,
                 "Roboto 16pt", "center", "middle"))

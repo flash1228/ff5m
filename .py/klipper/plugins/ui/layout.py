@@ -1908,6 +1908,18 @@ _LIST_VIEW_CREATION = CreationContract(
     ), source=_LIST_VIEW_CREATION_SOURCE)
 
 
+def _plain_snapshot(value):
+    """Identify built-in model values whose copy has no user-defined effects."""
+    kind = type(value)
+    if value is None or kind in (str, int, float, bool):
+        return True
+    if kind in (list, tuple):
+        return all(_plain_snapshot(part) for part in value)
+    if kind is dict:
+        return all(type(key) is str and _plain_snapshot(part) for key, part in value.items())
+    return False
+
+
 def _clone_template_root(root):
     """Clone ordinary node dictionaries without reconstructing every scalar field.
 
@@ -2280,7 +2292,15 @@ class ListView(List):
             self._materialize(state, scopes, selectors)
             declarations_changed = (self._materialized_signature is None or not self.reuse_items
                                     or signature[2:] != self._materialized_signature[2:])
-            self._materialized_signature = copy.deepcopy(signature)
+            snapshot = (state._values[self.items_binding.key]
+                        if self.reuse_items and type(self.items_binding) is DirectBinding
+                        and type(state) is StateStore else None)
+            if type(snapshot) is list and _plain_snapshot(snapshot):
+                # StateStore replaces owned collection snapshots on update and
+                # never exposes them. Item scopes still own separate copies.
+                self._materialized_signature = (snapshot, copy.deepcopy(selectors)) + signature[2:]
+            else:
+                self._materialized_signature = copy.deepcopy(signature)
             refresh_keys = refresh_keys or declarations_changed
             if not initialize:
                 self.invalidate(Dirty.PAINT if self.reuse_items else Dirty.LAYOUT)

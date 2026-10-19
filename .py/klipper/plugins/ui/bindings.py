@@ -456,7 +456,8 @@ class ItemBinding(Binding):
                 self.field)
         if self.field not in current:
             raise KeyError("Template item has no field %r" % self.field)
-        return copy.deepcopy(current[self.field])
+        value = current[self.field]
+        return value if value is None or type(value) in (str, int, float, bool) else copy.deepcopy(value)
 
     def as_dict(self):
         return {"kind": "item", "field": self.field}
