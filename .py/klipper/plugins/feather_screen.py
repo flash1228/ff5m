@@ -803,10 +803,19 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
             else:
                 feature.abort(gcmd)
             return
-        if action != "RUN":
+        if action == "PROFILE_STOP":
+            if feature is None:
+                gcmd.respond_info("Feather CPU profile: idle")
+            else:
+                feature.stop_cpu_profile(gcmd)
+            return
+        if action not in ("RUN", "PROFILE_START"):
             raise gcmd.error("Unknown Feather UI test ACTION=%s" % action)
         try:
             feature = self.feature_manager.get("ui_test")
+            if action == "PROFILE_START":
+                feature.start_cpu_profile(gcmd, gcmd.get("DURATION", "10"))
+                return
             feature.run(
                 gcmd, str(gcmd.get("SUITE", "FULL")).strip().upper(),
                 str(gcmd.get("MATERIAL", "")).strip(),

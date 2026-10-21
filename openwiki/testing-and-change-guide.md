@@ -1282,6 +1282,30 @@ This is not a gap to hide: Forge-X changes early boot, services, printer motion,
 
 Use the operator docs as test procedures where applicable—especially [`docs/PRINTING.md`](../docs/PRINTING.md), [`docs/CALIBRATION.md`](../docs/CALIBRATION.md), [`docs/SCREEN.md`](../docs/SCREEN.md), and [`docs/RECOVERY.md`](../docs/RECOVERY.md).
 
+## Main-thread CPU profiles
+
+Use the hidden `_FEATHER_UI_TEST ACTION=PROFILE_START DURATION=10` command to
+record Klipper's main-thread CPU while observing a normal UI workload. The
+duration is bounded to 1–15 seconds. The printer must be idle, with heater
+targets off, no pause or active virtual SD, and no motion. A state change
+cancels recording. UI regression runs and CPU profiles cannot overlap.
+
+`_FEATHER_UI_TEST ACTION=PROFILE_STOP` finishes early; `ACTION=ABORT` also stops
+an active profile. Neither command loads the diagnostic feature when it is
+idle. Read `feather_screen.ui_test.cpu_profile` through Moonraker for the
+current directory, completion reason and save status.
+
+Completed directories under `/data/feather-ui-tests/cpu-profile-*` contain
+standard `profile.pstats`, `functions.json` and `metadata.json`. Copy them to a
+persistent development docs directory outside this checkout, verify checksums,
+then remove only that completed profile directory if cleanup is needed. These
+artifacts contain function metadata and CPU counts, without locals or payloads.
+
+The clock is `time.thread_time`, so waiting is excluded. Use exclusive CPU to
+attribute work: inclusive caller edges may cross greenlet scheduling. Profiling
+adds overhead; use the result to locate hot paths, and collect any throughput
+comparison after recording stops.
+
 ## Required safety gates
 
 1. **Do not test new motion behavior on an uncalibrated printer.** Installation/uninstallation and config tuning can invalidate bed mesh/Z offset.

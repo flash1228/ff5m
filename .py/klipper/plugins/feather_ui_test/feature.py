@@ -7,11 +7,12 @@
 import os
 import time
 
+from ff5m_ui.print_state import PrintState
 from .runner import UITestRun
 
 
 class UITestFeature:
-    """Expose one current test run to Feather's lazy feature manager."""
+    """Expose a UI regression run or CPU profile through the lazy feature manager."""
 
     name = "ui_test"
 
@@ -19,6 +20,7 @@ class UITestFeature:
         self.host = host
         self.session_id = "%d-%.6f" % (os.getpid(), time.time())
         self.current_run = None
+        self.cpu_profile = None
 
     @property
     def running(self):
@@ -50,6 +52,15 @@ class UITestFeature:
             page, action)
 
     def update(self, eventtime):
+        profile = self.cpu_profile
+        if profile is not None and profile.running:
+            try:
+                allowed = self._profile_safe()
+            except Exception:
+                profile.stop("safety_check_failed", save=False)
+            else:
+                if not allowed:
+                    profile.stop("printer_not_idle", save=False)
         run = self.current_run
         if run is not None:
             run.update(eventtime)
@@ -65,6 +76,8 @@ class UITestFeature:
             run.on_render_receipt(receipt, eventtime)
 
     def on_print_state_changed(self, old_state, new_state, stats_state):
+        if new_state != PrintState.IDLE and self.cpu_profile is not None:
+            self.cpu_profile.stop("printer_state_changed", save=False)
         run = self.current_run
         if run is not None:
             run.on_print_state_changed(old_state, new_state, stats_state)
@@ -79,6 +92,9 @@ class UITestFeature:
             page, eventtime)
 
     def respond_status(self, gcmd):
+        if self.cpu_profile is not None and self.cpu_profile.running:
+            gcmd.respond_info("Feather CPU profile: %s" % self.cpu_profile.get_status())
+            return
         run = self.current_run
         if run is None or not run.running:
             gcmd.respond_info("Feather UI test: idle")
@@ -87,11 +103,16 @@ class UITestFeature:
 
     def get_status(self):
         run = self.current_run
-        if run is None:
-            return {"running": False}
-        return run.get_status()
+        status = {"running": False} if run is None else run.get_status()
+        if self.cpu_profile is not None:
+            status = dict(status)
+            status["cpu_profile"] = self.cpu_profile.get_status()
+        return status
 
     def abort(self, gcmd):
+        if self.cpu_profile is not None and self.cpu_profile.running:
+            self.stop_cpu_profile(gcmd, reason="aborted")
+            return
         run = self.current_run
         if run is None or not run.running:
             gcmd.respond_info("Feather UI test: nothing to abort")
@@ -100,6 +121,8 @@ class UITestFeature:
 
     def run(self, gcmd, suite, material, confirm, encoded_cases="",
             screen_capture_interval=0.0):
+        if self.cpu_profile is not None and self.cpu_profile.running:
+            raise gcmd.error("A Feather CPU profile is running")
         if self.running:
             raise gcmd.error("Feather UI test is already running")
         candidate = UITestRun(
@@ -110,11 +133,48 @@ class UITestFeature:
             screen_capture_interval)
         self.current_run = candidate
 
+    def _profile_safe(self):
+        host = self.host
+        eventtime = host.reactor.monotonic()
+        return (host.print_state == PrintState.IDLE
+                and not host._safety_print_active(eventtime)
+                and not host._safety_heaters_active(eventtime)
+                and not host._safety_motion_active(eventtime)
+                and not host.pause_resume.get_status(eventtime).get("is_paused")
+                and not getattr(host, "command_depth", 0))
+
+    def start_cpu_profile(self, gcmd, duration):
+        if self.running or self.finalizing:
+            raise gcmd.error("A Feather UI test is running")
+        if self.cpu_profile is not None and self.cpu_profile.running:
+            raise gcmd.error("A Feather CPU profile is already running")
+        from .profiling import CPUProfile
+        candidate = CPUProfile(self.host.reactor, self._profile_safe)
+        candidate.start(duration)
+        self.cpu_profile = candidate
+        gcmd.respond_info("Feather CPU profile started: %s" % candidate.directory)
+
+    def stop_cpu_profile(self, gcmd, reason="requested"):
+        profile = self.cpu_profile
+        if profile is None:
+            gcmd.respond_info("Feather CPU profile: idle")
+            return
+        if profile.running:
+            try:
+                allowed = self._profile_safe()
+            except Exception:
+                profile.stop("safety_check_failed", save=False)
+            else:
+                profile.stop(reason, save=allowed)
+        gcmd.respond_info("Feather CPU profile: %s" % profile.get_status())
+
     def _run_finished(self, run):
         if self.current_run is run:
             self.current_run = None
 
     def deactivate(self):
+        if self.cpu_profile is not None:
+            self.cpu_profile.stop("deactivated", save=False)
         run = self.current_run
         self.current_run = None
         if run is not None:

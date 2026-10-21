@@ -1926,7 +1926,7 @@ class RunnerContractTest(unittest.TestCase):
         self.assertEqual(
             gcmd.responses, ["Feather UI test: idle (feature not loaded)"])
 
-    def test_run_is_the_only_command_path_that_loads_feature(self):
+    def test_run_command_loads_feature_lazily(self):
         controller = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)
         controller.feature_manager = LazyFeatureManager(
             controller, FEATHER.FEATURE_SPECS)
