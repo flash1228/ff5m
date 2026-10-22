@@ -340,8 +340,8 @@ class BenchmarkFeature(FeatureHostProxy):
 
         if self.benchmark_page == ScreenPage.COMPONENT_BENCHMARK:
             elapsed = max(0.0, float(eventtime) - self.session_started)
+            # Setting a layout field relayouts the node by itself.
             self.workload_node.layout_options.width = self._layout_width(elapsed)
-            self.workload_node.invalidate_layout()
             state = self._layout_state(elapsed, include_stats)
             if full:
                 commands = self.renderer.begin_page(

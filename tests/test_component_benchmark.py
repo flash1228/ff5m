@@ -22,6 +22,8 @@ from ff5m_ui.benchmark.page import BenchmarkRef  # noqa: E402
 from ff5m_ui.print_state import PrintState  # noqa: E402
 from ff5m_ui.screen import ScreenPage  # noqa: E402
 from ui import FeatherRenderer  # noqa: E402
+from ui.engine import update_refs as engine_update_refs  # noqa: E402
+from ui.font_metrics import get_font_metrics  # noqa: E402
 from ui.render_receipts import RenderReceipt  # noqa: E402
 from tests.feather_render_test_helper import (  # noqa: E402
     RenderCapture, full_render_queue)
@@ -327,6 +329,34 @@ class ComponentBenchmarkTest(unittest.TestCase):
                         LayoutRef.ACTIONS, BenchmarkRef.STATS):
                 self.assertEqual(targeted.rect(ref), regular.rect(ref),
                                  (frame, ref))
+
+    def test_frames_run_no_python_inside_the_engine(self):
+        feature = BenchmarkFeature(SimpleNamespace(renderer=FeatherRenderer()))
+        page, renderer = layout_page.create_page(), FeatherRenderer()
+        renderer.begin_page("Component benchmark", back=True)
+        page.draw(renderer, feature._layout_state(0.0, True))
+        renderer.discard_surface()
+        calls = []
+
+        def profile(frame, event, _arg):
+            if event == "call":
+                calls.append(frame.f_code.co_name)
+
+        for frame in range(1, 22):
+            feature.frame = frame
+            include_stats = frame % 7 == 0
+            state = feature._layout_state(frame / 7.0, include_stats)
+            refs = [LayoutRef.CARD] + ([BenchmarkRef.STATS] if include_stats else [])
+            page.node(LayoutRef.CARD).layout_options.width = feature._layout_width(frame / 7.0)
+            metrics_key = get_font_metrics().cache_key
+            sys.setprofile(profile)
+            try:
+                commands = engine_update_refs(page, renderer, state, refs, metrics_key)
+            finally:
+                sys.setprofile(None)
+            renderer.discard_surface()
+            self.assertTrue(commands, frame)
+            self.assertEqual(calls, [], frame)
 
     def test_five_menu_title_taps_open_only_the_component_benchmark(self):
         class Menu(HomePagesMixin):
