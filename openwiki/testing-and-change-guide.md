@@ -64,9 +64,36 @@ frame. Wrapped text changes height, buttons change columns and stretch to fill
 the available row while keeping a minimum width, and the sample
 rows advance. Each frame runs the page's normal component update and full
 layout pass. The **PYTHON** metric includes state updates, layout, and command
-construction; frame median and p95 measure submission to render receipt, and
-**COMMIT FPS** counts received frame receipts in the last second. The first
-30 frames warm the benchmark before samples enter the rolling window.
+construction; **PY P95** reports its p95. Frame median and p95 measure
+submission to render receipt, and **RENDER FPS** counts successfully completed
+render transactions in the last second. Both benchmarks run without an FPS
+limit. They request `staged` receipts, so rendering can proceed faster than
+physical screen refresh; several rendered transactions can share one screen
+update. With adaptive publication enabled, both copy and page-flip candidates
+remain staged until the presentation deadline; the publisher chooses the
+physical method at that point. Synchronous receipts and copy-only fallback
+still wait for publication. One frame may be submitted while Python prepares
+one successor, keeping transport backpressure bounded. Preparation waits until
+the transport worker has written the entire outgoing batch. Its optional
+`set_sent_handler` callback reaches the reactor with the receipt token and
+dispatch time; native layout therefore cannot starve the unfinished write of
+the GIL. This event admits preparation only; the render receipt admits the
+next submission and counts toward FPS. Stale notifications after cancellation
+or restart are ignored. The first 30 frames warm the benchmark before samples
+enter the rolling window.
+
+Close both benchmark pages before isolated CPU or native-runtime measurements.
+For complete-pipeline throughput, open the benchmark only after renderer startup
+and calibration have settled. Query `feather_screen=benchmark` through Moonraker
+and compare its `completed_frames` at two `eventtime` values within the same
+active `session`. This counts successful receipts without transferring a
+framebuffer capture. After cancellation or failure the counter is `null`. Compare the same page, raster mode and workload,
+and collect final FPS without profiling hooks; instrumentation can change thread
+scheduling and throughput.
+
+With staged receipts, **TYPER**, **CPU**, and **FLUSH** cover work up to render
+completion. Deferred framebuffer copying and page publication consume CPU after
+that receipt and can still limit overall throughput.
 
 The two benchmarks share receipt timing and stop/restart behavior, but their
 results represent different workloads and should be compared within each page.

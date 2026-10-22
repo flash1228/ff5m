@@ -89,6 +89,13 @@ class BinaryCommand(str):
         return value
 
 
+def _immutable_commands(commands):
+    """Freeze a batch: binary commands as they are, everything else as text."""
+    return tuple(
+        command if isinstance(command, BinaryCommand) else str(command)
+        for command in commands)
+
+
 class FeatherRenderer:
     """Translate small UI primitives into typer display-list commands."""
 
@@ -121,8 +128,9 @@ class FeatherRenderer:
     HINT_TEXT_PADDING = 20
     DIALOG_TEXT_PADDING = 28
     def __init__(self, debug=False, theme_directories=None, blending=True,
-                 raster_acceleration="scalar"):
+                 raster_acceleration="scalar", ram_composition=False):
         self.debug = debug
+        self.ram_composition = bool(ram_composition)
         self.blending = bool(blending)
         self.raster_acceleration = str(raster_acceleration).strip().lower()
         if self.raster_acceleration not in ("scalar", "neon"):
@@ -142,11 +150,15 @@ class FeatherRenderer:
         self._last_footer = None
         self._footer_values = None
         self._footer_drawn = False
+        # Footer commands painted by the prepared surface. Its batch carries
+        # them so a superseding surface cannot drop the persistent footer.
+        self._footer_paint = None
         self._reset_interactions()
         self._generation = 0
         self._batch_queue = RenderBatchQueue(MAX_BATCHES, MAX_BATCH_BYTES)
         self._worker = None
         self._timing_sink = None
+        self._sent_handler = None
         self._async_scheduler = None
         self._event_fd_handler = None
         self._restart_handler = None
@@ -185,6 +197,11 @@ class FeatherRenderer:
         "_menu_suppressed", "_footer_drawn", "_last_footer", "_header_action",
         "_overlay_hitboxes", "_dialog_bounds",
     )
+    # Surface fields mutated in place; the snapshot copies them. Every other
+    # field is replaced on change, so the snapshot shares its value.
+    _SURFACE_CONTAINERS = (
+        "_buttons", "_toggles", "_hitboxes", "_pressed_buttons", "_overlay_hitboxes",
+    )
 
     @property
     def render_allowed(self):
@@ -194,16 +211,16 @@ class FeatherRenderer:
         if not self.render_allowed:
             return False
         if self._prepared_surface is None:
-            self._prepared_surface = {
-                name: (value.copy() if isinstance(value, (dict, set, list)) else value)
-                for name in self._SURFACE_FIELDS
-                for value in (getattr(self, name),)
-            }
+            surface = {name: getattr(self, name) for name in self._SURFACE_FIELDS}
+            for name in self._SURFACE_CONTAINERS:
+                surface[name] = surface[name].copy()
+            self._prepared_surface = surface
         return True
 
     def _finish_surface(self, accepted):
         previous = self._prepared_surface
         self._prepared_surface = None
+        self._footer_paint = None
         if previous is not None and not accepted:
             for name, value in previous.items():
                 setattr(self, name, value)
@@ -302,7 +319,9 @@ class FeatherRenderer:
             (TYPER_BINARY, DRAW_PIPE, EVENT_PIPE, TOUCH_DEVICE),
             self._async_scheduler, self._worker_event_fd_changed,
             self._worker_restarted, load_fonts, blending=self.blending,
-            raster_acceleration=self.raster_acceleration)
+            raster_acceleration=self.raster_acceleration,
+            ram_composition=self.ram_composition,
+            sent_handler=self._worker_sent if self._sent_handler is not None else None)
         self._worker.timing_sink = self._timing_sink
         started = self._worker.start()
         self._busy_label = None
@@ -336,6 +355,20 @@ class FeatherRenderer:
         if self._worker is not None:
             return self._worker.request_restart()
         return False
+
+    def set_sent_handler(self, callback):
+        """Notify on the reactor after a receipt-bearing batch is fully written.
+
+        This is transport completion, not render completion or presentation.
+        Consumers must ignore tokens from cancelled or superseded operations.
+        """
+        self._sent_handler = callback
+        if self._worker is not None:
+            self._worker.sent_handler = self._worker_sent if callback is not None else None
+
+    def _worker_sent(self, token, eventtime):
+        if self._sent_handler is not None:
+            self._sent_handler(token, eventtime)
 
     def set_timing_sink(self, sink):
         """Send worker render timings to an optional diagnostic consumer."""
@@ -404,7 +437,11 @@ class FeatherRenderer:
             else:
                 self._pressed_buttons = previous["_pressed_buttons"].copy()
         if commands:
-            frame["accepted"] = self.send(commands, kind=kind, key=key, receipt=receipt)
+            if receipt is None:
+                frame["accepted"] = self.send(commands, kind=kind, key=key)
+            else:
+                frame["accepted"] = self.send(
+                    commands, kind=kind, key=key, receipt=receipt[0], receipt_phase=receipt[1])
         else:
             self._finish_surface(False)
 
@@ -446,7 +483,7 @@ class FeatherRenderer:
             self._composite_commands = previous
 
     def send(self, commands, kind=None, key=None, generation=None,
-             receipt=None, button_feedback=False):
+             receipt=None, button_feedback=False, receipt_phase="presented"):
         """Publish one immutable batch; registered buttons can respond while frozen."""
         if self._output_held:
             self._next_batch_kind = None
@@ -460,9 +497,9 @@ class FeatherRenderer:
             if self._composite_commands is None and not button_feedback:
                 self._finish_surface(False)
             return False
-        immutable = tuple(
-            command if isinstance(command, BinaryCommand) else str(command)
-            for command in commands)
+        if receipt_phase != "presented" and (receipt_phase != "staged" or receipt is None):
+            raise ValueError("staged receipts require a token; unknown receipt phase")
+        immutable = _immutable_commands(commands)
         batch_generation = ((self.generation if button_feedback else self._generation)
                             if generation is None else int(generation))
         if kind is None and self._next_batch_kind is not None:
@@ -474,9 +511,10 @@ class FeatherRenderer:
                 raise ValueError("this render batch cannot be composed")
             if receipt is not None:
                 token = validate_render_receipt_token(receipt)
-                if self._composite_receipt not in (None, token):
-                    raise ValueError("a composed frame can have only one receipt")
-                self._composite_receipt = token
+                request = (token, receipt_phase)
+                if self._composite_receipt not in (None, request):
+                    raise ValueError("a composed frame can have only one receipt and phase")
+                self._composite_receipt = request
             self._composite_commands.extend(immutable)
             if (kind == "critical"
                     or (kind == "surface" and self._composite_kind != "critical")
@@ -486,6 +524,10 @@ class FeatherRenderer:
             return True
         owner = self._frame_owner
         if owner is not None and not owner.painting and not button_feedback:
+            if receipt_phase != "presented":
+                return owner.submit(
+                    immutable, kind=kind, key=key, generation=generation,
+                    receipt=receipt, receipt_phase=receipt_phase)
             return owner.submit(
                 immutable, kind=kind, key=key, generation=generation,
                 receipt=receipt)
@@ -499,6 +541,8 @@ class FeatherRenderer:
             receipt = (None if receipt is None else
                        validate_render_receipt_token(receipt))
             serialized_size = self._serialized_size(immutable, receipt)
+            if receipt_phase != "presented":
+                serialized_size += len(" --receipt-phase staged")
         except ValueError as exc:
             logging.warning("[feather_screen] rejected render batch: %s", exc)
             self._batch_queue.reject_submission()
@@ -506,7 +550,7 @@ class FeatherRenderer:
             return False
         batch = RenderBatch(
             immutable, kind, key, batch_generation, serialized_size, None,
-            receipt)
+            receipt, None if button_feedback else self._footer_paint, receipt_phase)
         try:
             accepted = self._batch_queue.put_nowait(batch)
         except BaseException:
@@ -580,12 +624,18 @@ class FeatherRenderer:
             for command in commands)
 
     @staticmethod
-    def _encode_frames(commands, receipt=None):
+    def _encode_frames(commands, receipt=None, receipt_phase="presented"):
         receipt = (None if receipt is None else
                    validate_render_receipt_token(receipt))
         final_command = "--batch flush"
         if receipt is not None:
             final_command += " --receipt " + receipt
+            if receipt_phase != "presented":
+                if receipt_phase != "staged":
+                    raise ValueError("unknown receipt phase")
+                final_command += " --receipt-phase staged"
+        elif receipt_phase != "presented":
+            raise ValueError("staged receipts require a token")
         intermediate_suffix = b"--end\n"
         final_suffix = (final_command + "\n--end\n").encode("utf-8")
         frames = []
@@ -1828,9 +1878,14 @@ class FeatherRenderer:
         if show_header_action:
             commands += self._header_action_commands()
         if self._footer_values is not None and not self._footer_drawn:
-            commands += self._footer_commands(self._footer_values)
-            self._last_footer = self._footer_values
-            self._footer_drawn = True
+            commands += self._paint_footer(self._footer_values)
+        return commands
+
+    def _paint_footer(self, values):
+        commands = self._footer_commands(values)
+        self._last_footer = values
+        self._footer_drawn = True
+        self._footer_paint = _immutable_commands(commands)
         return commands
 
     def _footer_commands(self, values):
@@ -1862,10 +1917,8 @@ class FeatherRenderer:
             return
         if not self._prepare_surface():
             return
-        self._last_footer = values
-        self._footer_drawn = True
         self.prioritize_next_batch("state", "footer")
-        self.send(self._footer_commands(values))
+        self.send(self._paint_footer(values))
 
     def invalidate_footer(self):
         """Require the next page frame to restore the persistent footer."""

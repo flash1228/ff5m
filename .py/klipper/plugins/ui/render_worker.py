@@ -21,10 +21,11 @@ RENDER_STALL_TIMEOUT = 5.0
 HANDOFF_TIMEOUT = 5.0
 PRESENT_GUARD_US = 3000
 
+# ``footer`` holds the persistent footer commands this batch paints, if any.
 RenderBatch = namedtuple(
     "RenderBatch",
-    "commands kind key generation serialized_size control receipt",
-    defaults=(None,))
+    "commands kind key generation serialized_size control receipt footer receipt_phase",
+    defaults=(None, None, "presented"))
 
 
 class _RestartRequested(Exception):
@@ -56,19 +57,23 @@ class RenderBatchQueue:
         }
 
     def _remove(self, predicate, coalesced=True):
+        """Remove matching batches and return the newest footer they paint."""
         kept = deque()
         removed = 0
+        footer = None
         while self._items:
             item = self._items.popleft()
             if predicate(item):
                 removed += 1
+                if item.footer is not None:
+                    footer = item.footer
             else:
                 kept.append(item)
         self._items = kept
         if removed:
             metric = "coalesced_batches" if coalesced else "dropped_batches"
             self._metrics[metric] += removed
-        return removed
+        return footer
 
     def _evict_one(self, kinds, coalesced=False):
         for index, item in enumerate(self._items):
@@ -105,9 +110,15 @@ class RenderBatchQueue:
                         self._latest_generation, batch.generation)
                     # A complete surface makes every untouched update for the
                     # same or an older interaction generation obsolete.
-                    self._remove(lambda queued: (
+                    footer = self._remove(lambda queued: (
                         queued.kind != "critical"
                         and queued.generation <= batch.generation))
+                    if footer is not None and batch.footer is None:
+                        # Surfaces leave the persistent footer untouched, so
+                        # its newest superseded paint must precede them, under
+                        # any scrim the surface draws.
+                        batch = batch._replace(
+                            commands=footer + batch.commands, footer=footer)
                 elif batch.kind == "state":
                     # Foreground updates may replace input without replacing
                     # backdrop pixels. Keep queued prerequisite surfaces, but
@@ -241,7 +252,8 @@ class TyperRenderWorker:
     def __init__(self, batch_queue, encode_frames, debug, paths,
                  schedule_async, event_fd_changed, restarted=None,
                  font_loader=None, blending=False,
-                 raster_acceleration="scalar"):
+                 raster_acceleration="scalar", sent_handler=None,
+                 ram_composition=False):
         self.queue = batch_queue
         self.encode_frames = encode_frames
         self.debug = bool(debug)
@@ -251,11 +263,15 @@ class TyperRenderWorker:
         self.event_fd_changed = event_fd_changed
         self.restarted = restarted
         self.font_loader = font_loader
+        self.sent_handler = sent_handler
         self.blending = bool(blending)
         self.raster_acceleration = str(raster_acceleration).strip().lower()
         if self.raster_acceleration not in ("scalar", "neon"):
             raise ValueError("invalid Typer raster acceleration: %s" %
                              raster_acceleration)
+        # Opt-in: Typer composes in an extra 1.5 MB RAM image, trading
+        # scarce printer memory for fewer uncached framebuffer reads.
+        self.ram_composition = bool(ram_composition)
         self.thread = None
         self.process = None
         self.draw_fd = None
@@ -452,6 +468,8 @@ class TyperRenderWorker:
             args.append("--blending")
         if self.raster_acceleration != "scalar":
             args += ["--raster-acceleration", self.raster_acceleration]
+        if self.ram_composition:
+            args.append("--ram-composition")
         args += ["--double-buffered", "--touch-device", self.touch_device,
                  "--event-pipe", self.event_pipe, "batch", "--pipe",
                  self.draw_pipe]
@@ -513,11 +531,19 @@ class TyperRenderWorker:
     def _render(self, batch):
         if batch.receipt is None:
             frames = self.encode_frames(batch.commands)
-        else:
+        elif batch.receipt_phase == "presented":
             frames = self.encode_frames(batch.commands, batch.receipt)
+        else:
+            frames = self.encode_frames(batch.commands, batch.receipt, batch.receipt_phase)
         for frame in frames:
             self._write_frame(frame)
         self.queue.rendered()
+        sent_handler = self.sent_handler
+        if batch.receipt is not None and sent_handler is not None:
+            try:
+                self.schedule_async(lambda eventtime: sent_handler(batch.receipt, eventtime))
+            except (TypeError, OSError) as exc:
+                raise _ReactorStopped("reactor is stopped") from exc
 
     def _recover(self, exc, failures):
         expected_restart = isinstance(exc, _RestartRequested)
@@ -567,7 +593,12 @@ class TyperRenderWorker:
                         raise _RestartRequested()
                     if self.queue.obsolete(pending):
                         self.queue.drop_render(pending)
-                    else:
+                        # A newer surface was built while this batch was in
+                        # flight and leaves the persistent footer to it.
+                        pending = (None if pending.footer is None else
+                                   pending._replace(commands=pending.footer,
+                                                    receipt=None))
+                    if pending is not None:
                         try:
                             self._render(pending)
                         except ValueError as exc:

@@ -98,7 +98,7 @@ class ScreenRoot:
     def invalidate(self, node=None):
         (self.content if node is None else node).invalidate(Dirty.PAINT)
 
-    def paint(self, receipt=None, force=False):
+    def paint(self, receipt=None, force=False, receipt_phase="presented"):
         if self.painting or not self.renderer.render_allowed:
             self._repaint_pending = self._repaint_pending or force
             return False
@@ -106,7 +106,7 @@ class ScreenRoot:
         self._repaint_pending = False
         self.painting = True
         try:
-            result = self._paint_frame(receipt, force)
+            result = self._paint_frame(receipt, force, receipt_phase)
         finally:
             self.painting = False
         return self._drain_repaint() or result
@@ -124,7 +124,7 @@ class ScreenRoot:
         finally:
             self._draining_repaint = False
 
-    def _paint_frame(self, receipt, force):
+    def _paint_frame(self, receipt, force, receipt_phase="presented"):
         layers = tuple(layer for layer in self.layers if not layer.suspended)
         same_surface = self.content is self._visible_content and layers == self.visible_layers
         restore = force or self.renderer.header_action_changed
@@ -177,13 +177,13 @@ class ScreenRoot:
                         reuse_styles=mode == "update_foreground", render_from=foreground)
                 if commands:
                     self.renderer.send(
-                        commands, receipt=receipt,
+                        commands, receipt=receipt, receipt_phase=receipt_phase,
                         kind="surface" if mode == "full" else (
                             None if mode == "delta" else "state"),
                         key="foreground" if mode == "update_foreground" else None)
             if frame["background_changed"]:
                 # Unknown or changed panel bounds require restoring exposed pixels.
-                return self._paint_frame(receipt, True)
+                return self._paint_frame(receipt, True, receipt_phase)
             accepted = frame["accepted"]
             if accepted:
                 self.visible_layers = layers
@@ -202,7 +202,8 @@ class ScreenRoot:
                 or not getattr(self.content, "accepts_deltas", False)):
             self.renderer.discard_surface()
             self.invalidate()
-            return self.paint(receipt=metadata.get("receipt"))
+            return self.paint(receipt=metadata.get("receipt"),
+                              receipt_phase=metadata.get("receipt_phase", "presented"))
         self.painting = True
         try:
             result = self.renderer.send(commands, **metadata)

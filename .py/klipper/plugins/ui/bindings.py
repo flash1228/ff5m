@@ -140,7 +140,61 @@ def _json_value(value):
     return value
 
 
+def _is_portable(value):
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return True
+    if isinstance(value, (list, tuple)):
+        return all(_is_portable(item) for item in value)
+    if isinstance(value, dict):
+        return all(isinstance(key, str) and _is_portable(item) for key, item in value.items())
+    return False
+
+
+_NOT_PLAIN = object()
+
+
+def _plain_copy(value, seen):
+    kind = type(value)
+    if value is None or kind in (str, int, float, bool):
+        return value
+    if kind not in (list, tuple, dict) or id(value) in seen:
+        return _NOT_PLAIN
+    seen.add(id(value))
+    if kind is dict:
+        result = {}
+        for key, item in value.items():
+            copied = _plain_copy(item, seen)
+            if type(key) is not str or copied is _NOT_PLAIN:
+                return _NOT_PLAIN
+            result[key] = copied
+        return result
+    result = []
+    for item in value:
+        copied = _plain_copy(item, seen)
+        if copied is _NOT_PLAIN:
+            return _NOT_PLAIN
+        result.append(copied)
+    if kind is list:
+        return result
+    # Like deepcopy, a tuple whose items copy to themselves is returned as is.
+    return value if all(a is b for a, b in zip(result, value)) else tuple(result)
+
+
+def _copy_value(value):
+    """Return an isolated copy of a state value, exactly as deepcopy would.
+
+    Trees of exact built-in JSON-like types are copied directly, skipping
+    deepcopy's memo and dispatch. Shared or cyclic containers, whose aliases
+    deepcopy preserves, and every other type keep deepcopy.
+    """
+    copied = _plain_copy(value, set())
+    return copy.deepcopy(value) if copied is _NOT_PLAIN else copied
+
+
 def _validate_portable_collection(value, path="state"):
+    # Valid data is checked without building element paths for diagnostics.
+    if _is_portable(value):
+        return
     if value is None or isinstance(value, (bool, int, float, str)):
         return
     if isinstance(value, (list, tuple)):
@@ -202,7 +256,7 @@ class StateSpec:
     def default_value(self):
         if not self.available:
             raise ValueError("State value has no default")
-        return copy.deepcopy(self.default)
+        return _copy_value(self.default)
 
     def validate(self, value):
         if value is None:
@@ -261,7 +315,7 @@ def state(value_type, default=_UNAVAILABLE, minimum=None, maximum=None,
 def state_spec(key):
     if not isinstance(key, StateKey):
         raise TypeError("State binding key must be a StateKey member")
-    spec = key.value
+    spec = key._value_  # .value is a Python level descriptor
     if not isinstance(spec, StateSpec):
         raise TypeError("StateKey members must be declared with state(...)")
     return spec
@@ -273,11 +327,10 @@ class StateStore:
     __slots__ = ("_schema", "_values", "_changed_keys")
 
     def __init__(self, keys=(), values=None):
-        self._schema = tuple(_unique_keys(keys))
+        self._schema = _unique_keys(keys)
         self._values = {}
         self._changed_keys = frozenset()
-        for key in self._schema:
-            spec = state_spec(key)
+        for key, spec in zip(self._schema, self._schema.specs):
             if spec.available:
                 self._values[key] = spec.default_value()
         if values is not None:
@@ -312,7 +365,7 @@ class StateStore:
         if key not in self._values:
             raise KeyError("State value is unavailable: %s" % key)
         value = self._values[key]
-        return copy.deepcopy(value) if isinstance(value, (list, dict)) else value
+        return _copy_value(value) if isinstance(value, (list, dict)) else value
 
     def __contains__(self, key):
         return key in self._values
@@ -353,7 +406,7 @@ class StateStore:
             if key not in self._schema:
                 raise KeyError("State key is not declared by this page: %s" % key)
             validated = state_spec(key).validate(value)
-            staged[key] = (copy.deepcopy(validated)
+            staged[key] = (_copy_value(validated)
                            if isinstance(validated, (list, dict)) else validated)
         changed = frozenset(
             key for key, value in staged.items()
@@ -382,7 +435,14 @@ class StateStore:
         return result
 
 
+class _Schema(tuple):
+    """Validated unique state keys; ``specs`` holds their StateSpecs in order."""
+
+
 def _unique_keys(keys):
+    # Pages rebuild their store on every full draw; a validated schema is reused as is.
+    if type(keys) is _Schema:
+        return keys
     result = []
     seen = set()
     for value in tuple(keys or ()):
@@ -391,11 +451,13 @@ def _unique_keys(keys):
         else:
             values = (value,)
         for key in values:
-            state_spec(key)
+            spec = state_spec(key)
             if key not in seen:
-                result.append(key)
+                result.append((key, spec))
                 seen.add(key)
-    return tuple(result)
+    schema = _Schema(key for key, _spec in result)
+    schema.specs = tuple(spec for _key, spec in result)
+    return schema
 
 
 class Binding:
@@ -457,7 +519,7 @@ class ItemBinding(Binding):
         if self.field not in current:
             raise KeyError("Template item has no field %r" % self.field)
         value = current[self.field]
-        return value if value is None or type(value) in (str, int, float, bool) else copy.deepcopy(value)
+        return value if value is None or type(value) in (str, int, float, bool) else _copy_value(value)
 
     def as_dict(self):
         return {"kind": "item", "field": self.field}
@@ -505,8 +567,19 @@ class ItemScope:
         return self.state.schema
 
 
+# Input types whose equal values cannot change behind the cache's back.
+_CACHED_INPUT_TYPES = (type(None), str, int, float, bool)
+
+
+def _same_inputs(previous, current):
+    return all(old is new or (type(old) is type(new) and old == new)
+               for old, new in zip(previous, current))
+
+
 class DerivedBinding(Binding):
-    __slots__ = ("function", "inputs", "_source", "expression_source_contract")
+    """Pure function of its inputs, evaluated again only when an input changes."""
+
+    __slots__ = ("function", "inputs", "_source", "expression_source_contract", "_cache")
 
     def __init__(self, function, inputs):
         if not callable(function):
@@ -519,6 +592,7 @@ class DerivedBinding(Binding):
         self.inputs = inputs
         self._source = None
         self.expression_source_contract = None
+        self._cache = None
 
     @property
     def keys(self):
@@ -532,7 +606,17 @@ class DerivedBinding(Binding):
         return tuple(result)
 
     def resolve(self, store):
-        return self.function(*tuple(item.resolve(store) for item in self.inputs))
+        values = tuple(item.resolve(store) for item in self.inputs)
+        cache = self._cache
+        if cache is not None and cache[0] is self.function and _same_inputs(cache[1], values):
+            return cache[2]
+        result = self.function(*values)
+        # Mutable inputs could change in place while comparing equal to
+        # themselves, so only plain scalar and enum inputs are remembered.
+        self._cache = ((self.function, values, result) if all(
+            type(value) in _CACHED_INPUT_TYPES or isinstance(value, Enum)
+            for value in values) else None)
+        return result
 
     def as_dict(self):
         return {
@@ -753,4 +837,4 @@ def page_state_keys(root, explicit=()):
                 if key not in seen:
                     result.append(key)
                     seen.add(key)
-    return tuple(result)
+    return _unique_keys(result)

@@ -7,8 +7,10 @@
 import copy
 import inspect
 import itertools
+import threading
 import uuid
 from enum import Enum, IntEnum
+import functools
 from functools import lru_cache
 
 from .bindings import Binding, DirectBinding, ItemScope, StateStore, derived, page_state_keys, resolve
@@ -511,6 +513,89 @@ LAYOUT_SCHEMA = property_schema(
 )
 
 
+class _PageStructure:
+    """Facts about a page tree that change only with its structure.
+
+    The page builds it whenever it consumes a structure invalidation (see
+    ``Node.invalidate_actions``) and partial updates trust it until the next
+    one. ``nodes`` lists the render tree in paint order and ``ends[i]`` is the
+    index after node i's subtree. ``interactive`` holds the ids of nodes whose
+    subtree replays input. ``replayable`` is false when a node carries actions
+    without an ``interaction_commands`` replay, so only a full draw can
+    restore its input.
+    """
+
+    __slots__ = ("nodes", "ids", "ends", "painting", "interactive", "replayable")
+
+    def __init__(self, root):
+        self.nodes, self.ends, self.interactive = [], [], set()
+        self.replayable = True
+        self._visit(root)
+        self.nodes = tuple(self.nodes)
+        self.ends = tuple(self.ends)
+        self.ids = tuple(id(node) for node in self.nodes)
+        self.painting = tuple(bool(node.paints_pixels) for node in self.nodes)
+
+    def _visit(self, node):
+        index = len(self.nodes)
+        self.nodes.append(node)
+        self.ends.append(None)
+        replays = type(node).interaction_commands is not Node.interaction_commands
+        if not replays and any(name in node.__dict__ for name in ("action", "actions", "buttons")):
+            self.replayable = False
+        interactive = replays
+        for child in node.render_children():
+            interactive = self._visit(child) or interactive
+        self.ends[index] = len(self.nodes)
+        if interactive:
+            self.interactive.add(id(node))
+        return interactive
+
+
+def _regions_compatible(structure, old_layout, new_layout, boundaries, damage, ancestors):
+    """Return whether only the repaint boundaries changed between two layouts.
+
+    ``boundaries`` maps a boundary's id to its (previous, current) rects;
+    ``damage`` holds their unions and ``ancestors`` the boundaries' ancestors.
+    A boundary's subtree must stay inside both of its rects. Every other node
+    keeps its geometry, stays clean unless it is a boundary ancestor and paints
+    no pixels inside the damage.
+    """
+    old_nodes, new_nodes = old_layout._nodes, new_layout._nodes
+    nodes, ids, ends, painting = structure.nodes, structure.ids, structure.ends, structure.painting
+    if not structure.replayable or len(old_nodes) != len(nodes):
+        return False
+    damage = tuple(damage)
+    clean = Dirty.CLEAN
+    index, count = 0, len(nodes)
+    while index < count:
+        identity = ids[index]
+        previous = old_nodes.get(identity)
+        current = new_nodes.get(identity)
+        if previous is None or current is None:
+            return False
+        boundary = boundaries.get(identity)
+        if boundary is not None:
+            before, after = boundary
+            for inner in ids[index + 1:ends[index]]:
+                previous = old_nodes.get(inner)
+                current = new_nodes.get(inner)
+                if (previous is None or current is None or not before.contains(previous)
+                        or not after.contains(current)):
+                    return False
+            index = ends[index]
+            continue
+        if previous is not current and previous != current:
+            return False
+        node = nodes[index]
+        if node._dirty != clean and node not in ancestors:
+            return False
+        if painting[index] and any(previous.overlaps(region) for region in damage):
+            return False
+        index += 1
+    return True
+
+
 class LayoutResult:
     """Arranged bounds and nodes indexed by object identity and stable refs."""
 
@@ -527,7 +612,9 @@ class LayoutResult:
 
     @staticmethod
     def _name(value):
-        return value.value if isinstance(value, Enum) else value
+        # _value_ is the member's stored value; the public .value is a Python
+        # level descriptor and this runs for every keyed node in every layout.
+        return value._value_ if isinstance(value, Enum) else value
 
     def set(self, node, rect, slot=None):
         for capture in self._captures:
@@ -836,7 +923,20 @@ _UNSET = object()
 _LIST_VIEW_SEQUENCE = itertools.count(1)
 
 
+def _is_template_value(value):
+    if value is None or isinstance(value, (bool, int, float, str, Enum)):
+        return True
+    if isinstance(value, (list, tuple)):
+        return all(_is_template_value(child) for child in value)
+    if isinstance(value, dict):
+        return all(isinstance(key, str) and _is_template_value(child) for key, child in value.items())
+    return False
+
+
 def _validate_template_value(value, path):
+    # Valid data is checked without building element paths for diagnostics.
+    if _is_template_value(value):
+        return
     if value is None or isinstance(value, (bool, int, float, str, Enum)):
         return
     if isinstance(value, (list, tuple)):
@@ -870,112 +970,185 @@ def _constructor_signature(constructor):
     return signature
 
 
-class _NodeMeta(type):
-    """Capture explicit args and defer ParamRef coercion centrally."""
+def _is_param_ref(value):
+    param_type = globals().get("ParamRef")
+    return param_type is not None and isinstance(value, param_type)
 
-    @staticmethod
-    def _param_ref(value):
-        param_type = globals().get("ParamRef")
-        return param_type is not None and isinstance(value, param_type)
 
-    @staticmethod
-    def _source_specs(cls):
-        result = {}
+def _source_specs(cls):
+    result = {}
+    for spec in getattr(cls, "property_schema", ()):
+        result.setdefault(spec.source.name or spec.name, []).append(spec)
+    return result
+
+
+def _param_placeholder(parameter, specs):
+    if parameter is not None and parameter.default is not inspect.Parameter.empty:
+        return copy.deepcopy(parameter.default)
+    for spec in specs:
+        if spec.has_default:
+            return copy.deepcopy(spec.default)
+    return inspect.Parameter.empty
+
+
+def _construction_arguments(cls, args, kwargs):
+    """Return explicit property names, deferred ParamRefs and the call arguments."""
+    explicit = set()
+    deferred = {}
+    try:
+        signature = _constructor_signature(cls.__init__)
+        bound = signature.bind_partial(*args, **kwargs)
+        source_specs = None
+
+        var_keywords_name = None
+        for parameter in signature.parameters.values():
+            if parameter.kind == inspect.Parameter.VAR_KEYWORD:
+                var_keywords_name = parameter.name
+                break
+        var_keywords = ({} if var_keywords_name is None else
+                        dict(bound.arguments.get(var_keywords_name, {}) or {}))
+
         for spec in getattr(cls, "property_schema", ()):
-            result.setdefault(spec.source.name or spec.name, []).append(spec)
-        return result
+            source_name = spec.source.name or spec.name
+            if source_name in bound.arguments or source_name in var_keywords:
+                explicit.add(spec.name)
 
-    @classmethod
-    def _placeholder(mcls, parameter, specs):
-        if parameter is not None and parameter.default is not inspect.Parameter.empty:
-            return copy.deepcopy(parameter.default)
-        for spec in specs:
-            if spec.has_default:
-                return copy.deepcopy(spec.default)
-        return inspect.Parameter.empty
+        for name, value in tuple(bound.arguments.items()):
+            parameter = signature.parameters[name]
+            if parameter.kind == inspect.Parameter.VAR_KEYWORD:
+                values = dict(value or {})
+                changed = False
+                for key, item in tuple(values.items()):
+                    if not _is_param_ref(item):
+                        continue
+                    if source_specs is None:
+                        source_specs = _source_specs(cls)
+                    placeholder = _param_placeholder(None, source_specs.get(key, ()))
+                    if placeholder is inspect.Parameter.empty:
+                        continue
+                    deferred[key] = item
+                    values[key] = placeholder
+                    changed = True
+                if changed:
+                    bound.arguments[name] = values
+                continue
+            if not _is_param_ref(value):
+                continue
+            if source_specs is None:
+                source_specs = _source_specs(cls)
+            placeholder = _param_placeholder(parameter, source_specs.get(name, ()))
+            if placeholder is inspect.Parameter.empty:
+                continue
+            deferred[name] = value
+            bound.arguments[name] = placeholder
 
-    def __call__(cls, *args, **kwargs):
-        explicit = set()
-        deferred = {}
-        call_args = args
-        call_kwargs = kwargs
-        try:
-            signature = _constructor_signature(cls.__init__)
-            bound = signature.bind_partial(*args, **kwargs)
-            source_specs = None
-
-            var_keywords_name = None
-            for parameter in signature.parameters.values():
-                if parameter.kind == inspect.Parameter.VAR_KEYWORD:
-                    var_keywords_name = parameter.name
-                    break
-            var_keywords = ({} if var_keywords_name is None else
-                            dict(bound.arguments.get(var_keywords_name, {}) or {}))
-
-            for spec in getattr(cls, "property_schema", ()):
-                source_name = spec.source.name or spec.name
-                if source_name in bound.arguments or source_name in var_keywords:
-                    explicit.add(spec.name)
-
-            for name, value in tuple(bound.arguments.items()):
-                parameter = signature.parameters[name]
-                if parameter.kind == inspect.Parameter.VAR_KEYWORD:
-                    values = dict(value or {})
-                    changed = False
-                    for key, item in tuple(values.items()):
-                        if not _NodeMeta._param_ref(item):
-                            continue
-                        if source_specs is None:
-                            source_specs = _NodeMeta._source_specs(cls)
-                        placeholder = _NodeMeta._placeholder(
-                            None, source_specs.get(key, ()))
-                        if placeholder is inspect.Parameter.empty:
-                            continue
-                        deferred[key] = item
-                        values[key] = placeholder
-                        changed = True
-                    if changed:
-                        bound.arguments[name] = values
-                    continue
-                if not _NodeMeta._param_ref(value):
-                    continue
-                if source_specs is None:
-                    source_specs = _NodeMeta._source_specs(cls)
-                placeholder = _NodeMeta._placeholder(
-                    parameter, source_specs.get(name, ()))
-                if placeholder is inspect.Parameter.empty:
-                    continue
-                deferred[name] = value
-                bound.arguments[name] = placeholder
-
-            if deferred:
-                call_args = bound.args
-                call_kwargs = bound.kwargs
-        except (TypeError, ValueError):
-            # Opaque custom signatures remain runtime-valid; they simply do not
-            # get central explicit/deferred authoring metadata.
-            pass
-
-        node = super().__call__(*call_args, **call_kwargs)
-        node._explicit_properties.update(explicit)
         if deferred:
-            node._template_constructor_params = dict(deferred)
-            source_specs = _NodeMeta._source_specs(cls)
-            for source_name, value in deferred.items():
-                if hasattr(node, source_name):
-                    setattr(node, source_name, value)
-                    continue
-                specs = source_specs.get(source_name, ())
-                if len(specs) == 1 and specs[0].source.runtime_index is None:
-                    specs[0].set_on(node, value)
-        node._authoring_property_defaults = dict(
-            (spec.name, copy.deepcopy(spec.value_from(node)))
-            for spec in getattr(node, "property_schema", ()) if spec.styleable)
-        node._authoring_layout_defaults = node._snapshot_layout_options()
-        return node
+            args = bound.args
+            kwargs = bound.kwargs
+    except (TypeError, ValueError):
+        # Opaque custom signatures remain runtime-valid; they simply do not
+        # get central explicit/deferred authoring metadata.
+        pass
+    return explicit, deferred, args, kwargs
 
 
-class Node(metaclass=_NodeMeta):
+def _finish_construction(node, explicit, deferred):
+    node._explicit_properties.update(explicit)
+    if deferred:
+        node._template_constructor_params = dict(deferred)
+        source_specs = _source_specs(type(node))
+        for source_name, value in deferred.items():
+            if hasattr(node, source_name):
+                setattr(node, source_name, value)
+                continue
+            specs = source_specs.get(source_name, ())
+            if len(specs) == 1 and specs[0].source.runtime_index is None:
+                specs[0].set_on(node, value)
+    node._authoring_property_defaults = dict(
+        (spec.name, copy.deepcopy(spec.value_from(node)))
+        for spec in getattr(node, "property_schema", ()) if spec.styleable)
+    node._authoring_layout_defaults = node._snapshot_layout_options()
+
+
+def _node_construction(init):
+    """Capture explicit args and defer ParamRef coercion around the outermost __init__.
+
+    Node classes deliberately have no custom metaclass: CPython 3.7 never gives
+    such classes a type attribute cache, so every node attribute lookup would
+    walk the MRO. Nested ``super().__init__`` calls pass straight through.
+    """
+    @functools.wraps(init)
+    def __init__(self, *args, **kwargs):
+        fields = self.__dict__
+        if fields.get("_constructing_node"):
+            return init(self, *args, **kwargs)
+        explicit, deferred, args, kwargs = _construction_arguments(type(self), args, kwargs)
+        fields["_constructing_node"] = True
+        try:
+            init(self, *args, **kwargs)
+        finally:
+            fields.pop("_constructing_node", None)
+        _finish_construction(self, explicit, deferred)
+
+    __init__._node_construction = True
+    return __init__
+
+
+class _MeasurementPass(threading.local):
+    """Intrinsic answers of the layout pass running on this thread."""
+
+    answers = None
+
+
+_measurement_pass = _MeasurementPass()
+
+
+def _measure(node, kind, direction, cross_extent=None):
+    """Ask a node one intrinsic question, reusing the answer within a layout pass.
+
+    Every content-sized ancestor asks its descendants again, so without reuse
+    the work grows with the depth of nested intrinsic containers. The node is
+    kept with its answer so a recycled id never matches another node.
+    """
+    answers = _measurement_pass.answers
+    if answers is None:
+        return getattr(node, kind)(direction, cross_extent)
+    key = (id(node), kind, direction, cross_extent)
+    answer = answers.get(key)
+    if answer is None or answer[0] is not node:
+        answer = answers[key] = (node, getattr(node, kind)(direction, cross_extent))
+    return answer[1]
+
+
+# Framework methods a subclass defined outside the framework may override.
+# Everything else stays with the engine: render/_arrange make the node a
+# Python container, arrange places its own box within the offered slot.
+PYTHON_NODE_HOOKS = frozenset((
+    "draw", "preferred_extent", "content_extent", "minimum_extent",
+    "state_signature", "blocks_input", "opaque_background",
+    "render", "_arrange", "arrange", "_display_value",
+))
+_FRAMEWORK_PACKAGE = __name__.rpartition(".")[0]
+
+
+def _framework_class(cls):
+    module = cls.__module__
+    return module == _FRAMEWORK_PACKAGE or module.startswith(_FRAMEWORK_PACKAGE + ".")
+
+
+def _check_python_hooks(cls):
+    if _framework_class(cls):
+        return
+    for name, value in cls.__dict__.items():
+        if (name.startswith("__") or name in PYTHON_NODE_HOOKS
+                or not callable(value) and not isinstance(value, (property, staticmethod, classmethod))):
+            continue
+        if any(name in base.__dict__ for base in cls.__mro__[1:] if _framework_class(base)):
+            raise TypeError("%s.%s overrides a framework method; node subclasses may override only %s" % (
+                cls.__qualname__, name, ", ".join(sorted(PYTHON_NODE_HOOKS))))
+
+
+class Node:
     """Base object for layout containers and renderable components."""
 
     covers_bounds = False
@@ -986,7 +1159,22 @@ class Node(metaclass=_NodeMeta):
     structure_contract = None
     creation_contract = None
     layout_source_contract = _FLUENT_LAYOUT_SOURCE
+    # Bindable layout properties whose new resolved value relayouts the node.
+    # A class that measures its content or switches children decides itself.
+    owns_relayout = False
+    relayout_fields = ()
 
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        _check_python_hooks(cls)
+        cls.relayout_fields = () if cls.owns_relayout else tuple(
+            spec for spec in cls.property_schema
+            if spec.bindings and spec.invalidation == Invalidation.LAYOUT)
+        init = cls.__dict__.get("__init__")
+        if init is not None and not getattr(init, "_node_construction", False):
+            cls.__init__ = _node_construction(init)
+
+    @_node_construction
     def __init__(self, key=None):
         self.key = key
         self.layout_options = LayoutOptions()
@@ -1061,6 +1249,8 @@ class Node(metaclass=_NodeMeta):
     def ref(self, key):
         _capture_modifier(self, "ref", (("key", 0),))
         self.key = key
+        # A ref is page structure: partial updates trust the previous names.
+        self.invalidate_actions()
         self.invalidate_layout()
         return self
 
@@ -1166,7 +1356,8 @@ class Node(metaclass=_NodeMeta):
         return self
 
     def invalidate(self, dirty=Dirty.PAINT):
-        dirty = Dirty(dirty)
+        if type(dirty) is not Dirty:
+            dirty = Dirty(dirty)
         if dirty == Dirty.LAYOUT:
             self._layout_revision = getattr(self, "_layout_revision", 0) + 1
         return self._mark_dirty(dirty)
@@ -1183,7 +1374,12 @@ class Node(metaclass=_NodeMeta):
         return self.invalidate(Dirty.LAYOUT)
 
     def invalidate_actions(self):
-        """Notify the page through its root, independently of paint cleanup."""
+        """Notify the page that its structure changed: membership, refs or actions.
+
+        The flag lives on the root, independently of paint cleanup. The next
+        update takes the full path and re-collects actions and names; partial
+        updates rely on the structure being unchanged otherwise.
+        """
         root = self
         while root.parent is not None:
             root = root.parent
@@ -1205,12 +1401,12 @@ class Node(metaclass=_NodeMeta):
         available = bounds.inset(options.margin)
         width = options.width
         if width == "content":
-            width = self.preferred_extent("horizontal", available.height)
+            width = _measure(self, "preferred_extent", "horizontal", available.height)
         if width is None:
             width = available.width - options.offset_x
         height = options.height
         if height == "content":
-            height = self.preferred_extent("vertical", width)
+            height = _measure(self, "preferred_extent", "vertical", width)
         if height is None:
             height = available.height - options.offset_y
         if width < 0 or height < 0:
@@ -1218,7 +1414,7 @@ class Node(metaclass=_NodeMeta):
                 "%s %r offset (%d, %d) exceeds available slot %r" %
                 (self.__class__.__name__, self.key, options.offset_x,
                  options.offset_y, available))
-        minimum_height = self.minimum_extent("vertical", width)
+        minimum_height = _measure(self, "minimum_extent", "vertical", width)
         if minimum_height is not None:
             height = max(height, int(minimum_height))
         if (not options.allow_overflow and
@@ -1288,14 +1484,22 @@ class Node(metaclass=_NodeMeta):
         return self.preferred_extent(direction, cross_extent)
 
     def arrange(self, bounds, result):
-        if not isinstance(bounds, Rect):
-            bounds = Rect(*bounds)
-        if (result._reuse_clean and self._dirty < Dirty.LAYOUT
-                and result._slots.get(id(self)) == bounds):
-            return
-        arranged = self._box(bounds)
-        result.set(self, arranged, bounds)
-        self._arrange(arranged.inset(self.layout_options.padding), result)
+        # The outermost arrange owns the pass; nested arranges share it.
+        owner = _measurement_pass.answers is None
+        if owner:
+            _measurement_pass.answers = {}
+        try:
+            if not isinstance(bounds, Rect):
+                bounds = Rect(*bounds)
+            if (result._reuse_clean and self._dirty < Dirty.LAYOUT
+                    and result._slots.get(id(self)) == bounds):
+                return
+            arranged = self._box(bounds)
+            result.set(self, arranged, bounds)
+            self._arrange(arranged.inset(self.layout_options.padding), result)
+        finally:
+            if owner:
+                _measurement_pass.answers = None
 
     def _arrange(self, bounds, result):
         return None
@@ -1366,16 +1570,38 @@ class Node(metaclass=_NodeMeta):
         return None
 
     def update(self, state, initialize=False):
+        # Relayout fields are declared render data, so they can only change
+        # together with the state signature.
         signature = self.state_signature(state)
         if signature is not None:
             if self._last_signature is _UNSET or initialize:
                 self._last_signature = signature
+                if self.relayout_fields:
+                    self._update_layout_inputs(state, True)
             elif signature != self._last_signature:
                 self._last_signature = signature
                 self.invalidate(Dirty.PAINT)
+                if self.relayout_fields:
+                    self._update_layout_inputs(state, False)
         for child in self.render_children():
             child.update(state, initialize)
         self._update_input_blocking(state)
+
+    def _update_layout_inputs(self, state, baseline):
+        values = dict((spec.name, resolve(spec.value_from(self), state))
+                      for spec in self.relayout_fields)
+        previous = self.__dict__.get("_layout_inputs")
+        self._layout_inputs = values
+        if not baseline and values != previous:
+            self.invalidate(Dirty.LAYOUT)
+
+    def layout_input(self, name):
+        """Resolved value of a relayout field as of the last update."""
+        inputs = self.__dict__.get("_layout_inputs")
+        if inputs is not None and name in inputs:
+            return inputs[name]
+        spec = next(spec for spec in self.relayout_fields if spec.name == name)
+        return spec.default if spec.has_default else None
 
     def _update_input_blocking(self, state):
         blocked = self.blocks_input(state)
@@ -1754,11 +1980,10 @@ class List(Node):
                 (margin.vertical if self.direction == "horizontal"
                  else margin.horizontal))
         if size == "content":
-            preferred = child.preferred_extent(
-                self.direction, preferred_cross)
+            preferred = _measure(child, "preferred_extent", self.direction, preferred_cross)
             if preferred is not None:
                 size = preferred
-        minimum = child.minimum_extent(self.direction, preferred_cross)
+        minimum = _measure(child, "minimum_extent", self.direction, preferred_cross)
         intrinsic = (minimum is not None
                      and (declared_size in (None, "content")
                           or int(minimum) > int(declared_size)))
@@ -1768,7 +1993,7 @@ class List(Node):
         if size == "content":
             return None, intrinsic
         if size is None and self.gap is None:
-            size = child.auto_gap_extent(self.direction, preferred_cross)
+            size = _measure(child, "auto_gap_extent", self.direction, preferred_cross)
             intrinsic = size is not None
         if size is None:
             return None, intrinsic
@@ -2087,7 +2312,14 @@ class ListView(List):
         return value.value if isinstance(value, Enum) else value
 
     def _resolved_items(self, state):
-        values = resolve(self.items_binding, state)
+        binding = self.items_binding
+        if (type(binding) is DirectBinding and type(state) is StateStore
+                and binding.key in state._values):
+            # Read the store's own snapshot: the store replaces it on update and
+            # never mutates it, and item() copies containers on every read.
+            values = state._values[binding.key]
+        else:
+            values = resolve(binding, state)
         if not isinstance(values, (list, tuple)):
             raise TypeError("ListView items must resolve to a list or tuple")
         result = []
@@ -2186,12 +2418,17 @@ class ListView(List):
     def _recycle_items(self, plan):
         # Reserve surviving identities before offering removed rows for reuse.
         available = list(self._reuse_pool) + list(self.items)
+        # Current rows by template, prototype and (unique, scalar) item key; the
+        # first row in order wins, as a linear search would find it.
+        current = {}
+        for node in self.items:
+            template = getattr(node, "_reuse_template", None)
+            if template is not None:
+                current.setdefault((id(template), id(getattr(node, "_reuse_prototype", None)),
+                                    node._template_instance["item_key"]), node)
         assigned = []
         for _scope, template, metadata in plan:
-            match = next((node for node in self.items
-                          if getattr(node, "_reuse_template", None) is template
-                          and getattr(node, "_reuse_prototype", None) is template.root
-                          and node._template_instance["item_key"] == metadata["item_key"]), None)
+            match = current.get((id(template), id(template.root), metadata["item_key"]))
             assigned.append(match)
             if match is not None:
                 available.remove(match)
@@ -2217,16 +2454,19 @@ class ListView(List):
                     metadata["item_key"], local.value if isinstance(local, Enum) else local)
                 fields.append((child, key, tuple(
                     (name, self._resolve_item_commands(value, scope))
-                    for name, value in commands)))
+                    for name, value in commands) if commands else ()))
             changes.append((node, scope, metadata, fields))
 
         for node, scope, metadata, fields in changes:
+            instances = {True: dict(metadata, root=True), False: dict(metadata, root=False)}
             for child, key, commands in fields:
                 if child.key != key:
                     child.key = key
                     child.invalidate_actions()
                     child.invalidate_layout()
-                child._template_instance = dict(metadata, root=child is node)
+                instance = instances[child is node]
+                if getattr(child, "_template_instance", None) != instance:
+                    child._template_instance = dict(instance)
                 for name, value in commands:
                     if getattr(child, name) != value:
                         setattr(child, name, value)
@@ -2275,8 +2515,9 @@ class ListView(List):
                 and self._update_keys.isdisjoint(state.changed_keys)):
             return
 
-        refresh_keys = (initialize or self._dirty != Dirty.CLEAN
-                        or self._update_state is None)
+        # Keys follow the declarations: a full draw of a clean, unchanged list
+        # keeps them; materialization and invalidation recompute them.
+        refresh_keys = self._dirty != Dirty.CLEAN or self._update_state is None
         values = self._resolved_items(state)
         scopes = tuple(ItemScope._from_snapshot(state, value) for value in values)
         selectors = tuple((
@@ -2623,9 +2864,9 @@ class Grid(Node):
             child_width = max(0, cell_width - margin.horizontal)
             extent = child.layout_options.height
             if extent == "content":
-                extent = child.preferred_extent("vertical", child_width)
+                extent = _measure(child, "preferred_extent", "vertical", child_width)
             elif extent is None:
-                extent = child.content_extent("vertical", child_width)
+                extent = _measure(child, "content_extent", "vertical", child_width)
             if extent is None:
                 continue
             measured = True
@@ -2832,6 +3073,8 @@ class WrapPanel(Node):
 
 class When(SingleChild):
     """Render a child only when the state predicate is true."""
+
+    owns_relayout = True
 
     def __init__(self, predicate, child, key=None):
         super().__init__(child, key=key)
@@ -3092,6 +3335,7 @@ class DeclarativePage(Tree):
                 raise ValueError("Semantic action wire collision: %s" % wire_id)
             actions[wire_id] = action
         self.actions = actions
+        self._structure = _PageStructure(self.root)
         self.root._actions_dirty = False
 
     def initial_state(self):
@@ -3133,9 +3377,10 @@ class DeclarativePage(Tree):
         render_from limits painting to retained foreground nodes; callers own
         the unchanged pixels beneath them and must redraw fully after damage.
         Callers supplying refs must include every node affected by the new
-        state. reuse_styles requires unchanged styles since the last draw or
-        prepare_layout call. Direct edits to layout_options or style rules
-        require root.invalidate_layout() before drawing.
+        state. The style pass runs when its inputs changed (see update());
+        reuse_styles skips it for a clean reused tree. Direct edits to
+        layout_options or styled values require root.invalidate_layout()
+        before drawing.
         """
         clean = self.root._dirty == Dirty.CLEAN and not self.state.changed_keys
         reuse_layout = bool(
@@ -3150,7 +3395,8 @@ class DeclarativePage(Tree):
                 node.update(self._paint_state(node))
         else:
             self.root.update(self.state, initialize=not reuse_layout)
-        if self.styles is not None and not (reuse_cached and reuse_styles):
+        if (self.styles is not None and not (reuse_cached and reuse_styles)
+                and not self._styles_current()):
             self._apply_styles(self.root)
         return self._render_full(
             renderer,
@@ -3209,7 +3455,7 @@ class DeclarativePage(Tree):
         layout, so an update that only repaints bound values cannot change the
         result. Rules are mutable data and are re-observed against the snapshot
         of the last successful pass. Writes that bypass framework invalidation
-        take effect at the next layout invalidation, rule change or draw().
+        take effect at the next layout invalidation or rule change.
         """
         applied = self._styled_with
         return (applied is not None and self.root._dirty < Dirty.LAYOUT
@@ -3286,10 +3532,9 @@ class DeclarativePage(Tree):
         roots = self._dirty_roots()
         if not roots or any(not node._repaint_boundary for node in roots):
             return None, None
+        # Membership, refs and actions are unchanged: their edits invalidate
+        # actions, and such updates never reach this partial path.
         old_layout = self.layout
-        if any(LayoutResult._name(node.key) != key
-               for key, node in old_layout._named_nodes.items()):
-            return None, None
         new_layout = LayoutResult(previous=old_layout)
         self.root.arrange(self.bounds, new_layout)
         if old_layout._nodes.keys() != new_layout._nodes.keys():
@@ -3316,55 +3561,62 @@ class DeclarativePage(Tree):
         if any(first.overlaps(second) for index, first in enumerate(damage)
                for second in damage[index + 1:]):
             return None, new_layout
-        # Carry the repaint boundary down the tree so geometry, overflow and
-        # input compatibility are checked together, once per node.
-        visited = set()
-        pending = [(self.root, None)]
-        while pending:
-            node, boundary = pending.pop()
-            identity = id(node)
-            visited.add(identity)
-            previous = old_layout._nodes.get(identity)
-            current = new_layout._nodes.get(identity)
-            if previous is None or current is None:
-                return None, new_layout
-            if (type(node).interaction_commands is Node.interaction_commands and
-                    ("action" in node.__dict__ or "actions" in node.__dict__
-                     or "buttons" in node.__dict__)):
-                return None, new_layout
-            boundary = boundaries.get(identity, boundary)
-            pending.extend((child, boundary) for child in node.render_children())
-            if boundary is not None:
-                if not boundary[0].contains(previous) or not boundary[1].contains(current):
-                    return None, new_layout
-                continue
-            if ((previous is not current and previous != current) or
-                    (node._dirty != Dirty.CLEAN and node not in ancestors)):
-                return None, new_layout
-            if (node.paints_pixels and
-                    any(previous.overlaps(region) for region in damage)):
-                return None, new_layout
-        if visited != old_layout._nodes.keys():
+        if not _regions_compatible(self._structure, old_layout, new_layout, boundaries, damage, ancestors):
+            return None, new_layout
+        steps = self._replay_steps(boundaries, ancestors)
+        if steps is None:
             return None, new_layout
 
         set_page_identity = getattr(renderer, "set_semantic_page", None)
         if set_page_identity is not None:
             set_page_identity(self.page_id)
-        commands = []
-        for root in roots:
+        # Typer replaces input per layer, so the base layer is rebuilt in paint
+        # order: repainted roots register their own regions while painting and
+        # every other control replays its unchanged input.
+        commands = list(renderer.redraw_page_hitboxes())
+        for node, state in steps:
+            if state is not None:
+                commands.extend(_command_list(
+                    node.interaction_commands(renderer, state, new_layout.rect(node))))
+                continue
             # The checked opaque subtree paints its entire new bounds. Only
             # vacated pixels need clearing; clearing both doubles large fills.
-            for exposed in old_layout.rect(root).subtract(new_layout.rect(root)):
+            for exposed in old_layout.rect(node).subtract(new_layout.rect(node)):
                 commands.append(renderer.fill(*exposed))
-            commands.extend(root.render(renderer, self._paint_state(root), new_layout))
-        commands.extend(renderer.redraw_page_hitboxes())
-        commands.extend(self.root.render_interactions(renderer, self.state, new_layout))
+            commands.extend(node.render(renderer, self._paint_state(node), new_layout))
         self.layout = new_layout
         self._layout_bounds = self.bounds
         self._layout_metrics_key = get_font_metrics().cache_key
         self.root.clear_dirty()
         self.state.clear_changes()
         return commands, new_layout
+
+    def _replay_steps(self, boundaries, ancestors):
+        """Return the base-layer input steps of a partial update in paint order.
+
+        A step is ``(node, state)`` for a control replaying its input and
+        ``(root, None)`` for a repainted boundary. Subtrees without controls
+        or roots are skipped. None means a root is outside the current paint
+        pass, for example in a hidden branch, and needs a full draw.
+        """
+        interactive = self._structure.interactive
+        interaction = Node.interaction_commands
+        steps = []
+        painted = 0
+        pending = [(self.root, self.state)]
+        while pending:
+            node, state = pending.pop()
+            state = getattr(node, "_item_scope", state)
+            if id(node) in boundaries:
+                steps.append((node, None))
+                painted += 1
+                continue
+            if type(node).interaction_commands is not interaction:
+                steps.append((node, state))
+            children = [child for child in node.paint_children(state)
+                        if id(child) in interactive or id(child) in boundaries or child in ancestors]
+            pending.extend((child, state) for child in reversed(children))
+        return steps if painted == len(boundaries) else None
 
     def invalidate(self, key, dirty=Dirty.PAINT):
         self.node(key).invalidate(dirty)

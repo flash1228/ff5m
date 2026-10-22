@@ -17,9 +17,14 @@ sys.path.insert(0, str(pathlib.Path(__file__).parents[1] / '.py/klipper/plugins'
 
 from feather.cpu_usage import CpuUsageSampler, read_cpu_counters
 from feather.files import FileWorker
+from feather.screen.composition import DialogInstance, PaintSurface
+from feather_screen import FeatherScreen
+from ff5m_ui.keys import AppPage
+from ff5m_ui.screen import ScreenDialog
 from ff5m_ui.status_bar import PrinterRenderer, footer_values
 from tests.feather_render_test_helper import RenderCapture
-from ui import ThemeColor, ThemeRole
+from ui import Rect, ScreenRoot, ThemeColor, ThemeRole
+from ui.renderer import FOOTER_Y, SCREEN_HEIGHT, SCREEN_WIDTH
 
 
 class WorkerServices:
@@ -315,6 +320,72 @@ class StatusBarTest(unittest.TestCase):
         renderer.send(renderer.begin_page('Settings'))
         self.assertTrue(capture.latest.has_text('CPU 15%'))
         self.assertTrue(capture.latest.has_text('CANCELLED'))
+
+
+def footer_scrims(commands):
+    """Translucent fills over the footer band since its last opaque paint."""
+    scrims = None
+    for command in commands:
+        tokens = str(command).split()
+        if tokens[:2] != ['--batch', 'fill']:
+            continue
+        x, y = (int(value) for value in tokens[tokens.index('-p') + 1:tokens.index('-p') + 3])
+        width, height = (int(value) for value in tokens[tokens.index('-s') + 1:tokens.index('-s') + 3])
+        color = tokens[tokens.index('-c') + 1]
+        if x > 0 or y > FOOTER_Y or x + width < SCREEN_WIDTH or y + height < SCREEN_HEIGHT:
+            continue
+        if len(color) == 8 and color[:2].upper() != 'FF':
+            scrims = None if scrims is None else scrims + 1
+        else:
+            scrims = 0
+    return scrims
+
+
+class StatusBarUnderDialogTest(unittest.TestCase):
+    def test_footer_is_dimmed_once_by_a_dialog_and_restored_by_pages(self):
+        # Replays the UI suite's message -> page -> dialog layout -> print
+        # result sequence. A fast host queues the next page before the worker
+        # takes the one that restores the footer; a slow host does not.
+        for eager in (True, False):
+            with self.subTest(eager=eager):
+                renderer = PrinterRenderer()
+                renderer.footer(*StatusBarTest().values(status='standby'), paint=False)
+                screen = FeatherScreen.__new__(FeatherScreen)
+                screen.renderer = renderer
+                title = ['HOME']
+                rendered = []
+
+                def drain(always=False):
+                    while (eager or always) and (item := renderer._batch_queue.get(timeout=0)):
+                        rendered.extend(item.commands)
+
+                def paint_page():
+                    renderer.send(renderer.begin_page(title[0]))
+
+                def paint_message(instance):
+                    renderer.send(renderer.dialog('PRINT FINISHED', (), (('message.ok', 'OK', 'enabled'),)))
+
+                root = ScreenRoot(renderer, PaintSurface(paint_page, accepts_deltas=lambda: True),
+                                  Rect(0, 0, 800, 480), AppPage.SCREEN_ROOT, chrome=False)
+                message = DialogInstance(ScreenDialog.MESSAGE, {}, screen._paint_dialog,
+                                         paint_message, ('message.ok',), 0)
+                root.paint()
+                root.open(message)
+                drain(always=True)
+                self.assertEqual(footer_scrims(rendered), 1)
+
+                root.close(message, paint=False)
+                title[0] = 'NETWORK'
+                root.paint(force=True)
+                drain()
+                renderer.send(renderer.begin_page('DIALOG LAYOUT') + renderer.dialog(
+                    'SHORT MESSAGE', ('READY TO CONTINUE.',), (('dialog.test.ok', 'OK', 'warning'),)))
+                drain(always=True)
+                self.assertEqual(footer_scrims(rendered), 0)
+
+                root.open(message)
+                drain(always=True)
+                self.assertEqual(footer_scrims(rendered), 1)
 
 
 if __name__ == '__main__':

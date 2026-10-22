@@ -6,10 +6,10 @@
 
 from ui import ThemeColor
 from ui.actions import Command, ItemCommand
-from ui.bindings import bind, derived, item, resolve, state
+from ui.bindings import bind, derived, item, state
 from ui.components import Button, Frame, Hitbox, Text
 from ui.identity import CommandKey, StateKey
-from ui.layout import Column, Dirty, Equal, FLEX, Grid, ListView, Overlay, PageTree, Rect, Spacer, StateCase, Template
+from ui.layout import Column, Equal, FLEX, Grid, ListView, Overlay, PageTree, Rect, Spacer, StateCase, Template
 from ui.properties import EditorSpec, Invalidation, PropertySpec, SourceSpec, property_schema
 
 from .keys import AppPage
@@ -53,17 +53,10 @@ class ObjectFootprint(Frame):
                  *, rectangle=(0, 0, 1, 1)):
         super().__init__(child, border, background, line_width, key)
         self.rectangle = rectangle
-        self._rectangle = (0, 0, 1, 1)
-
-    def update(self, state, initialize=False):
-        rectangle = tuple(resolve(self.rectangle, state))
-        if rectangle != self._rectangle:
-            self._rectangle = rectangle
-            self.invalidate(Dirty.LAYOUT)
-        super().update(state, initialize)
 
     def arrange(self, bounds, result):
-        x, y, width, height = self._rectangle
+        # A new bound rectangle relayouts the node: it is a LAYOUT property.
+        x, y, width, height = self.layout_input("rectangle")
         super().arrange(Rect(bounds.x + round(x * bounds.width),
                              bounds.y + round(y * bounds.height),
                              max(1, round(width * bounds.width)),

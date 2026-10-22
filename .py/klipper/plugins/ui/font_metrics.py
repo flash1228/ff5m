@@ -27,7 +27,7 @@ _WRAP_WORD = re.compile(r"[^ \t\r]+")
 class FontMetric:
     __slots__ = (
         "name", "advance_x", "monospaced", "advance_y", "top", "bottom",
-        "unicode_ranges", "fallback", "_range_offsets",
+        "unicode_ranges", "fallback", "_range_offsets", "_glyphs",
     )
 
     def __init__(self, name, advance_x, monospaced, advance_y, top, bottom,
@@ -46,19 +46,31 @@ class FontMetric:
             offsets.append((start, end, offset))
             offset += end - start + 1
         self._range_offsets = tuple(offsets)
+        # Manifest glyph index per character (-1 when uncovered). Advances are
+        # read at measurement time, so edits of advance_x stay observable.
+        self._glyphs = {}
 
     @property
     def glyph_height(self):
         return self.bottom - self.top
 
+    def _glyph(self, character):
+        index = self._glyphs.get(character)
+        if index is None:
+            codepoint = ord(character)
+            index = -1
+            for start, end, offset in self._range_offsets:
+                if start <= codepoint <= end:
+                    index = offset + codepoint - start
+                    break
+            self._glyphs[character] = index
+        return index
+
     def character_advance(self, character):
-        codepoint = ord(character)
-        for start, end, offset in self._range_offsets:
-            if start <= codepoint <= end:
-                if self.monospaced:
-                    return self.advance_x
-                return self.advance_x[offset + codepoint - start]
-        return 0
+        index = self._glyph(character)
+        if index < 0:
+            return 0
+        return self.advance_x if self.monospaced else self.advance_x[index]
 
     def text_advance(self, value):
         value = str(value)
@@ -69,7 +81,15 @@ class FontMetric:
             start, end, _offset = self._range_offsets[0]
             if start <= 32 and end >= 126:
                 return len(value) * self.advance_x
-        return sum(self.character_advance(character) for character in value)
+        glyphs, advance, monospaced = self._glyphs, self.advance_x, self.monospaced
+        total = 0
+        for character in value:
+            index = glyphs.get(character)
+            if index is None:
+                index = self._glyph(character)
+            if index >= 0:
+                total += advance if monospaced else advance[index]
+        return total
 
     def supports_text(self, value):
         value = str(value)
@@ -208,34 +228,34 @@ class FontMetrics:
     @lru_cache(maxsize=512)
     def _wrap_text_lines(self, text, font, width):
         metric = self.fonts[font]
-
-        def fits(line):
-            return metric.text_advance(line) <= width
-
+        # Glyph advances add up, so a candidate line is measured from the
+        # widths of its parts instead of re-measuring the whole line per word.
+        space = metric.text_advance(" ")
         lines = []
-        current = ""
+        current, current_width = "", 0
 
         def append_word(word):
-            nonlocal current
+            nonlocal current, current_width
+            word_width = metric.text_advance(word)
             if current:
-                candidate = current + " " + word
-                if fits(candidate):
-                    current = candidate
+                if current_width + space + word_width <= width:
+                    current += " " + word
+                    current_width += space + word_width
                     return
                 lines.append(current)
                 current = ""
-            if fits(word):
-                current = word
+            if word_width <= width:
+                current, current_width = word, word_width
                 return
-            chunk = ""
+            chunk, chunk_width = "", 0
             for character in word:
-                candidate = chunk + character
-                if chunk and not fits(candidate):
+                advance = metric.text_advance(character)
+                if chunk and chunk_width + advance > width:
                     lines.append(chunk)
-                    chunk = ""
-                    candidate = character
-                chunk = candidate
-            current = chunk
+                    chunk, chunk_width = "", 0
+                chunk += character
+                chunk_width += advance
+            current, current_width = chunk, chunk_width
 
         for paragraph in text.split("\n"):
             words = _WRAP_WORD.findall(paragraph)

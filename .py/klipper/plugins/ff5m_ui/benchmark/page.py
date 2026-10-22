@@ -58,8 +58,8 @@ class BenchmarkRef(Enum):
     FLUSH_VALUE = "benchmark.stats.flush.value"
     PYTHON_LABEL = "benchmark.stats.python.label"
     PYTHON_VALUE = "benchmark.stats.python.value"
-    FPS_LOSS_LABEL = "benchmark.stats.fps_loss.label"
-    FPS_LOSS_VALUE = "benchmark.stats.fps_loss.value"
+    PYTHON_P95_LABEL = "benchmark.stats.python_p95.label"
+    PYTHON_P95_VALUE = "benchmark.stats.python_p95.value"
     RASTER_LABEL = "benchmark.stats.raster.label"
     RASTER_VALUE = "benchmark.stats.raster.value"
     MODE = "benchmark.stats.mode"
@@ -82,10 +82,6 @@ def _format_ms(value):
 
 def _format_precise_ms(value):
     return _format_number(value, digits=2, suffix=" MS")
-
-
-def _format_percent(value):
-    return _format_number(value, suffix="%")
 
 
 def _format_raster(value):
@@ -166,7 +162,7 @@ def stats_panel():
     metrics = Grid(
         matrix=(
             _metric_row(
-                "COMMIT FPS", BenchmarkState.COMMIT_FPS, _format_fps,
+                "RENDER FPS", BenchmarkState.COMMIT_FPS, _format_fps,
                 BenchmarkRef.COMMIT_FPS_LABEL, BenchmarkRef.COMMIT_FPS_VALUE),
             _metric_row(
                 "F.MED", BenchmarkState.FRAME_MEDIAN_MS, _format_ms,
@@ -188,8 +184,8 @@ def stats_panel():
                 "PYTHON", BenchmarkState.PYTHON_MS, _format_precise_ms,
                 BenchmarkRef.PYTHON_LABEL, BenchmarkRef.PYTHON_VALUE),
             _metric_row(
-                "FPS LOSS", BenchmarkState.FPS_LOSS_PERCENT, _format_percent,
-                BenchmarkRef.FPS_LOSS_LABEL, BenchmarkRef.FPS_LOSS_VALUE),
+                "PY P95", BenchmarkState.PYTHON_P95_MS, _format_precise_ms,
+                BenchmarkRef.PYTHON_P95_LABEL, BenchmarkRef.PYTHON_P95_VALUE),
             _metric_row(
                 "RASTER", BenchmarkState.RASTER, _format_raster,
                 BenchmarkRef.RASTER_LABEL, BenchmarkRef.RASTER_VALUE),

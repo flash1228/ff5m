@@ -24,12 +24,16 @@ def validate_render_receipt_token(token):
 
 def parse_render_receipt(line):
     fields = str(line).strip().split()
-    if len(fields) != 6 or fields[0] != "render":
+    if len(fields) == 7 and fields[0] == "render" and fields[2] == "staged":
+        frame = fields.pop()
+        frame_id = frame[6:]
+        if (not frame.startswith("frame=") or not frame_id.isascii()
+                or not frame_id.isdigit() or not frame_id.strip("0")):
+            return None
+    elif len(fields) != 6 or fields[0] != "render" or fields[2] not in ("ok", "failed"):
         return None
     token = fields[1]
     status = fields[2]
-    if status not in ("ok", "failed"):
-        return None
     try:
         validate_render_receipt_token(token)
         total_us, cpu_us, flush_us = (
@@ -39,7 +43,7 @@ def parse_render_receipt(line):
     if min(total_us, cpu_us, flush_us) < 0 or flush_us > total_us:
         return None
     return RenderReceipt(
-        token, status == "ok", total_us, cpu_us, flush_us)
+        token, status != "failed", total_us, cpu_us, flush_us)
 
 
 class ReceiptTracker:

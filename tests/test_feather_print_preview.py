@@ -414,13 +414,14 @@ class PrintPreviewLayoutTest(unittest.TestCase):
         controller.reactor.flush_callbacks()
         page = printing_ui.get_page()
 
-        with mock.patch.object(page.styles, "apply", wraps=page.styles.apply) as apply:
+        # The regular path updates the whole tree; unchanged style inputs skip the style pass.
+        with mock.patch.object(page.root, "update", wraps=page.root.update) as update:
             commands = printing_ui.render(
                 controller.renderer,
                 {printing_ui.PrintingState.STATUS: "NEW STATUS"},
                 reuse_layout=True)
 
-        apply.assert_called_once()
+        update.assert_called_once()
         self.assertTrue(any("NEW STATUS" in command for command in commands))
 
     def test_ready_preview_repaints_full_surface_with_existing_geometry(self):

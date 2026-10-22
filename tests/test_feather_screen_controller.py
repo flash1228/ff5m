@@ -72,6 +72,13 @@ class BedMeshState(StatusObject):
 
 
 class ControllerSafetyTest(unittest.TestCase):
+    def test_transport_completion_reaches_loaded_features_with_its_token(self):
+        controller = ScenarioController.__new__(ScenarioController)
+        controller.feature_manager = SimpleNamespace(notify=mock.Mock())
+        controller._renderer_sent("3:17", 12.5)
+        controller.feature_manager.notify.assert_called_once_with(
+            "on_render_sent", "3:17", 12.5)
+
     def test_pressure_redraw_keeps_active_joystick_and_current_cursor(self):
         controller = ScenarioController.__new__(ScenarioController)
         controller.renderer = FEATHER.FeatherRenderer()

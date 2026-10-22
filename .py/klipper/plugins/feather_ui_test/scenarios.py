@@ -896,9 +896,9 @@ class ScenarioCatalog:
             BenchmarkState.CPU_MS: 2.1,
             BenchmarkState.FLUSH_MS: 3.4,
             BenchmarkState.PYTHON_MS: 1.8,
-            BenchmarkState.FPS_LOSS_PERCENT: 0.3,
+            BenchmarkState.PYTHON_P95_MS: 2.3,
             BenchmarkState.RASTER: "NEON",
-            BenchmarkState.STATUS: "TARGET 60 FPS",
+            BenchmarkState.STATUS: "UNLIMITED",
         }
         self._render_component_case({"page": PAGE, "state": values})
 

@@ -218,6 +218,22 @@ macro. Filament and cold-pull workflows continue using their action prompts.
 
 `feather/update_notification.py` owns the process-local update-notification and active-installation UI state. Five seconds after `klippy:ready`, and only while authoritative print state is idle, it sends a fire-and-forget Klipper remote-method call to Moonraker. The optional `[feather_updates]` Moonraker component returns a bounded projection of the already-cached status selected by its `update_key` option through `feather/update_status`; it uses Moonraker's `internal_transport` API for both status and installation, so it neither refreshes Git for a notification nor changes Moonraker's update-manager implementation. Missing or malformed responses fail closed and schedule the existing bounded retry without allowing an optional WebRequest endpoint to shut down Klipper. Only the idle Home page may present the modal. Starting or pausing a print removes it without setting the version-specific in-memory dismissal. The Update action repeats Feather's idle check, and the adapter revalidates idle state and the expected version before delegating the same configured key to the canonical `machine.update.client` OTA path. While that request is active, the adapter forwards only matching `update_manager:update_response` messages to Feather; the UI displays them in its existing non-interactive loader, reports a structured refusal or failure, and treats the managed-service restart as the expected terminal stage.
 
+### Native accelerator
+
+[`.py/klipper/plugins/feather_native/`](../../.py/klipper/plugins/feather_native/) holds an optional CPython 3.7 extension for the printer (`feather_native.so`, Forge-X Binary Components License, built in the private native repository) and its GPL loader. `FeatherScreen.__init__` calls `feather_native.enable()` once, after creating the renderer and before the first page is built. The framework stays pure Python and remains the reference: the extension replaces canonical framework methods with native implementations of the same behavior, and every replacement falls back to the Python method for subclasses, overridden hooks and unsupported values.
+
+Check `printer.log` for `[feather_native] enabled` or the reason the accelerator was not used. To disable it for diagnosis, create an empty `/opt/config/mod_data/feather_native.off` file (`touch /opt/config/mod_data/feather_native.off`) and restart Klipper. Remove the file and restart Klipper to enable it again. Feather continues using the Python UI while acceleration is disabled.
+
+`enable()` keeps the Python UI and logs the reason when any check fails:
+
+- `/opt/config/mod_data/feather_native.off` exists;
+- the binary or `manifest.json` is missing;
+- the binary's SHA-256 differs from the manifest;
+- the SHA-256 over the `ui/*.py` modules differs from the framework the binary was validated with (a framework sync without a new binary disables it);
+- the module ABI differs, or loading or installing fails.
+
+The file digests are cached in `/opt/config/mod_data/feather_native.digests.json` by path, size and modification time, so an unchanged installation is not hashed again at every start; a changed file is hashed again and still fails the check. Deleting the cache is always safe. There is no startup self-test: every printer runs the same framework, the manifest pins the binary to the sources it was validated with, and the parity suite compares native and Python drawing when the binary is published. Publishing (`publish.sh --feather-native` in the native repository) builds the ARM and host libraries, runs the parity suite against this checkout's framework, strips the binary and writes the manifest. Sync removes obsolete `*.so` files in the managed plugin trees like obsolete Python sources.
+
 ## Boot and restart chain
 
 On a non-Stock boot, [`.shell/boot/boot.sh`](../../.shell/boot/boot.sh) starts `netd --adopt-existing` when the mod-owned `network.conf` already exists. The daemon preserves an already-working connection only when its transport, exact Wi-Fi SSID where applicable, address, and DHCP client all match that configuration. It takes ownership of the matching processes and removes the other transport without rewriting network configuration. If the live state cannot be accepted completely, `netd` performs a fresh cleanup and starts the saved target normally. An older installation without `network.conf` starts netd without the adoption flag so the existing one-shot bootstrap can create the mod target first. Feather then boots the MCU and launches [`.shell/commands/zstart_klipper.sh`](../../.shell/commands/zstart_klipper.sh) without waiting for connectivity. The later `S99root` stage invokes [`.root/start.sh`](../../.root/start.sh), which owns `S35tslib` startup for Feather and Guppy as part of the restartable Buildroot service lifecycle. Typer tolerates that startup order by retrying a missing touch device until it appears. Guppy and Headless instead invoke `netd-cli wait --timeout 180` before continuing, preserving their Stock fallback behavior. The three-minute limit belongs to boot only; the daemon has no retry quota for its desired network. The Klipper launcher executes `/opt/klipper/start.sh`, optionally under `chrt -r 5`.
@@ -251,7 +267,9 @@ synchronous fallback when page flipping or a usable vsync source is absent.
 Typer enters its resident FIFO loop before vsync calibration completes and
 publishes frames synchronously during calibration. Once the timing model has
 enough valid samples, later frames switch to deferred publication without a
-renderer restart or an unpublished startup frame.
+renderer restart or an unpublished startup frame. At a vsync deadline the page-flip
+ioctl sleeps until that vsync, so the flip-or-copy choice there counts only copy
+work; immediate commits still count the measured pan time.
 
 When a page-flipping Typer session ends — normal exit, `TERM`/`INT`, or
 renderer teardown — it copies the currently visible frame into the boot page
@@ -342,7 +360,12 @@ only a non-blocking publication to a queue capped at 16 batches and a
 conservative 64 KiB weight per batch. Binary payloads remain immutable and are
 measured without assembling or copying their transport frames on the caller.
 Complete surfaces supersede older generations, keyed animation is latest-wins,
-and critical restart/error/shutdown batches evict untouched ordinary work. The
+and critical restart/error/shutdown batches evict untouched ordinary work.
+Surfaces do not repaint the persistent footer, so a batch records the footer
+commands it paints: a superseding surface receives the newest of them first,
+under any scrim it draws, and an obsolete batch already taken by the worker
+still renders them. The footer therefore stays dimmed exactly once under a modal
+and restored on pages regardless of render timing. The
 worker assembles bounded transport frames and blocks in `poll(POLLOUT)` when
 the FIFO is full; no encoding, write retry, or backpressure loop is scheduled
 on the reactor. Typer also locks the draw FIFO to reject a competing daemon.
@@ -375,8 +398,24 @@ Raster acceleration is an explicit runtime choice. Typer defaults to
 The ARM backend checks the kernel NEON capability before accepting the mode and
 otherwise fails startup instead of silently changing rendering behavior. It
 vectorizes solid opaque and source-alpha spans used by fills, strokes, lines,
-and scaled glyph rectangles. Framebuffer publication and individual glyph
-coverage pixels remain on their existing paths.
+and scaled glyph rectangles. Framebuffer copies (stale-tile synchronization and
+copy publication) use VLDM/VSTM bursts: the Cortex-A7 reads uncached
+framebuffer memory in bursts only with VLDM, about 6x faster than memcpy for
+32-pixel tile rows. Individual glyph coverage pixels remain on their existing
+path.
+
+RAM composition is opt-in and off by default because printer memory is scarce.
+By default Typer composes directly in the hidden framebuffer page, so blending
+and stale-tile synchronization read uncached framebuffer memory. Text drawn
+over a fill from the same transaction avoids those reads: Typer remembers
+solid fills that later commands have not drawn over, and strokes leave the
+interior of a fill solid. Feather panels and buttons (fill, border, text)
+therefore compose their text without reading the framebuffer.
+`ram_composition: True` in `[feather_screen]` adds `--ram-composition`: Typer
+keeps the current image in a publisher-owned 1.5 MB (800x480x4) buffer and
+uploads only changed tiles to the hidden page when a frame is published.
+Publication, rollback, page-flip fallback and pixel/input atomicity are the
+same in both modes; the Typer publisher tests run every case in both.
 
 The `[feather_screen]` status object exposes `worker_state`, queue depth/capacity
 and high-watermark, submitted/rendered/coalesced/dropped batch counters,

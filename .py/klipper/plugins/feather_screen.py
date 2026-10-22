@@ -28,6 +28,7 @@ if not sys.path or sys.path[0] != _PLUGIN_ROOT:
         pass
     sys.path.insert(0, _PLUGIN_ROOT)
 
+import feather_native
 from timelapse_state import TimelapsePhase
 
 from ui import (
@@ -219,6 +220,7 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         if self.raster_acceleration not in ("scalar", "neon"):
             raise config.error(
                 "feather_screen raster_acceleration must be scalar or neon")
+        self.ram_composition = config.getboolean("ram_composition", False)
         self.dim_timeout = config.getfloat("dim_timeout", 60.0, minval=10.0)
         self.z_offset_limit = config.getfloat("z_offset_limit", 2.0, minval=0.1)
         # Parse the retired option so existing user configs keep loading. The
@@ -249,7 +251,11 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         self.cold_pull_profiles = {}
         self.renderer = FeatherRenderer(
             self.debug, blending=self.blending,
-            raster_acceleration=self.raster_acceleration)
+            raster_acceleration=self.raster_acceleration,
+            ram_composition=self.ram_composition)
+        # Optional native acceleration, before the first page is built. Any
+        # failure is logged and leaves the Python UI in place.
+        feather_native.enable()
         # Construct the print page during configuration, before a print can
         # need reactor time for its first preview geometry lookup.
         printing_ui.get_page()
@@ -262,6 +268,7 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         self.renderer.configure_worker(
             register_async, self._renderer_event_fd_changed,
             self._renderer_restarted, self._redraw_after_dropped_frame)
+        self.renderer.set_sent_handler(self._renderer_sent)
         self.boot_screen_held = os.path.exists(FORGE_X_SCREEN_BUSY_PATH)
         if self.boot_screen_held:
             self.renderer.hold_output()
@@ -466,6 +473,9 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         notify = None if manager is None else getattr(manager, "notify", None)
         if notify is not None:
             notify(hook, *args)
+
+    def _renderer_sent(self, token, eventtime):
+        self._notify_features("on_render_sent", token, eventtime)
 
     def _renderer_restarted(self):
         if self.renderer.output_frozen:
@@ -772,6 +782,9 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         ui_test = None if manager is None else manager.peek("ui_test")
         if ui_test is not None:
             status["ui_test"] = ui_test.get_status()
+        benchmark = None if manager is None else manager.peek("benchmark")
+        if benchmark is not None:
+            status["benchmark"] = benchmark.get_status()
         return status
 
     def cmd_FEATHER_UI_TEST(self, gcmd):

@@ -34,8 +34,7 @@ PreparedFrame = namedtuple("PreparedFrame", "commands kind key python_ms")
 class BenchmarkFeature(FeatureHostProxy):
     name = "benchmark"
 
-    TARGET_FPS = 60.0
-    FRAME_INTERVAL = 1.0 / TARGET_FPS
+    QUEUE_RETRY_INTERVAL = 0.001
     RECEIPT_TIMEOUT = 1.0
     WARMUP_FRAMES = 30
     WINDOW_FRAMES = 120
@@ -59,10 +58,9 @@ class BenchmarkFeature(FeatureHostProxy):
         self.session = 0
         self.frame = 0
         self.session_started = 0.0
-        self.next_target = 0.0
         self.next_stats_at = 0.0
         self.samples = deque(maxlen=self.WINDOW_FRAMES)
-        self.receipt_times = deque(maxlen=self.WINDOW_FRAMES * 2)
+        self.receipt_times = deque()
         self.mode = self.MODES[0]
         self.display_stats = self._empty_display_stats()
         self.display_status = self._warmup_status()
@@ -95,6 +93,13 @@ class BenchmarkFeature(FeatureHostProxy):
         now = self.reactor.monotonic()
         self._reset_measurements(now)
         self._submit_frame(now, full=True)
+
+    def get_status(self):
+        completed = (self.frame - int(self.tracker.pending is not None)
+                     if self.active else None)
+        return {"active": self.active, "session": self.session,
+                "completed_frames": completed,
+                "statistics": self.display_stats._asdict()}
 
     def allows_action(self, page, action):
         return page == self.benchmark_page and action == "nav.back"
@@ -148,6 +153,15 @@ class BenchmarkFeature(FeatureHostProxy):
         if self.page == self.benchmark_page:
             self._stop_session()
 
+    def on_render_sent(self, token, eventtime):
+        pending = self.tracker.pending
+        if (self.active and pending is not None and pending.token == token
+                and self.prepared_frame is None):
+            if self.tracker.expired(eventtime):
+                self._fail("RECEIPT TIMEOUT")
+                return
+            self.prepared_frame = self._build_frame(eventtime)
+
     def on_render_receipt(self, receipt, eventtime):
         if not self.active:
             return
@@ -170,6 +184,9 @@ class BenchmarkFeature(FeatureHostProxy):
         )
 
         self.receipt_times.append(float(eventtime))
+        window_start = float(eventtime) - 1.0
+        while self.receipt_times and self.receipt_times[0] <= window_start:
+            self.receipt_times.popleft()
         completed = self.frame
         if completed > self.WARMUP_FRAMES:
             self.samples.append(sample)
@@ -182,13 +199,7 @@ class BenchmarkFeature(FeatureHostProxy):
             self._refresh_display(eventtime)
             self.next_stats_at = float(eventtime) + self.STATS_PERIOD
 
-        if eventtime >= self.next_target:
-            self.next_target = float(eventtime)
-            waketime = float(eventtime)
-        else:
-            waketime = self.next_target
-        
-        self.reactor.update_timer(self.timer, waketime)
+        self.reactor.update_timer(self.timer, float(eventtime))
 
     def deactivate(self):
         self._stop_session()
@@ -216,7 +227,6 @@ class BenchmarkFeature(FeatureHostProxy):
         self.session += 1
         self.frame = 0
         self.session_started = float(eventtime)
-        self.next_target = float(eventtime)
         self.next_stats_at = float(eventtime) + self.STATS_PERIOD
         self.samples.clear()
         self.receipt_times.clear()
@@ -377,7 +387,6 @@ class BenchmarkFeature(FeatureHostProxy):
         if self.tracker.pending is not None:
             return self.tracker.pending.deadline
 
-        frame_started = self.reactor.monotonic()
         if self.prepared_frame is None:
             self.prepared_frame = self._build_frame(eventtime, full)
         prepared = self.prepared_frame
@@ -385,28 +394,24 @@ class BenchmarkFeature(FeatureHostProxy):
         submitted_at = self.reactor.monotonic()
         self.tracker.expect(token, submitted_at, {"python_ms": prepared.python_ms})
         accepted = self.renderer.send(
-            prepared.commands, kind=prepared.kind, key=prepared.key, receipt=token)
+            prepared.commands, kind=prepared.kind, key=prepared.key,
+            receipt=token, receipt_phase="staged")
         
         if not accepted:
             self.tracker.cancel()
             self.display_status = "QUEUE BUSY"
             self.stats_dirty = True
-            self.reactor.update_timer(self.timer, submitted_at + self.FRAME_INTERVAL)
+            self.reactor.update_timer(self.timer, submitted_at + self.QUEUE_RETRY_INTERVAL)
             
-            return submitted_at + self.FRAME_INTERVAL
+            return submitted_at + self.QUEUE_RETRY_INTERVAL
 
         self.prepared_frame = None
         self.frame += 1
-        if self.benchmark_page == ScreenPage.COMPONENT_BENCHMARK:
-            # Keep one submitted frame and at most one prepared successor.
-            # Typer can render while Python prepares, without queueing deltas.
-            self.next_target = submitted_at + self.FRAME_INTERVAL
-            waketime = submitted_at
-        else:
-            self.next_target = max(self.next_target, frame_started) + self.FRAME_INTERVAL
-            waketime = self.tracker.pending.deadline
-        self.reactor.update_timer(self.timer, waketime)
-        return waketime
+        # The sent notification admits preparation of one successor while
+        # Typer renders. Only the render receipt admits its submission.
+        deadline = self.tracker.pending.deadline
+        self.reactor.update_timer(self.timer, deadline)
+        return deadline
 
     def _tick(self, eventtime):
         if not self.active:
@@ -417,9 +422,6 @@ class BenchmarkFeature(FeatureHostProxy):
             return self.reactor.NEVER
         
         if self.tracker.pending is not None:
-            if (self.benchmark_page == ScreenPage.COMPONENT_BENCHMARK
-                    and self.prepared_frame is None):
-                self.prepared_frame = self._build_frame(eventtime)
             return self.tracker.pending.deadline
 
         return self._submit_frame(eventtime)
@@ -444,15 +446,13 @@ class BenchmarkFeature(FeatureHostProxy):
         if not samples:
             return
         
-        # Use the same half-open window for FPS and its deficit. ACK latency
-        # can exceed one frame interval even while the pipeline keeps committing.
+        # Count rendered transactions independently of physical screen refresh.
         window_start = max(self.session_started, float(eventtime) - 1.0)
         duration = float(eventtime) - window_start
         if duration <= 0:
             return
         committed = sum(window_start < value <= eventtime for value in self.receipt_times)
         fps = committed / duration
-        fps_loss = max(0.0, 100.0 * (1.0 - fps / self.TARGET_FPS))
         latency = tuple(item.latency_ms for item in samples)
         self.display_stats = benchmark_state.BenchmarkStats(
             commit_fps=fps,
@@ -462,11 +462,11 @@ class BenchmarkFeature(FeatureHostProxy):
             cpu_ms=statistics.median(item.cpu_ms for item in samples),
             flush_ms=statistics.median(item.flush_ms for item in samples),
             python_ms=statistics.median(item.python_ms for item in samples),
-            fps_loss_percent=fps_loss,
+            python_p95_ms=self._percentile(tuple(item.python_ms for item in samples), 0.95),
             raster=self._raster_name(),
         )
         
-        self.display_status = "TARGET %g FPS" % self.TARGET_FPS
+        self.display_status = "UNLIMITED"
         self.stats_dirty = True
 
     def _cycle_mode(self, eventtime):

@@ -148,9 +148,10 @@ NETD_CHANGED=0
 NETD_PID=""
 EXPECTED_NETD="$(pwd)/mod/.bin/exec/netd"
 
-# These source trees are fully managed by the project. Remove Python sources
-# absent from the incoming archive before init-main reload cleans their matching
-# Klipper symlinks. User packages live separately under mod_data/plugins.
+# These source trees are fully managed by the project. Remove Python sources and
+# native modules absent from the incoming archive before init-main reload cleans
+# their matching Klipper symlinks. User packages live separately under
+# mod_data/plugins.
 for package in \
     ".py/klipper/plugins" \
     ".py/klipper/patches"; do
@@ -172,7 +173,7 @@ for package in \
             exit 2
         fi
         CHANGED=1
-    done < <(find "$DEST_PACKAGE" -type f -name "*.py")
+    done < <(find "$DEST_PACKAGE" -type f \( -name "*.py" -o -name "*.so" \))
 done
 
 while read -r file; do

@@ -101,6 +101,18 @@ def _signature_value(value, state):
     return value
 
 
+def _signature_fields(component):
+    """Declared storage whose values form the automatic state signature."""
+    names = []
+    for spec in component.property_schema:
+        name = ("kwargs" if spec.source.storage == "kwargs"
+                else spec.source.runtime_name or spec.name)
+        if name not in names:
+            names.append(name)
+    names.extend(name for name in component.render_fields if name not in names)
+    return tuple(names)
+
+
 class ButtonStyle:
     """Typed button defaults accepted by ``Override.with_button_style``."""
 
@@ -115,6 +127,14 @@ class Component(Node):
     """Renderable leaf with automatic state-binding change detection."""
 
     paints_pixels = True
+    # Draw inputs that are not editable properties. Together with the
+    # property storage they are the declared render data of the class.
+    render_fields = ()
+    signature_fields = ()
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls.signature_fields = _signature_fields(cls)
 
     def interaction_signature(self, state):
         return None
@@ -161,23 +181,22 @@ class Component(Node):
         self._active_action_wire_id = None if value is None else action_wire_id(value)
 
     def state_signature(self, state):
-        # Reuse field selection and immutable literal pairs. Read properties
-        # every time; bindings, containers and replaced fields remain live.
-        keys = tuple(self.__dict__)
-        cached = getattr(self, "_signature_fields", None)
-        if cached is None or cached[0] != keys:
-            fields = []
-            for name in keys:
-                if name.startswith("_") or name in ("key", "layout_options", "parent"):
-                    continue
-                value = self.__dict__[name]
-                literal = value is None or type(value) in (str, int, float, bool)
-                fields.append((name, value if literal else None, (name, value) if literal else None))
-            self._signature_fields = (keys, tuple(fields))
-        else:
-            fields = cached[1]
-        return tuple(pair if pair is not None and self.__dict__[name] is original
-                     else (name, _signature_value(self.__dict__[name], state))
+        # Only declared render data feeds the signature. Literal pairs are
+        # reused while a field holds the same object; bindings, containers
+        # and replaced fields are read every time.
+        values = self.__dict__
+        fields = values.get("_signature_cache")
+        if fields is None:
+            records = []
+            for name in type(self).signature_fields:
+                value = values.get(name)
+                literal = (value is None or type(value) in (str, int, float, bool)
+                           or isinstance(value, (ThemeColor, ThemeRole)))
+                pair = (name, _signature_value(value, state)) if literal else None
+                records.append((name, value if literal else None, pair))
+            fields = self._signature_cache = tuple(records)
+        return tuple(pair if pair is not None and values.get(name) is original
+                     else (name, _signature_value(values.get(name), state))
                      for name, original, pair in fields)
 
 
@@ -531,6 +550,7 @@ class Hitbox(Component):
 
 
 class Text(Component):
+    owns_relayout = True
     property_schema = property_schema(
         _property(
             "value", (str, int, float), "", kind="textarea",
@@ -768,6 +788,7 @@ class Text(Component):
 
 
 class Metric(Component):
+    owns_relayout = True
     property_schema = property_schema(
         _text("label", group="Content", live=True),
         _text("value", group="Content", live=True),
@@ -854,6 +875,7 @@ class NumericKeypad(Component):
     """Reusable numeric entry window; the surrounding page owns its chrome."""
 
     covers_bounds = True
+    render_fields = ("actions",)
 
     @property
     def actions(self):
@@ -1555,6 +1577,7 @@ class VerticalGauge(Component):
     """State-bound vertical gauge with a stable unavailable presentation."""
 
     covers_bounds = True
+    render_fields = ("gauge",)
 
     def __init__(self, gauge, title="LOAD", unavailable_title="FORCE",
                  unavailable_value="N/A", danger_above=None, key=None):
@@ -1595,6 +1618,8 @@ class VerticalGauge(Component):
 
 
 class Dialog(Component):
+    render_fields = ("kwargs",)
+
     def blocks_input(self, state):
         return bool(resolve(self.modal, state))
 
