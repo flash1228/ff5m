@@ -51,6 +51,18 @@ accuracy or mechanics.
 .venv/bin/python -m unittest tests.test_bed_mesh_validation tests.test_gcode_macros tests.test_resurrection tests.test_feather_screen tests.test_feather_screen_controller tests.test_feather_workflows tests.test_operation_context
 ```
 
+The Feather page goldens in `tests/fixtures/page_goldens/` are the regression
+oracle for the UI framework and the native node engine. For each declarative
+page and the settings pages, `tests/feather_page_goldens.py` records the
+commands, input regions and geometry after every state step, the framework
+reflection, and, on a page committed like the screen does, the action of each
+input region and the press and release feedback of each button. After a
+deliberate output change, regenerate and review the diff:
+
+```bash
+FEATHER_UPDATE_GOLDENS=1 .venv/bin/python -m unittest tests.test_feather_page_goldens -q -b
+```
+
 ## Interactive renderer benchmarks
 
 On an idle Feather screen, tap the **Settings** title five times within two

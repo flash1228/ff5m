@@ -1,0 +1,967 @@
+## draw defaults
+cmd --batch fill -p 18 8 -s 142 46 -c 050c0f
+cmd --batch text -p 28 30 -c 35d9e6 -f "Roboto 16pt" -ha left -va middle --max-width 132 --truncate -t "12:34"
+cmd --batch button -p 650 11 -s 132 38 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 100 --truncate -t "MENU" --id 0:nav.menu --layer base
+cmd --batch fill -p 25 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 25 72 -s 235 132 -c b47aff -lw 2 -sd inner
+cmd --batch text -p 142 100 -c b47aff -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE"
+cmd --batch fill -p 28 112 -s 229 87 -c 050c0f
+cmd --batch text -p 142 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t "25 / 0 C"
+cmd --batch text -p 142 181 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "OFF"
+cmd --batch fill -p 282 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 282 72 -s 235 132 -c f2c94c -lw 2 -sd inner
+cmd --batch text -p 399 100 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "BED"
+cmd --batch fill -p 285 112 -s 229 87 -c 050c0f
+cmd --batch text -p 399 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t "24 / 0 C"
+cmd --batch text -p 399 181 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "OFF"
+cmd --batch fill -p 539 72 -s 236 132 -c 050c0f
+cmd --batch stroke -p 539 72 -s 236 132 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 657 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NETWORK"
+cmd --batch fill -p 542 112 -s 230 87 -c 050c0f
+cmd --batch text -p 657 139 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "WIFI / FORGE-X"
+cmd --batch text -p 657 181 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "192.168.2.124"
+cmd --batch fill -p 25 220 -s 750 112 -c 050c0f
+cmd --batch stroke -p 25 220 -s 750 112 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 44 240 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "JOB STATUS"
+cmd --batch fill -p 29 252 -s 742 76 -c 050c0f
+cmd --batch text -p 44 270 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 560 --truncate -t "NO ACTIVE JOB"
+cmd --batch text -p 756 270 -c 35d9e6 -f "JetBrainsMono 8pt" -ha right -va middle -t "READY"
+cmd --batch text -p 44 307 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 290 --truncate -t ""
+cmd --batch text -p 756 307 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle --max-width 390 --truncate -t ""
+cmd --batch fill -p 25 345 -s 750 1 -c 295c66
+cmd --batch text -p 28 365 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle -t "LAST JOB"
+cmd --batch text -p 300 365 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle -t "MATERIAL"
+cmd --batch text -p 570 365 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle -t "TOOLHEAD"
+cmd --batch fill -p 282 353 -s 1 74 -c 295c66
+cmd --batch fill -p 542 353 -s 1 74 -c 295c66
+cmd --batch fill -p 25 393 -s 257 34 -c 030607
+cmd --batch text -p 28 410 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 240 --truncate -t "BENCHY.GCODE"
+cmd --batch fill -p 283 393 -s 259 34 -c 030607
+cmd --batch text -p 300 410 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 220 --truncate -t "PLA"
+cmd --batch fill -p 543 393 -s 232 34 -c 030607
+cmd --batch text -p 570 410 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 160 --truncate -t "XYZ"
+cmd --batch hitbox --id 0:nav.heat -p 25 72 -s 492 132 --layer base
+cmd --batch hitbox --id 0:nav.network -p 539 72 -s 236 132 --layer base
+cmd --batch hitbox --id 0:nav.job -p 25 220 -s 750 112 --layer base
+cmd --batch hitbox --id 0:home.last_job -p 25 345 -s 257 97 --layer base
+cmd --batch hitbox --id 0:nav.filament -p 283 345 -s 259 97 --layer base
+cmd --batch hitbox --id 0:nav.move -p 543 345 -s 232 97 --layer base
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+rect r Overlay home.root 0 0 800 442
+rect r.0 Overlay home.clock 18 8 142 46
+rect r.0.0 Fill 18 8 142 46
+rect r.0.1 Text 28 8 132 44
+rect r.1 Button home.menu 650 11 132 38
+rect r.10 Fill 282 353 1 74
+rect r.11 Fill 542 353 1 74
+rect r.12 Overlay home.last_job 25 393 257 34
+rect r.12.0 Fill 25 393 257 34
+rect r.12.1 Text 28 398 240 24
+rect r.13 Overlay home.material 283 393 259 34
+rect r.13.0 Fill 283 393 259 34
+rect r.13.1 Text 300 398 220 24
+rect r.14 Overlay home.toolhead 543 393 232 34
+rect r.14.0 Fill 543 393 232 34
+rect r.14.1 Text 570 398 160 24
+rect r.15 Hitbox 25 72 492 132
+rect r.16 Hitbox 539 72 236 132
+rect r.17 Hitbox 25 220 750 112
+rect r.18 Hitbox 25 345 257 97
+rect r.19 Hitbox 283 345 259 97
+rect r.2 Frame home.nozzle 25 72 235 132
+rect r.2.0 Overlay 25 72 235 132
+rect r.2.0.0 Text 25 80 235 40
+rect r.2.0.1 Overlay 28 112 229 87
+rect r.2.0.1.0 Fill 28 112 229 87
+rect r.2.0.1.1 Text 28 122 229 34
+rect r.2.0.1.2 Text 28 164 229 34
+rect r.20 Hitbox 543 345 232 97
+rect r.3 Frame home.bed 282 72 235 132
+rect r.3.0 Overlay 282 72 235 132
+rect r.3.0.0 Text 282 80 235 40
+rect r.3.0.1 Overlay 285 112 229 87
+rect r.3.0.1.0 Fill 285 112 229 87
+rect r.3.0.1.1 Text 285 122 229 34
+rect r.3.0.1.2 Text 285 164 229 34
+rect r.4 Frame home.network 539 72 236 132
+rect r.4.0 Overlay 539 72 236 132
+rect r.4.0.0 Text 539 80 236 40
+rect r.4.0.1 Overlay 542 112 230 87
+rect r.4.0.1.0 Fill 542 112 230 87
+rect r.4.0.1.1 Text 542 122 230 34
+rect r.4.0.1.2 Text 542 164 230 34
+rect r.5 Frame home.job 25 220 750 112
+rect r.5.0 Overlay 25 220 750 112
+rect r.5.0.0 Text 44 228 200 24
+rect r.5.0.1 Overlay 29 252 742 76
+rect r.5.0.1.0 Fill 29 252 742 76
+rect r.5.0.1.1 Text 44 258 560 24
+rect r.5.0.1.2 Text 619 258 137 24
+rect r.5.0.1.3 Text 44 295 290 24
+rect r.5.0.1.4 Text 366 295 390 24
+rect r.6 Fill 25 345 750 1
+rect r.7 Text 28 353 240 24
+rect r.8 Text 300 353 220 24
+rect r.9 Text 570 353 180 24
+## reflect defaults
+page state {"ui.pages.home.state.HomeState.BED": 24, "ui.pages.home.state.HomeState.BED_TARGET": 0, "ui.pages.home.state.HomeState.CLOCK": "12:34", "ui.pages.home.state.HomeState.HOMED_AXES": "XYZ", "ui.pages.home.state.HomeState.JOB_ACTIVE": false, "ui.pages.home.state.HomeState.JOB_DETAIL": "", "ui.pages.home.state.HomeState.JOB_ELAPSED": "--:--:--", "ui.pages.home.state.HomeState.JOB_FILENAME": "NO ACTIVE JOB", "ui.pages.home.state.HomeState.JOB_PROGRESS": 0, "ui.pages.home.state.HomeState.JOB_REMAINING": "--:--:--", "ui.pages.home.state.HomeState.JOB_STATE": "READY", "ui.pages.home.state.HomeState.LAST_JOB": "BENCHY.GCODE", "ui.pages.home.state.HomeState.MATERIAL": "PLA", "ui.pages.home.state.HomeState.NETWORK_ADDRESS": "192.168.2.124", "ui.pages.home.state.HomeState.NETWORK_NAME": "WIFI / FORGE-X", "ui.pages.home.state.HomeState.NOZZLE": 25, "ui.pages.home.state.HomeState.NOZZLE_TARGET": 0}
+page dependencies {"conditions": [], "states": {"ui.pages.home.state.HomeState.BED": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.home.state.HomeState.BED", "name": "BED", "properties": [{"direct": true, "node_id": "path:0.3.0.1.1", "node_ref": null, "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.home.state.HomeState.BED_TARGET": {"affected_count": 3, "condition_count": 0, "conditions": [], "key": "ui.pages.home.state.HomeState.BED_TARGET", "name": "BED_TARGET", "properties": [{"direct": true, "node_id": "path:0.3.0.1.1", "node_ref": null, "node_type": "Text", "property": "value"}, {"direct": true, "node_id": "path:0.3.0.1.2", "node_ref": null, "node_type": "Text", "property": "value"}, {"direct": true, "node_id": "path:0.3.0.1.2", "node_ref": null, "node_type": "Text", "property": "color"}], "property_count": 3}, "ui.pages.home.state.HomeState.CLOCK": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.home.state.HomeState.CLOCK", "name": "CLOCK", "properties": [{"direct": true, "node_id": "path:0.0.1", "node_ref": null, "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.home.state.HomeState.HOMED_AXES": {"affected_count": 2, "condition_count": 0, "conditions": [], "key": "ui.pages.home.state.HomeState.HOMED_AXES", "name": "HOMED_AXES", "properties": [{"direct": true, "node_id": "path:0.14.1", "node_ref": null, "node_type": "Text", "property": "value"}, {"direct": true, "node_id": "path:0.14.1", "node_ref": null, "node_type": "Text", "property": "color"}], "property_count": 2}, "ui.pages.home.state.HomeState.JOB_ACTIVE": {"affected_count": 5, "condition_count": 0, "conditions": [], "key": "ui.pages.home.state.HomeState.JOB_ACTIVE", "name": "JOB_ACTIVE", "properties": [{"direct": true, "node_id": "path:0.5.0.1.1", "node_ref": null, "node_type": "Text", "property": "value"}, {"direct": true, "node_id": "path:0.5.0.1.1", "node_ref": null, "node_type": "Text", "property": "color"}, {"direct": true, "node_id": "path:0.5.0.1.2", "node_ref": null, "node_type": "Text", "property": "value"}, {"direct": true, "node_id": "path:0.5.0.1.3", "node_ref": null, "node_type": "Text", "property": "value"}, {"direct": true, "node_id": "path:0.5.0.1.4", "node_ref": null, "node_type": "Text", "property": "value"}], "property_count": 5}, "ui.pages.home.state.HomeState.JOB_DETAIL": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.home.state.HomeState.JOB_DETAIL", "name": "JOB_DETAIL", "properties": [{"direct": true, "node_id": "path:0.5.0.1.3", "node_ref": null, "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.home.state.HomeState.JOB_ELAPSED": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.home.state.HomeState.JOB_ELAPSED", "name": "JOB_ELAPSED", "properties": [{"direct": true, "node_id": "path:0.5.0.1.4", "node_ref": null, "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.home.state.HomeState.JOB_FILENAME": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.home.state.HomeState.JOB_FILENAME", "name": "JOB_FILENAME", "properties": [{"direct": true, "node_id": "path:0.5.0.1.1", "node_ref": null, "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.home.state.HomeState.JOB_PROGRESS": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.home.state.HomeState.JOB_PROGRESS", "name": "JOB_PROGRESS", "properties": [{"direct": true, "node_id": "path:0.5.0.1.4", "node_ref": null, "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.home.state.HomeState.JOB_REMAINING": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.home.state.HomeState.JOB_REMAINING", "name": "JOB_REMAINING", "properties": [{"direct": true, "node_id": "path:0.5.0.1.4", "node_ref": null, "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.home.state.HomeState.JOB_STATE": {"affected_count": 2, "condition_count": 0, "conditions": [], "key": "ui.pages.home.state.HomeState.JOB_STATE", "name": "JOB_STATE", "properties": [{"direct": true, "node_id": "path:0.5.0.1.2", "node_ref": null, "node_type": "Text", "property": "value"}, {"direct": true, "node_id": "path:0.5.0.1.2", "node_ref": null, "node_type": "Text", "property": "color"}], "property_count": 2}, "ui.pages.home.state.HomeState.LAST_JOB": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.home.state.HomeState.LAST_JOB", "name": "LAST_JOB", "properties": [{"direct": true, "node_id": "path:0.12.1", "node_ref": null, "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.home.state.HomeState.MATERIAL": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.home.state.HomeState.MATERIAL", "name": "MATERIAL", "properties": [{"direct": true, "node_id": "path:0.13.1", "node_ref": null, "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.home.state.HomeState.NETWORK_ADDRESS": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.home.state.HomeState.NETWORK_ADDRESS", "name": "NETWORK_ADDRESS", "properties": [{"direct": true, "node_id": "path:0.4.0.1.2", "node_ref": null, "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.home.state.HomeState.NETWORK_NAME": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.home.state.HomeState.NETWORK_NAME", "name": "NETWORK_NAME", "properties": [{"direct": true, "node_id": "path:0.4.0.1.1", "node_ref": null, "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.home.state.HomeState.NOZZLE": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.home.state.HomeState.NOZZLE", "name": "NOZZLE", "properties": [{"direct": true, "node_id": "path:0.2.0.1.1", "node_ref": null, "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.home.state.HomeState.NOZZLE_TARGET": {"affected_count": 3, "condition_count": 0, "conditions": [], "key": "ui.pages.home.state.HomeState.NOZZLE_TARGET", "name": "NOZZLE_TARGET", "properties": [{"direct": true, "node_id": "path:0.2.0.1.1", "node_ref": null, "node_type": "Text", "property": "value"}, {"direct": true, "node_id": "path:0.2.0.1.2", "node_ref": null, "node_type": "Text", "property": "value"}, {"direct": true, "node_id": "path:0.2.0.1.2", "node_ref": null, "node_type": "Text", "property": "color"}], "property_count": 3}}}
+page actions [{"kind": "home_navigate", "route": "home.last_job", "wire_id": "home.last_job"}, {"kind": "home_navigate", "route": "nav.filament", "wire_id": "nav.filament"}, {"kind": "home_navigate", "route": "nav.heat", "wire_id": "nav.heat"}, {"kind": "home_navigate", "route": "nav.job", "wire_id": "nav.job"}, {"kind": "home_navigate", "route": "nav.menu", "wire_id": "nav.menu"}, {"kind": "home_navigate", "route": "nav.move", "wire_id": "nav.move"}, {"kind": "home_navigate", "route": "nav.network", "wire_id": "nav.network"}]
+page bindings [{"key": "ui.pages.home.state.HomeState.CLOCK", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ui.pages.home.state.HomeState.NOZZLE", "nullable": false, "runtime_type": "builtins.int"}, {"key": "ui.pages.home.state.HomeState.NOZZLE_TARGET", "nullable": false, "runtime_type": "builtins.int"}, {"key": "ui.pages.home.state.HomeState.BED", "nullable": false, "runtime_type": "builtins.int"}, {"key": "ui.pages.home.state.HomeState.BED_TARGET", "nullable": false, "runtime_type": "builtins.int"}, {"key": "ui.pages.home.state.HomeState.NETWORK_NAME", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ui.pages.home.state.HomeState.NETWORK_ADDRESS", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ui.pages.home.state.HomeState.JOB_ACTIVE", "nullable": false, "runtime_type": "builtins.bool"}, {"key": "ui.pages.home.state.HomeState.JOB_FILENAME", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ui.pages.home.state.HomeState.JOB_STATE", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ui.pages.home.state.HomeState.JOB_DETAIL", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ui.pages.home.state.HomeState.JOB_PROGRESS", "nullable": false, "runtime_type": "builtins.int"}, {"key": "ui.pages.home.state.HomeState.JOB_ELAPSED", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ui.pages.home.state.HomeState.JOB_REMAINING", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ui.pages.home.state.HomeState.LAST_JOB", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ui.pages.home.state.HomeState.MATERIAL", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ui.pages.home.state.HomeState.HOMED_AXES", "nullable": false, "runtime_type": "builtins.str"}]
+node {"actions": {}, "bindings": {}, "bounds": [0, 0, 800, 442], "component_template_instance": null, "condition": null, "container": true, "id": "home.root", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "home.root", "structure_slot": null, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [18, 8, 142, 46], "component_template_instance": null, "condition": null, "container": true, "id": "home.clock", "layout": {"allow_overflow": false, "grow": 1, "height": 46, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [18, 8], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 142}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "home.clock", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [18, 8, 142, 46], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeRole.HEADER_BACKGROUND"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": ["ui.pages.home.state.HomeState.CLOCK"], "key": "ui.pages.home.state.HomeState.CLOCK", "keys": ["ui.pages.home.state.HomeState.CLOCK"], "kind": "direct", "resolved": "12:34", "source": null, "transitive_keys": []}}, "bounds": [28, 8, 132, 44], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": 44, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [10, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 132}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeRole.HEADER_TEXT", "fit": false, "font": "Roboto 16pt", "horizontal": "left", "max_height": null, "max_width": 132, "truncate": true, "value": "12:34", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "explicit"}, "font": {"kind": "explicit"}, "horizontal": {"kind": "explicit"}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {"action": {"kind": "home_navigate", "route": "nav.menu", "wire_id": "nav.menu"}}, "bindings": {}, "bounds": [650, 11, 132, 38], "component_template_instance": null, "condition": null, "container": false, "id": "home.menu", "layout": {"allow_overflow": false, "grow": 1, "height": 38, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [650, 11], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 132}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "home_navigate", "route": "nav.menu", "wire_id": "nav.menu"}, "button_layout": "center", "font": "JetBrainsMono Bold 8pt", "label": "MENU", "state": "enabled", "subtitle": null}, "property_origins": {"font": {"kind": "style", "style": "ui.button.bold8", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}}, "ref": "home.menu", "structure_slot": {"index": 1}, "style": "ui.button.bold8", "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 72, 235, 132], "component_template_instance": {"instance_key": "home.nozzle", "instance_scope": "home.temperature_card[enum:ff5m_ui.home.page.HomeRef.NOZZLE]", "parameter_sources": {"border": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "status": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "status_color": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "title": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "value": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "x": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}}, "parameters": {"border": "temperature_nozzle", "ref": "home.nozzle", "status": {"binding": {"callable": {"module": "ff5m_ui.home.page", "name": "_heat_status", "qualname": "_heat_status"}, "direct_keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "key": "ui.pages.home.state.HomeState.NOZZLE_TARGET", "keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "kind": "direct", "resolved": 0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "kind": "derived", "resolved": "OFF", "source": null, "transitive_keys": []}}, "status_color": {"binding": {"callable": {"module": "ff5m_ui.home.page", "name": "_nozzle_color", "qualname": "_nozzle_color"}, "direct_keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "key": "ui.pages.home.state.HomeState.NOZZLE_TARGET", "keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "kind": "direct", "resolved": 0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "kind": "derived", "resolved": "ui.theme.ThemeColor.DIM", "source": null, "transitive_keys": []}}, "title": "NOZZLE", "value": {"binding": {"callable": {"module": "ff5m_ui.home.page", "name": "_temperature", "qualname": "_temperature"}, "direct_keys": ["ui.pages.home.state.HomeState.NOZZLE", "ui.pages.home.state.HomeState.NOZZLE_TARGET"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.NOZZLE"], "key": "ui.pages.home.state.HomeState.NOZZLE", "keys": ["ui.pages.home.state.HomeState.NOZZLE"], "kind": "direct", "resolved": 25, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "key": "ui.pages.home.state.HomeState.NOZZLE_TARGET", "keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "kind": "direct", "resolved": 0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.NOZZLE", "ui.pages.home.state.HomeState.NOZZLE_TARGET"], "kind": "derived", "resolved": "25 / 0 C", "source": null, "transitive_keys": []}}, "x": 25}, "root": true, "symbol": "HomeComponent.TEMPERATURE_CARD", "template": "home.temperature_card"}, "condition": null, "container": true, "id": "home.nozzle", "layout": {"allow_overflow": false, "grow": 1, "height": 132, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [25, 72], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 235}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeRole.TEMPERATURE_NOZZLE", "line_width": 2}, "property_origins": {"background": {"kind": "explicit"}, "border": {"kind": "explicit"}, "line_width": {"kind": "explicit"}}, "ref": "home.nozzle", "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "Frame", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 72, 235, 132], "component_template_instance": {"instance_key": "home.nozzle", "instance_scope": "home.temperature_card[enum:ff5m_ui.home.page.HomeRef.NOZZLE]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.TEMPERATURE_CARD", "template": "home.temperature_card"}, "condition": null, "container": true, "id": "path:0.2.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 80, 235, 40], "component_template_instance": {"instance_key": "home.nozzle", "instance_scope": "home.temperature_card[enum:ff5m_ui.home.page.HomeRef.NOZZLE]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.TEMPERATURE_CARD", "template": "home.temperature_card"}, "condition": null, "container": false, "id": "path:0.2.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": 40, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 8], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 235}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeRole.TEMPERATURE_NOZZLE", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "NOZZLE", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "explicit"}, "font": {"kind": "style", "style": "ui.text", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "default"}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 0}, "style": "ui.text", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [28, 112, 229, 87], "component_template_instance": {"instance_key": "home.nozzle", "instance_scope": "home.temperature_card[enum:ff5m_ui.home.page.HomeRef.NOZZLE]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.TEMPERATURE_CARD", "template": "home.temperature_card"}, "condition": null, "container": true, "id": "path:0.2.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": 87, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [3, 40], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 229}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [28, 112, 229, 87], "component_template_instance": {"instance_key": "home.nozzle", "instance_scope": "home.temperature_card[enum:ff5m_ui.home.page.HomeRef.NOZZLE]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.TEMPERATURE_CARD", "template": "home.temperature_card"}, "condition": null, "container": false, "id": "path:0.2.0.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PANEL"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {"value": {"callable": {"module": "ff5m_ui.home.page", "name": "_temperature", "qualname": "_temperature"}, "direct_keys": ["ui.pages.home.state.HomeState.NOZZLE", "ui.pages.home.state.HomeState.NOZZLE_TARGET"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.NOZZLE"], "key": "ui.pages.home.state.HomeState.NOZZLE", "keys": ["ui.pages.home.state.HomeState.NOZZLE"], "kind": "direct", "resolved": 25, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "key": "ui.pages.home.state.HomeState.NOZZLE_TARGET", "keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "kind": "direct", "resolved": 0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.NOZZLE", "ui.pages.home.state.HomeState.NOZZLE_TARGET"], "kind": "derived", "resolved": "25 / 0 C", "source": null, "transitive_keys": []}}, "bounds": [28, 122, 229, 34], "component_template_instance": {"instance_key": "home.nozzle", "instance_scope": "home.temperature_card[enum:ff5m_ui.home.page.HomeRef.NOZZLE]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.TEMPERATURE_CARD", "template": "home.temperature_card"}, "condition": null, "container": false, "id": "path:0.2.0.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": 34, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 10], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 229}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.TEXT", "fit": false, "font": "JetBrainsMono 12pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "25 / 0 C", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "style", "style": "ui.text.value", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "font": {"kind": "style", "style": "ui.text.value", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "default"}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 1}, "style": "ui.text.value", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"color": {"callable": {"module": "ff5m_ui.home.page", "name": "_nozzle_color", "qualname": "_nozzle_color"}, "direct_keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "key": "ui.pages.home.state.HomeState.NOZZLE_TARGET", "keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "kind": "direct", "resolved": 0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "kind": "derived", "resolved": "ui.theme.ThemeColor.DIM", "source": null, "transitive_keys": []}, "value": {"callable": {"module": "ff5m_ui.home.page", "name": "_heat_status", "qualname": "_heat_status"}, "direct_keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "key": "ui.pages.home.state.HomeState.NOZZLE_TARGET", "keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "kind": "direct", "resolved": 0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.NOZZLE_TARGET"], "kind": "derived", "resolved": "OFF", "source": null, "transitive_keys": []}}, "bounds": [28, 164, 229, 34], "component_template_instance": {"instance_key": "home.nozzle", "instance_scope": "home.temperature_card[enum:ff5m_ui.home.page.HomeRef.NOZZLE]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.TEMPERATURE_CARD", "template": "home.temperature_card"}, "condition": null, "container": false, "id": "path:0.2.0.1.2", "layout": {"allow_overflow": false, "grow": 1, "height": 34, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 52], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 229}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.DIM", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "OFF", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "explicit"}, "font": {"kind": "style", "style": "ui.text", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "default"}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 2}, "style": "ui.text", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [282, 72, 235, 132], "component_template_instance": {"instance_key": "home.bed", "instance_scope": "home.temperature_card[enum:ff5m_ui.home.page.HomeRef.BED]", "parameter_sources": {"border": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "status": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "status_color": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "title": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "value": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "x": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}}, "parameters": {"border": "temperature_bed", "ref": "home.bed", "status": {"binding": {"callable": {"module": "ff5m_ui.home.page", "name": "_heat_status", "qualname": "_heat_status"}, "direct_keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "key": "ui.pages.home.state.HomeState.BED_TARGET", "keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "kind": "direct", "resolved": 0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "kind": "derived", "resolved": "OFF", "source": null, "transitive_keys": []}}, "status_color": {"binding": {"callable": {"module": "ff5m_ui.home.page", "name": "_bed_color", "qualname": "_bed_color"}, "direct_keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "key": "ui.pages.home.state.HomeState.BED_TARGET", "keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "kind": "direct", "resolved": 0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "kind": "derived", "resolved": "ui.theme.ThemeColor.DIM", "source": null, "transitive_keys": []}}, "title": "BED", "value": {"binding": {"callable": {"module": "ff5m_ui.home.page", "name": "_temperature", "qualname": "_temperature"}, "direct_keys": ["ui.pages.home.state.HomeState.BED", "ui.pages.home.state.HomeState.BED_TARGET"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.BED"], "key": "ui.pages.home.state.HomeState.BED", "keys": ["ui.pages.home.state.HomeState.BED"], "kind": "direct", "resolved": 24, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "key": "ui.pages.home.state.HomeState.BED_TARGET", "keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "kind": "direct", "resolved": 0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.BED", "ui.pages.home.state.HomeState.BED_TARGET"], "kind": "derived", "resolved": "24 / 0 C", "source": null, "transitive_keys": []}}, "x": 282}, "root": true, "symbol": "HomeComponent.TEMPERATURE_CARD", "template": "home.temperature_card"}, "condition": null, "container": true, "id": "home.bed", "layout": {"allow_overflow": false, "grow": 1, "height": 132, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [282, 72], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 235}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeRole.TEMPERATURE_BED", "line_width": 2}, "property_origins": {"background": {"kind": "explicit"}, "border": {"kind": "explicit"}, "line_width": {"kind": "explicit"}}, "ref": "home.bed", "structure_slot": {"index": 3}, "style": null, "template_instance": null, "type": "Frame", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [282, 72, 235, 132], "component_template_instance": {"instance_key": "home.bed", "instance_scope": "home.temperature_card[enum:ff5m_ui.home.page.HomeRef.BED]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.TEMPERATURE_CARD", "template": "home.temperature_card"}, "condition": null, "container": true, "id": "path:0.3.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [282, 80, 235, 40], "component_template_instance": {"instance_key": "home.bed", "instance_scope": "home.temperature_card[enum:ff5m_ui.home.page.HomeRef.BED]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.TEMPERATURE_CARD", "template": "home.temperature_card"}, "condition": null, "container": false, "id": "path:0.3.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": 40, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 8], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 235}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeRole.TEMPERATURE_BED", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "BED", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "explicit"}, "font": {"kind": "style", "style": "ui.text", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "default"}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 0}, "style": "ui.text", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [285, 112, 229, 87], "component_template_instance": {"instance_key": "home.bed", "instance_scope": "home.temperature_card[enum:ff5m_ui.home.page.HomeRef.BED]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.TEMPERATURE_CARD", "template": "home.temperature_card"}, "condition": null, "container": true, "id": "path:0.3.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": 87, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [3, 40], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 229}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [285, 112, 229, 87], "component_template_instance": {"instance_key": "home.bed", "instance_scope": "home.temperature_card[enum:ff5m_ui.home.page.HomeRef.BED]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.TEMPERATURE_CARD", "template": "home.temperature_card"}, "condition": null, "container": false, "id": "path:0.3.0.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PANEL"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {"value": {"callable": {"module": "ff5m_ui.home.page", "name": "_temperature", "qualname": "_temperature"}, "direct_keys": ["ui.pages.home.state.HomeState.BED", "ui.pages.home.state.HomeState.BED_TARGET"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.BED"], "key": "ui.pages.home.state.HomeState.BED", "keys": ["ui.pages.home.state.HomeState.BED"], "kind": "direct", "resolved": 24, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "key": "ui.pages.home.state.HomeState.BED_TARGET", "keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "kind": "direct", "resolved": 0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.BED", "ui.pages.home.state.HomeState.BED_TARGET"], "kind": "derived", "resolved": "24 / 0 C", "source": null, "transitive_keys": []}}, "bounds": [285, 122, 229, 34], "component_template_instance": {"instance_key": "home.bed", "instance_scope": "home.temperature_card[enum:ff5m_ui.home.page.HomeRef.BED]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.TEMPERATURE_CARD", "template": "home.temperature_card"}, "condition": null, "container": false, "id": "path:0.3.0.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": 34, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 10], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 229}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.TEXT", "fit": false, "font": "JetBrainsMono 12pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "24 / 0 C", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "style", "style": "ui.text.value", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "font": {"kind": "style", "style": "ui.text.value", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "default"}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 1}, "style": "ui.text.value", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"color": {"callable": {"module": "ff5m_ui.home.page", "name": "_bed_color", "qualname": "_bed_color"}, "direct_keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "key": "ui.pages.home.state.HomeState.BED_TARGET", "keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "kind": "direct", "resolved": 0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "kind": "derived", "resolved": "ui.theme.ThemeColor.DIM", "source": null, "transitive_keys": []}, "value": {"callable": {"module": "ff5m_ui.home.page", "name": "_heat_status", "qualname": "_heat_status"}, "direct_keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "key": "ui.pages.home.state.HomeState.BED_TARGET", "keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "kind": "direct", "resolved": 0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.BED_TARGET"], "kind": "derived", "resolved": "OFF", "source": null, "transitive_keys": []}}, "bounds": [285, 164, 229, 34], "component_template_instance": {"instance_key": "home.bed", "instance_scope": "home.temperature_card[enum:ff5m_ui.home.page.HomeRef.BED]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.TEMPERATURE_CARD", "template": "home.temperature_card"}, "condition": null, "container": false, "id": "path:0.3.0.1.2", "layout": {"allow_overflow": false, "grow": 1, "height": 34, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 52], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 229}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.DIM", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "OFF", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "explicit"}, "font": {"kind": "style", "style": "ui.text", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "default"}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 2}, "style": "ui.text", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [539, 72, 236, 132], "component_template_instance": {"instance_key": "home.network", "instance_scope": "home.network_card[enum:ff5m_ui.home.page.HomeRef.NETWORK]", "parameter_sources": {"address": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "name": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}}, "parameters": {"address": {"binding": {"direct_keys": ["ui.pages.home.state.HomeState.NETWORK_ADDRESS"], "key": "ui.pages.home.state.HomeState.NETWORK_ADDRESS", "keys": ["ui.pages.home.state.HomeState.NETWORK_ADDRESS"], "kind": "direct", "resolved": "192.168.2.124", "source": null, "transitive_keys": []}}, "name": {"binding": {"direct_keys": ["ui.pages.home.state.HomeState.NETWORK_NAME"], "key": "ui.pages.home.state.HomeState.NETWORK_NAME", "keys": ["ui.pages.home.state.HomeState.NETWORK_NAME"], "kind": "direct", "resolved": "WIFI / FORGE-X", "source": null, "transitive_keys": []}}, "ref": "home.network"}, "root": true, "symbol": "HomeComponent.NETWORK_CARD", "template": "home.network_card"}, "condition": null, "container": true, "id": "home.network", "layout": {"allow_overflow": false, "grow": 1, "height": 132, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [539, 72], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 236}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.PRIMARY", "line_width": 2}, "property_origins": {"background": {"kind": "explicit"}, "border": {"kind": "explicit"}, "line_width": {"kind": "explicit"}}, "ref": "home.network", "structure_slot": {"index": 4}, "style": null, "template_instance": null, "type": "Frame", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [539, 72, 236, 132], "component_template_instance": {"instance_key": "home.network", "instance_scope": "home.network_card[enum:ff5m_ui.home.page.HomeRef.NETWORK]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.NETWORK_CARD", "template": "home.network_card"}, "condition": null, "container": true, "id": "path:0.4.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [539, 80, 236, 40], "component_template_instance": {"instance_key": "home.network", "instance_scope": "home.network_card[enum:ff5m_ui.home.page.HomeRef.NETWORK]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.NETWORK_CARD", "template": "home.network_card"}, "condition": null, "container": false, "id": "path:0.4.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": 40, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 8], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 236}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "NETWORK", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "style", "style": "ui.text.primary", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "font": {"kind": "style", "style": "ui.text.primary", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "default"}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 0}, "style": "ui.text.primary", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [542, 112, 230, 87], "component_template_instance": {"instance_key": "home.network", "instance_scope": "home.network_card[enum:ff5m_ui.home.page.HomeRef.NETWORK]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.NETWORK_CARD", "template": "home.network_card"}, "condition": null, "container": true, "id": "path:0.4.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": 87, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [3, 40], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 230}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [542, 112, 230, 87], "component_template_instance": {"instance_key": "home.network", "instance_scope": "home.network_card[enum:ff5m_ui.home.page.HomeRef.NETWORK]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.NETWORK_CARD", "template": "home.network_card"}, "condition": null, "container": false, "id": "path:0.4.0.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PANEL"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": ["ui.pages.home.state.HomeState.NETWORK_NAME"], "key": "ui.pages.home.state.HomeState.NETWORK_NAME", "keys": ["ui.pages.home.state.HomeState.NETWORK_NAME"], "kind": "direct", "resolved": "WIFI / FORGE-X", "source": null, "transitive_keys": []}}, "bounds": [542, 122, 230, 34], "component_template_instance": {"instance_key": "home.network", "instance_scope": "home.network_card[enum:ff5m_ui.home.page.HomeRef.NETWORK]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.NETWORK_CARD", "template": "home.network_card"}, "condition": null, "container": false, "id": "path:0.4.0.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": 34, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 10], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 230}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.TEXT", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "center", "max_height": null, "max_width": 210, "truncate": true, "value": "WIFI / FORGE-X", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "style", "style": "ui.text", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "font": {"kind": "style", "style": "ui.text", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "default"}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 1}, "style": "ui.text", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": ["ui.pages.home.state.HomeState.NETWORK_ADDRESS"], "key": "ui.pages.home.state.HomeState.NETWORK_ADDRESS", "keys": ["ui.pages.home.state.HomeState.NETWORK_ADDRESS"], "kind": "direct", "resolved": "192.168.2.124", "source": null, "transitive_keys": []}}, "bounds": [542, 164, 230, 34], "component_template_instance": {"instance_key": "home.network", "instance_scope": "home.network_card[enum:ff5m_ui.home.page.HomeRef.NETWORK]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.NETWORK_CARD", "template": "home.network_card"}, "condition": null, "container": false, "id": "path:0.4.0.1.2", "layout": {"allow_overflow": false, "grow": 1, "height": 34, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 52], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 230}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "center", "max_height": null, "max_width": 210, "truncate": true, "value": "192.168.2.124", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "style", "style": "ui.text.primary", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "font": {"kind": "style", "style": "ui.text.primary", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "default"}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 2}, "style": "ui.text.primary", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 220, 750, 112], "component_template_instance": null, "condition": null, "container": true, "id": "home.job", "layout": {"allow_overflow": false, "grow": 1, "height": 112, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [25, 220], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 750}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.BORDER", "line_width": 2}, "property_origins": {"background": {"kind": "explicit"}, "border": {"kind": "explicit"}, "line_width": {"kind": "explicit"}}, "ref": "home.job", "structure_slot": {"index": 5}, "style": null, "template_instance": null, "type": "Frame", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 220, 750, 112], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.5.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [44, 228, 200, 24], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.5.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": 24, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [19, 8], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 200}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": false, "value": "JOB STATUS", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "style", "style": "ui.text.primary", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "font": {"kind": "style", "style": "ui.text.primary", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "style", "style": "ui.text.primary.left", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 0}, "style": "ui.text.primary.left", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [29, 252, 742, 76], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.5.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": 76, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [4, 32], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 742}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [29, 252, 742, 76], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.5.0.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PANEL"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {"color": {"callable": {"module": "ff5m_ui.home.page", "name": "_job_title_color", "qualname": "_job_title_color"}, "direct_keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE"], "key": "ui.pages.home.state.HomeState.JOB_ACTIVE", "keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE"], "kind": "derived", "resolved": "ui.theme.ThemeColor.PRIMARY", "source": null, "transitive_keys": []}, "value": {"callable": {"module": "ff5m_ui.home.page", "name": "_job_filename", "qualname": "_job_filename"}, "direct_keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE", "ui.pages.home.state.HomeState.JOB_FILENAME"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE"], "key": "ui.pages.home.state.HomeState.JOB_ACTIVE", "keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.home.state.HomeState.JOB_FILENAME"], "key": "ui.pages.home.state.HomeState.JOB_FILENAME", "keys": ["ui.pages.home.state.HomeState.JOB_FILENAME"], "kind": "direct", "resolved": "NO ACTIVE JOB", "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE", "ui.pages.home.state.HomeState.JOB_FILENAME"], "kind": "derived", "resolved": "NO ACTIVE JOB", "source": null, "transitive_keys": []}}, "bounds": [44, 258, 560, 24], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.5.0.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": 24, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [15, 6], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 560}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono Bold 8pt", "horizontal": "left", "max_height": null, "max_width": 560, "truncate": true, "value": "NO ACTIVE JOB", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "explicit"}, "font": {"kind": "explicit"}, "horizontal": {"kind": "explicit"}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"color": {"callable": {"module": "ff5m_ui.home.page", "name": "_job_state_color", "qualname": "_job_state_color"}, "direct_keys": ["ui.pages.home.state.HomeState.JOB_STATE"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.JOB_STATE"], "key": "ui.pages.home.state.HomeState.JOB_STATE", "keys": ["ui.pages.home.state.HomeState.JOB_STATE"], "kind": "direct", "resolved": "READY", "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.JOB_STATE"], "kind": "derived", "resolved": "ui.theme.ThemeColor.PRIMARY", "source": null, "transitive_keys": []}, "value": {"callable": {"module": "ff5m_ui.home.page", "name": "_job_state", "qualname": "_job_state"}, "direct_keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE", "ui.pages.home.state.HomeState.JOB_STATE"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE"], "key": "ui.pages.home.state.HomeState.JOB_ACTIVE", "keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.home.state.HomeState.JOB_STATE"], "key": "ui.pages.home.state.HomeState.JOB_STATE", "keys": ["ui.pages.home.state.HomeState.JOB_STATE"], "kind": "direct", "resolved": "READY", "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE", "ui.pages.home.state.HomeState.JOB_STATE"], "kind": "derived", "resolved": "READY", "source": null, "transitive_keys": []}}, "bounds": [619, 258, 137, 24], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.5.0.1.2", "layout": {"allow_overflow": false, "grow": 1, "height": 24, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [590, 6], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 137}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "right", "max_height": null, "max_width": null, "truncate": false, "value": "READY", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "explicit"}, "font": {"kind": "style", "style": "ui.text", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "explicit"}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 2}, "style": "ui.text", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"callable": {"module": "ff5m_ui.home.page", "name": "_job_detail", "qualname": "_job_detail"}, "direct_keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE", "ui.pages.home.state.HomeState.JOB_DETAIL"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE"], "key": "ui.pages.home.state.HomeState.JOB_ACTIVE", "keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.home.state.HomeState.JOB_DETAIL"], "key": "ui.pages.home.state.HomeState.JOB_DETAIL", "keys": ["ui.pages.home.state.HomeState.JOB_DETAIL"], "kind": "direct", "resolved": "", "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE", "ui.pages.home.state.HomeState.JOB_DETAIL"], "kind": "derived", "resolved": "", "source": null, "transitive_keys": []}}, "bounds": [44, 295, 290, 24], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.5.0.1.3", "layout": {"allow_overflow": false, "grow": 1, "height": 24, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [15, 43], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 290}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.DIM", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": 290, "truncate": true, "value": "", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "style", "style": "ui.text.dim", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "font": {"kind": "style", "style": "ui.text.dim", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "style", "style": "ui.text.dim.left", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 3}, "style": "ui.text.dim.left", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"callable": {"module": "ff5m_ui.home.page", "name": "_job_progress", "qualname": "_job_progress"}, "direct_keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE", "ui.pages.home.state.HomeState.JOB_PROGRESS", "ui.pages.home.state.HomeState.JOB_ELAPSED", "ui.pages.home.state.HomeState.JOB_REMAINING"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE"], "key": "ui.pages.home.state.HomeState.JOB_ACTIVE", "keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.home.state.HomeState.JOB_PROGRESS"], "key": "ui.pages.home.state.HomeState.JOB_PROGRESS", "keys": ["ui.pages.home.state.HomeState.JOB_PROGRESS"], "kind": "direct", "resolved": 0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.home.state.HomeState.JOB_ELAPSED"], "key": "ui.pages.home.state.HomeState.JOB_ELAPSED", "keys": ["ui.pages.home.state.HomeState.JOB_ELAPSED"], "kind": "direct", "resolved": "--:--:--", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.home.state.HomeState.JOB_REMAINING"], "key": "ui.pages.home.state.HomeState.JOB_REMAINING", "keys": ["ui.pages.home.state.HomeState.JOB_REMAINING"], "kind": "direct", "resolved": "--:--:--", "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.JOB_ACTIVE", "ui.pages.home.state.HomeState.JOB_PROGRESS", "ui.pages.home.state.HomeState.JOB_ELAPSED", "ui.pages.home.state.HomeState.JOB_REMAINING"], "kind": "derived", "resolved": "", "source": null, "transitive_keys": []}}, "bounds": [366, 295, 390, 24], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.5.0.1.4", "layout": {"allow_overflow": false, "grow": 1, "height": 24, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [337, 43], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 390}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.TEXT", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "right", "max_height": null, "max_width": 390, "truncate": true, "value": "", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "style", "style": "ui.text", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "font": {"kind": "style", "style": "ui.text", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "explicit"}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 4}, "style": "ui.text", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 345, 750, 1], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.6", "layout": {"allow_overflow": false, "grow": 1, "height": 1, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [25, 345], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 750}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BORDER"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 6}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [28, 353, 240, 24], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.7", "layout": {"allow_overflow": false, "grow": 1, "height": 24, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [28, 353], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 240}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.DIM", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": false, "value": "LAST JOB", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "style", "style": "ui.text.dim", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "font": {"kind": "style", "style": "ui.text.dim", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "style", "style": "ui.text.dim.left", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 7}, "style": "ui.text.dim.left", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [300, 353, 220, 24], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.8", "layout": {"allow_overflow": false, "grow": 1, "height": 24, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [300, 353], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 220}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.DIM", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": false, "value": "MATERIAL", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "style", "style": "ui.text.dim", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "font": {"kind": "style", "style": "ui.text.dim", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "style", "style": "ui.text.dim.left", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 8}, "style": "ui.text.dim.left", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [570, 353, 180, 24], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.9", "layout": {"allow_overflow": false, "grow": 1, "height": 24, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [570, 353], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 180}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.DIM", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": false, "value": "TOOLHEAD", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "style", "style": "ui.text.dim", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "font": {"kind": "style", "style": "ui.text.dim", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "style", "style": "ui.text.dim.left", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 9}, "style": "ui.text.dim.left", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [282, 353, 1, 74], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.10", "layout": {"allow_overflow": false, "grow": 1, "height": 74, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [282, 353], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 1}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BORDER"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 10}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [542, 353, 1, 74], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.11", "layout": {"allow_overflow": false, "grow": 1, "height": 74, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [542, 353], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 1}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BORDER"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 11}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 393, 257, 34], "component_template_instance": {"instance_key": "home.last_job", "instance_scope": "home.bottom_value[enum:ff5m_ui.home.page.HomeRef.LAST_JOB]", "parameter_sources": {"color": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "max_width": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "text_x": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "value": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "width": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "x": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}}, "parameters": {"color": "text", "max_width": 240, "ref": "home.last_job", "text_x": 3, "value": {"binding": {"direct_keys": ["ui.pages.home.state.HomeState.LAST_JOB"], "key": "ui.pages.home.state.HomeState.LAST_JOB", "keys": ["ui.pages.home.state.HomeState.LAST_JOB"], "kind": "direct", "resolved": "BENCHY.GCODE", "source": null, "transitive_keys": []}}, "width": 257, "x": 25}, "root": true, "symbol": "HomeComponent.BOTTOM_VALUE", "template": "home.bottom_value"}, "condition": null, "container": true, "id": "home.last_job", "layout": {"allow_overflow": false, "grow": 1, "height": 34, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [25, 393], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 257}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "home.last_job", "structure_slot": {"index": 12}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 393, 257, 34], "component_template_instance": {"instance_key": "home.last_job", "instance_scope": "home.bottom_value[enum:ff5m_ui.home.page.HomeRef.LAST_JOB]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.BOTTOM_VALUE", "template": "home.bottom_value"}, "condition": null, "container": false, "id": "path:0.12.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BACKGROUND"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": ["ui.pages.home.state.HomeState.LAST_JOB"], "key": "ui.pages.home.state.HomeState.LAST_JOB", "keys": ["ui.pages.home.state.HomeState.LAST_JOB"], "kind": "direct", "resolved": "BENCHY.GCODE", "source": null, "transitive_keys": []}}, "bounds": [28, 398, 240, 24], "component_template_instance": {"instance_key": "home.last_job", "instance_scope": "home.bottom_value[enum:ff5m_ui.home.page.HomeRef.LAST_JOB]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.BOTTOM_VALUE", "template": "home.bottom_value"}, "condition": null, "container": false, "id": "path:0.12.1", "layout": {"allow_overflow": false, "grow": 1, "height": 24, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [3, 5], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 240}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.TEXT", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": 240, "truncate": true, "value": "BENCHY.GCODE", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "explicit"}, "font": {"kind": "style", "style": "ui.text", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "style", "style": "ui.text.left", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 1}, "style": "ui.text.left", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [283, 393, 259, 34], "component_template_instance": {"instance_key": "home.material", "instance_scope": "home.bottom_value[enum:ff5m_ui.home.page.HomeRef.MATERIAL]", "parameter_sources": {"color": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "max_width": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "text_x": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "value": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "width": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "x": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}}, "parameters": {"color": "text", "max_width": 220, "ref": "home.material", "text_x": 17, "value": {"binding": {"direct_keys": ["ui.pages.home.state.HomeState.MATERIAL"], "key": "ui.pages.home.state.HomeState.MATERIAL", "keys": ["ui.pages.home.state.HomeState.MATERIAL"], "kind": "direct", "resolved": "PLA", "source": null, "transitive_keys": []}}, "width": 259, "x": 283}, "root": true, "symbol": "HomeComponent.BOTTOM_VALUE", "template": "home.bottom_value"}, "condition": null, "container": true, "id": "home.material", "layout": {"allow_overflow": false, "grow": 1, "height": 34, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [283, 393], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 259}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "home.material", "structure_slot": {"index": 13}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [283, 393, 259, 34], "component_template_instance": {"instance_key": "home.material", "instance_scope": "home.bottom_value[enum:ff5m_ui.home.page.HomeRef.MATERIAL]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.BOTTOM_VALUE", "template": "home.bottom_value"}, "condition": null, "container": false, "id": "path:0.13.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BACKGROUND"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": ["ui.pages.home.state.HomeState.MATERIAL"], "key": "ui.pages.home.state.HomeState.MATERIAL", "keys": ["ui.pages.home.state.HomeState.MATERIAL"], "kind": "direct", "resolved": "PLA", "source": null, "transitive_keys": []}}, "bounds": [300, 398, 220, 24], "component_template_instance": {"instance_key": "home.material", "instance_scope": "home.bottom_value[enum:ff5m_ui.home.page.HomeRef.MATERIAL]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.BOTTOM_VALUE", "template": "home.bottom_value"}, "condition": null, "container": false, "id": "path:0.13.1", "layout": {"allow_overflow": false, "grow": 1, "height": 24, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [17, 5], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 220}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.TEXT", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": 220, "truncate": true, "value": "PLA", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "explicit"}, "font": {"kind": "style", "style": "ui.text", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "style", "style": "ui.text.left", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 1}, "style": "ui.text.left", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [543, 393, 232, 34], "component_template_instance": {"instance_key": "home.toolhead", "instance_scope": "home.bottom_value[enum:ff5m_ui.home.page.HomeRef.TOOLHEAD]", "parameter_sources": {"color": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "max_width": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "text_x": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "value": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "width": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "x": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}}, "parameters": {"color": {"binding": {"callable": {"module": "ff5m_ui.home.page", "name": "_homed_color", "qualname": "_homed_color"}, "direct_keys": ["ui.pages.home.state.HomeState.HOMED_AXES"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.HOMED_AXES"], "key": "ui.pages.home.state.HomeState.HOMED_AXES", "keys": ["ui.pages.home.state.HomeState.HOMED_AXES"], "kind": "direct", "resolved": "XYZ", "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.HOMED_AXES"], "kind": "derived", "resolved": "ui.theme.ThemeColor.PRIMARY", "source": null, "transitive_keys": []}}, "max_width": 160, "ref": "home.toolhead", "text_x": 27, "value": {"binding": {"direct_keys": ["ui.pages.home.state.HomeState.HOMED_AXES"], "key": "ui.pages.home.state.HomeState.HOMED_AXES", "keys": ["ui.pages.home.state.HomeState.HOMED_AXES"], "kind": "direct", "resolved": "XYZ", "source": null, "transitive_keys": []}}, "width": 232, "x": 543}, "root": true, "symbol": "HomeComponent.BOTTOM_VALUE", "template": "home.bottom_value"}, "condition": null, "container": true, "id": "home.toolhead", "layout": {"allow_overflow": false, "grow": 1, "height": 34, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [543, 393], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 232}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "home.toolhead", "structure_slot": {"index": 14}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [543, 393, 232, 34], "component_template_instance": {"instance_key": "home.toolhead", "instance_scope": "home.bottom_value[enum:ff5m_ui.home.page.HomeRef.TOOLHEAD]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.BOTTOM_VALUE", "template": "home.bottom_value"}, "condition": null, "container": false, "id": "path:0.14.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BACKGROUND"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {"color": {"callable": {"module": "ff5m_ui.home.page", "name": "_homed_color", "qualname": "_homed_color"}, "direct_keys": ["ui.pages.home.state.HomeState.HOMED_AXES"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.home.state.HomeState.HOMED_AXES"], "key": "ui.pages.home.state.HomeState.HOMED_AXES", "keys": ["ui.pages.home.state.HomeState.HOMED_AXES"], "kind": "direct", "resolved": "XYZ", "source": null, "transitive_keys": []}], "keys": ["ui.pages.home.state.HomeState.HOMED_AXES"], "kind": "derived", "resolved": "ui.theme.ThemeColor.PRIMARY", "source": null, "transitive_keys": []}, "value": {"direct_keys": ["ui.pages.home.state.HomeState.HOMED_AXES"], "key": "ui.pages.home.state.HomeState.HOMED_AXES", "keys": ["ui.pages.home.state.HomeState.HOMED_AXES"], "kind": "direct", "resolved": "XYZ", "source": null, "transitive_keys": []}}, "bounds": [570, 398, 160, 24], "component_template_instance": {"instance_key": "home.toolhead", "instance_scope": "home.bottom_value[enum:ff5m_ui.home.page.HomeRef.TOOLHEAD]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "HomeComponent.BOTTOM_VALUE", "template": "home.bottom_value"}, "condition": null, "container": false, "id": "path:0.14.1", "layout": {"allow_overflow": false, "grow": 1, "height": 24, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [27, 5], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 160}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": 160, "truncate": true, "value": "XYZ", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "explicit"}, "font": {"kind": "style", "style": "ui.text", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "style", "style": "ui.text.left", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 1}, "style": "ui.text.left", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {"action": {"kind": "home_navigate", "route": "nav.heat", "wire_id": "nav.heat"}}, "bindings": {}, "bounds": [25, 72, 492, 132], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.15", "layout": {"allow_overflow": false, "grow": 1, "height": 132, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [25, 72], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 492}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"action": {"kind": "home_navigate", "route": "nav.heat", "wire_id": "nav.heat"}, "continuous": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 15}, "style": null, "template_instance": null, "type": "Hitbox", "visible": true}
+node {"actions": {"action": {"kind": "home_navigate", "route": "nav.network", "wire_id": "nav.network"}}, "bindings": {}, "bounds": [539, 72, 236, 132], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.16", "layout": {"allow_overflow": false, "grow": 1, "height": 132, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [539, 72], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 236}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"action": {"kind": "home_navigate", "route": "nav.network", "wire_id": "nav.network"}, "continuous": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 16}, "style": null, "template_instance": null, "type": "Hitbox", "visible": true}
+node {"actions": {"action": {"kind": "home_navigate", "route": "nav.job", "wire_id": "nav.job"}}, "bindings": {}, "bounds": [25, 220, 750, 112], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.17", "layout": {"allow_overflow": false, "grow": 1, "height": 112, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [25, 220], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 750}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"action": {"kind": "home_navigate", "route": "nav.job", "wire_id": "nav.job"}, "continuous": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 17}, "style": null, "template_instance": null, "type": "Hitbox", "visible": true}
+node {"actions": {"action": {"kind": "home_navigate", "route": "home.last_job", "wire_id": "home.last_job"}}, "bindings": {}, "bounds": [25, 345, 257, 97], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.18", "layout": {"allow_overflow": false, "grow": 1, "height": 97, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [25, 345], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 257}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"action": {"kind": "home_navigate", "route": "home.last_job", "wire_id": "home.last_job"}, "continuous": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 18}, "style": null, "template_instance": null, "type": "Hitbox", "visible": true}
+node {"actions": {"action": {"kind": "home_navigate", "route": "nav.filament", "wire_id": "nav.filament"}}, "bindings": {}, "bounds": [283, 345, 259, 97], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.19", "layout": {"allow_overflow": false, "grow": 1, "height": 97, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [283, 345], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 259}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"action": {"kind": "home_navigate", "route": "nav.filament", "wire_id": "nav.filament"}, "continuous": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 19}, "style": null, "template_instance": null, "type": "Hitbox", "visible": true}
+node {"actions": {"action": {"kind": "home_navigate", "route": "nav.move", "wire_id": "nav.move"}}, "bindings": {}, "bounds": [543, 345, 232, 97], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.20", "layout": {"allow_overflow": false, "grow": 1, "height": 97, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [543, 345], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 232}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"action": {"kind": "home_navigate", "route": "nav.move", "wire_id": "nav.move"}, "continuous": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 20}, "style": null, "template_instance": null, "type": "Hitbox", "visible": true}
+## set HomeState.CLOCK='Golden text long enough to wrap or truncate in narrow areas 123'
+cmd --batch fill -p 18 8 -s 142 46 -c 050c0f
+cmd --batch text -p 28 30 -c 35d9e6 -f "Roboto 16pt" -ha left -va middle --max-width 132 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.CLOCK
+cmd --batch fill -p 18 8 -s 142 46 -c 050c0f
+cmd --batch text -p 28 30 -c 35d9e6 -f "Roboto 16pt" -ha left -va middle --max-width 132 --truncate -t "12:34"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.CLOCK=''
+cmd --batch fill -p 18 8 -s 142 46 -c 050c0f
+cmd --batch text -p 28 30 -c 35d9e6 -f "Roboto 16pt" -ha left -va middle --max-width 132 --truncate -t ""
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.CLOCK
+cmd --batch fill -p 18 8 -s 142 46 -c 050c0f
+cmd --batch text -p 28 30 -c 35d9e6 -f "Roboto 16pt" -ha left -va middle --max-width 132 --truncate -t "12:34"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.NOZZLE=62
+cmd --batch fill -p 25 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 25 72 -s 235 132 -c b47aff -lw 2 -sd inner
+cmd --batch text -p 142 100 -c b47aff -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE"
+cmd --batch fill -p 28 112 -s 229 87 -c 050c0f
+cmd --batch text -p 142 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t "62 / 0 C"
+cmd --batch text -p 142 181 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "OFF"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.NOZZLE
+cmd --batch fill -p 25 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 25 72 -s 235 132 -c b47aff -lw 2 -sd inner
+cmd --batch text -p 142 100 -c b47aff -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE"
+cmd --batch fill -p 28 112 -s 229 87 -c 050c0f
+cmd --batch text -p 142 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t "25 / 0 C"
+cmd --batch text -p 142 181 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "OFF"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.NOZZLE=-30
+cmd --batch fill -p 25 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 25 72 -s 235 132 -c b47aff -lw 2 -sd inner
+cmd --batch text -p 142 100 -c b47aff -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE"
+cmd --batch fill -p 28 112 -s 229 87 -c 050c0f
+cmd --batch text -p 134 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t " -30 / 0 C"
+cmd --batch text -p 142 181 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "OFF"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.NOZZLE
+cmd --batch fill -p 25 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 25 72 -s 235 132 -c b47aff -lw 2 -sd inner
+cmd --batch text -p 142 100 -c b47aff -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE"
+cmd --batch fill -p 28 112 -s 229 87 -c 050c0f
+cmd --batch text -p 142 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t "25 / 0 C"
+cmd --batch text -p 142 181 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "OFF"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.NOZZLE_TARGET=37
+cmd --batch fill -p 25 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 25 72 -s 235 132 -c b47aff -lw 2 -sd inner
+cmd --batch text -p 142 100 -c b47aff -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE"
+cmd --batch fill -p 28 112 -s 229 87 -c 050c0f
+cmd --batch text -p 142 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t "25 / 37 C"
+cmd --batch text -p 142 181 -c b47aff -f "JetBrainsMono 8pt" -ha center -va middle -t "HEATING"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.NOZZLE_TARGET
+cmd --batch fill -p 25 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 25 72 -s 235 132 -c b47aff -lw 2 -sd inner
+cmd --batch text -p 142 100 -c b47aff -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE"
+cmd --batch fill -p 28 112 -s 229 87 -c 050c0f
+cmd --batch text -p 142 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t "25 / 0 C"
+cmd --batch text -p 142 181 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "OFF"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.BED=61
+cmd --batch fill -p 282 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 282 72 -s 235 132 -c f2c94c -lw 2 -sd inner
+cmd --batch text -p 399 100 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "BED"
+cmd --batch fill -p 285 112 -s 229 87 -c 050c0f
+cmd --batch text -p 399 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t "61 / 0 C"
+cmd --batch text -p 399 181 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "OFF"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.BED
+cmd --batch fill -p 282 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 282 72 -s 235 132 -c f2c94c -lw 2 -sd inner
+cmd --batch text -p 399 100 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "BED"
+cmd --batch fill -p 285 112 -s 229 87 -c 050c0f
+cmd --batch text -p 399 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t "24 / 0 C"
+cmd --batch text -p 399 181 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "OFF"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.BED=-29
+cmd --batch fill -p 282 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 282 72 -s 235 132 -c f2c94c -lw 2 -sd inner
+cmd --batch text -p 399 100 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "BED"
+cmd --batch fill -p 285 112 -s 229 87 -c 050c0f
+cmd --batch text -p 391 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t " -29 / 0 C"
+cmd --batch text -p 399 181 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "OFF"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.BED
+cmd --batch fill -p 282 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 282 72 -s 235 132 -c f2c94c -lw 2 -sd inner
+cmd --batch text -p 399 100 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "BED"
+cmd --batch fill -p 285 112 -s 229 87 -c 050c0f
+cmd --batch text -p 399 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t "24 / 0 C"
+cmd --batch text -p 399 181 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "OFF"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.BED_TARGET=37
+cmd --batch fill -p 282 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 282 72 -s 235 132 -c f2c94c -lw 2 -sd inner
+cmd --batch text -p 399 100 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "BED"
+cmd --batch fill -p 285 112 -s 229 87 -c 050c0f
+cmd --batch text -p 399 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t "24 / 37 C"
+cmd --batch text -p 399 181 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "HEATING"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.BED_TARGET
+cmd --batch fill -p 282 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 282 72 -s 235 132 -c f2c94c -lw 2 -sd inner
+cmd --batch text -p 399 100 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "BED"
+cmd --batch fill -p 285 112 -s 229 87 -c 050c0f
+cmd --batch text -p 399 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t "24 / 0 C"
+cmd --batch text -p 399 181 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "OFF"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.NETWORK_NAME='Golden text long enough to wrap or truncate in narrow areas 123'
+cmd --batch fill -p 539 72 -s 236 132 -c 050c0f
+cmd --batch stroke -p 539 72 -s 236 132 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 657 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NETWORK"
+cmd --batch fill -p 542 112 -s 230 87 -c 050c0f
+cmd --batch text -p 657 139 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 657 181 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "192.168.2.124"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.NETWORK_NAME
+cmd --batch fill -p 539 72 -s 236 132 -c 050c0f
+cmd --batch stroke -p 539 72 -s 236 132 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 657 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NETWORK"
+cmd --batch fill -p 542 112 -s 230 87 -c 050c0f
+cmd --batch text -p 657 139 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "WIFI / FORGE-X"
+cmd --batch text -p 657 181 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "192.168.2.124"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.NETWORK_NAME=''
+cmd --batch fill -p 539 72 -s 236 132 -c 050c0f
+cmd --batch stroke -p 539 72 -s 236 132 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 657 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NETWORK"
+cmd --batch fill -p 542 112 -s 230 87 -c 050c0f
+cmd --batch text -p 657 139 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t ""
+cmd --batch text -p 657 181 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "192.168.2.124"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.NETWORK_NAME
+cmd --batch fill -p 539 72 -s 236 132 -c 050c0f
+cmd --batch stroke -p 539 72 -s 236 132 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 657 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NETWORK"
+cmd --batch fill -p 542 112 -s 230 87 -c 050c0f
+cmd --batch text -p 657 139 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "WIFI / FORGE-X"
+cmd --batch text -p 657 181 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "192.168.2.124"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.NETWORK_ADDRESS='Golden text long enough to wrap or truncate in narrow areas 123'
+cmd --batch fill -p 539 72 -s 236 132 -c 050c0f
+cmd --batch stroke -p 539 72 -s 236 132 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 657 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NETWORK"
+cmd --batch fill -p 542 112 -s 230 87 -c 050c0f
+cmd --batch text -p 657 139 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "WIFI / FORGE-X"
+cmd --batch text -p 657 181 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.NETWORK_ADDRESS
+cmd --batch fill -p 539 72 -s 236 132 -c 050c0f
+cmd --batch stroke -p 539 72 -s 236 132 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 657 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NETWORK"
+cmd --batch fill -p 542 112 -s 230 87 -c 050c0f
+cmd --batch text -p 657 139 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "WIFI / FORGE-X"
+cmd --batch text -p 657 181 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "192.168.2.124"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.NETWORK_ADDRESS=''
+cmd --batch fill -p 539 72 -s 236 132 -c 050c0f
+cmd --batch stroke -p 539 72 -s 236 132 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 657 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NETWORK"
+cmd --batch fill -p 542 112 -s 230 87 -c 050c0f
+cmd --batch text -p 657 139 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "WIFI / FORGE-X"
+cmd --batch text -p 657 181 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t ""
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.NETWORK_ADDRESS
+cmd --batch fill -p 539 72 -s 236 132 -c 050c0f
+cmd --batch stroke -p 539 72 -s 236 132 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 657 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NETWORK"
+cmd --batch fill -p 542 112 -s 230 87 -c 050c0f
+cmd --batch text -p 657 139 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "WIFI / FORGE-X"
+cmd --batch text -p 657 181 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "192.168.2.124"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.JOB_ACTIVE=True
+cmd --batch fill -p 25 220 -s 750 112 -c 050c0f
+cmd --batch stroke -p 25 220 -s 750 112 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 44 240 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "JOB STATUS"
+cmd --batch fill -p 29 252 -s 742 76 -c 050c0f
+cmd --batch text -p 44 270 -c d9e4e8 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 560 --truncate -t "NO ACTIVE JOB"
+cmd --batch text -p 756 270 -c 35d9e6 -f "JetBrainsMono 8pt" -ha right -va middle -t "READY"
+cmd --batch text -p 44 307 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 290 --truncate -t ""
+cmd --batch text -p 756 307 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle --max-width 390 --truncate -t "0% // --:--:-- / --:--:--"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.JOB_ACTIVE
+cmd --batch fill -p 25 220 -s 750 112 -c 050c0f
+cmd --batch stroke -p 25 220 -s 750 112 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 44 240 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "JOB STATUS"
+cmd --batch fill -p 29 252 -s 742 76 -c 050c0f
+cmd --batch text -p 44 270 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 560 --truncate -t "NO ACTIVE JOB"
+cmd --batch text -p 756 270 -c 35d9e6 -f "JetBrainsMono 8pt" -ha right -va middle -t "READY"
+cmd --batch text -p 44 307 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 290 --truncate -t ""
+cmd --batch text -p 756 307 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle --max-width 390 --truncate -t ""
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.JOB_FILENAME='Golden text long enough to wrap or truncate in narrow areas 123'
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.JOB_FILENAME
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.JOB_FILENAME=''
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.JOB_FILENAME
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.JOB_STATE='Golden text long enough to wrap or truncate in narrow areas 123'
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.JOB_STATE
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.JOB_STATE=''
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.JOB_STATE
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.JOB_DETAIL='Golden text long enough to wrap or truncate in narrow areas 123'
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.JOB_DETAIL
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.JOB_PROGRESS=100
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.JOB_PROGRESS
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.JOB_ELAPSED='Golden text long enough to wrap or truncate in narrow areas 123'
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.JOB_ELAPSED
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.JOB_ELAPSED=''
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.JOB_ELAPSED
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.JOB_REMAINING='Golden text long enough to wrap or truncate in narrow areas 123'
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.JOB_REMAINING
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.JOB_REMAINING=''
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.JOB_REMAINING
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.LAST_JOB='Golden text long enough to wrap or truncate in narrow areas 123'
+cmd --batch fill -p 25 393 -s 257 34 -c 030607
+cmd --batch text -p 28 410 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 240 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.LAST_JOB
+cmd --batch fill -p 25 393 -s 257 34 -c 030607
+cmd --batch text -p 28 410 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 240 --truncate -t "BENCHY.GCODE"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.LAST_JOB=''
+cmd --batch fill -p 25 393 -s 257 34 -c 030607
+cmd --batch text -p 28 410 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 240 --truncate -t ""
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.LAST_JOB
+cmd --batch fill -p 25 393 -s 257 34 -c 030607
+cmd --batch text -p 28 410 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 240 --truncate -t "BENCHY.GCODE"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.MATERIAL='Golden text long enough to wrap or truncate in narrow areas 123'
+cmd --batch fill -p 283 393 -s 259 34 -c 030607
+cmd --batch text -p 300 410 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 220 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.MATERIAL
+cmd --batch fill -p 283 393 -s 259 34 -c 030607
+cmd --batch text -p 300 410 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 220 --truncate -t "PLA"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.MATERIAL=''
+cmd --batch fill -p 283 393 -s 259 34 -c 030607
+cmd --batch text -p 300 410 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 220 --truncate -t ""
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.MATERIAL
+cmd --batch fill -p 283 393 -s 259 34 -c 030607
+cmd --batch text -p 300 410 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 220 --truncate -t "PLA"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.HOMED_AXES='Golden text long enough to wrap or truncate in narrow areas 123'
+cmd --batch fill -p 543 393 -s 232 34 -c 030607
+cmd --batch text -p 570 410 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 160 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.HOMED_AXES
+cmd --batch fill -p 543 393 -s 232 34 -c 030607
+cmd --batch text -p 570 410 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 160 --truncate -t "XYZ"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set HomeState.HOMED_AXES=''
+cmd --batch fill -p 543 393 -s 232 34 -c 030607
+cmd --batch text -p 570 410 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 160 --truncate -t ""
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## restore HomeState.HOMED_AXES
+cmd --batch fill -p 543 393 -s 232 34 -c 030607
+cmd --batch text -p 570 410 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 160 --truncate -t "XYZ"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## set all
+cmd --batch fill -p 18 8 -s 142 46 -c 050c0f
+cmd --batch text -p 28 30 -c 35d9e6 -f "Roboto 16pt" -ha left -va middle --max-width 132 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 25 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 25 72 -s 235 132 -c b47aff -lw 2 -sd inner
+cmd --batch text -p 142 100 -c b47aff -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE"
+cmd --batch fill -p 28 112 -s 229 87 -c 050c0f
+cmd --batch text -p 142 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t "62 / 37 C"
+cmd --batch text -p 142 181 -c b47aff -f "JetBrainsMono 8pt" -ha center -va middle -t "HEATING"
+cmd --batch fill -p 282 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 282 72 -s 235 132 -c f2c94c -lw 2 -sd inner
+cmd --batch text -p 399 100 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "BED"
+cmd --batch fill -p 285 112 -s 229 87 -c 050c0f
+cmd --batch text -p 399 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t "61 / 37 C"
+cmd --batch text -p 399 181 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "HEATING"
+cmd --batch fill -p 539 72 -s 236 132 -c 050c0f
+cmd --batch stroke -p 539 72 -s 236 132 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 657 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NETWORK"
+cmd --batch fill -p 542 112 -s 230 87 -c 050c0f
+cmd --batch text -p 657 139 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 657 181 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 25 220 -s 750 112 -c 050c0f
+cmd --batch stroke -p 25 220 -s 750 112 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 44 240 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "JOB STATUS"
+cmd --batch fill -p 29 252 -s 742 76 -c 050c0f
+cmd --batch text -p 44 270 -c d9e4e8 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 560 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 756 270 -c 35d9e6 -f "JetBrainsMono 8pt" -ha right -va middle -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 44 307 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 290 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 756 307 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle --max-width 390 --truncate -t "100% // Golden text long enough to wrap or truncate in narrow areas 123 / Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 25 393 -s 257 34 -c 030607
+cmd --batch text -p 28 410 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 240 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 283 393 -s 259 34 -c 030607
+cmd --batch text -p 300 410 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 220 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 543 393 -s 232 34 -c 030607
+cmd --batch text -p 570 410 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 160 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## redraw all
+cmd --batch fill -p 18 8 -s 142 46 -c 050c0f
+cmd --batch text -p 28 30 -c 35d9e6 -f "Roboto 16pt" -ha left -va middle --max-width 132 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch button -p 650 11 -s 132 38 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 100 --truncate -t "MENU" --id 0:nav.menu --layer base
+cmd --batch fill -p 25 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 25 72 -s 235 132 -c b47aff -lw 2 -sd inner
+cmd --batch text -p 142 100 -c b47aff -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE"
+cmd --batch fill -p 28 112 -s 229 87 -c 050c0f
+cmd --batch text -p 142 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t "62 / 37 C"
+cmd --batch text -p 142 181 -c b47aff -f "JetBrainsMono 8pt" -ha center -va middle -t "HEATING"
+cmd --batch fill -p 282 72 -s 235 132 -c 050c0f
+cmd --batch stroke -p 282 72 -s 235 132 -c f2c94c -lw 2 -sd inner
+cmd --batch text -p 399 100 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "BED"
+cmd --batch fill -p 285 112 -s 229 87 -c 050c0f
+cmd --batch text -p 399 139 -c d9e4e8 -f "JetBrainsMono 12pt" -ha center -va middle -t "61 / 37 C"
+cmd --batch text -p 399 181 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "HEATING"
+cmd --batch fill -p 539 72 -s 236 132 -c 050c0f
+cmd --batch stroke -p 539 72 -s 236 132 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 657 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NETWORK"
+cmd --batch fill -p 542 112 -s 230 87 -c 050c0f
+cmd --batch text -p 657 139 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 657 181 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 25 220 -s 750 112 -c 050c0f
+cmd --batch stroke -p 25 220 -s 750 112 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 44 240 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "JOB STATUS"
+cmd --batch fill -p 29 252 -s 742 76 -c 050c0f
+cmd --batch text -p 44 270 -c d9e4e8 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 560 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 756 270 -c 35d9e6 -f "JetBrainsMono 8pt" -ha right -va middle -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 44 307 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 290 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 756 307 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle --max-width 390 --truncate -t "100% // Golden text long enough to wrap or truncate in narrow areas 123 / Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 25 345 -s 750 1 -c 295c66
+cmd --batch text -p 28 365 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle -t "LAST JOB"
+cmd --batch text -p 300 365 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle -t "MATERIAL"
+cmd --batch text -p 570 365 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle -t "TOOLHEAD"
+cmd --batch fill -p 282 353 -s 1 74 -c 295c66
+cmd --batch fill -p 542 353 -s 1 74 -c 295c66
+cmd --batch fill -p 25 393 -s 257 34 -c 030607
+cmd --batch text -p 28 410 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 240 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 283 393 -s 259 34 -c 030607
+cmd --batch text -p 300 410 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 220 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 543 393 -s 232 34 -c 030607
+cmd --batch text -p 570 410 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 160 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch hitbox --id 0:nav.heat -p 25 72 -s 492 132 --layer base
+cmd --batch hitbox --id 0:nav.network -p 539 72 -s 236 132 --layer base
+cmd --batch hitbox --id 0:nav.job -p 25 220 -s 750 112 --layer base
+cmd --batch hitbox --id 0:home.last_job -p 25 345 -s 257 97 --layer base
+cmd --batch hitbox --id 0:nav.filament -p 283 345 -s 259 97 --layer base
+cmd --batch hitbox --id 0:nav.move -p 543 345 -s 232 97 --layer base
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## theme AMBER
+cmd --batch fill -p 18 8 -s 142 46 -c 24200e
+cmd --batch text -p 28 30 -c b88d2e -f "Roboto 16pt" -ha left -va middle --max-width 132 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch button -p 650 11 -s 132 38 --background 28230f --border 6d5c2b --text-color b58c2f -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 100 --truncate -t "MENU" --id 0:nav.menu --layer base
+cmd --batch fill -p 25 72 -s 235 132 -c 071305
+cmd --batch stroke -p 25 72 -s 235 132 -c a8cf45 -lw 2 -sd inner
+cmd --batch text -p 142 100 -c a8cf45 -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE"
+cmd --batch fill -p 28 112 -s 229 87 -c 071305
+cmd --batch text -p 142 139 -c b9e7a5 -f "JetBrainsMono 12pt" -ha center -va middle -t "62 / 37 C"
+cmd --batch text -p 142 181 -c a8cf45 -f "JetBrainsMono 8pt" -ha center -va middle -t "HEATING"
+cmd --batch fill -p 282 72 -s 235 132 -c 071305
+cmd --batch stroke -p 282 72 -s 235 132 -c f2c14e -lw 2 -sd inner
+cmd --batch text -p 399 100 -c f2c14e -f "JetBrainsMono 8pt" -ha center -va middle -t "BED"
+cmd --batch fill -p 285 112 -s 229 87 -c 071305
+cmd --batch text -p 399 139 -c b9e7a5 -f "JetBrainsMono 12pt" -ha center -va middle -t "61 / 37 C"
+cmd --batch text -p 399 181 -c f2c14e -f "JetBrainsMono 8pt" -ha center -va middle -t "HEATING"
+cmd --batch fill -p 539 72 -s 236 132 -c 071305
+cmd --batch stroke -p 539 72 -s 236 132 -c 69d540 -lw 2 -sd inner
+cmd --batch text -p 657 100 -c 69d540 -f "JetBrainsMono 8pt" -ha center -va middle -t "NETWORK"
+cmd --batch fill -p 542 112 -s 230 87 -c 071305
+cmd --batch text -p 657 139 -c b9e7a5 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 657 181 -c 69d540 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 210 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 25 220 -s 750 112 -c 071305
+cmd --batch stroke -p 25 220 -s 750 112 -c 2e6725 -lw 2 -sd inner
+cmd --batch text -p 44 240 -c 69d540 -f "JetBrainsMono 8pt" -ha left -va middle -t "JOB STATUS"
+cmd --batch fill -p 29 252 -s 742 76 -c 071305
+cmd --batch text -p 44 270 -c b9e7a5 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 560 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 756 270 -c 69d540 -f "JetBrainsMono 8pt" -ha right -va middle -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 44 307 -c 4c7d42 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 290 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 756 307 -c b9e7a5 -f "JetBrainsMono 8pt" -ha right -va middle --max-width 390 --truncate -t "100% // Golden text long enough to wrap or truncate in narrow areas 123 / Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 25 345 -s 750 1 -c 2e6725
+cmd --batch text -p 28 365 -c 4c7d42 -f "JetBrainsMono 8pt" -ha left -va middle -t "LAST JOB"
+cmd --batch text -p 300 365 -c 4c7d42 -f "JetBrainsMono 8pt" -ha left -va middle -t "MATERIAL"
+cmd --batch text -p 570 365 -c 4c7d42 -f "JetBrainsMono 8pt" -ha left -va middle -t "TOOLHEAD"
+cmd --batch fill -p 282 353 -s 1 74 -c 2e6725
+cmd --batch fill -p 542 353 -s 1 74 -c 2e6725
+cmd --batch fill -p 25 393 -s 257 34 -c 030802
+cmd --batch text -p 28 410 -c b9e7a5 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 240 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 283 393 -s 259 34 -c 030802
+cmd --batch text -p 300 410 -c b9e7a5 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 220 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 543 393 -s 232 34 -c 030802
+cmd --batch text -p 570 410 -c f2c14e -f "JetBrainsMono 8pt" -ha left -va middle --max-width 160 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch hitbox --id 0:nav.heat -p 25 72 -s 492 132 --layer base
+cmd --batch hitbox --id 0:nav.network -p 539 72 -s 236 132 --layer base
+cmd --batch hitbox --id 0:nav.job -p 25 220 -s 750 112 --layer base
+cmd --batch hitbox --id 0:home.last_job -p 25 345 -s 257 97 --layer base
+cmd --batch hitbox --id 0:nav.filament -p 283 345 -s 259 97 --layer base
+cmd --batch hitbox --id 0:nav.move -p 543 345 -s 232 97 --layer base
+hit nav.menu 650 11 132 38 False base
+hit nav.heat 25 72 492 132 False base
+hit nav.network 539 72 236 132 False base
+hit nav.job 25 220 750 112 False base
+hit home.last_job 25 345 257 97 False base
+hit nav.filament 283 345 259 97 False base
+hit nav.move 543 345 232 97 False base
+## press
+action home.last_job {"kind": "home_navigate", "route": "home.last_job", "wire_id": "home.last_job"}
+action nav.filament {"kind": "home_navigate", "route": "nav.filament", "wire_id": "nav.filament"}
+action nav.heat {"kind": "home_navigate", "route": "nav.heat", "wire_id": "nav.heat"}
+action nav.job {"kind": "home_navigate", "route": "nav.job", "wire_id": "nav.job"}
+action nav.menu {"kind": "home_navigate", "route": "nav.menu", "wire_id": "nav.menu"}
+action nav.move {"kind": "home_navigate", "route": "nav.move", "wire_id": "nav.move"}
+action nav.network {"kind": "home_navigate", "route": "nav.network", "wire_id": "nav.network"}
+press nav.menu
+cmd --batch button -p 650 11 -s 132 38 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 100 --truncate -t "MENU"
+cmd --batch button -p 650 11 -s 132 38 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 100 --truncate -t "MENU"

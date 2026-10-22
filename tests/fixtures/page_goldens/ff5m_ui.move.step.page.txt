@@ -1,0 +1,997 @@
+## draw defaults
+cmd --batch button -p 140 78 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "Y+" --id 0:move.yp.eadd406273cf --layer base
+cmd --batch button -p 30 158 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "X-" --id 0:move.xm.4de8d99268f4 --layer base
+cmd --batch fill -p 140 158 -s 100 68 -c 050c0f
+cmd --batch stroke -p 140 158 -s 100 68 -c f2c94c -lw 2 -sd inner
+cmd --batch text -p 190 180 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "X / Y"
+cmd --batch text -p 190 207 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "HOME"
+cmd --batch button -p 250 158 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "X+" --id 0:move.xp.bd2f85d5d4ac --layer base
+cmd --batch button -p 140 238 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "Y-" --id 0:move.ym.919d58759af9 --layer base
+cmd --batch button -p 365 78 -s 65 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 33 --truncate -t "Z-" --id 0:move.zm.e953c0486b76 --layer base
+cmd --batch fill -p 365 158 -s 65 68 -c 050c0f
+cmd --batch stroke -p 365 158 -s 65 68 -c f2c94c -lw 2 -sd inner
+cmd --batch text -p 397 180 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "Z"
+cmd --batch text -p 397 207 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "HOME"
+cmd --batch button -p 365 238 -s 65 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 33 --truncate -t "Z+" --id 0:move.zp.839983a68767 --layer base
+cmd --batch button -p 30 350 -s 190 58 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 158 --truncate -t "DISABLE MOTORS" --id 0:move.motors.fcb5b9fb92dd --layer base
+cmd --batch button -p 235 350 -s 195 58 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 163 --truncate -t "JOY MODE" --id 0:navigate.move.joystick --layer base
+cmd --batch fill -p 445 65 -s 1 360 -c 295c66
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X    0.00   Y    0.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z    0.00"
+cmd --batch button -p 465 170 -s 145 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 113 --truncate -t "HOME ALL" --id 0:move.homeall.3b30b2eb011a --layer base
+cmd --batch button -p 625 170 -s 145 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 113 --truncate -t "HOME XY" --id 0:move.homexy.91d916c5371e --layer base
+cmd --batch fill -p 465 235 -s 305 1 -c 295c66
+cmd --batch text -p 617 254 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "STEP SIZE"
+cmd --batch button -p 465 270 -s 80 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 48 --truncate -t " -" --id 0:ui.c4ecd39b3b9f --layer base
+cmd --batch text -p 617 294 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "1 MM"
+cmd --batch button -p 690 270 -s 80 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 48 --truncate -t "+" --id 0:ui.aeb082bbe392 --layer base
+cmd --batch text -p 617 338 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "PRESET STEPS"
+cmd --batch button -p 465 358 -s 95 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "0.1" --id 0:ui.fc91504b67f5 --layer base
+cmd --batch button -p 570 358 -s 95 50 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "1" --id 0:ui.5b4d060a5038 --layer base
+cmd --batch button -p 675 358 -s 95 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "10" --id 0:ui.6fd4e7e62f87 --layer base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+rect r Grid root 12 64 776 364
+rect r.0 Overlay axis 30 65 400 360
+rect r.0.0 Column 30 65 400 360
+rect r.0.0.0 Grid axis.layout 30 78 400 228
+rect r.0.0.0.0 Grid xy.grid 30 78 320 228
+rect r.0.0.0.0.0 Button xy.up 140 78 100 68
+rect r.0.0.0.0.1 Button xy.left 30 158 100 68
+rect r.0.0.0.0.2 Overlay xy.status 140 158 100 68
+rect r.0.0.0.0.2.0 Fill xy.status.background 140 158 100 68
+rect r.0.0.0.0.2.1 Stroke xy.status.border 140 158 100 68
+rect r.0.0.0.0.2.2 Text xy.status.label 140 158 100 44
+rect r.0.0.0.0.2.3 Text xy.status.state 140 192 100 30
+rect r.0.0.0.0.3 Button xy.right 250 158 100 68
+rect r.0.0.0.0.4 Button xy.down 140 238 100 68
+rect r.0.0.0.1 Grid z.grid 365 78 65 228
+rect r.0.0.0.1.0 Button z.down 365 78 65 68
+rect r.0.0.0.1.1 Overlay z.status 365 158 65 68
+rect r.0.0.0.1.1.0 Fill z.status.background 365 158 65 68
+rect r.0.0.0.1.1.1 Stroke z.status.border 365 158 65 68
+rect r.0.0.0.1.1.2 Text z.status.label 365 158 65 44
+rect r.0.0.0.1.1.3 Text z.status.state 365 192 65 30
+rect r.0.0.0.1.2 Button z.up 365 238 65 68
+rect r.0.0.1 Row axis.actions 30 350 400 58
+rect r.0.0.1.0 Button motors 30 350 190 58
+rect r.0.0.1.1 Button mode 235 350 195 58
+rect r.0.1 Overlay 30 96 420 266
+rect r.0.1.0 When 30 96 420 266
+rect r.0.1.0.0 Dialog 30 96 420 266
+rect r.0.1.1 When 30 96 420 266
+rect r.0.1.1.0 Dialog 30 96 420 266
+rect r.0.1.2 When 30 96 420 266
+rect r.0.1.2.0 Dialog 30 96 420 266
+rect r.1 Grid separator.layout 430 65 35 360
+rect r.1.0 Fill separator 445 65 1 360
+rect r.2 Grid control 465 65 305 360
+rect r.2.0 Column home.layout 465 65 305 155
+rect r.2.0.0 Overlay status.card 465 65 305 95
+rect r.2.0.0.0 Fill status.background 465 65 305 95
+rect r.2.0.0.1 Text status.state 465 65 305 34
+rect r.2.0.0.2 Text status.xy 465 99 305 46
+rect r.2.0.0.3 Text status.z 465 135 305 26
+rect r.2.0.1 WrapPanel home.buttons 465 170 305 50
+rect r.2.0.1.0 Button home.all 465 170 145 50
+rect r.2.0.1.1 Button home.xy 625 170 145 50
+rect r.2.1 Fill step.divider 465 235 305 1
+rect r.2.2 Grid step.layout 465 240 305 168
+rect r.2.2.0 Text step.title 465 240 305 28
+rect r.2.2.1 Grid step.adjust 465 270 305 48
+rect r.2.2.1.0 Button step.minus 465 270 80 48
+rect r.2.2.1.1 Text step.value 545 270 145 48
+rect r.2.2.1.2 Button step.plus 690 270 80 48
+rect r.2.2.2 Text preset.title 465 325 305 26
+rect r.2.2.3 WrapPanel presets 465 358 305 50
+rect r.2.2.3.0 Button preset.0 465 358 95 50
+rect r.2.2.3.1 Button preset.1 570 358 95 50
+rect r.2.2.3.2 Button preset.2 675 358 95 50
+## reflect defaults
+page state {"ui.pages.move.state.MoveState.AUTO_PROFILE_STATE": "missing", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED": false, "ui.pages.move.state.MoveState.CAUTION_Z": 5.0, "ui.pages.move.state.MoveState.JOG_STEP": 1.0, "ui.pages.move.state.ToolheadState.HOMED_X": false, "ui.pages.move.state.ToolheadState.HOMED_Y": false, "ui.pages.move.state.ToolheadState.HOMED_Z": false, "ui.pages.move.state.ToolheadState.X": 0.0, "ui.pages.move.state.ToolheadState.Y": 0.0, "ui.pages.move.state.ToolheadState.Z": 0.0}
+page dependencies {"conditions": [{"binding": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}, "child": {"ref": null, "type": "Dialog"}, "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0", "node_ref": null, "preview_result": false, "result": false}, {"binding": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}, "child": {"ref": null, "type": "Dialog"}, "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.1", "node_ref": null, "preview_result": false, "result": false}, {"binding": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}, "child": {"ref": null, "type": "Dialog"}, "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.2", "node_ref": null, "preview_result": false, "result": false}], "states": {"ui.pages.move.state.MoveState.AUTO_PROFILE_STATE": {"affected_count": 3, "condition_count": 3, "conditions": [{"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.1", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.2", "node_ref": null, "result": false}], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "name": "AUTO_PROFILE_STATE", "properties": [], "property_count": 0}, "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED": {"affected_count": 3, "condition_count": 3, "conditions": [{"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.1", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.2", "node_ref": null, "result": false}], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "name": "CAUTION_ACKNOWLEDGED", "properties": [], "property_count": 0}, "ui.pages.move.state.MoveState.CAUTION_Z": {"affected_count": 6, "condition_count": 3, "conditions": [{"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.1", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.2", "node_ref": null, "result": false}], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "name": "CAUTION_Z", "properties": [{"direct": true, "node_id": "path:0.0.1.0.0", "node_ref": null, "node_type": "Dialog", "property": "lines"}, {"direct": true, "node_id": "path:0.0.1.1.0", "node_ref": null, "node_type": "Dialog", "property": "lines"}, {"direct": true, "node_id": "path:0.0.1.2.0", "node_ref": null, "node_type": "Dialog", "property": "lines"}], "property_count": 3}, "ui.pages.move.state.MoveState.JOG_STEP": {"affected_count": 4, "condition_count": 0, "conditions": [], "key": "ui.pages.move.state.MoveState.JOG_STEP", "name": "JOG_STEP", "properties": [{"direct": true, "node_id": "step.value", "node_ref": "step.value", "node_type": "Text", "property": "value"}, {"direct": true, "node_id": "preset.0", "node_ref": "preset.0", "node_type": "Button", "property": "state"}, {"direct": true, "node_id": "preset.1", "node_ref": "preset.1", "node_type": "Button", "property": "state"}, {"direct": true, "node_id": "preset.2", "node_ref": "preset.2", "node_type": "Button", "property": "state"}], "property_count": 4}, "ui.pages.move.state.ToolheadState.HOMED_X": {"affected_count": 6, "condition_count": 0, "conditions": [], "key": "ui.pages.move.state.ToolheadState.HOMED_X", "name": "HOMED_X", "properties": [{"direct": false, "node_id": "xy.status.border", "node_ref": "xy.status.border", "node_type": "Stroke", "property": "color"}, {"direct": false, "node_id": "xy.status.label", "node_ref": "xy.status.label", "node_type": "Text", "property": "color"}, {"direct": false, "node_id": "xy.status.state", "node_ref": "xy.status.state", "node_type": "Text", "property": "value"}, {"direct": false, "node_id": "xy.status.state", "node_ref": "xy.status.state", "node_type": "Text", "property": "color"}, {"direct": true, "node_id": "status.state", "node_ref": "status.state", "node_type": "Text", "property": "value"}, {"direct": true, "node_id": "status.state", "node_ref": "status.state", "node_type": "Text", "property": "color"}], "property_count": 6}, "ui.pages.move.state.ToolheadState.HOMED_Y": {"affected_count": 6, "condition_count": 0, "conditions": [], "key": "ui.pages.move.state.ToolheadState.HOMED_Y", "name": "HOMED_Y", "properties": [{"direct": false, "node_id": "xy.status.border", "node_ref": "xy.status.border", "node_type": "Stroke", "property": "color"}, {"direct": false, "node_id": "xy.status.label", "node_ref": "xy.status.label", "node_type": "Text", "property": "color"}, {"direct": false, "node_id": "xy.status.state", "node_ref": "xy.status.state", "node_type": "Text", "property": "value"}, {"direct": false, "node_id": "xy.status.state", "node_ref": "xy.status.state", "node_type": "Text", "property": "color"}, {"direct": true, "node_id": "status.state", "node_ref": "status.state", "node_type": "Text", "property": "value"}, {"direct": true, "node_id": "status.state", "node_ref": "status.state", "node_type": "Text", "property": "color"}], "property_count": 6}, "ui.pages.move.state.ToolheadState.HOMED_Z": {"affected_count": 9, "condition_count": 3, "conditions": [{"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.1", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.2", "node_ref": null, "result": false}], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "name": "HOMED_Z", "properties": [{"direct": true, "node_id": "z.status.border", "node_ref": "z.status.border", "node_type": "Stroke", "property": "color"}, {"direct": true, "node_id": "z.status.label", "node_ref": "z.status.label", "node_type": "Text", "property": "color"}, {"direct": true, "node_id": "z.status.state", "node_ref": "z.status.state", "node_type": "Text", "property": "value"}, {"direct": true, "node_id": "z.status.state", "node_ref": "z.status.state", "node_type": "Text", "property": "color"}, {"direct": true, "node_id": "status.state", "node_ref": "status.state", "node_type": "Text", "property": "value"}, {"direct": true, "node_id": "status.state", "node_ref": "status.state", "node_type": "Text", "property": "color"}], "property_count": 6}, "ui.pages.move.state.ToolheadState.X": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.move.state.ToolheadState.X", "name": "X", "properties": [{"direct": true, "node_id": "status.xy", "node_ref": "status.xy", "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.move.state.ToolheadState.Y": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.move.state.ToolheadState.Y", "name": "Y", "properties": [{"direct": true, "node_id": "status.xy", "node_ref": "status.xy", "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.move.state.ToolheadState.Z": {"affected_count": 4, "condition_count": 3, "conditions": [{"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.1", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.2", "node_ref": null, "result": false}], "key": "ui.pages.move.state.ToolheadState.Z", "name": "Z", "properties": [{"direct": true, "node_id": "status.z", "node_ref": "status.z", "node_type": "Text", "property": "value"}], "property_count": 1}}}
+page actions [{"hint": null, "key": "ui.pages.move.actions.MoveCommand.CAUTION_AUTO", "kind": "command", "payload": {"mode": "ff5m_ui.move.actions.ProfileMode.LOAD_AUTO"}, "state_effect": null, "wire_id": "move.caution.auto.fad7be44b231"}, {"hint": null, "key": "ui.pages.move.actions.MoveCommand.CAUTION_UNLOAD", "kind": "command", "payload": {"mode": "ff5m_ui.move.actions.ProfileMode.UNLOAD"}, "state_effect": null, "wire_id": "move.caution.unload.f0f3fade6f25"}, {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.Z", "ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_ALL", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"]}, "state_effect": null, "wire_id": "move.homeall.3b30b2eb011a"}, {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_XY", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "state_effect": null, "wire_id": "move.homexy.91d916c5371e"}, {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"], "enabled": false, "kind": "motor_state"}, "key": "ui.pages.move.actions.MoveCommand.DISABLE_MOTORS", "kind": "command", "payload": null, "state_effect": null, "wire_id": "move.motors.fcb5b9fb92dd"}, {"hint": {"axis": "ff5m_ui.move.actions.Axis.X", "distance": null, "kind": "movement", "requires_homed": true, "speed": 6000}, "key": "ui.pages.move.actions.MoveCommand.X_MINUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.X", "direction": -1}, "state_effect": null, "wire_id": "move.xm.4de8d99268f4"}, {"hint": {"axis": "ff5m_ui.move.actions.Axis.X", "distance": null, "kind": "movement", "requires_homed": true, "speed": 6000}, "key": "ui.pages.move.actions.MoveCommand.X_PLUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.X", "direction": 1}, "state_effect": null, "wire_id": "move.xp.bd2f85d5d4ac"}, {"hint": {"axis": "ff5m_ui.move.actions.Axis.Y", "distance": null, "kind": "movement", "requires_homed": true, "speed": 6000}, "key": "ui.pages.move.actions.MoveCommand.Y_MINUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.Y", "direction": -1}, "state_effect": null, "wire_id": "move.ym.919d58759af9"}, {"hint": {"axis": "ff5m_ui.move.actions.Axis.Y", "distance": null, "kind": "movement", "requires_homed": true, "speed": 6000}, "key": "ui.pages.move.actions.MoveCommand.Y_PLUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.Y", "direction": 1}, "state_effect": null, "wire_id": "move.yp.eadd406273cf"}, {"hint": {"axis": "ff5m_ui.move.actions.Axis.Z", "distance": null, "kind": "movement", "requires_homed": true, "speed": 600}, "key": "ui.pages.move.actions.MoveCommand.Z_MINUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.Z", "direction": -1}, "state_effect": null, "wire_id": "move.zm.e953c0486b76"}, {"hint": {"axis": "ff5m_ui.move.actions.Axis.Z", "distance": null, "kind": "movement", "requires_homed": true, "speed": 600}, "key": "ui.pages.move.actions.MoveCommand.Z_PLUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.Z", "direction": 1}, "state_effect": null, "wire_id": "move.zp.839983a68767"}, {"kind": "navigate", "target": "ui.pages.keys.AppPage.MOVE_JOYSTICK", "wire_id": "navigate.move.joystick"}, {"key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "set_value", "value": 1.0, "wire_id": "ui.5b4d060a5038"}, {"key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "set_value", "value": 10.0, "wire_id": "ui.6fd4e7e62f87"}, {"key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "kind": "set_value", "value": true, "wire_id": "ui.88d586d435d3"}, {"amount": 1, "key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "increment", "wire_id": "ui.aeb082bbe392", "wrap": false}, {"amount": -1, "key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "increment", "wire_id": "ui.c4ecd39b3b9f", "wrap": false}, {"key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "set_value", "value": 0.1, "wire_id": "ui.fc91504b67f5"}]
+page bindings [{"key": "ui.pages.move.state.ToolheadState.HOMED_X", "nullable": false, "runtime_type": "builtins.bool"}, {"key": "ui.pages.move.state.ToolheadState.HOMED_Y", "nullable": false, "runtime_type": "builtins.bool"}, {"key": "ui.pages.move.state.ToolheadState.HOMED_Z", "nullable": false, "runtime_type": "builtins.bool"}, {"key": "ui.pages.move.state.ToolheadState.Z", "nullable": false, "runtime_type": "builtins.float"}, {"key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "nullable": false, "runtime_type": "builtins.bool"}, {"key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ui.pages.move.state.MoveState.CAUTION_Z", "nullable": false, "runtime_type": "builtins.float"}, {"key": "ui.pages.move.state.ToolheadState.X", "nullable": false, "runtime_type": "builtins.float"}, {"key": "ui.pages.move.state.ToolheadState.Y", "nullable": false, "runtime_type": "builtins.float"}, {"key": "ui.pages.move.state.MoveState.JOG_STEP", "nullable": false, "runtime_type": "builtins.float"}]
+node {"actions": {}, "bindings": {}, "bounds": [12, 64, 776, 364], "component_template_instance": null, "condition": null, "container": true, "id": "root", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [18, 1, 18, 3], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 0, "columns": ["<ui.layout.Flex object>", 35, 305], "row_gap": 0, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": "root", "structure_slot": null, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [30, 65, 400, 360], "component_template_instance": null, "condition": null, "container": true, "id": "axis", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "axis", "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [30, 65, 400, 360], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 13, 0, 17], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 44}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [30, 78, 400, 228], "component_template_instance": null, "condition": null, "container": true, "id": "axis.layout", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 15, "columns": ["<ui.layout.Flex object>", 65], "row_gap": 0, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": "axis.layout", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [30, 78, 320, 228], "component_template_instance": null, "condition": null, "container": true, "id": "xy.grid", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 10, "columns": ["<ui.layout.Flex object>", "<ui.layout.Flex object>", "<ui.layout.Flex object>"], "row_gap": 12, "rows": ["<ui.layout.Flex object>", "<ui.layout.Flex object>", "<ui.layout.Flex object>"]}, "property_origins": {}, "ref": "xy.grid", "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {"action": {"hint": {"axis": "ff5m_ui.move.actions.Axis.Y", "distance": null, "kind": "movement", "requires_homed": true, "speed": 6000}, "key": "ui.pages.move.actions.MoveCommand.Y_PLUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.Y", "direction": 1}, "state_effect": null, "wire_id": "move.yp.eadd406273cf"}}, "bindings": {}, "bounds": [140, 78, 100, 68], "component_template_instance": null, "condition": null, "container": false, "id": "xy.up", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"axis": "ff5m_ui.move.actions.Axis.Y", "distance": null, "kind": "movement", "requires_homed": true, "speed": 6000}, "key": "ui.pages.move.actions.MoveCommand.Y_PLUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.Y", "direction": 1}, "state_effect": null, "wire_id": "move.yp.eadd406273cf"}, "button_layout": "center", "font": null, "label": "Y+", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "xy.up", "structure_slot": {"column": 1, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"hint": {"axis": "ff5m_ui.move.actions.Axis.X", "distance": null, "kind": "movement", "requires_homed": true, "speed": 6000}, "key": "ui.pages.move.actions.MoveCommand.X_MINUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.X", "direction": -1}, "state_effect": null, "wire_id": "move.xm.4de8d99268f4"}}, "bindings": {}, "bounds": [30, 158, 100, 68], "component_template_instance": null, "condition": null, "container": false, "id": "xy.left", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"axis": "ff5m_ui.move.actions.Axis.X", "distance": null, "kind": "movement", "requires_homed": true, "speed": 6000}, "key": "ui.pages.move.actions.MoveCommand.X_MINUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.X", "direction": -1}, "state_effect": null, "wire_id": "move.xm.4de8d99268f4"}, "button_layout": "center", "font": null, "label": "X-", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "xy.left", "structure_slot": {"column": 0, "column_span": 1, "index": 1, "row": 1, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [140, 158, 100, 68], "component_template_instance": null, "condition": null, "container": true, "id": "xy.status", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "xy.status", "structure_slot": {"column": 1, "column_span": 1, "index": 2, "row": 1, "row_span": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [140, 158, 100, 68], "component_template_instance": null, "condition": null, "container": false, "id": "xy.status.background", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PANEL"}, "property_origins": {}, "ref": "xy.status.background", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {"color": {"callable": {"module": "ff5m_ui.move.step.page", "name": "<lambda>", "qualname": "_axis_status.<locals>.<lambda>"}, "direct_keys": [], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"callable": {"module": "ff5m_ui.move.step.page", "name": "<lambda>", "qualname": "_axis_layout.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "key": "ui.pages.move.state.ToolheadState.HOMED_X", "keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "key": "ui.pages.move.state.ToolheadState.HOMED_Y", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y"], "kind": "derived", "resolved": "ui.theme.ThemeColor.WARNING", "source": null, "transitive_keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y"]}}, "bounds": [140, 158, 100, 68], "component_template_instance": null, "condition": null, "container": false, "id": "xy.status.border", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.WARNING", "line_width": 2}, "property_origins": {}, "ref": "xy.status.border", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Stroke", "visible": true}
+node {"actions": {}, "bindings": {"color": {"callable": {"module": "ff5m_ui.move.step.page", "name": "<lambda>", "qualname": "_axis_status.<locals>.<lambda>"}, "direct_keys": [], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"callable": {"module": "ff5m_ui.move.step.page", "name": "<lambda>", "qualname": "_axis_layout.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "key": "ui.pages.move.state.ToolheadState.HOMED_X", "keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "key": "ui.pages.move.state.ToolheadState.HOMED_Y", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y"], "kind": "derived", "resolved": "ui.theme.ThemeColor.WARNING", "source": null, "transitive_keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y"]}}, "bounds": [140, 158, 100, 44], "component_template_instance": null, "condition": null, "container": false, "id": "xy.status.label", "layout": {"allow_overflow": false, "grow": 1, "height": 44, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "top", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.WARNING", "fit": false, "font": null, "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "X / Y", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": "xy.status.label", "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"color": {"callable": {"module": "ff5m_ui.move.step.page", "name": "<lambda>", "qualname": "_axis_status.<locals>.<lambda>"}, "direct_keys": [], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"callable": {"module": "ff5m_ui.move.step.page", "name": "<lambda>", "qualname": "_axis_layout.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "key": "ui.pages.move.state.ToolheadState.HOMED_X", "keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "key": "ui.pages.move.state.ToolheadState.HOMED_Y", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y"], "kind": "derived", "resolved": "ui.theme.ThemeColor.WARNING", "source": null, "transitive_keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y"]}, "value": {"callable": {"module": "ff5m_ui.move.step.page", "name": "<lambda>", "qualname": "_axis_status.<locals>.<lambda>"}, "direct_keys": [], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"callable": {"module": "ff5m_ui.move.step.page", "name": "<lambda>", "qualname": "_axis_layout.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "key": "ui.pages.move.state.ToolheadState.HOMED_X", "keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "key": "ui.pages.move.state.ToolheadState.HOMED_Y", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y"], "kind": "derived", "resolved": "HOME", "source": null, "transitive_keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y"]}}, "bounds": [140, 192, 100, 30], "component_template_instance": null, "condition": null, "container": false, "id": "xy.status.state", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 34, 0, 4], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.WARNING", "fit": false, "font": null, "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "HOME", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": "xy.status.state", "structure_slot": {"index": 3}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {"action": {"hint": {"axis": "ff5m_ui.move.actions.Axis.X", "distance": null, "kind": "movement", "requires_homed": true, "speed": 6000}, "key": "ui.pages.move.actions.MoveCommand.X_PLUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.X", "direction": 1}, "state_effect": null, "wire_id": "move.xp.bd2f85d5d4ac"}}, "bindings": {}, "bounds": [250, 158, 100, 68], "component_template_instance": null, "condition": null, "container": false, "id": "xy.right", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"axis": "ff5m_ui.move.actions.Axis.X", "distance": null, "kind": "movement", "requires_homed": true, "speed": 6000}, "key": "ui.pages.move.actions.MoveCommand.X_PLUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.X", "direction": 1}, "state_effect": null, "wire_id": "move.xp.bd2f85d5d4ac"}, "button_layout": "center", "font": null, "label": "X+", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "xy.right", "structure_slot": {"column": 2, "column_span": 1, "index": 3, "row": 1, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"hint": {"axis": "ff5m_ui.move.actions.Axis.Y", "distance": null, "kind": "movement", "requires_homed": true, "speed": 6000}, "key": "ui.pages.move.actions.MoveCommand.Y_MINUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.Y", "direction": -1}, "state_effect": null, "wire_id": "move.ym.919d58759af9"}}, "bindings": {}, "bounds": [140, 238, 100, 68], "component_template_instance": null, "condition": null, "container": false, "id": "xy.down", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"axis": "ff5m_ui.move.actions.Axis.Y", "distance": null, "kind": "movement", "requires_homed": true, "speed": 6000}, "key": "ui.pages.move.actions.MoveCommand.Y_MINUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.Y", "direction": -1}, "state_effect": null, "wire_id": "move.ym.919d58759af9"}, "button_layout": "center", "font": null, "label": "Y-", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "xy.down", "structure_slot": {"column": 1, "column_span": 1, "index": 4, "row": 2, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [365, 78, 65, 228], "component_template_instance": null, "condition": null, "container": true, "id": "z.grid", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 0, "columns": ["<ui.layout.Flex object>"], "row_gap": 12, "rows": ["<ui.layout.Flex object>", "<ui.layout.Flex object>", "<ui.layout.Flex object>"]}, "property_origins": {}, "ref": "z.grid", "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {"action": {"hint": {"axis": "ff5m_ui.move.actions.Axis.Z", "distance": null, "kind": "movement", "requires_homed": true, "speed": 600}, "key": "ui.pages.move.actions.MoveCommand.Z_MINUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.Z", "direction": -1}, "state_effect": null, "wire_id": "move.zm.e953c0486b76"}}, "bindings": {}, "bounds": [365, 78, 65, 68], "component_template_instance": null, "condition": null, "container": false, "id": "z.down", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"axis": "ff5m_ui.move.actions.Axis.Z", "distance": null, "kind": "movement", "requires_homed": true, "speed": 600}, "key": "ui.pages.move.actions.MoveCommand.Z_MINUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.Z", "direction": -1}, "state_effect": null, "wire_id": "move.zm.e953c0486b76"}, "button_layout": "center", "font": null, "label": "Z-", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "z.down", "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [365, 158, 65, 68], "component_template_instance": null, "condition": null, "container": true, "id": "z.status", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "z.status", "structure_slot": {"column": 0, "column_span": 1, "index": 1, "row": 1, "row_span": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [365, 158, 65, 68], "component_template_instance": null, "condition": null, "container": false, "id": "z.status.background", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PANEL"}, "property_origins": {}, "ref": "z.status.background", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {"color": {"callable": {"module": "ff5m_ui.move.step.page", "name": "<lambda>", "qualname": "_axis_status.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "derived", "resolved": "ui.theme.ThemeColor.WARNING", "source": null, "transitive_keys": []}}, "bounds": [365, 158, 65, 68], "component_template_instance": null, "condition": null, "container": false, "id": "z.status.border", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.WARNING", "line_width": 2}, "property_origins": {}, "ref": "z.status.border", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Stroke", "visible": true}
+node {"actions": {}, "bindings": {"color": {"callable": {"module": "ff5m_ui.move.step.page", "name": "<lambda>", "qualname": "_axis_status.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "derived", "resolved": "ui.theme.ThemeColor.WARNING", "source": null, "transitive_keys": []}}, "bounds": [365, 158, 65, 44], "component_template_instance": null, "condition": null, "container": false, "id": "z.status.label", "layout": {"allow_overflow": false, "grow": 1, "height": 44, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "top", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.WARNING", "fit": false, "font": null, "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "Z", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": "z.status.label", "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"color": {"callable": {"module": "ff5m_ui.move.step.page", "name": "<lambda>", "qualname": "_axis_status.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "derived", "resolved": "ui.theme.ThemeColor.WARNING", "source": null, "transitive_keys": []}, "value": {"callable": {"module": "ff5m_ui.move.step.page", "name": "<lambda>", "qualname": "_axis_status.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "derived", "resolved": "HOME", "source": null, "transitive_keys": []}}, "bounds": [365, 192, 65, 30], "component_template_instance": null, "condition": null, "container": false, "id": "z.status.state", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 34, 0, 4], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.WARNING", "fit": false, "font": null, "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "HOME", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": "z.status.state", "structure_slot": {"index": 3}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {"action": {"hint": {"axis": "ff5m_ui.move.actions.Axis.Z", "distance": null, "kind": "movement", "requires_homed": true, "speed": 600}, "key": "ui.pages.move.actions.MoveCommand.Z_PLUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.Z", "direction": 1}, "state_effect": null, "wire_id": "move.zp.839983a68767"}}, "bindings": {}, "bounds": [365, 238, 65, 68], "component_template_instance": null, "condition": null, "container": false, "id": "z.up", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"axis": "ff5m_ui.move.actions.Axis.Z", "distance": null, "kind": "movement", "requires_homed": true, "speed": 600}, "key": "ui.pages.move.actions.MoveCommand.Z_PLUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.Z", "direction": 1}, "state_effect": null, "wire_id": "move.zp.839983a68767"}, "button_layout": "center", "font": null, "label": "Z+", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "z.up", "structure_slot": {"column": 0, "column_span": 1, "index": 2, "row": 2, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [30, 350, 400, 58], "component_template_instance": null, "condition": null, "container": true, "id": "axis.actions", "layout": {"allow_overflow": false, "grow": 1, "height": 58, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "horizontal", "gap": 15}, "property_origins": {}, "ref": "axis.actions", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Row", "visible": true}
+node {"actions": {"action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"], "enabled": false, "kind": "motor_state"}, "key": "ui.pages.move.actions.MoveCommand.DISABLE_MOTORS", "kind": "command", "payload": null, "state_effect": null, "wire_id": "move.motors.fcb5b9fb92dd"}}, "bindings": {}, "bounds": [30, 350, 190, 58], "component_template_instance": null, "condition": null, "container": false, "id": "motors", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 190}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"], "enabled": false, "kind": "motor_state"}, "key": "ui.pages.move.actions.MoveCommand.DISABLE_MOTORS", "kind": "command", "payload": null, "state_effect": null, "wire_id": "move.motors.fcb5b9fb92dd"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "DISABLE MOTORS", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "motors", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "navigate", "target": "ui.pages.keys.AppPage.MOVE_JOYSTICK", "wire_id": "navigate.move.joystick"}}, "bindings": {}, "bounds": [235, 350, 195, 58], "component_template_instance": null, "condition": null, "container": false, "id": "mode", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "navigate", "target": "ui.pages.keys.AppPage.MOVE_JOYSTICK", "wire_id": "navigate.move.joystick"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "JOY MODE", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "mode", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1", "layout": {"allow_overflow": true, "grow": 1, "height": 266, "horizontal": "left", "margin": [0, 31, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "top", "width": 420}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {"predicate": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": {"binding": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}, "child": {"ref": null, "type": "Dialog"}, "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "name": "Dialog \u00b7 CAUTION", "predicate_source": {"origin": null, "reason": "Source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "preview_result": false, "result": false}, "container": false, "id": "path:0.0.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": false, "properties": {"predicate": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "When", "visible": false}
+node {"actions": {}, "bindings": {"lines": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": ["Z IS BELOW 5 MM", "XY MOTION MAY SCRATCH THE BED", "BED PROFILE 'AUTO' IS LOADED"], "source": null, "transitive_keys": []}}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"button_groups": [], "buttons": [[{"hint": null, "key": "ui.pages.move.actions.MoveCommand.CAUTION_UNLOAD", "kind": "command", "payload": {"mode": "ff5m_ui.move.actions.ProfileMode.UNLOAD"}, "state_effect": null, "wire_id": "move.caution.unload.f0f3fade6f25"}, "UNLOAD", "warning"], [{"key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "kind": "set_value", "value": true, "wire_id": "ui.88d586d435d3"}, "OK", "enabled"]], "lines": ["Z IS BELOW 5 MM", "XY MOTION MAY SCRATCH THE BED", "BED PROFILE 'AUTO' IS LOADED"], "modal": false, "page": 0, "page_actions": [], "title": "CAUTION", "tone": "warning"}, "property_origins": {}, "ref": null, "structure_slot": null, "style": null, "template_instance": null, "type": "Dialog", "visible": false}
+node {"actions": {}, "bindings": {"predicate": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": {"binding": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}, "child": {"ref": null, "type": "Dialog"}, "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "name": "Dialog \u00b7 CAUTION", "predicate_source": {"origin": null, "reason": "Source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "preview_result": false, "result": false}, "container": false, "id": "path:0.0.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": false, "properties": {"predicate": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "When", "visible": false}
+node {"actions": {}, "bindings": {"lines": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": ["Z IS BELOW 5 MM", "XY MOTION MAY SCRATCH THE BED", "LOAD BED PROFILE 'AUTO'?"], "source": null, "transitive_keys": []}}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"button_groups": [], "buttons": [[{"key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "kind": "set_value", "value": true, "wire_id": "ui.88d586d435d3"}, "CONTINUE", "enabled"], [{"hint": null, "key": "ui.pages.move.actions.MoveCommand.CAUTION_AUTO", "kind": "command", "payload": {"mode": "ff5m_ui.move.actions.ProfileMode.LOAD_AUTO"}, "state_effect": null, "wire_id": "move.caution.auto.fad7be44b231"}, "LOAD", "warning"]], "lines": ["Z IS BELOW 5 MM", "XY MOTION MAY SCRATCH THE BED", "LOAD BED PROFILE 'AUTO'?"], "modal": false, "page": 0, "page_actions": [], "title": "CAUTION", "tone": "warning"}, "property_origins": {}, "ref": null, "structure_slot": null, "style": null, "template_instance": null, "type": "Dialog", "visible": false}
+node {"actions": {}, "bindings": {"predicate": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": {"binding": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}, "child": {"ref": null, "type": "Dialog"}, "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "name": "Dialog \u00b7 CAUTION", "predicate_source": {"origin": null, "reason": "Source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "preview_result": false, "result": false}, "container": false, "id": "path:0.0.1.2", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": false, "properties": {"predicate": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "When", "visible": false}
+node {"actions": {}, "bindings": {"lines": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": ["Z IS BELOW 5 MM", "XY MOTION MAY SCRATCH THE BED", "PROFILE 'AUTO' IS NOT AVAILABLE"], "source": null, "transitive_keys": []}}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.2.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"button_groups": [], "buttons": [[{"key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "kind": "set_value", "value": true, "wire_id": "ui.88d586d435d3"}, "CONTINUE", "enabled"]], "lines": ["Z IS BELOW 5 MM", "XY MOTION MAY SCRATCH THE BED", "PROFILE 'AUTO' IS NOT AVAILABLE"], "modal": false, "page": 0, "page_actions": [], "title": "CAUTION", "tone": "warning"}, "property_origins": {}, "ref": null, "structure_slot": null, "style": null, "template_instance": null, "type": "Dialog", "visible": false}
+node {"actions": {}, "bindings": {}, "bounds": [430, 65, 35, 360], "component_template_instance": null, "condition": null, "container": true, "id": "separator.layout", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 0, "columns": [15, 1, 19], "row_gap": 0, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": "separator.layout", "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [445, 65, 1, 360], "component_template_instance": null, "condition": null, "container": false, "id": "separator", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BORDER"}, "property_origins": {}, "ref": "separator", "structure_slot": {"column": 1, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [465, 65, 305, 360], "component_template_instance": null, "condition": null, "container": true, "id": "control", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 17], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 0, "columns": ["<ui.layout.Flex object>"], "row_gap": 0, "rows": [155, 15, 1, 4, "<ui.layout.Flex object>"]}, "property_origins": {}, "ref": "control", "structure_slot": {"column": 2, "column_span": 1, "index": 2, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [465, 65, 305, 155], "component_template_instance": null, "condition": null, "container": true, "id": "home.layout", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 10}, "property_origins": {}, "ref": "home.layout", "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [465, 65, 305, 95], "component_template_instance": null, "condition": null, "container": true, "id": "status.card", "layout": {"allow_overflow": false, "grow": 1, "height": 95, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "status.card", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [465, 65, 305, 95], "component_template_instance": null, "condition": null, "container": false, "id": "status.background", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BACKGROUND"}, "property_origins": {}, "ref": "status.background", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {"color": {"callable": {"module": "ff5m_ui.move.step.page", "name": "<lambda>", "qualname": "_status_card.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y", "ui.pages.move.state.ToolheadState.HOMED_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "key": "ui.pages.move.state.ToolheadState.HOMED_X", "keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "key": "ui.pages.move.state.ToolheadState.HOMED_Y", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y", "ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "derived", "resolved": "ui.theme.ThemeColor.WARNING", "source": null, "transitive_keys": []}, "value": {"callable": {"module": "ff5m_ui.move.step.page", "name": "_status_label", "qualname": "_status_label"}, "direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y", "ui.pages.move.state.ToolheadState.HOMED_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "key": "ui.pages.move.state.ToolheadState.HOMED_X", "keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "key": "ui.pages.move.state.ToolheadState.HOMED_Y", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y", "ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "derived", "resolved": "NOT HOMED: XYZ", "source": null, "transitive_keys": []}}, "bounds": [465, 65, 305, 34], "component_template_instance": null, "condition": null, "container": false, "id": "status.state", "layout": {"allow_overflow": false, "grow": 1, "height": 34, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "top", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.WARNING", "fit": false, "font": null, "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "NOT HOMED: XYZ", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": "status.state", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"callable": {"module": "ff5m_ui.move.step.page", "name": "_xy_position_label", "qualname": "_xy_position_label"}, "direct_keys": ["ui.pages.move.state.ToolheadState.X", "ui.pages.move.state.ToolheadState.Y"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.X"], "key": "ui.pages.move.state.ToolheadState.X", "keys": ["ui.pages.move.state.ToolheadState.X"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.Y"], "key": "ui.pages.move.state.ToolheadState.Y", "keys": ["ui.pages.move.state.ToolheadState.Y"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.X", "ui.pages.move.state.ToolheadState.Y"], "kind": "derived", "resolved": "X    0.00   Y    0.00", "source": null, "transitive_keys": []}}, "bounds": [465, 99, 305, 46], "component_template_instance": null, "condition": null, "container": false, "id": "status.xy", "layout": {"allow_overflow": false, "grow": 1, "height": 46, "horizontal": "stretch", "margin": [0, 34, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "top", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.TEXT", "fit": false, "font": null, "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "X    0.00   Y    0.00", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": "status.xy", "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"callable": {"module": "ff5m_ui.move.step.page", "name": "_z_position_label", "qualname": "_z_position_label"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "derived", "resolved": "Z    0.00", "source": null, "transitive_keys": []}}, "bounds": [465, 135, 305, 26], "component_template_instance": null, "condition": null, "container": false, "id": "status.z", "layout": {"allow_overflow": true, "grow": 1, "height": 26, "horizontal": "stretch", "margin": [0, 70, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "top", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.TEXT", "fit": false, "font": null, "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "Z    0.00", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": "status.z", "structure_slot": {"index": 3}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [465, 170, 305, 50], "component_template_instance": null, "condition": null, "container": true, "id": "home.buttons", "layout": {"allow_overflow": false, "grow": 1, "height": 50, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"horizontal_gap": 15, "item_height": 50, "item_width": 145, "min_item_width": null, "orientation": "horizontal", "vertical_gap": 0}, "property_origins": {}, "ref": "home.buttons", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "WrapPanel", "visible": true}
+node {"actions": {"action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.Z", "ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_ALL", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"]}, "state_effect": null, "wire_id": "move.homeall.3b30b2eb011a"}}, "bindings": {}, "bounds": [465, 170, 145, 50], "component_template_instance": null, "condition": null, "container": false, "id": "home.all", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.Z", "ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_ALL", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"]}, "state_effect": null, "wire_id": "move.homeall.3b30b2eb011a"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "HOME ALL", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "home.all", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_XY", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "state_effect": null, "wire_id": "move.homexy.91d916c5371e"}}, "bindings": {}, "bounds": [625, 170, 145, 50], "component_template_instance": null, "condition": null, "container": false, "id": "home.xy", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_XY", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "state_effect": null, "wire_id": "move.homexy.91d916c5371e"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "HOME XY", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "home.xy", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [465, 235, 305, 1], "component_template_instance": null, "condition": null, "container": false, "id": "step.divider", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BORDER"}, "property_origins": {}, "ref": "step.divider", "structure_slot": {"column": 0, "column_span": 1, "index": 1, "row": 2, "row_span": 1}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [465, 240, 305, 168], "component_template_instance": null, "condition": null, "container": true, "id": "step.layout", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 0, "columns": ["<ui.layout.Flex object>"], "row_gap": 0, "rows": [28, "<ui.layout.Flex object>", 48, "<ui.layout.Flex object>", 26, "<ui.layout.Flex object>", 50]}, "property_origins": {}, "ref": "step.layout", "structure_slot": {"column": 0, "column_span": 1, "index": 2, "row": 4, "row_span": 1}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [465, 240, 305, 28], "component_template_instance": null, "condition": null, "container": false, "id": "step.title", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": null, "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "STEP SIZE", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": "step.title", "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [465, 270, 305, 48], "component_template_instance": null, "condition": null, "container": true, "id": "step.adjust", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 0, "columns": [80, "<ui.layout.Flex object>", 80], "row_gap": 0, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": "step.adjust", "structure_slot": {"column": 0, "column_span": 1, "index": 1, "row": 2, "row_span": 1}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {"action": {"amount": -1, "key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "increment", "wire_id": "ui.c4ecd39b3b9f", "wrap": false}}, "bindings": {}, "bounds": [465, 270, 80, 48], "component_template_instance": null, "condition": null, "container": false, "id": "step.minus", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"amount": -1, "key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "increment", "wire_id": "ui.c4ecd39b3b9f", "wrap": false}, "button_layout": "center", "font": null, "label": "-", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "step.minus", "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {"value": {"callable": {"module": "ff5m_ui.move.step.page", "name": "_step_value_label", "qualname": "_step_value_label"}, "direct_keys": ["ui.pages.move.state.MoveState.JOG_STEP"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.MoveState.JOG_STEP"], "key": "ui.pages.move.state.MoveState.JOG_STEP", "keys": ["ui.pages.move.state.MoveState.JOG_STEP"], "kind": "direct", "resolved": 1.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.MoveState.JOG_STEP"], "kind": "derived", "resolved": "1 MM", "source": null, "transitive_keys": []}}, "bounds": [545, 270, 145, 48], "component_template_instance": null, "condition": null, "container": false, "id": "step.value", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.TEXT", "fit": false, "font": null, "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "1 MM", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": "step.value", "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {"action": {"amount": 1, "key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "increment", "wire_id": "ui.aeb082bbe392", "wrap": false}}, "bindings": {}, "bounds": [690, 270, 80, 48], "component_template_instance": null, "condition": null, "container": false, "id": "step.plus", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"amount": 1, "key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "increment", "wire_id": "ui.aeb082bbe392", "wrap": false}, "button_layout": "center", "font": null, "label": "+", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "step.plus", "structure_slot": {"column": 2, "column_span": 1, "index": 2, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [465, 325, 305, 26], "component_template_instance": null, "condition": null, "container": false, "id": "preset.title", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": null, "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "PRESET STEPS", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": "preset.title", "structure_slot": {"column": 0, "column_span": 1, "index": 2, "row": 4, "row_span": 1}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [465, 358, 305, 50], "component_template_instance": null, "condition": null, "container": true, "id": "presets", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"horizontal_gap": 10, "item_height": 50, "item_width": 95, "min_item_width": null, "orientation": "horizontal", "vertical_gap": 0}, "property_origins": {}, "ref": "presets", "structure_slot": {"column": 0, "column_span": 1, "index": 3, "row": 6, "row_span": 1}, "style": null, "template_instance": null, "type": "WrapPanel", "visible": true}
+node {"actions": {"action": {"key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "set_value", "value": 0.1, "wire_id": "ui.fc91504b67f5"}}, "bindings": {"state": {"callable": {"module": "ff5m_ui.move.step.page", "name": "<lambda>", "qualname": "_control_layout.<locals>.<genexpr>.<lambda>"}, "direct_keys": ["ui.pages.move.state.MoveState.JOG_STEP"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.MoveState.JOG_STEP"], "key": "ui.pages.move.state.MoveState.JOG_STEP", "keys": ["ui.pages.move.state.MoveState.JOG_STEP"], "kind": "direct", "resolved": 1.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.MoveState.JOG_STEP"], "kind": "derived", "resolved": "enabled", "source": null, "transitive_keys": []}}, "bounds": [465, 358, 95, 50], "component_template_instance": null, "condition": null, "container": false, "id": "preset.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "set_value", "value": 0.1, "wire_id": "ui.fc91504b67f5"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "0.1", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "preset.0", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "set_value", "value": 1.0, "wire_id": "ui.5b4d060a5038"}}, "bindings": {"state": {"callable": {"module": "ff5m_ui.move.step.page", "name": "<lambda>", "qualname": "_control_layout.<locals>.<genexpr>.<lambda>"}, "direct_keys": ["ui.pages.move.state.MoveState.JOG_STEP"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.MoveState.JOG_STEP"], "key": "ui.pages.move.state.MoveState.JOG_STEP", "keys": ["ui.pages.move.state.MoveState.JOG_STEP"], "kind": "direct", "resolved": 1.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.MoveState.JOG_STEP"], "kind": "derived", "resolved": "selected", "source": null, "transitive_keys": []}}, "bounds": [570, 358, 95, 50], "component_template_instance": null, "condition": null, "container": false, "id": "preset.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "set_value", "value": 1.0, "wire_id": "ui.5b4d060a5038"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "1", "state": "selected", "subtitle": null}, "property_origins": {}, "ref": "preset.1", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "set_value", "value": 10.0, "wire_id": "ui.6fd4e7e62f87"}}, "bindings": {"state": {"callable": {"module": "ff5m_ui.move.step.page", "name": "<lambda>", "qualname": "_control_layout.<locals>.<genexpr>.<lambda>"}, "direct_keys": ["ui.pages.move.state.MoveState.JOG_STEP"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.MoveState.JOG_STEP"], "key": "ui.pages.move.state.MoveState.JOG_STEP", "keys": ["ui.pages.move.state.MoveState.JOG_STEP"], "kind": "direct", "resolved": 1.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.MoveState.JOG_STEP"], "kind": "derived", "resolved": "enabled", "source": null, "transitive_keys": []}}, "bounds": [675, 358, 95, 50], "component_template_instance": null, "condition": null, "container": false, "id": "preset.2", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "set_value", "value": 10.0, "wire_id": "ui.6fd4e7e62f87"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "10", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "preset.2", "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+## set ToolheadState.HOMED_X=True
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: YZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X    0.00   Y    0.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z    0.00"
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## restore ToolheadState.HOMED_X
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X    0.00   Y    0.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z    0.00"
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## set ToolheadState.HOMED_Y=True
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X    0.00   Y    0.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z    0.00"
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## restore ToolheadState.HOMED_Y
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X    0.00   Y    0.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z    0.00"
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## set ToolheadState.HOMED_Z=True
+cmd --batch fill -p 30 65 -s 400 360 -c 030607
+cmd --batch button -p 140 78 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "Y+" --id 0:move.yp.eadd406273cf --layer base
+cmd --batch button -p 30 158 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "X-" --id 0:move.xm.4de8d99268f4 --layer base
+cmd --batch fill -p 140 158 -s 100 68 -c 050c0f
+cmd --batch stroke -p 140 158 -s 100 68 -c f2c94c -lw 2 -sd inner
+cmd --batch text -p 190 180 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "X / Y"
+cmd --batch text -p 190 207 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "HOME"
+cmd --batch button -p 250 158 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "X+" --id 0:move.xp.bd2f85d5d4ac --layer base
+cmd --batch button -p 140 238 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "Y-" --id 0:move.ym.919d58759af9 --layer base
+cmd --batch button -p 365 78 -s 65 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 33 --truncate -t "Z-" --id 0:move.zm.e953c0486b76 --layer base
+cmd --batch fill -p 365 158 -s 65 68 -c 050c0f
+cmd --batch stroke -p 365 158 -s 65 68 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 397 180 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z"
+cmd --batch text -p 397 207 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "HOMED"
+cmd --batch button -p 365 238 -s 65 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 33 --truncate -t "Z+" --id 0:move.zp.839983a68767 --layer base
+cmd --batch button -p 30 350 -s 190 58 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 158 --truncate -t "DISABLE MOTORS" --id 0:move.motors.fcb5b9fb92dd --layer base
+cmd --batch button -p 235 350 -s 195 58 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 163 --truncate -t "JOY MODE" --id 0:navigate.move.joystick --layer base
+cmd --batch fill -p 30 96 -s 420 266 -c 050c0f
+cmd --batch stroke -p 30 96 -s 420 266 -c f2c94c -lw 2 -sd inner
+cmd --batch text -p 240 140 -c f2c94c -f "JetBrainsMono Bold 16pt" -ha center -va middle --max-width 364 --truncate -t "CAUTION"
+cmd --batch text -p 240 195 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 364 --truncate -t "Z IS BELOW 5 MM"
+cmd --batch text -p 240 219 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 364 --truncate -t "XY MOTION MAY SCRATCH THE BED"
+cmd --batch text -p 240 243 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 364 --truncate -t "PROFILE 'AUTO' IS NOT AVAILABLE"
+cmd --batch button -p 160 288 -s 160 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 128 --truncate -t "CONTINUE" --id 0:ui.88d586d435d3 --layer base
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XY"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X    0.00   Y    0.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z    0.00"
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+hit ui.88d586d435d3 160 288 160 50 False base
+## restore ToolheadState.HOMED_Z
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 1:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch button -p 140 78 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "Y+" --id 1:move.yp.eadd406273cf --layer base
+cmd --batch button -p 30 158 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "X-" --id 1:move.xm.4de8d99268f4 --layer base
+cmd --batch fill -p 140 158 -s 100 68 -c 050c0f
+cmd --batch stroke -p 140 158 -s 100 68 -c f2c94c -lw 2 -sd inner
+cmd --batch text -p 190 180 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "X / Y"
+cmd --batch text -p 190 207 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "HOME"
+cmd --batch button -p 250 158 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "X+" --id 1:move.xp.bd2f85d5d4ac --layer base
+cmd --batch button -p 140 238 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "Y-" --id 1:move.ym.919d58759af9 --layer base
+cmd --batch button -p 365 78 -s 65 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 33 --truncate -t "Z-" --id 1:move.zm.e953c0486b76 --layer base
+cmd --batch fill -p 365 158 -s 65 68 -c 050c0f
+cmd --batch stroke -p 365 158 -s 65 68 -c f2c94c -lw 2 -sd inner
+cmd --batch text -p 397 180 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "Z"
+cmd --batch text -p 397 207 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "HOME"
+cmd --batch button -p 365 238 -s 65 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 33 --truncate -t "Z+" --id 1:move.zp.839983a68767 --layer base
+cmd --batch button -p 30 350 -s 190 58 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 158 --truncate -t "DISABLE MOTORS" --id 1:move.motors.fcb5b9fb92dd --layer base
+cmd --batch button -p 235 350 -s 195 58 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 163 --truncate -t "JOY MODE" --id 1:navigate.move.joystick --layer base
+cmd --batch fill -p 445 65 -s 1 360 -c 295c66
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X    0.00   Y    0.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z    0.00"
+cmd --batch button -p 465 170 -s 145 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 113 --truncate -t "HOME ALL" --id 1:move.homeall.3b30b2eb011a --layer base
+cmd --batch button -p 625 170 -s 145 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 113 --truncate -t "HOME XY" --id 1:move.homexy.91d916c5371e --layer base
+cmd --batch fill -p 465 235 -s 305 1 -c 295c66
+cmd --batch text -p 617 254 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "STEP SIZE"
+cmd --batch button -p 465 270 -s 80 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 48 --truncate -t " -" --id 1:ui.c4ecd39b3b9f --layer base
+cmd --batch text -p 617 294 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "1 MM"
+cmd --batch button -p 690 270 -s 80 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 48 --truncate -t "+" --id 1:ui.aeb082bbe392 --layer base
+cmd --batch text -p 617 338 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "PRESET STEPS"
+cmd --batch button -p 465 358 -s 95 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "0.1" --id 1:ui.fc91504b67f5 --layer base
+cmd --batch button -p 570 358 -s 95 50 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "1" --id 1:ui.5b4d060a5038 --layer base
+cmd --batch button -p 675 358 -s 95 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "10" --id 1:ui.6fd4e7e62f87 --layer base
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## set ToolheadState.Z=37.25
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X    0.00   Y    0.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z   37.25"
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## restore ToolheadState.Z
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X    0.00   Y    0.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z    0.00"
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## set ToolheadState.Z=-5.0
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X    0.00   Y    0.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z   -5.00"
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## restore ToolheadState.Z
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X    0.00   Y    0.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z    0.00"
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## set MoveState.CAUTION_ACKNOWLEDGED=True
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## restore MoveState.CAUTION_ACKNOWLEDGED
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## set MoveState.AUTO_PROFILE_STATE='available'
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## restore MoveState.AUTO_PROFILE_STATE
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## set MoveState.AUTO_PROFILE_STATE='active'
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## restore MoveState.AUTO_PROFILE_STATE
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## set MoveState.CAUTION_Z=42.25
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## restore MoveState.CAUTION_Z
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## set MoveState.CAUTION_Z=0.0
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## restore MoveState.CAUTION_Z
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## set ToolheadState.X=37.25
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X   37.25   Y    0.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z    0.00"
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## restore ToolheadState.X
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X    0.00   Y    0.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z    0.00"
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## set ToolheadState.X=-5.0
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X   -5.00   Y    0.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z    0.00"
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## restore ToolheadState.X
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X    0.00   Y    0.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z    0.00"
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## set ToolheadState.Y=37.25
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X    0.00   Y   37.25"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z    0.00"
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## restore ToolheadState.Y
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X    0.00   Y    0.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z    0.00"
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## set ToolheadState.Y=-5.0
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X    0.00   Y   -5.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z    0.00"
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## restore ToolheadState.Y
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle -t "NOT HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X    0.00   Y    0.00"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z    0.00"
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## set MoveState.JOG_STEP=100.0
+cmd --batch fill -p 545 270 -s 145 48 -c 030607
+cmd --batch text -p 617 294 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "100 MM"
+cmd --batch button -p 570 358 -s 95 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "1" --id 1:ui.5b4d060a5038 --layer base
+cmd --batch button -p 675 358 -s 95 50 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "10" --id 1:ui.6fd4e7e62f87 --layer base
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## restore MoveState.JOG_STEP
+cmd --batch fill -p 545 270 -s 145 48 -c 030607
+cmd --batch text -p 617 294 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "1 MM"
+cmd --batch button -p 570 358 -s 95 50 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "1" --id 1:ui.5b4d060a5038 --layer base
+cmd --batch button -p 675 358 -s 95 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "10" --id 1:ui.6fd4e7e62f87 --layer base
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## set MoveState.JOG_STEP=0.1
+cmd --batch fill -p 545 270 -s 145 48 -c 030607
+cmd --batch text -p 617 294 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "0.1 MM"
+cmd --batch button -p 465 358 -s 95 50 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "0.1" --id 1:ui.fc91504b67f5 --layer base
+cmd --batch button -p 570 358 -s 95 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "1" --id 1:ui.5b4d060a5038 --layer base
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## restore MoveState.JOG_STEP
+cmd --batch fill -p 545 270 -s 145 48 -c 030607
+cmd --batch text -p 617 294 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "1 MM"
+cmd --batch button -p 465 358 -s 95 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "0.1" --id 1:ui.fc91504b67f5 --layer base
+cmd --batch button -p 570 358 -s 95 50 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "1" --id 1:ui.5b4d060a5038 --layer base
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## set all
+cmd --batch fill -p 140 158 -s 100 68 -c 050c0f
+cmd --batch stroke -p 140 158 -s 100 68 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 190 180 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "X / Y"
+cmd --batch text -p 190 207 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "HOMED"
+cmd --batch fill -p 365 158 -s 65 68 -c 050c0f
+cmd --batch stroke -p 365 158 -s 65 68 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 397 180 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z"
+cmd --batch text -p 397 207 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "HOMED"
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X   37.25   Y   37.25"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z   37.25"
+cmd --batch fill -p 545 270 -s 145 48 -c 030607
+cmd --batch text -p 617 294 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "100 MM"
+cmd --batch button -p 570 358 -s 95 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "1" --id 1:ui.5b4d060a5038 --layer base
+cmd --batch button -p 675 358 -s 95 50 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "10" --id 1:ui.6fd4e7e62f87 --layer base
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## redraw all
+cmd --batch button -p 140 78 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "Y+" --id 1:move.yp.eadd406273cf --layer base
+cmd --batch button -p 30 158 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "X-" --id 1:move.xm.4de8d99268f4 --layer base
+cmd --batch fill -p 140 158 -s 100 68 -c 050c0f
+cmd --batch stroke -p 140 158 -s 100 68 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 190 180 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "X / Y"
+cmd --batch text -p 190 207 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "HOMED"
+cmd --batch button -p 250 158 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "X+" --id 1:move.xp.bd2f85d5d4ac --layer base
+cmd --batch button -p 140 238 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "Y-" --id 1:move.ym.919d58759af9 --layer base
+cmd --batch button -p 365 78 -s 65 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 33 --truncate -t "Z-" --id 1:move.zm.e953c0486b76 --layer base
+cmd --batch fill -p 365 158 -s 65 68 -c 050c0f
+cmd --batch stroke -p 365 158 -s 65 68 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 397 180 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z"
+cmd --batch text -p 397 207 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "HOMED"
+cmd --batch button -p 365 238 -s 65 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 33 --truncate -t "Z+" --id 1:move.zp.839983a68767 --layer base
+cmd --batch button -p 30 350 -s 190 58 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 158 --truncate -t "DISABLE MOTORS" --id 1:move.motors.fcb5b9fb92dd --layer base
+cmd --batch button -p 235 350 -s 195 58 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 163 --truncate -t "JOY MODE" --id 1:navigate.move.joystick --layer base
+cmd --batch fill -p 445 65 -s 1 360 -c 295c66
+cmd --batch fill -p 465 65 -s 305 95 -c 030607
+cmd --batch text -p 617 82 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "HOMED: XYZ"
+cmd --batch text -p 617 122 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "X   37.25   Y   37.25"
+cmd --batch text -p 617 148 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z   37.25"
+cmd --batch button -p 465 170 -s 145 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 113 --truncate -t "HOME ALL" --id 1:move.homeall.3b30b2eb011a --layer base
+cmd --batch button -p 625 170 -s 145 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 113 --truncate -t "HOME XY" --id 1:move.homexy.91d916c5371e --layer base
+cmd --batch fill -p 465 235 -s 305 1 -c 295c66
+cmd --batch text -p 617 254 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "STEP SIZE"
+cmd --batch button -p 465 270 -s 80 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 48 --truncate -t " -" --id 1:ui.c4ecd39b3b9f --layer base
+cmd --batch text -p 617 294 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle -t "100 MM"
+cmd --batch button -p 690 270 -s 80 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 48 --truncate -t "+" --id 1:ui.aeb082bbe392 --layer base
+cmd --batch text -p 617 338 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "PRESET STEPS"
+cmd --batch button -p 465 358 -s 95 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "0.1" --id 1:ui.fc91504b67f5 --layer base
+cmd --batch button -p 570 358 -s 95 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "1" --id 1:ui.5b4d060a5038 --layer base
+cmd --batch button -p 675 358 -s 95 50 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "10" --id 1:ui.6fd4e7e62f87 --layer base
+hit global.wake 0 0 800 480 False base
+hit move.yp.eadd406273cf 140 78 100 68 False base
+hit move.xm.4de8d99268f4 30 158 100 68 False base
+hit move.xp.bd2f85d5d4ac 250 158 100 68 False base
+hit move.ym.919d58759af9 140 238 100 68 False base
+hit move.zm.e953c0486b76 365 78 65 68 False base
+hit move.zp.839983a68767 365 238 65 68 False base
+hit move.motors.fcb5b9fb92dd 30 350 190 58 False base
+hit navigate.move.joystick 235 350 195 58 False base
+hit move.homeall.3b30b2eb011a 465 170 145 50 False base
+hit move.homexy.91d916c5371e 625 170 145 50 False base
+hit ui.c4ecd39b3b9f 465 270 80 48 False base
+hit ui.aeb082bbe392 690 270 80 48 False base
+hit ui.fc91504b67f5 465 358 95 50 False base
+hit ui.5b4d060a5038 570 358 95 50 False base
+hit ui.6fd4e7e62f87 675 358 95 50 False base
+## press
+action move.homeall.3b30b2eb011a {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.Z", "ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_ALL", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"]}, "state_effect": null, "wire_id": "move.homeall.3b30b2eb011a"}
+action move.homexy.91d916c5371e {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_XY", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "state_effect": null, "wire_id": "move.homexy.91d916c5371e"}
+action move.motors.fcb5b9fb92dd {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"], "enabled": false, "kind": "motor_state"}, "key": "ui.pages.move.actions.MoveCommand.DISABLE_MOTORS", "kind": "command", "payload": null, "state_effect": null, "wire_id": "move.motors.fcb5b9fb92dd"}
+action move.xm.4de8d99268f4 {"hint": {"axis": "ff5m_ui.move.actions.Axis.X", "distance": null, "kind": "movement", "requires_homed": true, "speed": 6000}, "key": "ui.pages.move.actions.MoveCommand.X_MINUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.X", "direction": -1}, "state_effect": null, "wire_id": "move.xm.4de8d99268f4"}
+action move.xp.bd2f85d5d4ac {"hint": {"axis": "ff5m_ui.move.actions.Axis.X", "distance": null, "kind": "movement", "requires_homed": true, "speed": 6000}, "key": "ui.pages.move.actions.MoveCommand.X_PLUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.X", "direction": 1}, "state_effect": null, "wire_id": "move.xp.bd2f85d5d4ac"}
+action move.ym.919d58759af9 {"hint": {"axis": "ff5m_ui.move.actions.Axis.Y", "distance": null, "kind": "movement", "requires_homed": true, "speed": 6000}, "key": "ui.pages.move.actions.MoveCommand.Y_MINUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.Y", "direction": -1}, "state_effect": null, "wire_id": "move.ym.919d58759af9"}
+action move.yp.eadd406273cf {"hint": {"axis": "ff5m_ui.move.actions.Axis.Y", "distance": null, "kind": "movement", "requires_homed": true, "speed": 6000}, "key": "ui.pages.move.actions.MoveCommand.Y_PLUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.Y", "direction": 1}, "state_effect": null, "wire_id": "move.yp.eadd406273cf"}
+action move.zm.e953c0486b76 {"hint": {"axis": "ff5m_ui.move.actions.Axis.Z", "distance": null, "kind": "movement", "requires_homed": true, "speed": 600}, "key": "ui.pages.move.actions.MoveCommand.Z_MINUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.Z", "direction": -1}, "state_effect": null, "wire_id": "move.zm.e953c0486b76"}
+action move.zp.839983a68767 {"hint": {"axis": "ff5m_ui.move.actions.Axis.Z", "distance": null, "kind": "movement", "requires_homed": true, "speed": 600}, "key": "ui.pages.move.actions.MoveCommand.Z_PLUS", "kind": "command", "payload": {"axis": "ff5m_ui.move.actions.Axis.Z", "direction": 1}, "state_effect": null, "wire_id": "move.zp.839983a68767"}
+action navigate.move.joystick {"kind": "navigate", "target": "ui.pages.keys.AppPage.MOVE_JOYSTICK", "wire_id": "navigate.move.joystick"}
+action ui.5b4d060a5038 {"key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "set_value", "value": 1.0, "wire_id": "ui.5b4d060a5038"}
+action ui.6fd4e7e62f87 {"key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "set_value", "value": 10.0, "wire_id": "ui.6fd4e7e62f87"}
+action ui.aeb082bbe392 {"amount": 1, "key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "increment", "wire_id": "ui.aeb082bbe392", "wrap": false}
+action ui.c4ecd39b3b9f {"amount": -1, "key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "increment", "wire_id": "ui.c4ecd39b3b9f", "wrap": false}
+action ui.fc91504b67f5 {"key": "ui.pages.move.state.MoveState.JOG_STEP", "kind": "set_value", "value": 0.1, "wire_id": "ui.fc91504b67f5"}
+press move.homeall.3b30b2eb011a
+cmd --batch button -p 465 170 -s 145 50 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 113 --truncate -t "HOME ALL"
+cmd --batch button -p 465 170 -s 145 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 113 --truncate -t "HOME ALL"
+press move.homexy.91d916c5371e
+cmd --batch button -p 625 170 -s 145 50 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 113 --truncate -t "HOME XY"
+cmd --batch button -p 625 170 -s 145 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 113 --truncate -t "HOME XY"
+press move.motors.fcb5b9fb92dd
+cmd --batch button -p 30 350 -s 190 58 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 158 --truncate -t "DISABLE MOTORS"
+cmd --batch button -p 30 350 -s 190 58 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 158 --truncate -t "DISABLE MOTORS"
+press move.xm.4de8d99268f4
+cmd --batch button -p 30 158 -s 100 68 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "X-"
+cmd --batch button -p 30 158 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "X-"
+press move.xp.bd2f85d5d4ac
+cmd --batch button -p 250 158 -s 100 68 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "X+"
+cmd --batch button -p 250 158 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "X+"
+press move.ym.919d58759af9
+cmd --batch button -p 140 238 -s 100 68 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "Y-"
+cmd --batch button -p 140 238 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "Y-"
+press move.yp.eadd406273cf
+cmd --batch button -p 140 78 -s 100 68 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "Y+"
+cmd --batch button -p 140 78 -s 100 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 68 --truncate -t "Y+"
+press move.zm.e953c0486b76
+cmd --batch button -p 365 78 -s 65 68 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 33 --truncate -t "Z-"
+cmd --batch button -p 365 78 -s 65 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 33 --truncate -t "Z-"
+press move.zp.839983a68767
+cmd --batch button -p 365 238 -s 65 68 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 33 --truncate -t "Z+"
+cmd --batch button -p 365 238 -s 65 68 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 33 --truncate -t "Z+"
+press navigate.move.joystick
+cmd --batch button -p 235 350 -s 195 58 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 163 --truncate -t "JOY MODE"
+cmd --batch button -p 235 350 -s 195 58 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 163 --truncate -t "JOY MODE"
+press ui.5b4d060a5038
+cmd --batch button -p 570 358 -s 95 50 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "1"
+cmd --batch button -p 570 358 -s 95 50 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "1"
+press ui.6fd4e7e62f87
+cmd --batch button -p 675 358 -s 95 50 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "10"
+cmd --batch button -p 675 358 -s 95 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "10"
+press ui.aeb082bbe392
+cmd --batch button -p 690 270 -s 80 48 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 48 --truncate -t "+"
+cmd --batch button -p 690 270 -s 80 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 48 --truncate -t "+"
+press ui.c4ecd39b3b9f
+cmd --batch button -p 465 270 -s 80 48 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 48 --truncate -t " -"
+cmd --batch button -p 465 270 -s 80 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 48 --truncate -t " -"
+press ui.fc91504b67f5
+cmd --batch button -p 465 358 -s 95 50 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "0.1"
+cmd --batch button -p 465 358 -s 95 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 63 --truncate -t "0.1"

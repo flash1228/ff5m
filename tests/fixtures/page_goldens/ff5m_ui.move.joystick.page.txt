@@ -1,0 +1,1076 @@
+## draw defaults
+cmd --batch fill -p 12 64 -s 456 364 -c 050c0f
+cmd --batch stroke -p 12 64 -s 456 364 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 30 85 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "XY POSITION"
+cmd --batch fill -p 30 96 -s 420 266 -c 050c0f
+cmd --batch stroke -p 30 96 -s 420 266 -c 35d9e6 -lw 1 -sd inner
+cmd --batch fill -p 70 120 -s 1 1 -c 263238
+cmd --batch fill -p 104 120 -s 1 1 -c 263238
+cmd --batch fill -p 138 120 -s 1 1 -c 263238
+cmd --batch fill -p 172 120 -s 1 1 -c 263238
+cmd --batch fill -p 206 120 -s 1 1 -c 263238
+cmd --batch fill -p 240 120 -s 1 1 -c 263238
+cmd --batch fill -p 274 120 -s 1 1 -c 263238
+cmd --batch fill -p 308 120 -s 1 1 -c 263238
+cmd --batch fill -p 342 120 -s 1 1 -c 263238
+cmd --batch fill -p 376 120 -s 1 1 -c 263238
+cmd --batch fill -p 410 120 -s 1 1 -c 263238
+cmd --batch fill -p 70 156 -s 1 1 -c 263238
+cmd --batch fill -p 104 156 -s 1 1 -c 263238
+cmd --batch fill -p 138 156 -s 1 1 -c 263238
+cmd --batch fill -p 172 156 -s 1 1 -c 263238
+cmd --batch fill -p 206 156 -s 1 1 -c 263238
+cmd --batch fill -p 240 156 -s 1 1 -c 263238
+cmd --batch fill -p 274 156 -s 1 1 -c 263238
+cmd --batch fill -p 308 156 -s 1 1 -c 263238
+cmd --batch fill -p 342 156 -s 1 1 -c 263238
+cmd --batch fill -p 376 156 -s 1 1 -c 263238
+cmd --batch fill -p 410 156 -s 1 1 -c 263238
+cmd --batch fill -p 70 192 -s 1 1 -c 263238
+cmd --batch fill -p 104 192 -s 1 1 -c 263238
+cmd --batch fill -p 138 192 -s 1 1 -c 263238
+cmd --batch fill -p 172 192 -s 1 1 -c 263238
+cmd --batch fill -p 206 192 -s 1 1 -c 263238
+cmd --batch fill -p 240 192 -s 1 1 -c 263238
+cmd --batch fill -p 274 192 -s 1 1 -c 263238
+cmd --batch fill -p 308 192 -s 1 1 -c 263238
+cmd --batch fill -p 342 192 -s 1 1 -c 263238
+cmd --batch fill -p 376 192 -s 1 1 -c 263238
+cmd --batch fill -p 410 192 -s 1 1 -c 263238
+cmd --batch fill -p 70 229 -s 1 1 -c 263238
+cmd --batch fill -p 104 229 -s 1 1 -c 263238
+cmd --batch fill -p 138 229 -s 1 1 -c 263238
+cmd --batch fill -p 172 229 -s 1 1 -c 263238
+cmd --batch fill -p 206 229 -s 1 1 -c 263238
+cmd --batch fill -p 240 229 -s 1 1 -c 263238
+cmd --batch fill -p 274 229 -s 1 1 -c 263238
+cmd --batch fill -p 308 229 -s 1 1 -c 263238
+cmd --batch fill -p 342 229 -s 1 1 -c 263238
+cmd --batch fill -p 376 229 -s 1 1 -c 263238
+cmd --batch fill -p 410 229 -s 1 1 -c 263238
+cmd --batch fill -p 70 265 -s 1 1 -c 263238
+cmd --batch fill -p 104 265 -s 1 1 -c 263238
+cmd --batch fill -p 138 265 -s 1 1 -c 263238
+cmd --batch fill -p 172 265 -s 1 1 -c 263238
+cmd --batch fill -p 206 265 -s 1 1 -c 263238
+cmd --batch fill -p 240 265 -s 1 1 -c 263238
+cmd --batch fill -p 274 265 -s 1 1 -c 263238
+cmd --batch fill -p 308 265 -s 1 1 -c 263238
+cmd --batch fill -p 342 265 -s 1 1 -c 263238
+cmd --batch fill -p 376 265 -s 1 1 -c 263238
+cmd --batch fill -p 410 265 -s 1 1 -c 263238
+cmd --batch fill -p 70 301 -s 1 1 -c 263238
+cmd --batch fill -p 104 301 -s 1 1 -c 263238
+cmd --batch fill -p 138 301 -s 1 1 -c 263238
+cmd --batch fill -p 172 301 -s 1 1 -c 263238
+cmd --batch fill -p 206 301 -s 1 1 -c 263238
+cmd --batch fill -p 240 301 -s 1 1 -c 263238
+cmd --batch fill -p 274 301 -s 1 1 -c 263238
+cmd --batch fill -p 308 301 -s 1 1 -c 263238
+cmd --batch fill -p 342 301 -s 1 1 -c 263238
+cmd --batch fill -p 376 301 -s 1 1 -c 263238
+cmd --batch fill -p 410 301 -s 1 1 -c 263238
+cmd --batch fill -p 70 338 -s 1 1 -c 263238
+cmd --batch fill -p 104 338 -s 1 1 -c 263238
+cmd --batch fill -p 138 338 -s 1 1 -c 263238
+cmd --batch fill -p 172 338 -s 1 1 -c 263238
+cmd --batch fill -p 206 338 -s 1 1 -c 263238
+cmd --batch fill -p 240 338 -s 1 1 -c 263238
+cmd --batch fill -p 274 338 -s 1 1 -c 263238
+cmd --batch fill -p 308 338 -s 1 1 -c 263238
+cmd --batch fill -p 342 338 -s 1 1 -c 263238
+cmd --batch fill -p 376 338 -s 1 1 -c 263238
+cmd --batch fill -p 410 338 -s 1 1 -c 263238
+cmd --batch fill -p 240 120 -s 1 219 -c 35d9e6
+cmd --batch fill -p 70 229 -s 341 1 -c 35d9e6
+cmd --batch fill -p 50 114 -s 11 1 -c 35d9e6
+cmd --batch fill -p 50 114 -s 1 11 -c 35d9e6
+cmd --batch fill -p 50 343 -s 11 1 -c 35d9e6
+cmd --batch fill -p 50 333 -s 1 11 -c 35d9e6
+cmd --batch fill -p 419 114 -s 11 1 -c 35d9e6
+cmd --batch fill -p 429 114 -s 1 11 -c 35d9e6
+cmd --batch fill -p 419 343 -s 11 1 -c 35d9e6
+cmd --batch fill -p 429 333 -s 1 11 -c 35d9e6
+cmd --batch text -p 240 106 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "+Y"
+cmd --batch text -p 235 352 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t " -Y"
+cmd --batch text -p 43 229 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t " -X"
+cmd --batch text -p 432 229 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "+X"
+cmd --batch fill -p 228 217 -s 25 25 -c 050c0f
+cmd --batch stroke -p 228 217 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 234 229 -s 13 1 -c 35d9e6
+cmd --batch fill -p 240 223 -s 1 13 -c 35d9e6
+cmd --batch hitbox --id 0:move.joy.xy.97decdc1ddc3 -p 30 96 -s 420 266 --continuous --layer base
+cmd --batch button -p 30 374 -s 190 44 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 158 --truncate -t "DISABLE MOTORS" --id 0:move.motors.fcb5b9fb92dd --layer base
+cmd --batch button -p 230 374 -s 140 44 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 108 --truncate -t "STEP MODE" --id 0:navigate.move.step --layer base
+cmd --batch fill -p 478 64 -s 100 364 -c 050c0f
+cmd --batch stroke -p 478 64 -s 100 364 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 496 85 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 82 --truncate -t "Z AXIS"
+cmd --batch fill -p 541 103 -s 10 315 -c 050c0f
+cmd --batch stroke -p 541 103 -s 10 315 -c 35d9e6 -lw 1 -sd inner
+cmd --batch fill -p 509 103 -s 12 1 -c 56656c
+cmd --batch fill -p 516 142 -s 5 1 -c 56656c
+cmd --batch fill -p 513 182 -s 8 1 -c 56656c
+cmd --batch fill -p 516 221 -s 5 1 -c 56656c
+cmd --batch fill -p 509 260 -s 12 1 -c 35d9e6
+cmd --batch fill -p 516 299 -s 5 1 -c 56656c
+cmd --batch fill -p 513 338 -s 8 1 -c 56656c
+cmd --batch fill -p 516 378 -s 5 1 -c 56656c
+cmd --batch fill -p 509 417 -s 12 1 -c 56656c
+cmd --batch fill -p 534 248 -s 25 25 -c 050c0f
+cmd --batch stroke -p 534 248 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 540 257 -s 13 1 -c 35d9e6
+cmd --batch fill -p 540 263 -s 13 1 -c 35d9e6
+cmd --batch hitbox --id 0:move.joy.z.0cd48bf1a2eb -p 486 96 -s 84 329 --continuous --layer base
+cmd --batch fill -p 588 64 -s 200 364 -c 050c0f
+cmd --batch stroke -p 588 64 -s 200 364 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 606 85 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "POSITION"
+cmd --batch fill -p 602 96 -s 172 92 -c 050c0f
+cmd --batch stroke -p 602 96 -s 172 92 -c f2c94c -lw 1 -sd inner
+cmd --batch text -p 614 118 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "X"
+cmd --batch text -p 728 118 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 118 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 142 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Y"
+cmd --batch text -p 728 142 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 142 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 166 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Z"
+cmd --batch text -p 728 166 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 166 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch fill -p 602 200 -s 172 48 -c 050c0f
+cmd --batch stroke -p 602 200 -s 172 48 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 614 224 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "INERTIA"
+cmd --batch text -p 762 224 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "  0.0"
+cmd --batch button -p 602 262 -s 172 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 140 --truncate -t "HOME ALL" --id 0:move.homeall.3b30b2eb011a --layer base
+cmd --batch button -p 602 310 -s 172 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 140 --truncate -t "HOME XY" --id 0:move.homexy.91d916c5371e --layer base
+cmd --batch button -p 602 358 -s 172 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 140 --truncate -t "HOME Z" --id 0:move.homez.caa0b369054d --layer base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+rect r Grid root 12 64 776 364
+rect r.0 Overlay xy.panel 12 64 456 364
+rect r.0.0 Section xy.section 12 64 456 364
+rect r.0.1 Column xy.layout 12 64 456 364
+rect r.0.1.0 Overlay xy.pad 30 96 420 266
+rect r.0.1.0.0 Panel xy.pad.panel 30 96 420 266
+rect r.0.1.0.1 DotGrid xy.grid 70 120 340 218
+rect r.0.1.0.10 Overlay 30 96 420 266
+rect r.0.1.0.10.0 When 30 96 420 266
+rect r.0.1.0.10.0.0 Dialog 30 96 420 266
+rect r.0.1.0.10.1 When 30 96 420 266
+rect r.0.1.0.10.1.0 Dialog 30 96 420 266
+rect r.0.1.0.10.2 When 30 96 420 266
+rect r.0.1.0.10.2.0 Dialog 30 96 420 266
+rect r.0.1.0.2 Crosshair xy.crosshair 70 120 340 218
+rect r.0.1.0.3 CornerMarks xy.marks 50 114 380 230
+rect r.0.1.0.4 Text xy.label.y_plus 210 97 60 18
+rect r.0.1.0.5 Text xy.label.y_minus 210 343 60 18
+rect r.0.1.0.6 Text xy.label.x_minus 31 217 34 24
+rect r.0.1.0.7 Text xy.label.x_plus 415 217 34 24
+rect r.0.1.0.8 SliderKnob xy.knob 30 96 420 266
+rect r.0.1.0.9 Hitbox xy.hitbox 30 96 420 266
+rect r.0.1.1 Row xy.actions 30 374 340 44
+rect r.0.1.1.0 Button motors 30 374 190 44
+rect r.0.1.1.1 Button mode 230 374 140 44
+rect r.1 Slider z.panel 478 64 100 364
+rect r.2 Overlay status.panel 588 64 200 364
+rect r.2.0 Section status.section 588 64 200 364
+rect r.2.1 Column status.layout 588 64 200 364
+rect r.2.1.0 Column status.cards 602 96 172 152
+rect r.2.1.0.0 Overlay position.card 602 96 172 92
+rect r.2.1.0.0.0 Panel position.panel 602 96 172 92
+rect r.2.1.0.0.1 Column position.metrics 602 96 172 92
+rect r.2.1.0.0.1.0 Metric position.x 614 106 148 24
+rect r.2.1.0.0.1.1 Metric position.y 614 130 148 24
+rect r.2.1.0.0.1.2 Metric position.z 614 154 148 24
+rect r.2.1.0.1 Overlay inertia.card 602 200 172 48
+rect r.2.1.0.1.0 Panel inertia.panel 602 200 172 48
+rect r.2.1.0.1.1 Metric inertia.metric 614 200 148 48
+rect r.2.1.1 Spacer status.spacer 602 255 172 0
+rect r.2.1.2 WrapPanel home.buttons 602 262 172 138
+rect r.2.1.2.0 Button home.all 602 262 172 42
+rect r.2.1.2.1 Button home.xy 602 310 172 42
+rect r.2.1.2.2 Button home.z 602 358 172 42
+## reflect defaults
+page state {"ui.pages.move.state.MoveState.AUTO_PROFILE_STATE": "missing", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED": false, "ui.pages.move.state.MoveState.CAUTION_Z": 5.0, "ui.pages.move.state.MoveState.CURSOR": null, "ui.pages.move.state.MoveState.INERTIA": 0.0, "ui.pages.move.state.ToolheadState.HOMED_X": false, "ui.pages.move.state.ToolheadState.HOMED_Y": false, "ui.pages.move.state.ToolheadState.HOMED_Z": false, "ui.pages.move.state.ToolheadState.X": 0.0, "ui.pages.move.state.ToolheadState.Y": 0.0, "ui.pages.move.state.ToolheadState.Z": 0.0}
+page dependencies {"conditions": [{"binding": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}, "child": {"ref": null, "type": "Dialog"}, "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.0", "node_ref": null, "preview_result": false, "result": false}, {"binding": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}, "child": {"ref": null, "type": "Dialog"}, "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.1", "node_ref": null, "preview_result": false, "result": false}, {"binding": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}, "child": {"ref": null, "type": "Dialog"}, "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.2", "node_ref": null, "preview_result": false, "result": false}], "states": {"ui.pages.move.state.MoveState.AUTO_PROFILE_STATE": {"affected_count": 3, "condition_count": 3, "conditions": [{"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.0", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.1", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.2", "node_ref": null, "result": false}], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "name": "AUTO_PROFILE_STATE", "properties": [], "property_count": 0}, "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED": {"affected_count": 3, "condition_count": 3, "conditions": [{"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.0", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.1", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.2", "node_ref": null, "result": false}], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "name": "CAUTION_ACKNOWLEDGED", "properties": [], "property_count": 0}, "ui.pages.move.state.MoveState.CAUTION_Z": {"affected_count": 6, "condition_count": 3, "conditions": [{"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.0", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.1", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.2", "node_ref": null, "result": false}], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "name": "CAUTION_Z", "properties": [{"direct": true, "node_id": "path:0.0.1.0.10.0.0", "node_ref": null, "node_type": "Dialog", "property": "lines"}, {"direct": true, "node_id": "path:0.0.1.0.10.1.0", "node_ref": null, "node_type": "Dialog", "property": "lines"}, {"direct": true, "node_id": "path:0.0.1.0.10.2.0", "node_ref": null, "node_type": "Dialog", "property": "lines"}], "property_count": 3}, "ui.pages.move.state.MoveState.CURSOR": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.move.state.MoveState.CURSOR", "name": "CURSOR", "properties": [{"direct": true, "node_id": "z.panel", "node_ref": "z.panel", "node_type": "Slider", "property": "position"}], "property_count": 1}, "ui.pages.move.state.MoveState.INERTIA": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.move.state.MoveState.INERTIA", "name": "INERTIA", "properties": [{"direct": true, "node_id": "inertia.metric", "node_ref": "inertia.metric", "node_type": "Metric", "property": "value"}], "property_count": 1}, "ui.pages.move.state.ToolheadState.HOMED_X": {"affected_count": 3, "condition_count": 0, "conditions": [], "key": "ui.pages.move.state.ToolheadState.HOMED_X", "name": "HOMED_X", "properties": [{"direct": true, "node_id": "position.x", "node_ref": "position.x", "node_type": "Metric", "property": "label_color"}, {"direct": true, "node_id": "position.y", "node_ref": "position.y", "node_type": "Metric", "property": "label_color"}, {"direct": true, "node_id": "position.z", "node_ref": "position.z", "node_type": "Metric", "property": "label_color"}], "property_count": 3}, "ui.pages.move.state.ToolheadState.HOMED_Y": {"affected_count": 3, "condition_count": 0, "conditions": [], "key": "ui.pages.move.state.ToolheadState.HOMED_Y", "name": "HOMED_Y", "properties": [{"direct": true, "node_id": "position.x", "node_ref": "position.x", "node_type": "Metric", "property": "label_color"}, {"direct": true, "node_id": "position.y", "node_ref": "position.y", "node_type": "Metric", "property": "label_color"}, {"direct": true, "node_id": "position.z", "node_ref": "position.z", "node_type": "Metric", "property": "label_color"}], "property_count": 3}, "ui.pages.move.state.ToolheadState.HOMED_Z": {"affected_count": 6, "condition_count": 3, "conditions": [{"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.0", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.1", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.2", "node_ref": null, "result": false}], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "name": "HOMED_Z", "properties": [{"direct": true, "node_id": "position.x", "node_ref": "position.x", "node_type": "Metric", "property": "label_color"}, {"direct": true, "node_id": "position.y", "node_ref": "position.y", "node_type": "Metric", "property": "label_color"}, {"direct": true, "node_id": "position.z", "node_ref": "position.z", "node_type": "Metric", "property": "label_color"}], "property_count": 3}, "ui.pages.move.state.ToolheadState.X": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.move.state.ToolheadState.X", "name": "X", "properties": [{"direct": true, "node_id": "position.x", "node_ref": "position.x", "node_type": "Metric", "property": "value"}], "property_count": 1}, "ui.pages.move.state.ToolheadState.Y": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.move.state.ToolheadState.Y", "name": "Y", "properties": [{"direct": true, "node_id": "position.y", "node_ref": "position.y", "node_type": "Metric", "property": "value"}], "property_count": 1}, "ui.pages.move.state.ToolheadState.Z": {"affected_count": 4, "condition_count": 3, "conditions": [{"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.0", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.1", "node_ref": null, "result": false}, {"name": "Dialog \u00b7 CAUTION", "node_id": "path:0.0.1.0.10.2", "node_ref": null, "result": false}], "key": "ui.pages.move.state.ToolheadState.Z", "name": "Z", "properties": [{"direct": true, "node_id": "position.z", "node_ref": "position.z", "node_type": "Metric", "property": "value"}], "property_count": 1}}}
+page actions [{"hint": null, "key": "ui.pages.move.actions.MoveCommand.CAUTION_AUTO", "kind": "command", "payload": {"mode": "ff5m_ui.move.actions.ProfileMode.LOAD_AUTO"}, "state_effect": null, "wire_id": "move.caution.auto.fad7be44b231"}, {"hint": null, "key": "ui.pages.move.actions.MoveCommand.CAUTION_UNLOAD", "kind": "command", "payload": {"mode": "ff5m_ui.move.actions.ProfileMode.UNLOAD"}, "state_effect": null, "wire_id": "move.caution.unload.f0f3fade6f25"}, {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.Z", "ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_ALL", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"]}, "state_effect": null, "wire_id": "move.homeall.3b30b2eb011a"}, {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_XY", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "state_effect": null, "wire_id": "move.homexy.91d916c5371e"}, {"hint": {"axes": ["ff5m_ui.move.actions.Axis.Z"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.Z"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_Z", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.Z"]}, "state_effect": null, "wire_id": "move.homez.caa0b369054d"}, {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"], "direction_signs": [1, 1], "kind": "continuous_movement", "release_duration": 0.34, "requires_homed": true}, "key": "ui.pages.move.actions.MoveCommand.JOYSTICK_XY", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "state_effect": null, "wire_id": "move.joy.xy.97decdc1ddc3"}, {"hint": {"axes": ["ff5m_ui.move.actions.Axis.Z"], "direction_signs": [-1], "kind": "continuous_movement", "release_duration": 0.34, "requires_homed": true}, "key": "ui.pages.move.actions.MoveCommand.JOYSTICK_Z", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.Z"]}, "state_effect": null, "wire_id": "move.joy.z.0cd48bf1a2eb"}, {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"], "enabled": false, "kind": "motor_state"}, "key": "ui.pages.move.actions.MoveCommand.DISABLE_MOTORS", "kind": "command", "payload": null, "state_effect": null, "wire_id": "move.motors.fcb5b9fb92dd"}, {"kind": "navigate", "target": "ui.pages.keys.AppPage.MOVE_STEP", "wire_id": "navigate.move.step"}, {"key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "kind": "set_value", "value": true, "wire_id": "ui.88d586d435d3"}]
+page bindings [{"key": "ui.pages.move.state.MoveState.CURSOR", "nullable": true, "runtime_type": "builtins.tuple"}, {"key": "ui.pages.move.state.ToolheadState.Z", "nullable": false, "runtime_type": "builtins.float"}, {"key": "ui.pages.move.state.ToolheadState.HOMED_Z", "nullable": false, "runtime_type": "builtins.bool"}, {"key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "nullable": false, "runtime_type": "builtins.bool"}, {"key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ui.pages.move.state.MoveState.CAUTION_Z", "nullable": false, "runtime_type": "builtins.float"}, {"key": "ui.pages.move.state.ToolheadState.X", "nullable": false, "runtime_type": "builtins.float"}, {"key": "ui.pages.move.state.ToolheadState.HOMED_X", "nullable": false, "runtime_type": "builtins.bool"}, {"key": "ui.pages.move.state.ToolheadState.HOMED_Y", "nullable": false, "runtime_type": "builtins.bool"}, {"key": "ui.pages.move.state.ToolheadState.Y", "nullable": false, "runtime_type": "builtins.float"}, {"key": "ui.pages.move.state.MoveState.INERTIA", "nullable": false, "runtime_type": "builtins.float"}]
+node {"actions": {}, "bindings": {}, "bounds": [12, 64, 776, 364], "component_template_instance": null, "condition": null, "container": true, "id": "root", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 10, "columns": ["<ui.layout.Flex object>", 100, 200], "row_gap": 0, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": "root", "structure_slot": null, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [12, 64, 456, 364], "component_template_instance": null, "condition": null, "container": true, "id": "xy.panel", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "xy.panel", "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [12, 64, 456, 364], "component_template_instance": null, "condition": null, "container": false, "id": "xy.section", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"border": "ui.theme.ThemeColor.BORDER", "title": "XY POSITION"}, "property_origins": {}, "ref": "xy.section", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Section", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [12, 64, 456, 364], "component_template_instance": null, "condition": null, "container": true, "id": "xy.layout", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [18, 32, 18, 10], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 12}, "property_origins": {}, "ref": "xy.layout", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": null, "container": true, "id": "xy.pad", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "xy.pad", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": null, "container": false, "id": "xy.pad.panel", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.PRIMARY", "line_width": 1}, "property_origins": {}, "ref": "xy.pad.panel", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [70, 120, 340, 218], "component_template_instance": null, "condition": null, "container": false, "id": "xy.grid", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [40, 24, 40, 24], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.MUTED", "columns": 11, "rows": 7}, "property_origins": {}, "ref": "xy.grid", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "DotGrid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [70, 120, 340, 218], "component_template_instance": null, "condition": null, "container": false, "id": "xy.crosshair", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [40, 24, 40, 24], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY"}, "property_origins": {}, "ref": "xy.crosshair", "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "Crosshair", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [50, 114, 380, 230], "component_template_instance": null, "condition": null, "container": false, "id": "xy.marks", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [20, 18, 20, 18], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "length": 11}, "property_origins": {}, "ref": "xy.marks", "structure_slot": {"index": 3}, "style": null, "template_instance": null, "type": "CornerMarks", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [210, 97, 60, 18], "component_template_instance": null, "condition": null, "container": false, "id": "xy.label.y_plus", "layout": {"allow_overflow": false, "grow": 1, "height": 18, "horizontal": "center", "margin": [0, 1, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "top", "width": 60}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": null, "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "+Y", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": "xy.label.y_plus", "structure_slot": {"index": 4}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [210, 343, 60, 18], "component_template_instance": null, "condition": null, "container": false, "id": "xy.label.y_minus", "layout": {"allow_overflow": false, "grow": 1, "height": 18, "horizontal": "center", "margin": [0, 0, 0, 1], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "bottom", "width": 60}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": null, "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "-Y", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": "xy.label.y_minus", "structure_slot": {"index": 5}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [31, 217, 34, 24], "component_template_instance": null, "condition": null, "container": false, "id": "xy.label.x_minus", "layout": {"allow_overflow": false, "grow": 1, "height": 24, "horizontal": "left", "margin": [1, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "center", "width": 34}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": null, "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "-X", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": "xy.label.x_minus", "structure_slot": {"index": 6}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [415, 217, 34, 24], "component_template_instance": null, "condition": null, "container": false, "id": "xy.label.x_plus", "layout": {"allow_overflow": false, "grow": 1, "height": 24, "horizontal": "right", "margin": [0, 0, 1, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "center", "width": 34}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": null, "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "+X", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": "xy.label.x_plus", "structure_slot": {"index": 7}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {"active_action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"], "direction_signs": [1, 1], "kind": "continuous_movement", "release_duration": 0.34, "requires_homed": true}, "key": "ui.pages.move.actions.MoveCommand.JOYSTICK_XY", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "state_effect": null, "wire_id": "move.joy.xy.97decdc1ddc3"}}, "bindings": {}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": null, "container": false, "id": "xy.knob", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"axis": "xy", "background": "ui.theme.ThemeColor.PANEL", "color": "ui.theme.ThemeColor.PRIMARY", "dirty_margin": 2, "edge_padding": 0, "glyph": "cross", "maximum": 1.0, "minimum": 0.0, "size": 25, "track": "grid", "track_color": null, "value": null}, "property_origins": {}, "ref": "xy.knob", "structure_slot": {"index": 8}, "style": null, "template_instance": null, "type": "SliderKnob", "visible": true}
+node {"actions": {"action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"], "direction_signs": [1, 1], "kind": "continuous_movement", "release_duration": 0.34, "requires_homed": true}, "key": "ui.pages.move.actions.MoveCommand.JOYSTICK_XY", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "state_effect": null, "wire_id": "move.joy.xy.97decdc1ddc3"}}, "bindings": {}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": null, "container": false, "id": "xy.hitbox", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"], "direction_signs": [1, 1], "kind": "continuous_movement", "release_duration": 0.34, "requires_homed": true}, "key": "ui.pages.move.actions.MoveCommand.JOYSTICK_XY", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "state_effect": null, "wire_id": "move.joy.xy.97decdc1ddc3"}, "continuous": true}, "property_origins": {}, "ref": "xy.hitbox", "structure_slot": {"index": 9}, "style": null, "template_instance": null, "type": "Hitbox", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1.0.10", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 10}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {"predicate": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": {"binding": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}, "child": {"ref": null, "type": "Dialog"}, "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "name": "Dialog \u00b7 CAUTION", "predicate_source": {"origin": null, "reason": "Source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "preview_result": false, "result": false}, "container": false, "id": "path:0.0.1.0.10.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": false, "properties": {"predicate": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "When", "visible": false}
+node {"actions": {}, "bindings": {"lines": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": ["Z IS BELOW 5 MM", "XY MOTION MAY SCRATCH THE BED", "BED PROFILE 'AUTO' IS LOADED"], "source": null, "transitive_keys": []}}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.0.10.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"button_groups": [], "buttons": [[{"hint": null, "key": "ui.pages.move.actions.MoveCommand.CAUTION_UNLOAD", "kind": "command", "payload": {"mode": "ff5m_ui.move.actions.ProfileMode.UNLOAD"}, "state_effect": null, "wire_id": "move.caution.unload.f0f3fade6f25"}, "UNLOAD", "warning"], [{"key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "kind": "set_value", "value": true, "wire_id": "ui.88d586d435d3"}, "OK", "enabled"]], "lines": ["Z IS BELOW 5 MM", "XY MOTION MAY SCRATCH THE BED", "BED PROFILE 'AUTO' IS LOADED"], "modal": false, "page": 0, "page_actions": [], "title": "CAUTION", "tone": "warning"}, "property_origins": {}, "ref": null, "structure_slot": null, "style": null, "template_instance": null, "type": "Dialog", "visible": false}
+node {"actions": {}, "bindings": {"predicate": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": {"binding": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}, "child": {"ref": null, "type": "Dialog"}, "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "name": "Dialog \u00b7 CAUTION", "predicate_source": {"origin": null, "reason": "Source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "preview_result": false, "result": false}, "container": false, "id": "path:0.0.1.0.10.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": false, "properties": {"predicate": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "When", "visible": false}
+node {"actions": {}, "bindings": {"lines": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": ["Z IS BELOW 5 MM", "XY MOTION MAY SCRATCH THE BED", "LOAD BED PROFILE 'AUTO'?"], "source": null, "transitive_keys": []}}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.0.10.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"button_groups": [], "buttons": [[{"key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "kind": "set_value", "value": true, "wire_id": "ui.88d586d435d3"}, "CONTINUE", "enabled"], [{"hint": null, "key": "ui.pages.move.actions.MoveCommand.CAUTION_AUTO", "kind": "command", "payload": {"mode": "ff5m_ui.move.actions.ProfileMode.LOAD_AUTO"}, "state_effect": null, "wire_id": "move.caution.auto.fad7be44b231"}, "LOAD", "warning"]], "lines": ["Z IS BELOW 5 MM", "XY MOTION MAY SCRATCH THE BED", "LOAD BED PROFILE 'AUTO'?"], "modal": false, "page": 0, "page_actions": [], "title": "CAUTION", "tone": "warning"}, "property_origins": {}, "ref": null, "structure_slot": null, "style": null, "template_instance": null, "type": "Dialog", "visible": false}
+node {"actions": {}, "bindings": {"predicate": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": {"binding": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "keys": ["ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "key": "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "keys": ["ui.pages.move.state.MoveState.AUTO_PROFILE_STATE"], "kind": "direct", "resolved": "missing", "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}, "child": {"ref": null, "type": "Dialog"}, "keys": ["ui.pages.move.state.ToolheadState.Z", "ui.pages.move.state.ToolheadState.HOMED_Z", "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "ui.pages.move.state.MoveState.AUTO_PROFILE_STATE", "ui.pages.move.state.MoveState.CAUTION_Z"], "name": "Dialog \u00b7 CAUTION", "predicate_source": {"origin": null, "reason": "Source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "preview_result": false, "result": false}, "container": false, "id": "path:0.0.1.0.10.2", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": false, "properties": {"predicate": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "When", "visible": false}
+node {"actions": {}, "bindings": {"lines": {"callable": {"module": "ff5m_ui.move.common", "name": "<lambda>", "qualname": "_caution_layer.<locals>.<lambda>"}, "direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "key": "ui.pages.move.state.MoveState.CAUTION_Z", "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.MoveState.CAUTION_Z"], "kind": "derived", "resolved": ["Z IS BELOW 5 MM", "XY MOTION MAY SCRATCH THE BED", "PROFILE 'AUTO' IS NOT AVAILABLE"], "source": null, "transitive_keys": []}}, "bounds": [30, 96, 420, 266], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.0.10.2.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"button_groups": [], "buttons": [[{"key": "ui.pages.move.state.MoveState.CAUTION_ACKNOWLEDGED", "kind": "set_value", "value": true, "wire_id": "ui.88d586d435d3"}, "CONTINUE", "enabled"]], "lines": ["Z IS BELOW 5 MM", "XY MOTION MAY SCRATCH THE BED", "PROFILE 'AUTO' IS NOT AVAILABLE"], "modal": false, "page": 0, "page_actions": [], "title": "CAUTION", "tone": "warning"}, "property_origins": {}, "ref": null, "structure_slot": null, "style": null, "template_instance": null, "type": "Dialog", "visible": false}
+node {"actions": {}, "bindings": {}, "bounds": [30, 374, 340, 44], "component_template_instance": null, "condition": null, "container": true, "id": "xy.actions", "layout": {"allow_overflow": false, "grow": 1, "height": 44, "horizontal": "left", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 340}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "horizontal", "gap": 10}, "property_origins": {}, "ref": "xy.actions", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Row", "visible": true}
+node {"actions": {"action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"], "enabled": false, "kind": "motor_state"}, "key": "ui.pages.move.actions.MoveCommand.DISABLE_MOTORS", "kind": "command", "payload": null, "state_effect": null, "wire_id": "move.motors.fcb5b9fb92dd"}}, "bindings": {}, "bounds": [30, 374, 190, 44], "component_template_instance": null, "condition": null, "container": false, "id": "motors", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 190}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"], "enabled": false, "kind": "motor_state"}, "key": "ui.pages.move.actions.MoveCommand.DISABLE_MOTORS", "kind": "command", "payload": null, "state_effect": null, "wire_id": "move.motors.fcb5b9fb92dd"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "DISABLE MOTORS", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "motors", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "navigate", "target": "ui.pages.keys.AppPage.MOVE_STEP", "wire_id": "navigate.move.step"}}, "bindings": {}, "bounds": [230, 374, 140, 44], "component_template_instance": null, "condition": null, "container": false, "id": "mode", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "navigate", "target": "ui.pages.keys.AppPage.MOVE_STEP", "wire_id": "navigate.move.step"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "STEP MODE", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "mode", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.Z"], "direction_signs": [-1], "kind": "continuous_movement", "release_duration": 0.34, "requires_homed": true}, "key": "ui.pages.move.actions.MoveCommand.JOYSTICK_Z", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.Z"]}, "state_effect": null, "wire_id": "move.joy.z.0cd48bf1a2eb"}, "active_action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.Z"], "direction_signs": [-1], "kind": "continuous_movement", "release_duration": 0.34, "requires_homed": true}, "key": "ui.pages.move.actions.MoveCommand.JOYSTICK_Z", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.Z"]}, "state_effect": null, "wire_id": "move.joy.z.0cd48bf1a2eb"}}, "bindings": {"position": {"direct_keys": ["ui.pages.move.state.MoveState.CURSOR"], "key": "ui.pages.move.state.MoveState.CURSOR", "keys": ["ui.pages.move.state.MoveState.CURSOR"], "kind": "direct", "resolved": null, "source": null, "transitive_keys": []}}, "bounds": [478, 64, 100, 364], "component_template_instance": null, "condition": null, "container": false, "id": "z.panel", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.Z"], "direction_signs": [-1], "kind": "continuous_movement", "release_duration": 0.34, "requires_homed": true}, "key": "ui.pages.move.actions.MoveCommand.JOYSTICK_Z", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.Z"]}, "state_effect": null, "wire_id": "move.joy.z.0cd48bf1a2eb"}, "axis": "z", "background": "ui.theme.ThemeColor.PANEL", "color": "ui.theme.ThemeColor.PRIMARY", "dirty_margin": 2, "edge_padding": 2, "frame": true, "frame_color": "ui.theme.ThemeColor.BORDER", "glyph": "bars", "label": "Z AXIS", "label_align": "left", "label_color": "ui.theme.ThemeColor.PRIMARY", "label_font": "JetBrainsMono 8pt", "label_height": 18, "label_padding": 18, "label_top": 12, "maximum": 1.0, "minimum": 0.0, "position": null, "scale": true, "scale_color": "ui.theme.ThemeColor.DIM", "scale_depth": 3, "scale_gap": 20, "size": 25, "touch_insets": [8, 32, 8, 3], "track": "frame", "track_align": "end", "track_color": null, "track_insets": [8, 39, 27, 10], "track_size": 10, "value": null}, "property_origins": {}, "ref": "z.panel", "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Slider", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [588, 64, 200, 364], "component_template_instance": null, "condition": null, "container": true, "id": "status.panel", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "status.panel", "structure_slot": {"column": 2, "column_span": 1, "index": 2, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [588, 64, 200, 364], "component_template_instance": null, "condition": null, "container": false, "id": "status.section", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"border": "ui.theme.ThemeColor.BORDER", "title": "POSITION"}, "property_origins": {}, "ref": "status.section", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Section", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [588, 64, 200, 364], "component_template_instance": null, "condition": null, "container": true, "id": "status.layout", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [14, 32, 14, 28], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 7}, "property_origins": {}, "ref": "status.layout", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [602, 96, 172, 152], "component_template_instance": null, "condition": null, "container": true, "id": "status.cards", "layout": {"allow_overflow": false, "grow": 1, "height": 152, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 12}, "property_origins": {}, "ref": "status.cards", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [602, 96, 172, 92], "component_template_instance": null, "condition": null, "container": true, "id": "position.card", "layout": {"allow_overflow": false, "grow": 1, "height": 92, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "position.card", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [602, 96, 172, 92], "component_template_instance": null, "condition": null, "container": false, "id": "position.panel", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.WARNING", "line_width": 1}, "property_origins": {}, "ref": "position.panel", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [602, 96, 172, 92], "component_template_instance": null, "condition": null, "container": true, "id": "position.metrics", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [12, 10, 12, 10], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 0}, "property_origins": {}, "ref": "position.metrics", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {"label_color": {"callable": {"module": "ff5m_ui.move.joystick.page", "name": "_position_border", "qualname": "_position_border"}, "direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y", "ui.pages.move.state.ToolheadState.HOMED_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "key": "ui.pages.move.state.ToolheadState.HOMED_X", "keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "key": "ui.pages.move.state.ToolheadState.HOMED_Y", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y", "ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "derived", "resolved": "ui.theme.ThemeColor.WARNING", "source": null, "transitive_keys": []}, "value": {"callable": {"module": "ff5m_ui.move.joystick.page", "name": "_position_value", "qualname": "_position_value"}, "direct_keys": ["ui.pages.move.state.ToolheadState.X"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.X"], "key": "ui.pages.move.state.ToolheadState.X", "keys": ["ui.pages.move.state.ToolheadState.X"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.X"], "kind": "derived", "resolved": "   0.0", "source": null, "transitive_keys": []}}, "bounds": [614, 106, 148, 24], "component_template_instance": null, "condition": null, "container": false, "id": "position.x", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"gap": 0, "label": "X", "label_color": "ui.theme.ThemeColor.WARNING", "label_font": "JetBrainsMono 8pt", "orientation": "horizontal", "unit": "mm", "value": "   0.0", "value_color": "ui.theme.ThemeColor.TEXT", "value_font": "JetBrainsMono 8pt"}, "property_origins": {}, "ref": "position.x", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Metric", "visible": true}
+node {"actions": {}, "bindings": {"label_color": {"callable": {"module": "ff5m_ui.move.joystick.page", "name": "_position_border", "qualname": "_position_border"}, "direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y", "ui.pages.move.state.ToolheadState.HOMED_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "key": "ui.pages.move.state.ToolheadState.HOMED_X", "keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "key": "ui.pages.move.state.ToolheadState.HOMED_Y", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y", "ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "derived", "resolved": "ui.theme.ThemeColor.WARNING", "source": null, "transitive_keys": []}, "value": {"callable": {"module": "ff5m_ui.move.joystick.page", "name": "_position_value", "qualname": "_position_value"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Y"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Y"], "key": "ui.pages.move.state.ToolheadState.Y", "keys": ["ui.pages.move.state.ToolheadState.Y"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Y"], "kind": "derived", "resolved": "   0.0", "source": null, "transitive_keys": []}}, "bounds": [614, 130, 148, 24], "component_template_instance": null, "condition": null, "container": false, "id": "position.y", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"gap": 0, "label": "Y", "label_color": "ui.theme.ThemeColor.WARNING", "label_font": "JetBrainsMono 8pt", "orientation": "horizontal", "unit": "mm", "value": "   0.0", "value_color": "ui.theme.ThemeColor.TEXT", "value_font": "JetBrainsMono 8pt"}, "property_origins": {}, "ref": "position.y", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Metric", "visible": true}
+node {"actions": {}, "bindings": {"label_color": {"callable": {"module": "ff5m_ui.move.joystick.page", "name": "_position_border", "qualname": "_position_border"}, "direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y", "ui.pages.move.state.ToolheadState.HOMED_Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "key": "ui.pages.move.state.ToolheadState.HOMED_X", "keys": ["ui.pages.move.state.ToolheadState.HOMED_X"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "key": "ui.pages.move.state.ToolheadState.HOMED_Y", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Y"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "key": "ui.pages.move.state.ToolheadState.HOMED_Z", "keys": ["ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.HOMED_X", "ui.pages.move.state.ToolheadState.HOMED_Y", "ui.pages.move.state.ToolheadState.HOMED_Z"], "kind": "derived", "resolved": "ui.theme.ThemeColor.WARNING", "source": null, "transitive_keys": []}, "value": {"callable": {"module": "ff5m_ui.move.joystick.page", "name": "_position_value", "qualname": "_position_value"}, "direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.ToolheadState.Z"], "key": "ui.pages.move.state.ToolheadState.Z", "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.ToolheadState.Z"], "kind": "derived", "resolved": "   0.0", "source": null, "transitive_keys": []}}, "bounds": [614, 154, 148, 24], "component_template_instance": null, "condition": null, "container": false, "id": "position.z", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"gap": 0, "label": "Z", "label_color": "ui.theme.ThemeColor.WARNING", "label_font": "JetBrainsMono 8pt", "orientation": "horizontal", "unit": "mm", "value": "   0.0", "value_color": "ui.theme.ThemeColor.TEXT", "value_font": "JetBrainsMono 8pt"}, "property_origins": {}, "ref": "position.z", "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "Metric", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [602, 200, 172, 48], "component_template_instance": null, "condition": null, "container": true, "id": "inertia.card", "layout": {"allow_overflow": false, "grow": 1, "height": 48, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "inertia.card", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [602, 200, 172, 48], "component_template_instance": null, "condition": null, "container": false, "id": "inertia.panel", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.BORDER", "line_width": 1}, "property_origins": {}, "ref": "inertia.panel", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {"value": {"callable": {"module": "ff5m_ui.move.joystick.page", "name": "_inertia_value", "qualname": "_inertia_value"}, "direct_keys": ["ui.pages.move.state.MoveState.INERTIA"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.move.state.MoveState.INERTIA"], "key": "ui.pages.move.state.MoveState.INERTIA", "keys": ["ui.pages.move.state.MoveState.INERTIA"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.move.state.MoveState.INERTIA"], "kind": "derived", "resolved": "  0.0", "source": null, "transitive_keys": []}}, "bounds": [614, 200, 148, 48], "component_template_instance": null, "condition": null, "container": false, "id": "inertia.metric", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [12, 0, 12, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"gap": 0, "label": "INERTIA", "label_color": "ui.theme.ThemeColor.PRIMARY", "label_font": "JetBrainsMono 8pt", "orientation": "horizontal", "unit": "", "value": "  0.0", "value_color": "ui.theme.ThemeColor.TEXT", "value_font": "JetBrainsMono 8pt"}, "property_origins": {}, "ref": "inertia.metric", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Metric", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [602, 255, 172, 0], "component_template_instance": null, "condition": null, "container": false, "id": "status.spacer", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "status.spacer", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Spacer", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [602, 262, 172, 138], "component_template_instance": null, "condition": null, "container": true, "id": "home.buttons", "layout": {"allow_overflow": false, "grow": 1, "height": 138, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"horizontal_gap": 0, "item_height": 42, "item_width": 172, "min_item_width": null, "orientation": "vertical", "vertical_gap": 6}, "property_origins": {}, "ref": "home.buttons", "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "WrapPanel", "visible": true}
+node {"actions": {"action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.Z", "ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_ALL", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"]}, "state_effect": null, "wire_id": "move.homeall.3b30b2eb011a"}}, "bindings": {}, "bounds": [602, 262, 172, 42], "component_template_instance": null, "condition": null, "container": false, "id": "home.all", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.Z", "ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_ALL", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"]}, "state_effect": null, "wire_id": "move.homeall.3b30b2eb011a"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "HOME ALL", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "home.all", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_XY", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "state_effect": null, "wire_id": "move.homexy.91d916c5371e"}}, "bindings": {}, "bounds": [602, 310, 172, 42], "component_template_instance": null, "condition": null, "container": false, "id": "home.xy", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_XY", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "state_effect": null, "wire_id": "move.homexy.91d916c5371e"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "HOME XY", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "home.xy", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.Z"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.Z"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_Z", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.Z"]}, "state_effect": null, "wire_id": "move.homez.caa0b369054d"}}, "bindings": {}, "bounds": [602, 358, 172, 42], "component_template_instance": null, "condition": null, "container": false, "id": "home.z", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"axes": ["ff5m_ui.move.actions.Axis.Z"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.Z"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_Z", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.Z"]}, "state_effect": null, "wire_id": "move.homez.caa0b369054d"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "HOME Z", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "home.z", "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+## set MoveState.CURSOR=('move.joy.xy.97decdc1ddc3', 300, 180)
+cmd --batch fill -p 226 215 -s 29 29 -c 050c0f
+cmd --batch fill -p 240 229 -s 1 1 -c 263238
+cmd --batch fill -p 240 215 -s 1 29 -c 35d9e6
+cmd --batch fill -p 226 229 -s 29 1 -c 35d9e6
+cmd --batch fill -p 288 168 -s 25 25 -c 050c0f
+cmd --batch stroke -p 288 168 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 294 180 -s 13 1 -c 35d9e6
+cmd --batch fill -p 300 174 -s 1 13 -c 35d9e6
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## restore MoveState.CURSOR
+cmd --batch fill -p 286 166 -s 29 29 -c 050c0f
+cmd --batch fill -p 308 192 -s 1 1 -c 263238
+cmd --batch fill -p 228 217 -s 25 25 -c 050c0f
+cmd --batch stroke -p 228 217 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 234 229 -s 13 1 -c 35d9e6
+cmd --batch fill -p 240 223 -s 1 13 -c 35d9e6
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## set MoveState.CURSOR=('move.joy.z.0cd48bf1a2eb', 546, 200)
+cmd --batch fill -p 532 246 -s 29 29 -c 050c0f
+cmd --batch fill -p 541 246 -s 1 29 -c 35d9e6
+cmd --batch fill -p 550 246 -s 1 29 -c 35d9e6
+cmd --batch fill -p 534 188 -s 25 25 -c 050c0f
+cmd --batch stroke -p 534 188 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 540 197 -s 13 1 -c 35d9e6
+cmd --batch fill -p 540 203 -s 13 1 -c 35d9e6
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## restore MoveState.CURSOR
+cmd --batch fill -p 532 186 -s 29 29 -c 050c0f
+cmd --batch fill -p 541 186 -s 1 29 -c 35d9e6
+cmd --batch fill -p 550 186 -s 1 29 -c 35d9e6
+cmd --batch fill -p 534 248 -s 25 25 -c 050c0f
+cmd --batch stroke -p 534 248 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 540 257 -s 13 1 -c 35d9e6
+cmd --batch fill -p 540 263 -s 13 1 -c 35d9e6
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## set ToolheadState.Z=37.25
+cmd --batch fill -p 602 96 -s 172 92 -c 050c0f
+cmd --batch stroke -p 602 96 -s 172 92 -c f2c94c -lw 1 -sd inner
+cmd --batch text -p 614 118 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "X"
+cmd --batch text -p 728 118 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 118 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 142 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Y"
+cmd --batch text -p 728 142 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 142 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 166 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Z"
+cmd --batch text -p 728 166 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "  37.2"
+cmd --batch text -p 762 166 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## restore ToolheadState.Z
+cmd --batch fill -p 602 96 -s 172 92 -c 050c0f
+cmd --batch stroke -p 602 96 -s 172 92 -c f2c94c -lw 1 -sd inner
+cmd --batch text -p 614 118 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "X"
+cmd --batch text -p 728 118 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 118 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 142 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Y"
+cmd --batch text -p 728 142 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 142 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 166 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Z"
+cmd --batch text -p 728 166 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 166 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## set ToolheadState.Z=-5.0
+cmd --batch fill -p 602 96 -s 172 92 -c 050c0f
+cmd --batch stroke -p 602 96 -s 172 92 -c f2c94c -lw 1 -sd inner
+cmd --batch text -p 614 118 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "X"
+cmd --batch text -p 728 118 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 118 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 142 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Y"
+cmd --batch text -p 728 142 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 142 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 166 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Z"
+cmd --batch text -p 728 166 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "  -5.0"
+cmd --batch text -p 762 166 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## restore ToolheadState.Z
+cmd --batch fill -p 602 96 -s 172 92 -c 050c0f
+cmd --batch stroke -p 602 96 -s 172 92 -c f2c94c -lw 1 -sd inner
+cmd --batch text -p 614 118 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "X"
+cmd --batch text -p 728 118 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 118 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 142 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Y"
+cmd --batch text -p 728 142 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 142 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 166 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Z"
+cmd --batch text -p 728 166 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 166 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## set ToolheadState.HOMED_Z=True
+cmd --batch fill -p 30 96 -s 420 266 -c 050c0f
+cmd --batch stroke -p 30 96 -s 420 266 -c f2c94c -lw 2 -sd inner
+cmd --batch text -p 240 140 -c f2c94c -f "JetBrainsMono Bold 16pt" -ha center -va middle --max-width 364 --truncate -t "CAUTION"
+cmd --batch text -p 240 195 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 364 --truncate -t "Z IS BELOW 5 MM"
+cmd --batch text -p 240 219 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 364 --truncate -t "XY MOTION MAY SCRATCH THE BED"
+cmd --batch text -p 240 243 -c d9e4e8 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 364 --truncate -t "PROFILE 'AUTO' IS NOT AVAILABLE"
+cmd --batch button -p 160 288 -s 160 50 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 128 --truncate -t "CONTINUE" --id 0:ui.88d586d435d3 --layer base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+hit ui.88d586d435d3 160 288 160 50 False base
+## restore ToolheadState.HOMED_Z
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 1:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 12 64 -s 456 364 -c 050c0f
+cmd --batch stroke -p 12 64 -s 456 364 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 30 85 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "XY POSITION"
+cmd --batch fill -p 30 96 -s 420 266 -c 050c0f
+cmd --batch stroke -p 30 96 -s 420 266 -c 35d9e6 -lw 1 -sd inner
+cmd --batch fill -p 70 120 -s 1 1 -c 263238
+cmd --batch fill -p 104 120 -s 1 1 -c 263238
+cmd --batch fill -p 138 120 -s 1 1 -c 263238
+cmd --batch fill -p 172 120 -s 1 1 -c 263238
+cmd --batch fill -p 206 120 -s 1 1 -c 263238
+cmd --batch fill -p 240 120 -s 1 1 -c 263238
+cmd --batch fill -p 274 120 -s 1 1 -c 263238
+cmd --batch fill -p 308 120 -s 1 1 -c 263238
+cmd --batch fill -p 342 120 -s 1 1 -c 263238
+cmd --batch fill -p 376 120 -s 1 1 -c 263238
+cmd --batch fill -p 410 120 -s 1 1 -c 263238
+cmd --batch fill -p 70 156 -s 1 1 -c 263238
+cmd --batch fill -p 104 156 -s 1 1 -c 263238
+cmd --batch fill -p 138 156 -s 1 1 -c 263238
+cmd --batch fill -p 172 156 -s 1 1 -c 263238
+cmd --batch fill -p 206 156 -s 1 1 -c 263238
+cmd --batch fill -p 240 156 -s 1 1 -c 263238
+cmd --batch fill -p 274 156 -s 1 1 -c 263238
+cmd --batch fill -p 308 156 -s 1 1 -c 263238
+cmd --batch fill -p 342 156 -s 1 1 -c 263238
+cmd --batch fill -p 376 156 -s 1 1 -c 263238
+cmd --batch fill -p 410 156 -s 1 1 -c 263238
+cmd --batch fill -p 70 192 -s 1 1 -c 263238
+cmd --batch fill -p 104 192 -s 1 1 -c 263238
+cmd --batch fill -p 138 192 -s 1 1 -c 263238
+cmd --batch fill -p 172 192 -s 1 1 -c 263238
+cmd --batch fill -p 206 192 -s 1 1 -c 263238
+cmd --batch fill -p 240 192 -s 1 1 -c 263238
+cmd --batch fill -p 274 192 -s 1 1 -c 263238
+cmd --batch fill -p 308 192 -s 1 1 -c 263238
+cmd --batch fill -p 342 192 -s 1 1 -c 263238
+cmd --batch fill -p 376 192 -s 1 1 -c 263238
+cmd --batch fill -p 410 192 -s 1 1 -c 263238
+cmd --batch fill -p 70 229 -s 1 1 -c 263238
+cmd --batch fill -p 104 229 -s 1 1 -c 263238
+cmd --batch fill -p 138 229 -s 1 1 -c 263238
+cmd --batch fill -p 172 229 -s 1 1 -c 263238
+cmd --batch fill -p 206 229 -s 1 1 -c 263238
+cmd --batch fill -p 240 229 -s 1 1 -c 263238
+cmd --batch fill -p 274 229 -s 1 1 -c 263238
+cmd --batch fill -p 308 229 -s 1 1 -c 263238
+cmd --batch fill -p 342 229 -s 1 1 -c 263238
+cmd --batch fill -p 376 229 -s 1 1 -c 263238
+cmd --batch fill -p 410 229 -s 1 1 -c 263238
+cmd --batch fill -p 70 265 -s 1 1 -c 263238
+cmd --batch fill -p 104 265 -s 1 1 -c 263238
+cmd --batch fill -p 138 265 -s 1 1 -c 263238
+cmd --batch fill -p 172 265 -s 1 1 -c 263238
+cmd --batch fill -p 206 265 -s 1 1 -c 263238
+cmd --batch fill -p 240 265 -s 1 1 -c 263238
+cmd --batch fill -p 274 265 -s 1 1 -c 263238
+cmd --batch fill -p 308 265 -s 1 1 -c 263238
+cmd --batch fill -p 342 265 -s 1 1 -c 263238
+cmd --batch fill -p 376 265 -s 1 1 -c 263238
+cmd --batch fill -p 410 265 -s 1 1 -c 263238
+cmd --batch fill -p 70 301 -s 1 1 -c 263238
+cmd --batch fill -p 104 301 -s 1 1 -c 263238
+cmd --batch fill -p 138 301 -s 1 1 -c 263238
+cmd --batch fill -p 172 301 -s 1 1 -c 263238
+cmd --batch fill -p 206 301 -s 1 1 -c 263238
+cmd --batch fill -p 240 301 -s 1 1 -c 263238
+cmd --batch fill -p 274 301 -s 1 1 -c 263238
+cmd --batch fill -p 308 301 -s 1 1 -c 263238
+cmd --batch fill -p 342 301 -s 1 1 -c 263238
+cmd --batch fill -p 376 301 -s 1 1 -c 263238
+cmd --batch fill -p 410 301 -s 1 1 -c 263238
+cmd --batch fill -p 70 338 -s 1 1 -c 263238
+cmd --batch fill -p 104 338 -s 1 1 -c 263238
+cmd --batch fill -p 138 338 -s 1 1 -c 263238
+cmd --batch fill -p 172 338 -s 1 1 -c 263238
+cmd --batch fill -p 206 338 -s 1 1 -c 263238
+cmd --batch fill -p 240 338 -s 1 1 -c 263238
+cmd --batch fill -p 274 338 -s 1 1 -c 263238
+cmd --batch fill -p 308 338 -s 1 1 -c 263238
+cmd --batch fill -p 342 338 -s 1 1 -c 263238
+cmd --batch fill -p 376 338 -s 1 1 -c 263238
+cmd --batch fill -p 410 338 -s 1 1 -c 263238
+cmd --batch fill -p 240 120 -s 1 219 -c 35d9e6
+cmd --batch fill -p 70 229 -s 341 1 -c 35d9e6
+cmd --batch fill -p 50 114 -s 11 1 -c 35d9e6
+cmd --batch fill -p 50 114 -s 1 11 -c 35d9e6
+cmd --batch fill -p 50 343 -s 11 1 -c 35d9e6
+cmd --batch fill -p 50 333 -s 1 11 -c 35d9e6
+cmd --batch fill -p 419 114 -s 11 1 -c 35d9e6
+cmd --batch fill -p 429 114 -s 1 11 -c 35d9e6
+cmd --batch fill -p 419 343 -s 11 1 -c 35d9e6
+cmd --batch fill -p 429 333 -s 1 11 -c 35d9e6
+cmd --batch text -p 240 106 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "+Y"
+cmd --batch text -p 235 352 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t " -Y"
+cmd --batch text -p 43 229 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t " -X"
+cmd --batch text -p 432 229 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "+X"
+cmd --batch fill -p 228 217 -s 25 25 -c 050c0f
+cmd --batch stroke -p 228 217 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 234 229 -s 13 1 -c 35d9e6
+cmd --batch fill -p 240 223 -s 1 13 -c 35d9e6
+cmd --batch hitbox --id 1:move.joy.xy.97decdc1ddc3 -p 30 96 -s 420 266 --continuous --layer base
+cmd --batch button -p 30 374 -s 190 44 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 158 --truncate -t "DISABLE MOTORS" --id 1:move.motors.fcb5b9fb92dd --layer base
+cmd --batch button -p 230 374 -s 140 44 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 108 --truncate -t "STEP MODE" --id 1:navigate.move.step --layer base
+cmd --batch fill -p 478 64 -s 100 364 -c 050c0f
+cmd --batch stroke -p 478 64 -s 100 364 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 496 85 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 82 --truncate -t "Z AXIS"
+cmd --batch fill -p 541 103 -s 10 315 -c 050c0f
+cmd --batch stroke -p 541 103 -s 10 315 -c 35d9e6 -lw 1 -sd inner
+cmd --batch fill -p 509 103 -s 12 1 -c 56656c
+cmd --batch fill -p 516 142 -s 5 1 -c 56656c
+cmd --batch fill -p 513 182 -s 8 1 -c 56656c
+cmd --batch fill -p 516 221 -s 5 1 -c 56656c
+cmd --batch fill -p 509 260 -s 12 1 -c 35d9e6
+cmd --batch fill -p 516 299 -s 5 1 -c 56656c
+cmd --batch fill -p 513 338 -s 8 1 -c 56656c
+cmd --batch fill -p 516 378 -s 5 1 -c 56656c
+cmd --batch fill -p 509 417 -s 12 1 -c 56656c
+cmd --batch fill -p 534 248 -s 25 25 -c 050c0f
+cmd --batch stroke -p 534 248 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 540 257 -s 13 1 -c 35d9e6
+cmd --batch fill -p 540 263 -s 13 1 -c 35d9e6
+cmd --batch hitbox --id 1:move.joy.z.0cd48bf1a2eb -p 486 96 -s 84 329 --continuous --layer base
+cmd --batch fill -p 588 64 -s 200 364 -c 050c0f
+cmd --batch stroke -p 588 64 -s 200 364 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 606 85 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "POSITION"
+cmd --batch fill -p 602 96 -s 172 92 -c 050c0f
+cmd --batch stroke -p 602 96 -s 172 92 -c f2c94c -lw 1 -sd inner
+cmd --batch text -p 614 118 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "X"
+cmd --batch text -p 728 118 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 118 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 142 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Y"
+cmd --batch text -p 728 142 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 142 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 166 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Z"
+cmd --batch text -p 728 166 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 166 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch fill -p 602 200 -s 172 48 -c 050c0f
+cmd --batch stroke -p 602 200 -s 172 48 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 614 224 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "INERTIA"
+cmd --batch text -p 762 224 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "  0.0"
+cmd --batch button -p 602 262 -s 172 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 140 --truncate -t "HOME ALL" --id 1:move.homeall.3b30b2eb011a --layer base
+cmd --batch button -p 602 310 -s 172 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 140 --truncate -t "HOME XY" --id 1:move.homexy.91d916c5371e --layer base
+cmd --batch button -p 602 358 -s 172 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 140 --truncate -t "HOME Z" --id 1:move.homez.caa0b369054d --layer base
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## set MoveState.CAUTION_ACKNOWLEDGED=True
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## restore MoveState.CAUTION_ACKNOWLEDGED
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## set MoveState.AUTO_PROFILE_STATE='available'
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## restore MoveState.AUTO_PROFILE_STATE
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## set MoveState.AUTO_PROFILE_STATE='active'
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## restore MoveState.AUTO_PROFILE_STATE
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## set MoveState.CAUTION_Z=42.25
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## restore MoveState.CAUTION_Z
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## set MoveState.CAUTION_Z=0.0
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## restore MoveState.CAUTION_Z
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## set ToolheadState.X=37.25
+cmd --batch fill -p 602 96 -s 172 92 -c 050c0f
+cmd --batch stroke -p 602 96 -s 172 92 -c f2c94c -lw 1 -sd inner
+cmd --batch text -p 614 118 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "X"
+cmd --batch text -p 728 118 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "  37.2"
+cmd --batch text -p 762 118 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 142 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Y"
+cmd --batch text -p 728 142 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 142 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 166 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Z"
+cmd --batch text -p 728 166 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 166 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## restore ToolheadState.X
+cmd --batch fill -p 602 96 -s 172 92 -c 050c0f
+cmd --batch stroke -p 602 96 -s 172 92 -c f2c94c -lw 1 -sd inner
+cmd --batch text -p 614 118 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "X"
+cmd --batch text -p 728 118 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 118 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 142 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Y"
+cmd --batch text -p 728 142 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 142 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 166 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Z"
+cmd --batch text -p 728 166 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 166 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## set ToolheadState.X=-5.0
+cmd --batch fill -p 602 96 -s 172 92 -c 050c0f
+cmd --batch stroke -p 602 96 -s 172 92 -c f2c94c -lw 1 -sd inner
+cmd --batch text -p 614 118 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "X"
+cmd --batch text -p 728 118 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "  -5.0"
+cmd --batch text -p 762 118 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 142 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Y"
+cmd --batch text -p 728 142 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 142 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 166 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Z"
+cmd --batch text -p 728 166 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 166 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## restore ToolheadState.X
+cmd --batch fill -p 602 96 -s 172 92 -c 050c0f
+cmd --batch stroke -p 602 96 -s 172 92 -c f2c94c -lw 1 -sd inner
+cmd --batch text -p 614 118 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "X"
+cmd --batch text -p 728 118 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 118 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 142 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Y"
+cmd --batch text -p 728 142 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 142 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 166 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Z"
+cmd --batch text -p 728 166 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 166 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## set ToolheadState.HOMED_X=True
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## restore ToolheadState.HOMED_X
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## set ToolheadState.HOMED_Y=True
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## restore ToolheadState.HOMED_Y
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## set ToolheadState.Y=37.25
+cmd --batch fill -p 602 96 -s 172 92 -c 050c0f
+cmd --batch stroke -p 602 96 -s 172 92 -c f2c94c -lw 1 -sd inner
+cmd --batch text -p 614 118 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "X"
+cmd --batch text -p 728 118 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 118 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 142 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Y"
+cmd --batch text -p 728 142 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "  37.2"
+cmd --batch text -p 762 142 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 166 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Z"
+cmd --batch text -p 728 166 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 166 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## restore ToolheadState.Y
+cmd --batch fill -p 602 96 -s 172 92 -c 050c0f
+cmd --batch stroke -p 602 96 -s 172 92 -c f2c94c -lw 1 -sd inner
+cmd --batch text -p 614 118 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "X"
+cmd --batch text -p 728 118 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 118 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 142 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Y"
+cmd --batch text -p 728 142 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 142 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 166 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Z"
+cmd --batch text -p 728 166 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 166 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## set ToolheadState.Y=-5.0
+cmd --batch fill -p 602 96 -s 172 92 -c 050c0f
+cmd --batch stroke -p 602 96 -s 172 92 -c f2c94c -lw 1 -sd inner
+cmd --batch text -p 614 118 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "X"
+cmd --batch text -p 728 118 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 118 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 142 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Y"
+cmd --batch text -p 728 142 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "  -5.0"
+cmd --batch text -p 762 142 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 166 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Z"
+cmd --batch text -p 728 166 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 166 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## restore ToolheadState.Y
+cmd --batch fill -p 602 96 -s 172 92 -c 050c0f
+cmd --batch stroke -p 602 96 -s 172 92 -c f2c94c -lw 1 -sd inner
+cmd --batch text -p 614 118 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "X"
+cmd --batch text -p 728 118 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 118 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 142 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Y"
+cmd --batch text -p 728 142 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 142 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 166 -c f2c94c -f "JetBrainsMono 8pt" -ha left -va middle -t "Z"
+cmd --batch text -p 728 166 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "   0.0"
+cmd --batch text -p 762 166 -c f2c94c -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## set MoveState.INERTIA=37.25
+cmd --batch fill -p 602 200 -s 172 48 -c 050c0f
+cmd --batch stroke -p 602 200 -s 172 48 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 614 224 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "INERTIA"
+cmd --batch text -p 762 224 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t " 37.2"
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## restore MoveState.INERTIA
+cmd --batch fill -p 602 200 -s 172 48 -c 050c0f
+cmd --batch stroke -p 602 200 -s 172 48 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 614 224 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "INERTIA"
+cmd --batch text -p 762 224 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "  0.0"
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## set all
+cmd --batch fill -p 226 215 -s 29 29 -c 050c0f
+cmd --batch fill -p 240 229 -s 1 1 -c 263238
+cmd --batch fill -p 240 215 -s 1 29 -c 35d9e6
+cmd --batch fill -p 226 229 -s 29 1 -c 35d9e6
+cmd --batch fill -p 288 168 -s 25 25 -c 050c0f
+cmd --batch stroke -p 288 168 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 294 180 -s 13 1 -c 35d9e6
+cmd --batch fill -p 300 174 -s 1 13 -c 35d9e6
+cmd --batch fill -p 602 96 -s 172 92 -c 050c0f
+cmd --batch stroke -p 602 96 -s 172 92 -c f2c94c -lw 1 -sd inner
+cmd --batch text -p 614 118 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "X"
+cmd --batch text -p 728 118 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "  37.2"
+cmd --batch text -p 762 118 -c 35d9e6 -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 142 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "Y"
+cmd --batch text -p 728 142 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "  37.2"
+cmd --batch text -p 762 142 -c 35d9e6 -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 166 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "Z"
+cmd --batch text -p 728 166 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "  37.2"
+cmd --batch text -p 762 166 -c 35d9e6 -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch fill -p 602 200 -s 172 48 -c 050c0f
+cmd --batch stroke -p 602 200 -s 172 48 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 614 224 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "INERTIA"
+cmd --batch text -p 762 224 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t " 37.2"
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## redraw all
+cmd --batch fill -p 12 64 -s 456 364 -c 050c0f
+cmd --batch stroke -p 12 64 -s 456 364 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 30 85 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "XY POSITION"
+cmd --batch fill -p 30 96 -s 420 266 -c 050c0f
+cmd --batch stroke -p 30 96 -s 420 266 -c 35d9e6 -lw 1 -sd inner
+cmd --batch fill -p 70 120 -s 1 1 -c 263238
+cmd --batch fill -p 104 120 -s 1 1 -c 263238
+cmd --batch fill -p 138 120 -s 1 1 -c 263238
+cmd --batch fill -p 172 120 -s 1 1 -c 263238
+cmd --batch fill -p 206 120 -s 1 1 -c 263238
+cmd --batch fill -p 240 120 -s 1 1 -c 263238
+cmd --batch fill -p 274 120 -s 1 1 -c 263238
+cmd --batch fill -p 308 120 -s 1 1 -c 263238
+cmd --batch fill -p 342 120 -s 1 1 -c 263238
+cmd --batch fill -p 376 120 -s 1 1 -c 263238
+cmd --batch fill -p 410 120 -s 1 1 -c 263238
+cmd --batch fill -p 70 156 -s 1 1 -c 263238
+cmd --batch fill -p 104 156 -s 1 1 -c 263238
+cmd --batch fill -p 138 156 -s 1 1 -c 263238
+cmd --batch fill -p 172 156 -s 1 1 -c 263238
+cmd --batch fill -p 206 156 -s 1 1 -c 263238
+cmd --batch fill -p 240 156 -s 1 1 -c 263238
+cmd --batch fill -p 274 156 -s 1 1 -c 263238
+cmd --batch fill -p 308 156 -s 1 1 -c 263238
+cmd --batch fill -p 342 156 -s 1 1 -c 263238
+cmd --batch fill -p 376 156 -s 1 1 -c 263238
+cmd --batch fill -p 410 156 -s 1 1 -c 263238
+cmd --batch fill -p 70 192 -s 1 1 -c 263238
+cmd --batch fill -p 104 192 -s 1 1 -c 263238
+cmd --batch fill -p 138 192 -s 1 1 -c 263238
+cmd --batch fill -p 172 192 -s 1 1 -c 263238
+cmd --batch fill -p 206 192 -s 1 1 -c 263238
+cmd --batch fill -p 240 192 -s 1 1 -c 263238
+cmd --batch fill -p 274 192 -s 1 1 -c 263238
+cmd --batch fill -p 308 192 -s 1 1 -c 263238
+cmd --batch fill -p 342 192 -s 1 1 -c 263238
+cmd --batch fill -p 376 192 -s 1 1 -c 263238
+cmd --batch fill -p 410 192 -s 1 1 -c 263238
+cmd --batch fill -p 70 229 -s 1 1 -c 263238
+cmd --batch fill -p 104 229 -s 1 1 -c 263238
+cmd --batch fill -p 138 229 -s 1 1 -c 263238
+cmd --batch fill -p 172 229 -s 1 1 -c 263238
+cmd --batch fill -p 206 229 -s 1 1 -c 263238
+cmd --batch fill -p 240 229 -s 1 1 -c 263238
+cmd --batch fill -p 274 229 -s 1 1 -c 263238
+cmd --batch fill -p 308 229 -s 1 1 -c 263238
+cmd --batch fill -p 342 229 -s 1 1 -c 263238
+cmd --batch fill -p 376 229 -s 1 1 -c 263238
+cmd --batch fill -p 410 229 -s 1 1 -c 263238
+cmd --batch fill -p 70 265 -s 1 1 -c 263238
+cmd --batch fill -p 104 265 -s 1 1 -c 263238
+cmd --batch fill -p 138 265 -s 1 1 -c 263238
+cmd --batch fill -p 172 265 -s 1 1 -c 263238
+cmd --batch fill -p 206 265 -s 1 1 -c 263238
+cmd --batch fill -p 240 265 -s 1 1 -c 263238
+cmd --batch fill -p 274 265 -s 1 1 -c 263238
+cmd --batch fill -p 308 265 -s 1 1 -c 263238
+cmd --batch fill -p 342 265 -s 1 1 -c 263238
+cmd --batch fill -p 376 265 -s 1 1 -c 263238
+cmd --batch fill -p 410 265 -s 1 1 -c 263238
+cmd --batch fill -p 70 301 -s 1 1 -c 263238
+cmd --batch fill -p 104 301 -s 1 1 -c 263238
+cmd --batch fill -p 138 301 -s 1 1 -c 263238
+cmd --batch fill -p 172 301 -s 1 1 -c 263238
+cmd --batch fill -p 206 301 -s 1 1 -c 263238
+cmd --batch fill -p 240 301 -s 1 1 -c 263238
+cmd --batch fill -p 274 301 -s 1 1 -c 263238
+cmd --batch fill -p 308 301 -s 1 1 -c 263238
+cmd --batch fill -p 342 301 -s 1 1 -c 263238
+cmd --batch fill -p 376 301 -s 1 1 -c 263238
+cmd --batch fill -p 410 301 -s 1 1 -c 263238
+cmd --batch fill -p 70 338 -s 1 1 -c 263238
+cmd --batch fill -p 104 338 -s 1 1 -c 263238
+cmd --batch fill -p 138 338 -s 1 1 -c 263238
+cmd --batch fill -p 172 338 -s 1 1 -c 263238
+cmd --batch fill -p 206 338 -s 1 1 -c 263238
+cmd --batch fill -p 240 338 -s 1 1 -c 263238
+cmd --batch fill -p 274 338 -s 1 1 -c 263238
+cmd --batch fill -p 308 338 -s 1 1 -c 263238
+cmd --batch fill -p 342 338 -s 1 1 -c 263238
+cmd --batch fill -p 376 338 -s 1 1 -c 263238
+cmd --batch fill -p 410 338 -s 1 1 -c 263238
+cmd --batch fill -p 240 120 -s 1 219 -c 35d9e6
+cmd --batch fill -p 70 229 -s 341 1 -c 35d9e6
+cmd --batch fill -p 50 114 -s 11 1 -c 35d9e6
+cmd --batch fill -p 50 114 -s 1 11 -c 35d9e6
+cmd --batch fill -p 50 343 -s 11 1 -c 35d9e6
+cmd --batch fill -p 50 333 -s 1 11 -c 35d9e6
+cmd --batch fill -p 419 114 -s 11 1 -c 35d9e6
+cmd --batch fill -p 429 114 -s 1 11 -c 35d9e6
+cmd --batch fill -p 419 343 -s 11 1 -c 35d9e6
+cmd --batch fill -p 429 333 -s 1 11 -c 35d9e6
+cmd --batch text -p 240 106 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "+Y"
+cmd --batch text -p 235 352 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t " -Y"
+cmd --batch text -p 43 229 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t " -X"
+cmd --batch text -p 432 229 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "+X"
+cmd --batch fill -p 288 168 -s 25 25 -c 050c0f
+cmd --batch stroke -p 288 168 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 294 180 -s 13 1 -c 35d9e6
+cmd --batch fill -p 300 174 -s 1 13 -c 35d9e6
+cmd --batch hitbox --id 1:move.joy.xy.97decdc1ddc3 -p 30 96 -s 420 266 --continuous --layer base
+cmd --batch button -p 30 374 -s 190 44 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 158 --truncate -t "DISABLE MOTORS" --id 1:move.motors.fcb5b9fb92dd --layer base
+cmd --batch button -p 230 374 -s 140 44 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 108 --truncate -t "STEP MODE" --id 1:navigate.move.step --layer base
+cmd --batch fill -p 478 64 -s 100 364 -c 050c0f
+cmd --batch stroke -p 478 64 -s 100 364 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 496 85 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 82 --truncate -t "Z AXIS"
+cmd --batch fill -p 541 103 -s 10 315 -c 050c0f
+cmd --batch stroke -p 541 103 -s 10 315 -c 35d9e6 -lw 1 -sd inner
+cmd --batch fill -p 509 103 -s 12 1 -c 56656c
+cmd --batch fill -p 516 142 -s 5 1 -c 56656c
+cmd --batch fill -p 513 182 -s 8 1 -c 56656c
+cmd --batch fill -p 516 221 -s 5 1 -c 56656c
+cmd --batch fill -p 509 260 -s 12 1 -c 35d9e6
+cmd --batch fill -p 516 299 -s 5 1 -c 56656c
+cmd --batch fill -p 513 338 -s 8 1 -c 56656c
+cmd --batch fill -p 516 378 -s 5 1 -c 56656c
+cmd --batch fill -p 509 417 -s 12 1 -c 56656c
+cmd --batch fill -p 534 248 -s 25 25 -c 050c0f
+cmd --batch stroke -p 534 248 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 540 257 -s 13 1 -c 35d9e6
+cmd --batch fill -p 540 263 -s 13 1 -c 35d9e6
+cmd --batch hitbox --id 1:move.joy.z.0cd48bf1a2eb -p 486 96 -s 84 329 --continuous --layer base
+cmd --batch fill -p 588 64 -s 200 364 -c 050c0f
+cmd --batch stroke -p 588 64 -s 200 364 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 606 85 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "POSITION"
+cmd --batch fill -p 602 96 -s 172 92 -c 050c0f
+cmd --batch stroke -p 602 96 -s 172 92 -c f2c94c -lw 1 -sd inner
+cmd --batch text -p 614 118 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "X"
+cmd --batch text -p 728 118 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "  37.2"
+cmd --batch text -p 762 118 -c 35d9e6 -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 142 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "Y"
+cmd --batch text -p 728 142 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "  37.2"
+cmd --batch text -p 762 142 -c 35d9e6 -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch text -p 614 166 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "Z"
+cmd --batch text -p 728 166 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "  37.2"
+cmd --batch text -p 762 166 -c 35d9e6 -f "JetBrainsMono 8pt" -ha right -va middle -t "mm"
+cmd --batch fill -p 602 200 -s 172 48 -c 050c0f
+cmd --batch stroke -p 602 200 -s 172 48 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 614 224 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va middle -t "INERTIA"
+cmd --batch text -p 762 224 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t " 37.2"
+cmd --batch button -p 602 262 -s 172 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 140 --truncate -t "HOME ALL" --id 1:move.homeall.3b30b2eb011a --layer base
+cmd --batch button -p 602 310 -s 172 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 140 --truncate -t "HOME XY" --id 1:move.homexy.91d916c5371e --layer base
+cmd --batch button -p 602 358 -s 172 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 140 --truncate -t "HOME Z" --id 1:move.homez.caa0b369054d --layer base
+hit global.wake 0 0 800 480 False base
+hit move.joy.xy.97decdc1ddc3 30 96 420 266 True base
+hit move.motors.fcb5b9fb92dd 30 374 190 44 False base
+hit navigate.move.step 230 374 140 44 False base
+hit move.joy.z.0cd48bf1a2eb 486 96 84 329 True base
+hit move.homeall.3b30b2eb011a 602 262 172 42 False base
+hit move.homexy.91d916c5371e 602 310 172 42 False base
+hit move.homez.caa0b369054d 602 358 172 42 False base
+## press
+action move.homeall.3b30b2eb011a {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.Z", "ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_ALL", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"]}, "state_effect": null, "wire_id": "move.homeall.3b30b2eb011a"}
+action move.homexy.91d916c5371e {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_XY", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "state_effect": null, "wire_id": "move.homexy.91d916c5371e"}
+action move.homez.caa0b369054d {"hint": {"axes": ["ff5m_ui.move.actions.Axis.Z"], "kind": "homing", "sequence": ["ff5m_ui.move.actions.Axis.Z"]}, "key": "ui.pages.move.actions.MoveCommand.HOME_Z", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.Z"]}, "state_effect": null, "wire_id": "move.homez.caa0b369054d"}
+action move.joy.xy.97decdc1ddc3 {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"], "direction_signs": [1, 1], "kind": "continuous_movement", "release_duration": 0.34, "requires_homed": true}, "key": "ui.pages.move.actions.MoveCommand.JOYSTICK_XY", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y"]}, "state_effect": null, "wire_id": "move.joy.xy.97decdc1ddc3"}
+action move.joy.z.0cd48bf1a2eb {"hint": {"axes": ["ff5m_ui.move.actions.Axis.Z"], "direction_signs": [-1], "kind": "continuous_movement", "release_duration": 0.34, "requires_homed": true}, "key": "ui.pages.move.actions.MoveCommand.JOYSTICK_Z", "kind": "command", "payload": {"axes": ["ff5m_ui.move.actions.Axis.Z"]}, "state_effect": null, "wire_id": "move.joy.z.0cd48bf1a2eb"}
+action move.motors.fcb5b9fb92dd {"hint": {"axes": ["ff5m_ui.move.actions.Axis.X", "ff5m_ui.move.actions.Axis.Y", "ff5m_ui.move.actions.Axis.Z"], "enabled": false, "kind": "motor_state"}, "key": "ui.pages.move.actions.MoveCommand.DISABLE_MOTORS", "kind": "command", "payload": null, "state_effect": null, "wire_id": "move.motors.fcb5b9fb92dd"}
+action navigate.move.step {"kind": "navigate", "target": "ui.pages.keys.AppPage.MOVE_STEP", "wire_id": "navigate.move.step"}
+press move.homeall.3b30b2eb011a
+cmd --batch button -p 602 262 -s 172 42 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 140 --truncate -t "HOME ALL"
+cmd --batch button -p 602 262 -s 172 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 140 --truncate -t "HOME ALL"
+press move.homexy.91d916c5371e
+cmd --batch button -p 602 310 -s 172 42 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 140 --truncate -t "HOME XY"
+cmd --batch button -p 602 310 -s 172 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 140 --truncate -t "HOME XY"
+press move.homez.caa0b369054d
+cmd --batch button -p 602 358 -s 172 42 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 140 --truncate -t "HOME Z"
+cmd --batch button -p 602 358 -s 172 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 140 --truncate -t "HOME Z"
+press move.motors.fcb5b9fb92dd
+cmd --batch button -p 30 374 -s 190 44 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 158 --truncate -t "DISABLE MOTORS"
+cmd --batch button -p 30 374 -s 190 44 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 158 --truncate -t "DISABLE MOTORS"
+press navigate.move.step
+cmd --batch button -p 230 374 -s 140 44 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 108 --truncate -t "STEP MODE"
+cmd --batch button -p 230 374 -s 140 44 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 108 --truncate -t "STEP MODE"

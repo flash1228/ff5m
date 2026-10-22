@@ -1,0 +1,142 @@
+## draw defaults
+cmd --batch fill -p 18 65 -s 764 370 -c 050c0f
+cmd --batch stroke -p 18 65 -s 764 370 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 400 85 -c d9e4e8 -f "JetBrainsMono Bold 8pt" -ha center -va middle --max-width 724 --truncate -t "FEATHER_PREVIEW_SCALE"
+cmd --batch text -p 400 104 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle --max-width 724 --truncate -t "DEFAULT ZOOM MULTIPLIER"
+cmd --batch fill -p 26 117 -s 748 50 -c 050c0f
+cmd --batch stroke -p 26 117 -s 748 50 -c b47aff -lw 2 -sd inner
+cmd --batch text -p 42 142 -c ffffff -f "JetBrainsMono 12pt" -ha left -va middle --max-width 716 --truncate -t "1.25"
+cmd --batch button -p 26 177 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "1" --id 0:mod.key.1 --layer base
+cmd --batch button -p 278 177 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "2" --id 0:mod.key.2 --layer base
+cmd --batch button -p 530 177 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "3" --id 0:mod.key.3 --layer base
+cmd --batch button -p 26 225 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "4" --id 0:mod.key.4 --layer base
+cmd --batch button -p 278 225 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "5" --id 0:mod.key.5 --layer base
+cmd --batch button -p 530 225 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "6" --id 0:mod.key.6 --layer base
+cmd --batch button -p 26 273 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "7" --id 0:mod.key.7 --layer base
+cmd --batch button -p 278 273 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "8" --id 0:mod.key.8 --layer base
+cmd --batch button -p 530 273 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "9" --id 0:mod.key.9 --layer base
+cmd --batch button -p 26 321 -s 244 41 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "." --id 0:mod.dot --layer base
+cmd --batch button -p 278 321 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "0" --id 0:mod.key.0 --layer base
+cmd --batch button -p 530 321 -s 244 41 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 212 --truncate -t "BACK" --id 0:mod.backspace --layer base
+cmd --batch button -p 26 373 -s 748 54 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 716 --truncate -t "SAVE" --id 0:mod.save --layer base
+hit mod.key.1 26 177 244 41 False base
+hit mod.key.2 278 177 244 41 False base
+hit mod.key.3 530 177 244 41 False base
+hit mod.key.4 26 225 244 41 False base
+hit mod.key.5 278 225 244 41 False base
+hit mod.key.6 530 225 244 41 False base
+hit mod.key.7 26 273 244 41 False base
+hit mod.key.8 278 273 244 41 False base
+hit mod.key.9 530 273 244 41 False base
+hit mod.dot 26 321 244 41 False base
+hit mod.key.0 278 321 244 41 False base
+hit mod.backspace 530 321 244 41 False base
+hit mod.save 26 373 748 54 False base
+rect r NumericKeypad 18 65 764 370
+## reflect defaults
+page state {}
+page dependencies {"conditions": [], "states": {}}
+page actions [{"index": null, "kind": "parameter_action", "route": "backspace", "wire_id": "mod.backspace"}, {"index": null, "kind": "parameter_action", "route": "dot", "wire_id": "mod.dot"}, {"index": 0, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.0"}, {"index": 1, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.1"}, {"index": 2, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.2"}, {"index": 3, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.3"}, {"index": 4, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.4"}, {"index": 5, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.5"}, {"index": 6, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.6"}, {"index": 7, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.7"}, {"index": 8, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.8"}, {"index": 9, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.9"}, {"index": null, "kind": "parameter_action", "route": "save", "wire_id": "mod.save"}]
+page bindings []
+node {"actions": {}, "bindings": {}, "bounds": [18, 65, 764, 370], "component_template_instance": null, "condition": null, "container": false, "id": "path:0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.BORDER", "confirm_label": "SAVE", "fraction_digits": null, "input_border": "ui.theme.ThemeColor.SECONDARY", "max_length": 10, "maximum": null, "minimum": null, "mode": "<ui.numeric_input.NumericInputSpec object>", "subtitle": "Default zoom multiplier", "subtitle_color": "ui.theme.ThemeColor.DIM", "title": "feather_preview_scale", "title_color": "ui.theme.ThemeColor.TEXT", "value": "1.25", "value_color": "ui.theme.ThemeColor.BRIGHT"}, "property_origins": {}, "ref": null, "structure_slot": null, "style": null, "template_instance": null, "type": "NumericKeypad", "visible": true}
+## set all
+hit mod.key.1 26 177 244 41 False base
+hit mod.key.2 278 177 244 41 False base
+hit mod.key.3 530 177 244 41 False base
+hit mod.key.4 26 225 244 41 False base
+hit mod.key.5 278 225 244 41 False base
+hit mod.key.6 530 225 244 41 False base
+hit mod.key.7 26 273 244 41 False base
+hit mod.key.8 278 273 244 41 False base
+hit mod.key.9 530 273 244 41 False base
+hit mod.dot 26 321 244 41 False base
+hit mod.key.0 278 321 244 41 False base
+hit mod.backspace 530 321 244 41 False base
+hit mod.save 26 373 748 54 False base
+## redraw all
+cmd --batch fill -p 18 65 -s 764 370 -c 050c0f
+cmd --batch stroke -p 18 65 -s 764 370 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 400 85 -c d9e4e8 -f "JetBrainsMono Bold 8pt" -ha center -va middle --max-width 724 --truncate -t "FEATHER_PREVIEW_SCALE"
+cmd --batch text -p 400 104 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle --max-width 724 --truncate -t "DEFAULT ZOOM MULTIPLIER"
+cmd --batch fill -p 26 117 -s 748 50 -c 050c0f
+cmd --batch stroke -p 26 117 -s 748 50 -c b47aff -lw 2 -sd inner
+cmd --batch text -p 42 142 -c ffffff -f "JetBrainsMono 12pt" -ha left -va middle --max-width 716 --truncate -t "1.25"
+cmd --batch button -p 26 177 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "1" --id 0:mod.key.1 --layer base
+cmd --batch button -p 278 177 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "2" --id 0:mod.key.2 --layer base
+cmd --batch button -p 530 177 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "3" --id 0:mod.key.3 --layer base
+cmd --batch button -p 26 225 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "4" --id 0:mod.key.4 --layer base
+cmd --batch button -p 278 225 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "5" --id 0:mod.key.5 --layer base
+cmd --batch button -p 530 225 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "6" --id 0:mod.key.6 --layer base
+cmd --batch button -p 26 273 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "7" --id 0:mod.key.7 --layer base
+cmd --batch button -p 278 273 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "8" --id 0:mod.key.8 --layer base
+cmd --batch button -p 530 273 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "9" --id 0:mod.key.9 --layer base
+cmd --batch button -p 26 321 -s 244 41 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "." --id 0:mod.dot --layer base
+cmd --batch button -p 278 321 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "0" --id 0:mod.key.0 --layer base
+cmd --batch button -p 530 321 -s 244 41 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 212 --truncate -t "BACK" --id 0:mod.backspace --layer base
+cmd --batch button -p 26 373 -s 748 54 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 716 --truncate -t "SAVE" --id 0:mod.save --layer base
+hit mod.key.1 26 177 244 41 False base
+hit mod.key.2 278 177 244 41 False base
+hit mod.key.3 530 177 244 41 False base
+hit mod.key.4 26 225 244 41 False base
+hit mod.key.5 278 225 244 41 False base
+hit mod.key.6 530 225 244 41 False base
+hit mod.key.7 26 273 244 41 False base
+hit mod.key.8 278 273 244 41 False base
+hit mod.key.9 530 273 244 41 False base
+hit mod.dot 26 321 244 41 False base
+hit mod.key.0 278 321 244 41 False base
+hit mod.backspace 530 321 244 41 False base
+hit mod.save 26 373 748 54 False base
+## press
+action mod.backspace {"index": null, "kind": "parameter_action", "route": "backspace", "wire_id": "mod.backspace"}
+action mod.dot {"index": null, "kind": "parameter_action", "route": "dot", "wire_id": "mod.dot"}
+action mod.key.0 {"index": 0, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.0"}
+action mod.key.1 {"index": 1, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.1"}
+action mod.key.2 {"index": 2, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.2"}
+action mod.key.3 {"index": 3, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.3"}
+action mod.key.4 {"index": 4, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.4"}
+action mod.key.5 {"index": 5, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.5"}
+action mod.key.6 {"index": 6, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.6"}
+action mod.key.7 {"index": 7, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.7"}
+action mod.key.8 {"index": 8, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.8"}
+action mod.key.9 {"index": 9, "kind": "parameter_action", "route": "key", "wire_id": "mod.key.9"}
+action mod.save {"index": null, "kind": "parameter_action", "route": "save", "wire_id": "mod.save"}
+press mod.backspace
+cmd --batch button -p 530 321 -s 244 41 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 212 --truncate -t "BACK"
+cmd --batch button -p 530 321 -s 244 41 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 212 --truncate -t "BACK"
+press mod.dot
+cmd --batch button -p 26 321 -s 244 41 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "."
+cmd --batch button -p 26 321 -s 244 41 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "."
+press mod.key.0
+cmd --batch button -p 278 321 -s 244 41 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "0"
+cmd --batch button -p 278 321 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "0"
+press mod.key.1
+cmd --batch button -p 26 177 -s 244 41 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "1"
+cmd --batch button -p 26 177 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "1"
+press mod.key.2
+cmd --batch button -p 278 177 -s 244 41 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "2"
+cmd --batch button -p 278 177 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "2"
+press mod.key.3
+cmd --batch button -p 530 177 -s 244 41 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "3"
+cmd --batch button -p 530 177 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "3"
+press mod.key.4
+cmd --batch button -p 26 225 -s 244 41 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "4"
+cmd --batch button -p 26 225 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "4"
+press mod.key.5
+cmd --batch button -p 278 225 -s 244 41 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "5"
+cmd --batch button -p 278 225 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "5"
+press mod.key.6
+cmd --batch button -p 530 225 -s 244 41 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "6"
+cmd --batch button -p 530 225 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "6"
+press mod.key.7
+cmd --batch button -p 26 273 -s 244 41 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "7"
+cmd --batch button -p 26 273 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "7"
+press mod.key.8
+cmd --batch button -p 278 273 -s 244 41 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "8"
+cmd --batch button -p 278 273 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "8"
+press mod.key.9
+cmd --batch button -p 530 273 -s 244 41 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "9"
+cmd --batch button -p 530 273 -s 244 41 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 212 --truncate -t "9"
+press mod.save
+cmd --batch button -p 26 373 -s 748 54 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 716 --truncate -t "SAVE"
+cmd --batch button -p 26 373 -s 748 54 --background 244c66 --border 35d9e6 --text-color ffffff -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 716 --truncate -t "SAVE"

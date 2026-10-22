@@ -1,0 +1,281 @@
+## draw defaults
+cmd --batch text -p 25 82 -c 35d9e6 -f "JetBrainsMono Bold 12pt" -ha left -va middle --max-width 750 --truncate -t "MIDI WHEN STARTING PRINT"
+cmd --batch text -p 25 110 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 369 --truncate -t "midi_start"
+cmd --batch text -p 406 110 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 369 --truncate -t "Set the MIDI played at print start."
+cmd --batch fill -p 25 120 -s 750 53 -c 050c0f
+cmd --batch stroke -p 25 120 -s 750 53 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 42 146 -c 35d9e6 -f "JetBrainsMono 12pt" -ha left -va middle --max-width 716 --truncate -t "MIDI text"
+cmd --batch fill -p 106 133 -s 2 26 -c 35d9e6
+cmd --batch fill -p 25 173 -s 750 8 -c 030607
+cmd --batch button -p 253 181 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "'" --id 0:keyboard.key.apostrophe --layer base
+cmd --batch button -p 328 181 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "=" --id 0:keyboard.key.equal --layer base
+cmd --batch button -p 403 181 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "<" --id 0:keyboard.key.less --layer base
+cmd --batch button -p 478 181 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t ">" --id 0:keyboard.key.greater --layer base
+cmd --batch button -p 253 230 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "[" --id 0:keyboard.key.lbracket --layer base
+cmd --batch button -p 328 230 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "]" --id 0:keyboard.key.rbracket --layer base
+cmd --batch button -p 403 230 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "^" --id 0:keyboard.key.caret --layer base
+cmd --batch button -p 478 230 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "`" --id 0:keyboard.key.grave --layer base
+cmd --batch button -p 253 279 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "{" --id 0:keyboard.key.lbrace --layer base
+cmd --batch button -p 328 279 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "|" --id 0:keyboard.key.pipe --layer base
+cmd --batch button -p 403 279 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "}" --id 0:keyboard.key.rbrace --layer base
+cmd --batch button -p 478 279 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "~" --id 0:keyboard.key.tilde --layer base
+cmd --batch button -p 25 328 -s 110 43 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 78 --truncate -t "SHIFT" --id 0:keyboard.shift --layer base
+cmd --batch button -p 145 328 -s 90 43 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 58 --truncate -t "ABC" --id 0:keyboard.symbols --layer base
+cmd --batch button -p 245 328 -s 60 43 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 28 --truncate -t "<" --id 0:keyboard.left --layer base
+cmd --batch button -p 315 328 -s 200 43 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 168 --truncate -t "SPACE" --id 0:keyboard.space --layer base
+cmd --batch button -p 525 328 -s 60 43 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 28 --truncate -t ">" --id 0:keyboard.right --layer base
+cmd --batch button -p 595 328 -s 180 43 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "BACKSPACE" --id 0:keyboard.backspace --layer base
+cmd --batch fill -p 25 371 -s 750 12 -c 030607
+cmd --batch button -p 25 383 -s 360 54 --background 120708 --border ff4d5a --text-color ff4d5a -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 328 --truncate -t "CANCEL" --id 0:mod.cancel --layer base
+cmd --batch button -p 415 383 -s 360 54 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 328 --truncate -t "SAVE" --id 0:mod.save --layer base
+hit keyboard.key.apostrophe 253 181 68 42 False base
+hit keyboard.key.equal 328 181 68 42 False base
+hit keyboard.key.less 403 181 68 42 False base
+hit keyboard.key.greater 478 181 68 42 False base
+hit keyboard.key.lbracket 253 230 68 42 False base
+hit keyboard.key.rbracket 328 230 68 42 False base
+hit keyboard.key.caret 403 230 68 42 False base
+hit keyboard.key.grave 478 230 68 42 False base
+hit keyboard.key.lbrace 253 279 68 42 False base
+hit keyboard.key.pipe 328 279 68 42 False base
+hit keyboard.key.rbrace 403 279 68 42 False base
+hit keyboard.key.tilde 478 279 68 42 False base
+hit keyboard.shift 25 328 110 43 False base
+hit keyboard.symbols 145 328 90 43 False base
+hit keyboard.left 245 328 60 43 False base
+hit keyboard.space 315 328 200 43 False base
+hit keyboard.right 525 328 60 43 False base
+hit keyboard.backspace 595 328 180 43 False base
+hit mod.cancel 25 383 360 54 False base
+hit mod.save 415 383 360 54 False base
+rect r Grid 25 65 750 372
+rect r.0 Column 25 65 750 55
+rect r.0.0 Text 25 65 750 35
+rect r.0.1 Row 25 100 750 20
+rect r.0.1.0 Text 25 100 369 20
+rect r.0.1.1 Text 406 100 369 20
+rect r.1 Overlay 25 120 750 53
+rect r.1.0 Panel 25 120 750 53
+rect r.1.1 TextValue 42 120 716 53
+rect r.2 Fill 25 173 750 8
+rect r.3 Grid 25 181 750 190
+rect r.3.0 Row 253 181 293 42
+rect r.3.0.0 Button 253 181 68 42
+rect r.3.0.1 Button 328 181 68 42
+rect r.3.0.2 Button 403 181 68 42
+rect r.3.0.3 Button 478 181 68 42
+rect r.3.1 Row 253 230 293 42
+rect r.3.1.0 Button 253 230 68 42
+rect r.3.1.1 Button 328 230 68 42
+rect r.3.1.2 Button 403 230 68 42
+rect r.3.1.3 Button 478 230 68 42
+rect r.3.2 Row 253 279 293 42
+rect r.3.2.0 Button 253 279 68 42
+rect r.3.2.1 Button 328 279 68 42
+rect r.3.2.2 Button 403 279 68 42
+rect r.3.2.3 Button 478 279 68 42
+rect r.3.3 Grid 25 328 750 43
+rect r.3.3.0 Button 25 328 110 43
+rect r.3.3.1 Button 145 328 90 43
+rect r.3.3.2 Button 245 328 60 43
+rect r.3.3.3 Button 315 328 200 43
+rect r.3.3.4 Button 525 328 60 43
+rect r.3.3.5 Button 595 328 180 43
+rect r.4 Fill 25 371 750 12
+rect r.5 Grid 25 383 750 54
+rect r.5.0 Button 25 383 360 54
+rect r.5.1 Button 415 383 360 54
+## reflect defaults
+page state {}
+page dependencies {"conditions": [], "states": {}}
+page actions [{"kind": "text_key_action", "route": "backspace", "token": null, "wire_id": "keyboard.backspace"}, {"kind": "text_key_action", "route": "key", "token": "apostrophe", "wire_id": "keyboard.key.apostrophe"}, {"kind": "text_key_action", "route": "key", "token": "caret", "wire_id": "keyboard.key.caret"}, {"kind": "text_key_action", "route": "key", "token": "equal", "wire_id": "keyboard.key.equal"}, {"kind": "text_key_action", "route": "key", "token": "grave", "wire_id": "keyboard.key.grave"}, {"kind": "text_key_action", "route": "key", "token": "greater", "wire_id": "keyboard.key.greater"}, {"kind": "text_key_action", "route": "key", "token": "lbrace", "wire_id": "keyboard.key.lbrace"}, {"kind": "text_key_action", "route": "key", "token": "lbracket", "wire_id": "keyboard.key.lbracket"}, {"kind": "text_key_action", "route": "key", "token": "less", "wire_id": "keyboard.key.less"}, {"kind": "text_key_action", "route": "key", "token": "pipe", "wire_id": "keyboard.key.pipe"}, {"kind": "text_key_action", "route": "key", "token": "rbrace", "wire_id": "keyboard.key.rbrace"}, {"kind": "text_key_action", "route": "key", "token": "rbracket", "wire_id": "keyboard.key.rbracket"}, {"kind": "text_key_action", "route": "key", "token": "tilde", "wire_id": "keyboard.key.tilde"}, {"kind": "text_key_action", "route": "left", "token": null, "wire_id": "keyboard.left"}, {"kind": "text_key_action", "route": "right", "token": null, "wire_id": "keyboard.right"}, {"kind": "text_key_action", "route": "shift", "token": null, "wire_id": "keyboard.shift"}, {"kind": "text_key_action", "route": "space", "token": null, "wire_id": "keyboard.space"}, {"kind": "text_key_action", "route": "symbols", "token": null, "wire_id": "keyboard.symbols"}, {"index": null, "kind": "parameter_action", "route": "cancel", "wire_id": "mod.cancel"}, {"index": null, "kind": "parameter_action", "route": "save", "wire_id": "mod.save"}]
+page bindings []
+node {"actions": {}, "bindings": {}, "bounds": [25, 65, 750, 372], "component_template_instance": null, "condition": null, "container": true, "id": "path:0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 0, "columns": ["<ui.layout.Flex object>"], "row_gap": 0, "rows": [55, 53, 8, "<ui.layout.Flex object>", 12, 54]}, "property_origins": {}, "ref": null, "structure_slot": null, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 65, 750, 55], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 0}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 65, 750, 35], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono Bold 12pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "MIDI WHEN STARTING PRINT", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 100, 750, 20], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": 20, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "horizontal", "gap": 12}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Row", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 100, 369, 20], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.DIM", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "midi_start", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [406, 100, 369, 20], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.TEXT", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "Set the MIDI played at print start.", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 120, 750, 53], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 1, "row": 1, "row_span": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 120, 750, 53], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.PRIMARY", "line_width": 2}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [42, 120, 716, 53], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [17, 0, 17, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "TextValue", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 173, 750, 8], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.2", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BACKGROUND"}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 2, "row": 2, "row_span": 1}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 181, 750, 190], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.3", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 7, "columns": ["<ui.layout.Flex object>"], "row_gap": 7, "rows": ["<ui.layout.Flex object>", "<ui.layout.Flex object>", "<ui.layout.Flex object>", "<ui.layout.Flex object>"]}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 3, "row": 3, "row_span": 1}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [253, 181, 293, 42], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.3.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "center", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": "content"}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "horizontal", "gap": 7}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Row", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "key", "token": "apostrophe", "wire_id": "keyboard.key.apostrophe"}}, "bindings": {}, "bounds": [253, 181, 68, 42], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 68}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "key", "token": "apostrophe", "wire_id": "keyboard.key.apostrophe"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "'", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "key", "token": "equal", "wire_id": "keyboard.key.equal"}}, "bindings": {}, "bounds": [328, 181, 68, 42], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 68}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "key", "token": "equal", "wire_id": "keyboard.key.equal"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "=", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "key", "token": "less", "wire_id": "keyboard.key.less"}}, "bindings": {}, "bounds": [403, 181, 68, 42], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.0.2", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 68}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "key", "token": "less", "wire_id": "keyboard.key.less"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "<", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "key", "token": "greater", "wire_id": "keyboard.key.greater"}}, "bindings": {}, "bounds": [478, 181, 68, 42], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.0.3", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 68}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "key", "token": "greater", "wire_id": "keyboard.key.greater"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": ">", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 3}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [253, 230, 293, 42], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.3.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "center", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": "content"}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "horizontal", "gap": 7}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 1, "row": 1, "row_span": 1}, "style": null, "template_instance": null, "type": "Row", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "key", "token": "lbracket", "wire_id": "keyboard.key.lbracket"}}, "bindings": {}, "bounds": [253, 230, 68, 42], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 68}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "key", "token": "lbracket", "wire_id": "keyboard.key.lbracket"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "[", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "key", "token": "rbracket", "wire_id": "keyboard.key.rbracket"}}, "bindings": {}, "bounds": [328, 230, 68, 42], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 68}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "key", "token": "rbracket", "wire_id": "keyboard.key.rbracket"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "]", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "key", "token": "caret", "wire_id": "keyboard.key.caret"}}, "bindings": {}, "bounds": [403, 230, 68, 42], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.1.2", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 68}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "key", "token": "caret", "wire_id": "keyboard.key.caret"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "^", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "key", "token": "grave", "wire_id": "keyboard.key.grave"}}, "bindings": {}, "bounds": [478, 230, 68, 42], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.1.3", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 68}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "key", "token": "grave", "wire_id": "keyboard.key.grave"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "`", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 3}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [253, 279, 293, 42], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.3.2", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "center", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": "content"}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "horizontal", "gap": 7}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 2, "row": 2, "row_span": 1}, "style": null, "template_instance": null, "type": "Row", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "key", "token": "lbrace", "wire_id": "keyboard.key.lbrace"}}, "bindings": {}, "bounds": [253, 279, 68, 42], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.2.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 68}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "key", "token": "lbrace", "wire_id": "keyboard.key.lbrace"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "{", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "key", "token": "pipe", "wire_id": "keyboard.key.pipe"}}, "bindings": {}, "bounds": [328, 279, 68, 42], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.2.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 68}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "key", "token": "pipe", "wire_id": "keyboard.key.pipe"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "|", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "key", "token": "rbrace", "wire_id": "keyboard.key.rbrace"}}, "bindings": {}, "bounds": [403, 279, 68, 42], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.2.2", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 68}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "key", "token": "rbrace", "wire_id": "keyboard.key.rbrace"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "}", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "key", "token": "tilde", "wire_id": "keyboard.key.tilde"}}, "bindings": {}, "bounds": [478, 279, 68, 42], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.2.3", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 68}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "key", "token": "tilde", "wire_id": "keyboard.key.tilde"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "~", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 3}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 328, 750, 43], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.3.3", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 10, "columns": ["<ui.layout.Flex object>", "<ui.layout.Flex object>", "<ui.layout.Flex object>", "<ui.layout.Flex object>", "<ui.layout.Flex object>", "<ui.layout.Flex object>"], "row_gap": 10, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 3, "row": 3, "row_span": 1}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "shift", "token": null, "wire_id": "keyboard.shift"}}, "bindings": {}, "bounds": [25, 328, 110, 43], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.3.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "shift", "token": null, "wire_id": "keyboard.shift"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "SHIFT", "state": "selected", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "symbols", "token": null, "wire_id": "keyboard.symbols"}}, "bindings": {}, "bounds": [145, 328, 90, 43], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.3.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "symbols", "token": null, "wire_id": "keyboard.symbols"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "ABC", "state": "selected", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "left", "token": null, "wire_id": "keyboard.left"}}, "bindings": {}, "bounds": [245, 328, 60, 43], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.3.2", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "left", "token": null, "wire_id": "keyboard.left"}, "button_layout": "center", "font": "JetBrainsMono 12pt", "label": "<", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"column": 2, "column_span": 1, "index": 2, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "space", "token": null, "wire_id": "keyboard.space"}}, "bindings": {}, "bounds": [315, 328, 200, 43], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.3.3", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "space", "token": null, "wire_id": "keyboard.space"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "SPACE", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"column": 3, "column_span": 1, "index": 3, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "right", "token": null, "wire_id": "keyboard.right"}}, "bindings": {}, "bounds": [525, 328, 60, 43], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.3.4", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "right", "token": null, "wire_id": "keyboard.right"}, "button_layout": "center", "font": "JetBrainsMono 12pt", "label": ">", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"column": 4, "column_span": 1, "index": 4, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "text_key_action", "route": "backspace", "token": null, "wire_id": "keyboard.backspace"}}, "bindings": {}, "bounds": [595, 328, 180, 43], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.3.3.5", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "text_key_action", "route": "backspace", "token": null, "wire_id": "keyboard.backspace"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "BACKSPACE", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"column": 5, "column_span": 1, "index": 5, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 371, 750, 12], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.4", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BACKGROUND"}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 4, "row": 4, "row_span": 1}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 383, 750, 54], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.5", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 30, "columns": ["<ui.layout.Flex object>", "<ui.layout.Flex object>"], "row_gap": 30, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 5, "row": 5, "row_span": 1}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {"action": {"index": null, "kind": "parameter_action", "route": "cancel", "wire_id": "mod.cancel"}}, "bindings": {}, "bounds": [25, 383, 360, 54], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.5.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"index": null, "kind": "parameter_action", "route": "cancel", "wire_id": "mod.cancel"}, "button_layout": "center", "font": "JetBrainsMono Bold 8pt", "label": "CANCEL", "state": "danger", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"index": null, "kind": "parameter_action", "route": "save", "wire_id": "mod.save"}}, "bindings": {}, "bounds": [415, 383, 360, 54], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.5.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"index": null, "kind": "parameter_action", "route": "save", "wire_id": "mod.save"}, "button_layout": "center", "font": "JetBrainsMono Bold 8pt", "label": "SAVE", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+## set all
+hit keyboard.key.apostrophe 253 181 68 42 False base
+hit keyboard.key.equal 328 181 68 42 False base
+hit keyboard.key.less 403 181 68 42 False base
+hit keyboard.key.greater 478 181 68 42 False base
+hit keyboard.key.lbracket 253 230 68 42 False base
+hit keyboard.key.rbracket 328 230 68 42 False base
+hit keyboard.key.caret 403 230 68 42 False base
+hit keyboard.key.grave 478 230 68 42 False base
+hit keyboard.key.lbrace 253 279 68 42 False base
+hit keyboard.key.pipe 328 279 68 42 False base
+hit keyboard.key.rbrace 403 279 68 42 False base
+hit keyboard.key.tilde 478 279 68 42 False base
+hit keyboard.shift 25 328 110 43 False base
+hit keyboard.symbols 145 328 90 43 False base
+hit keyboard.left 245 328 60 43 False base
+hit keyboard.space 315 328 200 43 False base
+hit keyboard.right 525 328 60 43 False base
+hit keyboard.backspace 595 328 180 43 False base
+hit mod.cancel 25 383 360 54 False base
+hit mod.save 415 383 360 54 False base
+## redraw all
+cmd --batch text -p 25 82 -c 35d9e6 -f "JetBrainsMono Bold 12pt" -ha left -va middle --max-width 750 --truncate -t "MIDI WHEN STARTING PRINT"
+cmd --batch text -p 25 110 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 369 --truncate -t "midi_start"
+cmd --batch text -p 406 110 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 369 --truncate -t "Set the MIDI played at print start."
+cmd --batch fill -p 25 120 -s 750 53 -c 050c0f
+cmd --batch stroke -p 25 120 -s 750 53 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 42 146 -c 35d9e6 -f "JetBrainsMono 12pt" -ha left -va middle --max-width 716 --truncate -t "MIDI text"
+cmd --batch fill -p 106 133 -s 2 26 -c 35d9e6
+cmd --batch fill -p 25 173 -s 750 8 -c 030607
+cmd --batch button -p 253 181 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "'" --id 0:keyboard.key.apostrophe --layer base
+cmd --batch button -p 328 181 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "=" --id 0:keyboard.key.equal --layer base
+cmd --batch button -p 403 181 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "<" --id 0:keyboard.key.less --layer base
+cmd --batch button -p 478 181 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t ">" --id 0:keyboard.key.greater --layer base
+cmd --batch button -p 253 230 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "[" --id 0:keyboard.key.lbracket --layer base
+cmd --batch button -p 328 230 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "]" --id 0:keyboard.key.rbracket --layer base
+cmd --batch button -p 403 230 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "^" --id 0:keyboard.key.caret --layer base
+cmd --batch button -p 478 230 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "`" --id 0:keyboard.key.grave --layer base
+cmd --batch button -p 253 279 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "{" --id 0:keyboard.key.lbrace --layer base
+cmd --batch button -p 328 279 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "|" --id 0:keyboard.key.pipe --layer base
+cmd --batch button -p 403 279 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "}" --id 0:keyboard.key.rbrace --layer base
+cmd --batch button -p 478 279 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "~" --id 0:keyboard.key.tilde --layer base
+cmd --batch button -p 25 328 -s 110 43 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 78 --truncate -t "SHIFT" --id 0:keyboard.shift --layer base
+cmd --batch button -p 145 328 -s 90 43 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 58 --truncate -t "ABC" --id 0:keyboard.symbols --layer base
+cmd --batch button -p 245 328 -s 60 43 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 28 --truncate -t "<" --id 0:keyboard.left --layer base
+cmd --batch button -p 315 328 -s 200 43 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 168 --truncate -t "SPACE" --id 0:keyboard.space --layer base
+cmd --batch button -p 525 328 -s 60 43 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 28 --truncate -t ">" --id 0:keyboard.right --layer base
+cmd --batch button -p 595 328 -s 180 43 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "BACKSPACE" --id 0:keyboard.backspace --layer base
+cmd --batch fill -p 25 371 -s 750 12 -c 030607
+cmd --batch button -p 25 383 -s 360 54 --background 120708 --border ff4d5a --text-color ff4d5a -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 328 --truncate -t "CANCEL" --id 0:mod.cancel --layer base
+cmd --batch button -p 415 383 -s 360 54 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 328 --truncate -t "SAVE" --id 0:mod.save --layer base
+hit keyboard.key.apostrophe 253 181 68 42 False base
+hit keyboard.key.equal 328 181 68 42 False base
+hit keyboard.key.less 403 181 68 42 False base
+hit keyboard.key.greater 478 181 68 42 False base
+hit keyboard.key.lbracket 253 230 68 42 False base
+hit keyboard.key.rbracket 328 230 68 42 False base
+hit keyboard.key.caret 403 230 68 42 False base
+hit keyboard.key.grave 478 230 68 42 False base
+hit keyboard.key.lbrace 253 279 68 42 False base
+hit keyboard.key.pipe 328 279 68 42 False base
+hit keyboard.key.rbrace 403 279 68 42 False base
+hit keyboard.key.tilde 478 279 68 42 False base
+hit keyboard.shift 25 328 110 43 False base
+hit keyboard.symbols 145 328 90 43 False base
+hit keyboard.left 245 328 60 43 False base
+hit keyboard.space 315 328 200 43 False base
+hit keyboard.right 525 328 60 43 False base
+hit keyboard.backspace 595 328 180 43 False base
+hit mod.cancel 25 383 360 54 False base
+hit mod.save 415 383 360 54 False base
+## press
+action keyboard.backspace {"kind": "text_key_action", "route": "backspace", "token": null, "wire_id": "keyboard.backspace"}
+action keyboard.key.apostrophe {"kind": "text_key_action", "route": "key", "token": "apostrophe", "wire_id": "keyboard.key.apostrophe"}
+action keyboard.key.caret {"kind": "text_key_action", "route": "key", "token": "caret", "wire_id": "keyboard.key.caret"}
+action keyboard.key.equal {"kind": "text_key_action", "route": "key", "token": "equal", "wire_id": "keyboard.key.equal"}
+action keyboard.key.grave {"kind": "text_key_action", "route": "key", "token": "grave", "wire_id": "keyboard.key.grave"}
+action keyboard.key.greater {"kind": "text_key_action", "route": "key", "token": "greater", "wire_id": "keyboard.key.greater"}
+action keyboard.key.lbrace {"kind": "text_key_action", "route": "key", "token": "lbrace", "wire_id": "keyboard.key.lbrace"}
+action keyboard.key.lbracket {"kind": "text_key_action", "route": "key", "token": "lbracket", "wire_id": "keyboard.key.lbracket"}
+action keyboard.key.less {"kind": "text_key_action", "route": "key", "token": "less", "wire_id": "keyboard.key.less"}
+action keyboard.key.pipe {"kind": "text_key_action", "route": "key", "token": "pipe", "wire_id": "keyboard.key.pipe"}
+action keyboard.key.rbrace {"kind": "text_key_action", "route": "key", "token": "rbrace", "wire_id": "keyboard.key.rbrace"}
+action keyboard.key.rbracket {"kind": "text_key_action", "route": "key", "token": "rbracket", "wire_id": "keyboard.key.rbracket"}
+action keyboard.key.tilde {"kind": "text_key_action", "route": "key", "token": "tilde", "wire_id": "keyboard.key.tilde"}
+action keyboard.left {"kind": "text_key_action", "route": "left", "token": null, "wire_id": "keyboard.left"}
+action keyboard.right {"kind": "text_key_action", "route": "right", "token": null, "wire_id": "keyboard.right"}
+action keyboard.shift {"kind": "text_key_action", "route": "shift", "token": null, "wire_id": "keyboard.shift"}
+action keyboard.space {"kind": "text_key_action", "route": "space", "token": null, "wire_id": "keyboard.space"}
+action keyboard.symbols {"kind": "text_key_action", "route": "symbols", "token": null, "wire_id": "keyboard.symbols"}
+action mod.cancel {"index": null, "kind": "parameter_action", "route": "cancel", "wire_id": "mod.cancel"}
+action mod.save {"index": null, "kind": "parameter_action", "route": "save", "wire_id": "mod.save"}
+press keyboard.backspace
+cmd --batch button -p 595 328 -s 180 43 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "BACKSPACE"
+cmd --batch button -p 595 328 -s 180 43 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "BACKSPACE"
+press keyboard.key.apostrophe
+cmd --batch button -p 253 181 -s 68 42 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "'"
+cmd --batch button -p 253 181 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "'"
+press keyboard.key.caret
+cmd --batch button -p 403 230 -s 68 42 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "^"
+cmd --batch button -p 403 230 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "^"
+press keyboard.key.equal
+cmd --batch button -p 328 181 -s 68 42 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "="
+cmd --batch button -p 328 181 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "="
+press keyboard.key.grave
+cmd --batch button -p 478 230 -s 68 42 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "`"
+cmd --batch button -p 478 230 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "`"
+press keyboard.key.greater
+cmd --batch button -p 478 181 -s 68 42 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t ">"
+cmd --batch button -p 478 181 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t ">"
+press keyboard.key.lbrace
+cmd --batch button -p 253 279 -s 68 42 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "{"
+cmd --batch button -p 253 279 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "{"
+press keyboard.key.lbracket
+cmd --batch button -p 253 230 -s 68 42 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "["
+cmd --batch button -p 253 230 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "["
+press keyboard.key.less
+cmd --batch button -p 403 181 -s 68 42 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "<"
+cmd --batch button -p 403 181 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "<"
+press keyboard.key.pipe
+cmd --batch button -p 328 279 -s 68 42 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "|"
+cmd --batch button -p 328 279 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "|"
+press keyboard.key.rbrace
+cmd --batch button -p 403 279 -s 68 42 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "}"
+cmd --batch button -p 403 279 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "}"
+press keyboard.key.rbracket
+cmd --batch button -p 328 230 -s 68 42 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "]"
+cmd --batch button -p 328 230 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "]"
+press keyboard.key.tilde
+cmd --batch button -p 478 279 -s 68 42 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "~"
+cmd --batch button -p 478 279 -s 68 42 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 36 --truncate -t "~"
+press keyboard.left
+cmd --batch button -p 245 328 -s 60 43 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 28 --truncate -t "<"
+cmd --batch button -p 245 328 -s 60 43 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 28 --truncate -t "<"
+press keyboard.right
+cmd --batch button -p 525 328 -s 60 43 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 28 --truncate -t ">"
+cmd --batch button -p 525 328 -s 60 43 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 28 --truncate -t ">"
+press keyboard.shift
+cmd --batch button -p 25 328 -s 110 43 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 78 --truncate -t "SHIFT"
+cmd --batch button -p 25 328 -s 110 43 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 78 --truncate -t "SHIFT"
+press keyboard.space
+cmd --batch button -p 315 328 -s 200 43 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 168 --truncate -t "SPACE"
+cmd --batch button -p 315 328 -s 200 43 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 168 --truncate -t "SPACE"
+press keyboard.symbols
+cmd --batch button -p 145 328 -s 90 43 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 58 --truncate -t "ABC"
+cmd --batch button -p 145 328 -s 90 43 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 58 --truncate -t "ABC"
+press mod.cancel
+cmd --batch button -p 25 383 -s 360 54 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 328 --truncate -t "CANCEL"
+cmd --batch button -p 25 383 -s 360 54 --background 120708 --border ff4d5a --text-color ff4d5a -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 328 --truncate -t "CANCEL"
+press mod.save
+cmd --batch button -p 415 383 -s 360 54 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 328 --truncate -t "SAVE"
+cmd --batch button -p 415 383 -s 360 54 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 328 --truncate -t "SAVE"

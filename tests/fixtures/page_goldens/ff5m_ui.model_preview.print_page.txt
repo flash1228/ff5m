@@ -1,0 +1,497 @@
+## draw defaults
+cmd --batch text -p 20 79 -c ffffff -f "JetBrainsMono 8pt" -ha left -va middle --max-width 684 --truncate -t ""
+cmd --batch text -p 24 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "PRINT TIME"
+cmd --batch text -p 8 122 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t " --"
+cmd --batch fill -p 20 164 -s 220 1 -c 295c66
+cmd --batch text -p 24 175 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "LAYERS"
+cmd --batch text -p 8 197 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t " --"
+cmd --batch fill -p 20 239 -s 220 1 -c 295c66
+cmd --batch text -p 24 250 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "FILE SIZE"
+cmd --batch text -p 8 272 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t " --"
+cmd --batch text -p 130 363 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "SCALE 100%"
+cmd --batch button -p 20 384 -s 104 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 72 --truncate -t " -" --id 0:model.scale_down --layer base
+cmd --batch button -p 136 384 -s 104 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 72 --truncate -t "+" --id 0:model.scale_up --layer base
+cmd --batch fill -p 290 100 -s 384 264 -c 050c0f
+cmd --batch stroke -p 290 100 -s 384 264 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 298 108 -s 368 248 -c 050c0f
+cmd --batch text -p 482 232 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "PREPARING..."
+cmd --batch fill -p 290 374 -s 384 56 -c 030607
+cmd --batch text -p 482 385 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle --max-width 372 --truncate -t "ROTATE"
+cmd --batch fill -p 290 408 -s 384 2 -c 295c66
+cmd --batch fill -p 470 397 -s 25 25 -c 030607
+cmd --batch stroke -p 470 397 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 476 406 -s 13 1 -c 35d9e6
+cmd --batch fill -p 476 412 -s 13 1 -c 35d9e6
+cmd --batch hitbox --id 0:model.yaw_joystick -p 290 374 -s 384 56 --continuous --layer base
+cmd --batch fill -p 724 66 -s 56 364 -c 030607
+cmd --batch text -p 752 80 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle --max-width 44 --truncate -t "TILT"
+cmd --batch fill -p 751 100 -s 2 316 -c 295c66
+cmd --batch fill -p 740 183 -s 25 25 -c 030607
+cmd --batch stroke -p 740 183 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 746 192 -s 13 1 -c 35d9e6
+cmd --batch fill -p 746 198 -s 13 1 -c 35d9e6
+cmd --batch hitbox --id 0:model.pitch_joystick -p 724 66 -s 56 364 --continuous --layer base
+cmd --batch button -p 502 7 -s 136 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 104 --truncate -t "SETTINGS" --id 0:model.settings --layer base
+cmd --batch button -p 650 7 -s 136 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 104 --truncate -t "PRINT" --id 0:model.print --layer base
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+rect r Overlay 14 7 772 435
+rect r.0 Grid model_preview.root 20 66 760 376
+rect r.0.0 Text model_preview.filename 20 66 684 26
+rect r.0.1 Column model_preview.info 20 100 220 330
+rect r.0.1.0 Column model_preview.metrics 20 100 220 204
+rect r.0.1.0.0 Metric 20 100 220 54
+rect r.0.1.0.1 Fill 20 164 220 1
+rect r.0.1.0.2 Metric 20 175 220 54
+rect r.0.1.0.3 Fill 20 239 220 1
+rect r.0.1.0.4 Metric 20 250 220 54
+rect r.0.1.1 Spacer 20 314 220 28
+rect r.0.1.2 Text model_preview.scale 20 352 220 22
+rect r.0.1.3 Grid 20 384 220 46
+rect r.0.1.3.0 Button 20 384 104 46
+rect r.0.1.3.1 Button 136 384 104 46
+rect r.0.2 Column model_preview.camera 290 100 384 330
+rect r.0.2.0 Overlay 290 100 384 264
+rect r.0.2.0.0 Panel 290 100 384 264
+rect r.0.2.0.1 ModelFrame model_preview.image 298 108 368 248
+rect r.0.2.0.2 StateCase model_preview.error 290 100 384 264
+rect r.0.2.0.2.0 Text 302 280 360 72
+rect r.0.2.1 Slider model_preview.yaw_pad 290 374 384 56
+rect r.0.3 Slider model_preview.tilt_pad 724 66 56 364
+rect r.1 Row 502 7 284 46
+rect r.1.0 Button 502 7 136 46
+rect r.1.1 Button 650 7 136 46
+## reflect defaults
+page state {"ff5m_ui.model_preview.PreviewState.BANDS": [], "ff5m_ui.model_preview.PreviewState.ERROR": "", "ff5m_ui.model_preview.PreviewState.FILENAME": "", "ff5m_ui.model_preview.PreviewState.FILE_LAYERS": "--", "ff5m_ui.model_preview.PreviewState.FILE_SIZE": "--", "ff5m_ui.model_preview.PreviewState.FILE_TIME": "--", "ff5m_ui.model_preview.PreviewState.PITCH": 30.0, "ff5m_ui.model_preview.PreviewState.SCALE": 1.0, "ff5m_ui.model_preview.PreviewState.YAW": 0.0}
+page dependencies {"conditions": [{"binding": {"callable": {"module": "ui.layout", "name": "<lambda>", "qualname": "StateCase._binding_predicate.<locals>.<lambda>"}, "direct_keys": [], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"callable": {"module": "builtins", "name": "bool", "qualname": "bool"}, "direct_keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "key": "ff5m_ui.model_preview.PreviewState.ERROR", "keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "kind": "direct", "resolved": "", "source": null, "transitive_keys": []}], "keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": ["ff5m_ui.model_preview.PreviewState.ERROR"]}, "child": {"ref": null, "type": "Text"}, "keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "name": "model_preview.error", "node_id": "model_preview.error", "node_ref": "model_preview.error", "preview_result": false, "result": false}], "states": {"ff5m_ui.model_preview.PreviewState.BANDS": {"affected_count": 0, "condition_count": 0, "conditions": [], "key": "ff5m_ui.model_preview.PreviewState.BANDS", "name": "BANDS", "properties": [], "property_count": 0}, "ff5m_ui.model_preview.PreviewState.ERROR": {"affected_count": 2, "condition_count": 1, "conditions": [{"name": "model_preview.error", "node_id": "model_preview.error", "node_ref": "model_preview.error", "result": false}], "key": "ff5m_ui.model_preview.PreviewState.ERROR", "name": "ERROR", "properties": [{"direct": true, "node_id": "path:0.0.2.0.2.0", "node_ref": null, "node_type": "Text", "property": "value"}], "property_count": 1}, "ff5m_ui.model_preview.PreviewState.FILENAME": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ff5m_ui.model_preview.PreviewState.FILENAME", "name": "FILENAME", "properties": [{"direct": true, "node_id": "model_preview.filename", "node_ref": "model_preview.filename", "node_type": "Text", "property": "value"}], "property_count": 1}, "ff5m_ui.model_preview.PreviewState.FILE_LAYERS": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ff5m_ui.model_preview.PreviewState.FILE_LAYERS", "name": "FILE_LAYERS", "properties": [{"direct": true, "node_id": "path:0.0.1.0.2", "node_ref": null, "node_type": "Metric", "property": "value"}], "property_count": 1}, "ff5m_ui.model_preview.PreviewState.FILE_SIZE": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ff5m_ui.model_preview.PreviewState.FILE_SIZE", "name": "FILE_SIZE", "properties": [{"direct": true, "node_id": "path:0.0.1.0.4", "node_ref": null, "node_type": "Metric", "property": "value"}], "property_count": 1}, "ff5m_ui.model_preview.PreviewState.FILE_TIME": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ff5m_ui.model_preview.PreviewState.FILE_TIME", "name": "FILE_TIME", "properties": [{"direct": true, "node_id": "path:0.0.1.0.0", "node_ref": null, "node_type": "Metric", "property": "value"}], "property_count": 1}, "ff5m_ui.model_preview.PreviewState.PITCH": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ff5m_ui.model_preview.PreviewState.PITCH", "name": "PITCH", "properties": [{"direct": true, "node_id": "model_preview.tilt_pad", "node_ref": "model_preview.tilt_pad", "node_type": "Slider", "property": "value"}], "property_count": 1}, "ff5m_ui.model_preview.PreviewState.SCALE": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ff5m_ui.model_preview.PreviewState.SCALE", "name": "SCALE", "properties": [{"direct": true, "node_id": "model_preview.scale", "node_ref": "model_preview.scale", "node_type": "Text", "property": "value"}], "property_count": 1}, "ff5m_ui.model_preview.PreviewState.YAW": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ff5m_ui.model_preview.PreviewState.YAW", "name": "YAW", "properties": [{"direct": true, "node_id": "model_preview.yaw_pad", "node_ref": "model_preview.yaw_pad", "node_type": "Slider", "property": "value"}], "property_count": 1}}}
+page actions [{"kind": "model_preview_action", "route": "pitch_joystick", "style": null, "wire_id": "model.pitch_joystick"}, {"kind": "model_preview_action", "route": "print", "style": null, "wire_id": "model.print"}, {"kind": "model_preview_action", "route": "scale_down", "style": null, "wire_id": "model.scale_down"}, {"kind": "model_preview_action", "route": "scale_up", "style": null, "wire_id": "model.scale_up"}, {"kind": "model_preview_action", "route": "settings", "style": null, "wire_id": "model.settings"}, {"kind": "model_preview_action", "route": "yaw_joystick", "style": null, "wire_id": "model.yaw_joystick"}]
+page bindings [{"key": "ff5m_ui.model_preview.PreviewState.FILENAME", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ff5m_ui.model_preview.PreviewState.FILE_TIME", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ff5m_ui.model_preview.PreviewState.FILE_LAYERS", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ff5m_ui.model_preview.PreviewState.FILE_SIZE", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ff5m_ui.model_preview.PreviewState.SCALE", "nullable": false, "runtime_type": "builtins.float"}, {"key": "ff5m_ui.model_preview.PreviewState.BANDS", "nullable": false, "runtime_type": "builtins.tuple"}, {"key": "ff5m_ui.model_preview.PreviewState.ERROR", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ff5m_ui.model_preview.PreviewState.YAW", "nullable": false, "runtime_type": "builtins.float"}, {"key": "ff5m_ui.model_preview.PreviewState.PITCH", "nullable": false, "runtime_type": "builtins.float"}]
+node {"actions": {}, "bindings": {}, "bounds": [14, 7, 772, 435], "component_template_instance": null, "condition": null, "container": true, "id": "path:0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": null, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 66, 760, 376], "component_template_instance": null, "condition": null, "container": true, "id": "model_preview.root", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [6, 59, 6, 0], "offset": [0, 0], "padding": [0, 0, 0, 12], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "explicit"}, "padding": {"kind": "explicit"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"column_gap": 20, "columns": [220, "<ui.layout.Flex object>", 56], "row_gap": 8, "rows": [26, "<ui.layout.Flex object>"]}, "property_origins": {}, "ref": "model_preview.root", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": ["ff5m_ui.model_preview.PreviewState.FILENAME"], "key": "ff5m_ui.model_preview.PreviewState.FILENAME", "keys": ["ff5m_ui.model_preview.PreviewState.FILENAME"], "kind": "direct", "resolved": "", "source": null, "transitive_keys": []}}, "bounds": [20, 66, 684, 26], "component_template_instance": null, "condition": null, "container": false, "id": "model_preview.filename", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BRIGHT", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "explicit"}, "font": {"kind": "explicit"}, "horizontal": {"kind": "explicit"}, "vertical": {"kind": "default"}}, "ref": "model_preview.filename", "structure_slot": {"column": 0, "column_span": 2, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 100, 220, 330], "component_template_instance": null, "condition": null, "container": true, "id": "model_preview.info", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 10}, "property_origins": {}, "ref": "model_preview.info", "structure_slot": {"column": 0, "column_span": 1, "index": 1, "row": 1, "row_span": 1}, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 100, 220, 204], "component_template_instance": null, "condition": null, "container": true, "id": "model_preview.metrics", "layout": {"allow_overflow": false, "grow": 1, "height": "content", "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 10}, "property_origins": {}, "ref": "model_preview.metrics", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": ["ff5m_ui.model_preview.PreviewState.FILE_TIME"], "key": "ff5m_ui.model_preview.PreviewState.FILE_TIME", "keys": ["ff5m_ui.model_preview.PreviewState.FILE_TIME"], "kind": "direct", "resolved": "--", "source": null, "transitive_keys": []}}, "bounds": [20, 100, 220, 54], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": "content", "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [4, 0, 4, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "explicit"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"gap": 0, "label": "PRINT TIME", "label_color": "ui.theme.ThemeColor.PRIMARY", "label_font": "JetBrainsMono 8pt", "orientation": "vertical", "unit": "", "value": "--", "value_color": "ui.theme.ThemeColor.TEXT", "value_font": "JetBrainsMono 12pt"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Metric", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 164, 220, 1], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": 1, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BORDER"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": ["ff5m_ui.model_preview.PreviewState.FILE_LAYERS"], "key": "ff5m_ui.model_preview.PreviewState.FILE_LAYERS", "keys": ["ff5m_ui.model_preview.PreviewState.FILE_LAYERS"], "kind": "direct", "resolved": "--", "source": null, "transitive_keys": []}}, "bounds": [20, 175, 220, 54], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.0.2", "layout": {"allow_overflow": false, "grow": 1, "height": "content", "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [4, 0, 4, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "explicit"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"gap": 0, "label": "LAYERS", "label_color": "ui.theme.ThemeColor.PRIMARY", "label_font": "JetBrainsMono 8pt", "orientation": "vertical", "unit": "", "value": "--", "value_color": "ui.theme.ThemeColor.TEXT", "value_font": "JetBrainsMono 12pt"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "Metric", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 239, 220, 1], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.0.3", "layout": {"allow_overflow": false, "grow": 1, "height": 1, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BORDER"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 3}, "style": null, "template_instance": null, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": ["ff5m_ui.model_preview.PreviewState.FILE_SIZE"], "key": "ff5m_ui.model_preview.PreviewState.FILE_SIZE", "keys": ["ff5m_ui.model_preview.PreviewState.FILE_SIZE"], "kind": "direct", "resolved": "--", "source": null, "transitive_keys": []}}, "bounds": [20, 250, 220, 54], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.0.4", "layout": {"allow_overflow": false, "grow": 1, "height": "content", "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [4, 0, 4, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "explicit"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"gap": 0, "label": "FILE SIZE", "label_color": "ui.theme.ThemeColor.PRIMARY", "label_font": "JetBrainsMono 8pt", "orientation": "vertical", "unit": "", "value": "--", "value_color": "ui.theme.ThemeColor.TEXT", "value_font": "JetBrainsMono 12pt"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 4}, "style": null, "template_instance": null, "type": "Metric", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 314, 220, 28], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Spacer", "visible": true}
+node {"actions": {}, "bindings": {"value": {"callable": {"module": "ff5m_ui.model_preview.print_page", "name": "<lambda>", "qualname": "<lambda>"}, "direct_keys": ["ff5m_ui.model_preview.PreviewState.SCALE"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ff5m_ui.model_preview.PreviewState.SCALE"], "key": "ff5m_ui.model_preview.PreviewState.SCALE", "keys": ["ff5m_ui.model_preview.PreviewState.SCALE"], "kind": "direct", "resolved": 1.0, "source": null, "transitive_keys": []}], "keys": ["ff5m_ui.model_preview.PreviewState.SCALE"], "kind": "derived", "resolved": "SCALE 100%", "source": null, "transitive_keys": []}}, "bounds": [20, 352, 220, 22], "component_template_instance": null, "condition": null, "container": false, "id": "model_preview.scale", "layout": {"allow_overflow": false, "grow": 1, "height": 22, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "SCALE 100%", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "explicit"}, "font": {"kind": "explicit"}, "horizontal": {"kind": "default"}, "vertical": {"kind": "default"}}, "ref": "model_preview.scale", "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 384, 220, 46], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1.3", "layout": {"allow_overflow": false, "grow": 1, "height": 46, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"column_gap": 12, "columns": ["<ui.layout.Flex object>", "<ui.layout.Flex object>"], "row_gap": 12, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": null, "structure_slot": {"index": 3}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {"action": {"kind": "model_preview_action", "route": "scale_down", "style": null, "wire_id": "model.scale_down"}}, "bindings": {}, "bounds": [20, 384, 104, 46], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.3.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "model_preview_action", "route": "scale_down", "style": null, "wire_id": "model.scale_down"}, "button_layout": "center", "font": "JetBrainsMono Bold 8pt", "label": "-", "state": "enabled", "subtitle": null}, "property_origins": {"font": {"kind": "explicit"}}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "model_preview_action", "route": "scale_up", "style": null, "wire_id": "model.scale_up"}}, "bindings": {}, "bounds": [136, 384, 104, 46], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.3.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "model_preview_action", "route": "scale_up", "style": null, "wire_id": "model.scale_up"}, "button_layout": "center", "font": "JetBrainsMono Bold 8pt", "label": "+", "state": "enabled", "subtitle": null}, "property_origins": {"font": {"kind": "explicit"}}, "ref": null, "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [290, 100, 384, 330], "component_template_instance": null, "condition": null, "container": true, "id": "model_preview.camera", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "center", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 384}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 10}, "property_origins": {}, "ref": "model_preview.camera", "structure_slot": {"column": 1, "column_span": 1, "index": 2, "row": 1, "row_span": 1}, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [290, 100, 384, 264], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.2.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [290, 100, 384, 264], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.2.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.PRIMARY", "line_width": 2}, "property_origins": {"background": {"kind": "explicit"}, "border": {"kind": "explicit"}, "line_width": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [298, 108, 368, 248], "component_template_instance": null, "condition": null, "container": false, "id": "model_preview.image", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [8, 8, 8, 8], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "explicit"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "model_preview.image", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "ModelFrame", "visible": true}
+node {"actions": {}, "bindings": {"predicate": {"callable": {"module": "ui.layout", "name": "<lambda>", "qualname": "StateCase._binding_predicate.<locals>.<lambda>"}, "direct_keys": [], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"callable": {"module": "builtins", "name": "bool", "qualname": "bool"}, "direct_keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "key": "ff5m_ui.model_preview.PreviewState.ERROR", "keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "kind": "direct", "resolved": "", "source": null, "transitive_keys": []}], "keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": ["ff5m_ui.model_preview.PreviewState.ERROR"]}}, "bounds": [290, 100, 384, 264], "component_template_instance": null, "condition": {"binding": {"callable": {"module": "ui.layout", "name": "<lambda>", "qualname": "StateCase._binding_predicate.<locals>.<lambda>"}, "direct_keys": [], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"callable": {"module": "builtins", "name": "bool", "qualname": "bool"}, "direct_keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "key": "ff5m_ui.model_preview.PreviewState.ERROR", "keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "kind": "direct", "resolved": "", "source": null, "transitive_keys": []}], "keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": ["ff5m_ui.model_preview.PreviewState.ERROR"]}, "child": {"ref": null, "type": "Text"}, "keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "name": "model_preview.error", "predicate_source": {"origin": null, "reason": "Source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "preview_result": false, "result": false}, "container": false, "id": "model_preview.error", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": false, "properties": {"predicate": false}, "property_origins": {}, "ref": "model_preview.error", "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "StateCase", "visible": false}
+node {"actions": {}, "bindings": {"value": {"direct_keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "key": "ff5m_ui.model_preview.PreviewState.ERROR", "keys": ["ff5m_ui.model_preview.PreviewState.ERROR"], "kind": "direct", "resolved": "", "source": null, "transitive_keys": []}}, "bounds": [302, 280, 360, 72], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.2.0.2.0", "layout": {"allow_overflow": false, "grow": 1, "height": 72, "horizontal": "stretch", "margin": [12, 0, 12, 12], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "bottom", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "explicit"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.WARNING", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "", "vertical": "center", "wrap": true}, "property_origins": {"color": {"kind": "explicit"}, "font": {"kind": "explicit"}, "horizontal": {"kind": "default"}, "vertical": {"kind": "default"}}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Text", "visible": false}
+node {"actions": {"action": {"kind": "model_preview_action", "route": "yaw_joystick", "style": null, "wire_id": "model.yaw_joystick"}}, "bindings": {"value": {"direct_keys": ["ff5m_ui.model_preview.PreviewState.YAW"], "key": "ff5m_ui.model_preview.PreviewState.YAW", "keys": ["ff5m_ui.model_preview.PreviewState.YAW"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}}, "bounds": [290, 374, 384, 56], "component_template_instance": null, "condition": null, "container": false, "id": "model_preview.yaw_pad", "layout": {"allow_overflow": false, "grow": 1, "height": 56, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"action": {"kind": "model_preview_action", "route": "yaw_joystick", "style": null, "wire_id": "model.yaw_joystick"}, "axis": "x", "background": "ui.theme.ThemeColor.BACKGROUND", "color": "ui.theme.ThemeColor.PRIMARY", "dirty_margin": 2, "edge_padding": 0, "frame": false, "frame_color": "ui.theme.ThemeColor.BORDER", "glyph": "bars", "label": "ROTATE", "label_align": "center", "label_color": "ui.theme.ThemeColor.DIM", "label_font": "JetBrainsMono 8pt", "label_height": 18, "label_padding": 6, "label_top": 2, "maximum": 150.0, "minimum": -150.0, "position": null, "scale": false, "scale_color": "ui.theme.ThemeColor.DIM", "scale_depth": 3, "scale_gap": 20, "size": 25, "touch_insets": [0, 0, 0, 0], "track": "line", "track_align": "center", "track_color": "ui.theme.ThemeColor.BORDER", "track_insets": [0, 20, 0, 6], "track_size": null, "value": 0.0}, "property_origins": {"background": {"kind": "explicit"}, "color": {"kind": "default"}, "frame_color": {"kind": "default"}, "label_color": {"kind": "explicit"}, "label_font": {"kind": "explicit"}, "scale_color": {"kind": "default"}, "track_color": {"kind": "explicit"}}, "ref": "model_preview.yaw_pad", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Slider", "visible": true}
+node {"actions": {"action": {"kind": "model_preview_action", "route": "pitch_joystick", "style": null, "wire_id": "model.pitch_joystick"}}, "bindings": {"value": {"direct_keys": ["ff5m_ui.model_preview.PreviewState.PITCH"], "key": "ff5m_ui.model_preview.PreviewState.PITCH", "keys": ["ff5m_ui.model_preview.PreviewState.PITCH"], "kind": "direct", "resolved": 30.0, "source": null, "transitive_keys": []}}, "bounds": [724, 66, 56, 364], "component_template_instance": null, "condition": null, "container": false, "id": "model_preview.tilt_pad", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"action": {"kind": "model_preview_action", "route": "pitch_joystick", "style": null, "wire_id": "model.pitch_joystick"}, "axis": "z", "background": "ui.theme.ThemeColor.BACKGROUND", "color": "ui.theme.ThemeColor.PRIMARY", "dirty_margin": 2, "edge_padding": 0, "frame": false, "frame_color": "ui.theme.ThemeColor.BORDER", "glyph": "bars", "label": "TILT", "label_align": "center", "label_color": "ui.theme.ThemeColor.DIM", "label_font": "JetBrainsMono 8pt", "label_height": 20, "label_padding": 6, "label_top": 4, "maximum": 70.0, "minimum": -70.0, "position": null, "scale": false, "scale_color": "ui.theme.ThemeColor.DIM", "scale_depth": 3, "scale_gap": 20, "size": 25, "touch_insets": [0, 0, 0, 0], "track": "line", "track_align": "center", "track_color": "ui.theme.ThemeColor.BORDER", "track_insets": null, "track_size": null, "value": 30.0}, "property_origins": {"background": {"kind": "explicit"}, "color": {"kind": "default"}, "frame_color": {"kind": "default"}, "label_color": {"kind": "explicit"}, "label_font": {"kind": "explicit"}, "scale_color": {"kind": "default"}, "track_color": {"kind": "explicit"}}, "ref": "model_preview.tilt_pad", "structure_slot": {"column": 2, "column_span": 1, "index": 3, "row": 0, "row_span": 2}, "style": null, "template_instance": null, "type": "Slider", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [502, 7, 284, 46], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.1", "layout": {"allow_overflow": false, "grow": 1, "height": 46, "horizontal": "right", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "top", "width": 284}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"direction": "horizontal", "gap": 12}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Row", "visible": true}
+node {"actions": {"action": {"kind": "model_preview_action", "route": "settings", "style": null, "wire_id": "model.settings"}}, "bindings": {}, "bounds": [502, 7, 136, 46], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "model_preview_action", "route": "settings", "style": null, "wire_id": "model.settings"}, "button_layout": "center", "font": "JetBrainsMono Bold 8pt", "label": "SETTINGS", "state": "enabled", "subtitle": null}, "property_origins": {"font": {"kind": "explicit"}}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "model_preview_action", "route": "print", "style": null, "wire_id": "model.print"}}, "bindings": {}, "bounds": [650, 7, 136, 46], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "model_preview_action", "route": "print", "style": null, "wire_id": "model.print"}, "button_layout": "center", "font": "JetBrainsMono Bold 8pt", "label": "PRINT", "state": "enabled", "subtitle": null}, "property_origins": {"font": {"kind": "explicit"}}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+## set PreviewState.FILENAME='Golden text long enough to wrap or truncate in narrow areas 123'
+cmd --batch fill -p 20 66 -s 684 26 -c 030607
+cmd --batch text -p 20 79 -c ffffff -f "JetBrainsMono 8pt" -ha left -va middle --max-width 684 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## restore PreviewState.FILENAME
+cmd --batch fill -p 20 66 -s 684 26 -c 030607
+cmd --batch text -p 20 79 -c ffffff -f "JetBrainsMono 8pt" -ha left -va middle --max-width 684 --truncate -t ""
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## set PreviewState.FILE_TIME='Golden text long enough to wrap or truncate in narrow areas 123'
+cmd --batch fill -p 20 100 -s 220 54 -c 030607
+cmd --batch text -p 24 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "PRINT TIME"
+cmd --batch text -p 24 122 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## restore PreviewState.FILE_TIME
+cmd --batch fill -p 20 100 -s 220 54 -c 030607
+cmd --batch text -p 24 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "PRINT TIME"
+cmd --batch text -p 8 122 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t " --"
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## set PreviewState.FILE_TIME=''
+cmd --batch fill -p 20 100 -s 220 54 -c 030607
+cmd --batch text -p 24 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "PRINT TIME"
+cmd --batch text -p 24 122 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t ""
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## restore PreviewState.FILE_TIME
+cmd --batch fill -p 20 100 -s 220 54 -c 030607
+cmd --batch text -p 24 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "PRINT TIME"
+cmd --batch text -p 8 122 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t " --"
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## set PreviewState.FILE_LAYERS='Golden text long enough to wrap or truncate in narrow areas 123'
+cmd --batch fill -p 20 175 -s 220 54 -c 030607
+cmd --batch text -p 24 175 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "LAYERS"
+cmd --batch text -p 24 197 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## restore PreviewState.FILE_LAYERS
+cmd --batch fill -p 20 175 -s 220 54 -c 030607
+cmd --batch text -p 24 175 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "LAYERS"
+cmd --batch text -p 8 197 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t " --"
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## set PreviewState.FILE_LAYERS=''
+cmd --batch fill -p 20 175 -s 220 54 -c 030607
+cmd --batch text -p 24 175 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "LAYERS"
+cmd --batch text -p 24 197 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t ""
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## restore PreviewState.FILE_LAYERS
+cmd --batch fill -p 20 175 -s 220 54 -c 030607
+cmd --batch text -p 24 175 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "LAYERS"
+cmd --batch text -p 8 197 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t " --"
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## set PreviewState.FILE_SIZE='Golden text long enough to wrap or truncate in narrow areas 123'
+cmd --batch fill -p 20 250 -s 220 54 -c 030607
+cmd --batch text -p 24 250 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "FILE SIZE"
+cmd --batch text -p 24 272 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## restore PreviewState.FILE_SIZE
+cmd --batch fill -p 20 250 -s 220 54 -c 030607
+cmd --batch text -p 24 250 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "FILE SIZE"
+cmd --batch text -p 8 272 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t " --"
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## set PreviewState.FILE_SIZE=''
+cmd --batch fill -p 20 250 -s 220 54 -c 030607
+cmd --batch text -p 24 250 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "FILE SIZE"
+cmd --batch text -p 24 272 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t ""
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## restore PreviewState.FILE_SIZE
+cmd --batch fill -p 20 250 -s 220 54 -c 030607
+cmd --batch text -p 24 250 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "FILE SIZE"
+cmd --batch text -p 8 272 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t " --"
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## set PreviewState.SCALE=3.0
+cmd --batch fill -p 20 352 -s 220 22 -c 030607
+cmd --batch text -p 130 363 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "SCALE 300%"
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## restore PreviewState.SCALE
+cmd --batch fill -p 20 352 -s 220 22 -c 030607
+cmd --batch text -p 130 363 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "SCALE 100%"
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## set PreviewState.SCALE=0.25
+cmd --batch fill -p 20 352 -s 220 22 -c 030607
+cmd --batch text -p 130 363 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "SCALE 25%"
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## restore PreviewState.SCALE
+cmd --batch fill -p 20 352 -s 220 22 -c 030607
+cmd --batch text -p 130 363 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "SCALE 100%"
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## set PreviewState.ERROR='Golden text long enough to wrap or truncate in narrow areas 123'
+cmd --batch fill -p 290 100 -s 384 264 -c 050c0f
+cmd --batch stroke -p 290 100 -s 384 264 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 298 108 -s 368 248 -c 050c0f
+cmd --batch text -p 482 232 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "FAILED"
+cmd --batch text -p 482 316 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle --max-width 360 --max-height 72 --wrap -t "Golden text long enough to wrap or truncate in narrow areas 123"
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## restore PreviewState.ERROR
+cmd --batch fill -p 290 100 -s 384 264 -c 050c0f
+cmd --batch stroke -p 290 100 -s 384 264 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 298 108 -s 368 248 -c 050c0f
+cmd --batch text -p 482 232 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "PREPARING..."
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## set PreviewState.YAW=150.0
+cmd --batch fill -p 468 395 -s 29 29 -c 030607
+cmd --batch fill -p 468 408 -s 29 2 -c 295c66
+cmd --batch fill -p 649 397 -s 25 25 -c 030607
+cmd --batch stroke -p 649 397 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 655 406 -s 13 1 -c 35d9e6
+cmd --batch fill -p 655 412 -s 13 1 -c 35d9e6
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## restore PreviewState.YAW
+cmd --batch fill -p 647 395 -s 27 29 -c 030607
+cmd --batch fill -p 647 408 -s 27 2 -c 295c66
+cmd --batch fill -p 470 397 -s 25 25 -c 030607
+cmd --batch stroke -p 470 397 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 476 406 -s 13 1 -c 35d9e6
+cmd --batch fill -p 476 412 -s 13 1 -c 35d9e6
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## set PreviewState.YAW=-150.0
+cmd --batch fill -p 468 395 -s 29 29 -c 030607
+cmd --batch fill -p 468 408 -s 29 2 -c 295c66
+cmd --batch fill -p 290 397 -s 25 25 -c 030607
+cmd --batch stroke -p 290 397 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 296 406 -s 13 1 -c 35d9e6
+cmd --batch fill -p 296 412 -s 13 1 -c 35d9e6
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## restore PreviewState.YAW
+cmd --batch fill -p 290 395 -s 27 29 -c 030607
+cmd --batch fill -p 290 408 -s 27 2 -c 295c66
+cmd --batch fill -p 470 397 -s 25 25 -c 030607
+cmd --batch stroke -p 470 397 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 476 406 -s 13 1 -c 35d9e6
+cmd --batch fill -p 476 412 -s 13 1 -c 35d9e6
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## set PreviewState.PITCH=70.0
+cmd --batch fill -p 738 181 -s 29 29 -c 030607
+cmd --batch fill -p 751 181 -s 2 29 -c 295c66
+cmd --batch fill -p 740 100 -s 25 25 -c 030607
+cmd --batch stroke -p 740 100 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 746 109 -s 13 1 -c 35d9e6
+cmd --batch fill -p 746 115 -s 13 1 -c 35d9e6
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## restore PreviewState.PITCH
+cmd --batch fill -p 738 100 -s 29 27 -c 030607
+cmd --batch fill -p 751 100 -s 2 27 -c 295c66
+cmd --batch fill -p 740 183 -s 25 25 -c 030607
+cmd --batch stroke -p 740 183 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 746 192 -s 13 1 -c 35d9e6
+cmd --batch fill -p 746 198 -s 13 1 -c 35d9e6
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## set PreviewState.PITCH=-70.0
+cmd --batch fill -p 738 181 -s 29 29 -c 030607
+cmd --batch fill -p 751 181 -s 2 29 -c 295c66
+cmd --batch fill -p 740 391 -s 25 25 -c 030607
+cmd --batch stroke -p 740 391 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 746 400 -s 13 1 -c 35d9e6
+cmd --batch fill -p 746 406 -s 13 1 -c 35d9e6
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## restore PreviewState.PITCH
+cmd --batch fill -p 738 389 -s 29 27 -c 030607
+cmd --batch fill -p 751 389 -s 2 27 -c 295c66
+cmd --batch fill -p 740 183 -s 25 25 -c 030607
+cmd --batch stroke -p 740 183 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 746 192 -s 13 1 -c 35d9e6
+cmd --batch fill -p 746 198 -s 13 1 -c 35d9e6
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## set all
+cmd --batch fill -p 20 66 -s 684 26 -c 030607
+cmd --batch text -p 20 79 -c ffffff -f "JetBrainsMono 8pt" -ha left -va middle --max-width 684 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 20 100 -s 220 54 -c 030607
+cmd --batch text -p 24 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "PRINT TIME"
+cmd --batch text -p 24 122 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 20 175 -s 220 54 -c 030607
+cmd --batch text -p 24 175 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "LAYERS"
+cmd --batch text -p 24 197 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 20 250 -s 220 54 -c 030607
+cmd --batch text -p 24 250 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "FILE SIZE"
+cmd --batch text -p 24 272 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 20 352 -s 220 22 -c 030607
+cmd --batch text -p 130 363 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "SCALE 300%"
+cmd --batch fill -p 290 100 -s 384 264 -c 050c0f
+cmd --batch stroke -p 290 100 -s 384 264 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 298 108 -s 368 248 -c 050c0f
+cmd --batch text -p 482 232 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "FAILED"
+cmd --batch text -p 482 316 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle --max-width 360 --max-height 72 --wrap -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 468 395 -s 29 29 -c 030607
+cmd --batch fill -p 468 408 -s 29 2 -c 295c66
+cmd --batch fill -p 649 397 -s 25 25 -c 030607
+cmd --batch stroke -p 649 397 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 655 406 -s 13 1 -c 35d9e6
+cmd --batch fill -p 655 412 -s 13 1 -c 35d9e6
+cmd --batch fill -p 738 181 -s 29 29 -c 030607
+cmd --batch fill -p 751 181 -s 2 29 -c 295c66
+cmd --batch fill -p 740 100 -s 25 25 -c 030607
+cmd --batch stroke -p 740 100 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 746 109 -s 13 1 -c 35d9e6
+cmd --batch fill -p 746 115 -s 13 1 -c 35d9e6
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## redraw all
+cmd --batch text -p 20 79 -c ffffff -f "JetBrainsMono 8pt" -ha left -va middle --max-width 684 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 24 100 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "PRINT TIME"
+cmd --batch text -p 24 122 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 20 164 -s 220 1 -c 295c66
+cmd --batch text -p 24 175 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "LAYERS"
+cmd --batch text -p 24 197 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 20 239 -s 220 1 -c 295c66
+cmd --batch text -p 24 250 -c 35d9e6 -f "JetBrainsMono 8pt" -ha left -va top --max-width 212 --truncate -t "FILE SIZE"
+cmd --batch text -p 24 272 -c d9e4e8 -f "JetBrainsMono 12pt" -ha left -va top --max-width 212 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 130 363 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "SCALE 300%"
+cmd --batch button -p 20 384 -s 104 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 72 --truncate -t " -" --id 0:model.scale_down --layer base
+cmd --batch button -p 136 384 -s 104 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 72 --truncate -t "+" --id 0:model.scale_up --layer base
+cmd --batch fill -p 290 100 -s 384 264 -c 050c0f
+cmd --batch stroke -p 290 100 -s 384 264 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 298 108 -s 368 248 -c 050c0f
+cmd --batch text -p 482 232 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "FAILED"
+cmd --batch text -p 482 316 -c f2c94c -f "JetBrainsMono 8pt" -ha center -va middle --max-width 360 --max-height 72 --wrap -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch fill -p 290 374 -s 384 56 -c 030607
+cmd --batch text -p 482 385 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle --max-width 372 --truncate -t "ROTATE"
+cmd --batch fill -p 290 408 -s 384 2 -c 295c66
+cmd --batch fill -p 649 397 -s 25 25 -c 030607
+cmd --batch stroke -p 649 397 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 655 406 -s 13 1 -c 35d9e6
+cmd --batch fill -p 655 412 -s 13 1 -c 35d9e6
+cmd --batch hitbox --id 0:model.yaw_joystick -p 290 374 -s 384 56 --continuous --layer base
+cmd --batch fill -p 724 66 -s 56 364 -c 030607
+cmd --batch text -p 752 80 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle --max-width 44 --truncate -t "TILT"
+cmd --batch fill -p 751 100 -s 2 316 -c 295c66
+cmd --batch fill -p 740 100 -s 25 25 -c 030607
+cmd --batch stroke -p 740 100 -s 25 25 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 746 109 -s 13 1 -c 35d9e6
+cmd --batch fill -p 746 115 -s 13 1 -c 35d9e6
+cmd --batch hitbox --id 0:model.pitch_joystick -p 724 66 -s 56 364 --continuous --layer base
+cmd --batch button -p 502 7 -s 136 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 104 --truncate -t "SETTINGS" --id 0:model.settings --layer base
+cmd --batch button -p 650 7 -s 136 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 104 --truncate -t "PRINT" --id 0:model.print --layer base
+hit model.scale_down 20 384 104 46 False base
+hit model.scale_up 136 384 104 46 False base
+hit model.yaw_joystick 290 374 384 56 True base
+hit model.pitch_joystick 724 66 56 364 True base
+hit model.settings 502 7 136 46 False base
+hit model.print 650 7 136 46 False base
+## press
+action model.pitch_joystick {"kind": "model_preview_action", "route": "pitch_joystick", "style": null, "wire_id": "model.pitch_joystick"}
+action model.print {"kind": "model_preview_action", "route": "print", "style": null, "wire_id": "model.print"}
+action model.scale_down {"kind": "model_preview_action", "route": "scale_down", "style": null, "wire_id": "model.scale_down"}
+action model.scale_up {"kind": "model_preview_action", "route": "scale_up", "style": null, "wire_id": "model.scale_up"}
+action model.settings {"kind": "model_preview_action", "route": "settings", "style": null, "wire_id": "model.settings"}
+action model.yaw_joystick {"kind": "model_preview_action", "route": "yaw_joystick", "style": null, "wire_id": "model.yaw_joystick"}
+press model.print
+cmd --batch button -p 650 7 -s 136 46 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 104 --truncate -t "PRINT"
+cmd --batch button -p 650 7 -s 136 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 104 --truncate -t "PRINT"
+press model.scale_down
+cmd --batch button -p 20 384 -s 104 46 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 72 --truncate -t " -"
+cmd --batch button -p 20 384 -s 104 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 72 --truncate -t " -"
+press model.scale_up
+cmd --batch button -p 136 384 -s 104 46 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 72 --truncate -t "+"
+cmd --batch button -p 136 384 -s 104 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 72 --truncate -t "+"
+press model.settings
+cmd --batch button -p 502 7 -s 136 46 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 104 --truncate -t "SETTINGS"
+cmd --batch button -p 502 7 -s 136 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 104 --truncate -t "SETTINGS"

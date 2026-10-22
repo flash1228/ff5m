@@ -1,0 +1,115 @@
+## draw defaults
+cmd --batch fill -p 35 80 -s 230 135 -c 050c0f
+cmd --batch stroke -p 35 80 -s 230 135 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 150 133 -c 35d9e6 -f "Roboto Bold 16pt" -ha center -va middle --max-width 198 --truncate -t "PLA"
+cmd --batch text -p 150 171 -c d9e4e8 -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "220C"
+cmd --batch hitbox --id 0:filament.select.c12380695f26 -p 35 80 -s 230 135 --layer base
+cmd --batch fill -p 285 80 -s 230 135 -c 050c0f
+cmd --batch stroke -p 285 80 -s 230 135 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 400 133 -c 35d9e6 -f "Roboto Bold 16pt" -ha center -va middle --max-width 198 --truncate -t "PETG"
+cmd --batch text -p 400 171 -c d9e4e8 -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "240C"
+cmd --batch hitbox --id 0:filament.select.d3c4235cd2c7 -p 285 80 -s 230 135 --layer base
+cmd --batch fill -p 535 80 -s 230 135 -c 050c0f
+cmd --batch stroke -p 535 80 -s 230 135 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 650 133 -c 35d9e6 -f "Roboto Bold 16pt" -ha center -va middle --max-width 198 --truncate -t "ABS"
+cmd --batch text -p 650 171 -c d9e4e8 -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "250C"
+cmd --batch hitbox --id 0:filament.select.a6ccb7d073e0 -p 535 80 -s 230 135 --layer base
+cmd --batch fill -p 285 235 -s 230 135 -c 050c0f
+cmd --batch stroke -p 285 235 -s 230 135 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 400 288 -c 35d9e6 -f "Roboto Bold 16pt" -ha center -va middle --max-width 198 --truncate -t "TPU"
+cmd --batch text -p 400 326 -c d9e4e8 -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "230C"
+cmd --batch hitbox --id 0:filament.select.2546eddf5383 -p 285 235 -s 230 135 --layer base
+hit filament.select.c12380695f26 35 80 230 135 False base
+hit filament.select.d3c4235cd2c7 285 80 230 135 False base
+hit filament.select.a6ccb7d073e0 535 80 230 135 False base
+hit filament.select.2546eddf5383 285 235 230 135 False base
+rect r Column filament.material.root 12 64 776 364
+rect r.0 Row 35 80 730 135
+rect r.0.0 Button filament.material.0 35 80 230 135
+rect r.0.1 Button filament.material.1 285 80 230 135
+rect r.0.2 Button filament.material.2 535 80 230 135
+rect r.1 Row 285 235 230 135
+rect r.1.0 Button filament.material.3 285 235 230 135
+## reflect defaults
+page state {}
+page dependencies {"conditions": [], "states": {}}
+page actions [{"hint": {"heater": "material", "kind": "heating", "target": "TPU"}, "key": "ui.pages.filament.actions.FilamentCommand.SELECT", "kind": "command", "payload": "TPU", "state_effect": null, "wire_id": "filament.select.2546eddf5383"}, {"hint": {"heater": "material", "kind": "heating", "target": "ABS"}, "key": "ui.pages.filament.actions.FilamentCommand.SELECT", "kind": "command", "payload": "ABS", "state_effect": null, "wire_id": "filament.select.a6ccb7d073e0"}, {"hint": {"heater": "material", "kind": "heating", "target": "PLA"}, "key": "ui.pages.filament.actions.FilamentCommand.SELECT", "kind": "command", "payload": "PLA", "state_effect": null, "wire_id": "filament.select.c12380695f26"}, {"hint": {"heater": "material", "kind": "heating", "target": "PETG"}, "key": "ui.pages.filament.actions.FilamentCommand.SELECT", "kind": "command", "payload": "PETG", "state_effect": null, "wire_id": "filament.select.d3c4235cd2c7"}]
+page bindings []
+node {"actions": {}, "bindings": {}, "bounds": [12, 64, 776, 364], "component_template_instance": null, "condition": null, "container": true, "id": "filament.material.root", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [23, 16, 23, 16], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 20}, "property_origins": {}, "ref": "filament.material.root", "structure_slot": null, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [35, 80, 730, 135], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0", "layout": {"allow_overflow": false, "grow": 1, "height": 135, "horizontal": "center", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 730}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "horizontal", "gap": 20}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Row", "visible": true}
+node {"actions": {"action": {"hint": {"heater": "material", "kind": "heating", "target": "PLA"}, "key": "ui.pages.filament.actions.FilamentCommand.SELECT", "kind": "command", "payload": "PLA", "state_effect": null, "wire_id": "filament.select.c12380695f26"}}, "bindings": {}, "bounds": [35, 80, 230, 135], "component_template_instance": null, "condition": null, "container": false, "id": "filament.material.0", "layout": {"allow_overflow": false, "grow": 1, "height": 135, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 230}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"heater": "material", "kind": "heating", "target": "PLA"}, "key": "ui.pages.filament.actions.FilamentCommand.SELECT", "kind": "command", "payload": "PLA", "state_effect": null, "wire_id": "filament.select.c12380695f26"}, "button_layout": "center", "font": "Roboto Bold 16pt", "label": "PLA", "state": "enabled", "subtitle": "220C"}, "property_origins": {}, "ref": "filament.material.0", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"hint": {"heater": "material", "kind": "heating", "target": "PETG"}, "key": "ui.pages.filament.actions.FilamentCommand.SELECT", "kind": "command", "payload": "PETG", "state_effect": null, "wire_id": "filament.select.d3c4235cd2c7"}}, "bindings": {}, "bounds": [285, 80, 230, 135], "component_template_instance": null, "condition": null, "container": false, "id": "filament.material.1", "layout": {"allow_overflow": false, "grow": 1, "height": 135, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 230}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"heater": "material", "kind": "heating", "target": "PETG"}, "key": "ui.pages.filament.actions.FilamentCommand.SELECT", "kind": "command", "payload": "PETG", "state_effect": null, "wire_id": "filament.select.d3c4235cd2c7"}, "button_layout": "center", "font": "Roboto Bold 16pt", "label": "PETG", "state": "enabled", "subtitle": "240C"}, "property_origins": {}, "ref": "filament.material.1", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"hint": {"heater": "material", "kind": "heating", "target": "ABS"}, "key": "ui.pages.filament.actions.FilamentCommand.SELECT", "kind": "command", "payload": "ABS", "state_effect": null, "wire_id": "filament.select.a6ccb7d073e0"}}, "bindings": {}, "bounds": [535, 80, 230, 135], "component_template_instance": null, "condition": null, "container": false, "id": "filament.material.2", "layout": {"allow_overflow": false, "grow": 1, "height": 135, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 230}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"heater": "material", "kind": "heating", "target": "ABS"}, "key": "ui.pages.filament.actions.FilamentCommand.SELECT", "kind": "command", "payload": "ABS", "state_effect": null, "wire_id": "filament.select.a6ccb7d073e0"}, "button_layout": "center", "font": "Roboto Bold 16pt", "label": "ABS", "state": "enabled", "subtitle": "250C"}, "property_origins": {}, "ref": "filament.material.2", "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [285, 235, 230, 135], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.1", "layout": {"allow_overflow": false, "grow": 1, "height": 135, "horizontal": "center", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 230}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "horizontal", "gap": 20}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Row", "visible": true}
+node {"actions": {"action": {"hint": {"heater": "material", "kind": "heating", "target": "TPU"}, "key": "ui.pages.filament.actions.FilamentCommand.SELECT", "kind": "command", "payload": "TPU", "state_effect": null, "wire_id": "filament.select.2546eddf5383"}}, "bindings": {}, "bounds": [285, 235, 230, 135], "component_template_instance": null, "condition": null, "container": false, "id": "filament.material.3", "layout": {"allow_overflow": false, "grow": 1, "height": 135, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 230}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"heater": "material", "kind": "heating", "target": "TPU"}, "key": "ui.pages.filament.actions.FilamentCommand.SELECT", "kind": "command", "payload": "TPU", "state_effect": null, "wire_id": "filament.select.2546eddf5383"}, "button_layout": "center", "font": "Roboto Bold 16pt", "label": "TPU", "state": "enabled", "subtitle": "230C"}, "property_origins": {}, "ref": "filament.material.3", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+## set all
+hit filament.select.c12380695f26 35 80 230 135 False base
+hit filament.select.d3c4235cd2c7 285 80 230 135 False base
+hit filament.select.a6ccb7d073e0 535 80 230 135 False base
+hit filament.select.2546eddf5383 285 235 230 135 False base
+## redraw all
+cmd --batch fill -p 35 80 -s 230 135 -c 050c0f
+cmd --batch stroke -p 35 80 -s 230 135 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 150 133 -c 35d9e6 -f "Roboto Bold 16pt" -ha center -va middle --max-width 198 --truncate -t "PLA"
+cmd --batch text -p 150 171 -c d9e4e8 -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "220C"
+cmd --batch hitbox --id 0:filament.select.c12380695f26 -p 35 80 -s 230 135 --layer base
+cmd --batch fill -p 285 80 -s 230 135 -c 050c0f
+cmd --batch stroke -p 285 80 -s 230 135 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 400 133 -c 35d9e6 -f "Roboto Bold 16pt" -ha center -va middle --max-width 198 --truncate -t "PETG"
+cmd --batch text -p 400 171 -c d9e4e8 -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "240C"
+cmd --batch hitbox --id 0:filament.select.d3c4235cd2c7 -p 285 80 -s 230 135 --layer base
+cmd --batch fill -p 535 80 -s 230 135 -c 050c0f
+cmd --batch stroke -p 535 80 -s 230 135 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 650 133 -c 35d9e6 -f "Roboto Bold 16pt" -ha center -va middle --max-width 198 --truncate -t "ABS"
+cmd --batch text -p 650 171 -c d9e4e8 -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "250C"
+cmd --batch hitbox --id 0:filament.select.a6ccb7d073e0 -p 535 80 -s 230 135 --layer base
+cmd --batch fill -p 285 235 -s 230 135 -c 050c0f
+cmd --batch stroke -p 285 235 -s 230 135 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 400 288 -c 35d9e6 -f "Roboto Bold 16pt" -ha center -va middle --max-width 198 --truncate -t "TPU"
+cmd --batch text -p 400 326 -c d9e4e8 -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "230C"
+cmd --batch hitbox --id 0:filament.select.2546eddf5383 -p 285 235 -s 230 135 --layer base
+hit filament.select.c12380695f26 35 80 230 135 False base
+hit filament.select.d3c4235cd2c7 285 80 230 135 False base
+hit filament.select.a6ccb7d073e0 535 80 230 135 False base
+hit filament.select.2546eddf5383 285 235 230 135 False base
+## press
+action filament.select.2546eddf5383 {"hint": {"heater": "material", "kind": "heating", "target": "TPU"}, "key": "ui.pages.filament.actions.FilamentCommand.SELECT", "kind": "command", "payload": "TPU", "state_effect": null, "wire_id": "filament.select.2546eddf5383"}
+action filament.select.a6ccb7d073e0 {"hint": {"heater": "material", "kind": "heating", "target": "ABS"}, "key": "ui.pages.filament.actions.FilamentCommand.SELECT", "kind": "command", "payload": "ABS", "state_effect": null, "wire_id": "filament.select.a6ccb7d073e0"}
+action filament.select.c12380695f26 {"hint": {"heater": "material", "kind": "heating", "target": "PLA"}, "key": "ui.pages.filament.actions.FilamentCommand.SELECT", "kind": "command", "payload": "PLA", "state_effect": null, "wire_id": "filament.select.c12380695f26"}
+action filament.select.d3c4235cd2c7 {"hint": {"heater": "material", "kind": "heating", "target": "PETG"}, "key": "ui.pages.filament.actions.FilamentCommand.SELECT", "kind": "command", "payload": "PETG", "state_effect": null, "wire_id": "filament.select.d3c4235cd2c7"}
+press filament.select.2546eddf5383
+cmd --batch fill -p 285 235 -s 230 135 -c 103238
+cmd --batch stroke -p 285 235 -s 230 135 -c ffffff -lw 2 -sd inner
+cmd --batch text -p 400 288 -c ffffff -f "Roboto Bold 16pt" -ha center -va middle --max-width 198 --truncate -t "TPU"
+cmd --batch text -p 400 326 -c d9e4e8 -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "230C"
+cmd --batch fill -p 285 235 -s 230 135 -c 050c0f
+cmd --batch stroke -p 285 235 -s 230 135 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 400 288 -c 35d9e6 -f "Roboto Bold 16pt" -ha center -va middle --max-width 198 --truncate -t "TPU"
+cmd --batch text -p 400 326 -c d9e4e8 -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "230C"
+press filament.select.a6ccb7d073e0
+cmd --batch fill -p 535 80 -s 230 135 -c 103238
+cmd --batch stroke -p 535 80 -s 230 135 -c ffffff -lw 2 -sd inner
+cmd --batch text -p 650 133 -c ffffff -f "Roboto Bold 16pt" -ha center -va middle --max-width 198 --truncate -t "ABS"
+cmd --batch text -p 650 171 -c d9e4e8 -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "250C"
+cmd --batch fill -p 535 80 -s 230 135 -c 050c0f
+cmd --batch stroke -p 535 80 -s 230 135 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 650 133 -c 35d9e6 -f "Roboto Bold 16pt" -ha center -va middle --max-width 198 --truncate -t "ABS"
+cmd --batch text -p 650 171 -c d9e4e8 -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "250C"
+press filament.select.c12380695f26
+cmd --batch fill -p 35 80 -s 230 135 -c 103238
+cmd --batch stroke -p 35 80 -s 230 135 -c ffffff -lw 2 -sd inner
+cmd --batch text -p 150 133 -c ffffff -f "Roboto Bold 16pt" -ha center -va middle --max-width 198 --truncate -t "PLA"
+cmd --batch text -p 150 171 -c d9e4e8 -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "220C"
+cmd --batch fill -p 35 80 -s 230 135 -c 050c0f
+cmd --batch stroke -p 35 80 -s 230 135 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 150 133 -c 35d9e6 -f "Roboto Bold 16pt" -ha center -va middle --max-width 198 --truncate -t "PLA"
+cmd --batch text -p 150 171 -c d9e4e8 -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "220C"
+press filament.select.d3c4235cd2c7
+cmd --batch fill -p 285 80 -s 230 135 -c 103238
+cmd --batch stroke -p 285 80 -s 230 135 -c ffffff -lw 2 -sd inner
+cmd --batch text -p 400 133 -c ffffff -f "Roboto Bold 16pt" -ha center -va middle --max-width 198 --truncate -t "PETG"
+cmd --batch text -p 400 171 -c d9e4e8 -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "240C"
+cmd --batch fill -p 285 80 -s 230 135 -c 050c0f
+cmd --batch stroke -p 285 80 -s 230 135 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 400 133 -c 35d9e6 -f "Roboto Bold 16pt" -ha center -va middle --max-width 198 --truncate -t "PETG"
+cmd --batch text -p 400 171 -c d9e4e8 -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "240C"

@@ -1,0 +1,258 @@
+## draw defaults
+cmd --batch fill -p 25 73 -s 270 44 -c 050c0f
+cmd --batch stroke -p 25 73 -s 270 44 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 160 95 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "DEFAULT"
+cmd --batch hitbox --id 0:mod.option.0 -p 25 73 -s 270 44 --layer base
+cmd --batch fill -p 25 123 -s 270 44 -c 050c0f
+cmd --batch stroke -p 25 123 -s 270 44 -c b47aff -lw 2 -sd inner
+cmd --batch text -p 160 145 -c b47aff -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "AMBER"
+cmd --batch image -p 47 133 --format fxi1
+cmd --batch hitbox --id 0:mod.option.1 -p 25 123 -s 270 44 --layer base
+cmd --batch fill -p 25 173 -s 270 44 -c 050c0f
+cmd --batch stroke -p 25 173 -s 270 44 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 160 195 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "DARK"
+cmd --batch hitbox --id 0:mod.option.2 -p 25 173 -s 270 44 --layer base
+cmd --batch fill -p 25 223 -s 270 44 -c 050c0f
+cmd --batch stroke -p 25 223 -s 270 44 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 160 245 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "SYNTH"
+cmd --batch hitbox --id 0:mod.option.3 -p 25 223 -s 270 44 --layer base
+cmd --batch fill -p 25 273 -s 270 44 -c 050c0f
+cmd --batch stroke -p 25 273 -s 270 44 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 160 295 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "CYBERDECK"
+cmd --batch hitbox --id 0:mod.option.4 -p 25 273 -s 270 44 --layer base
+cmd --batch fill -p 315 73 -s 460 306 -c 050c0f
+cmd --batch stroke -p 315 73 -s 460 306 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 335 104 -c 35d9e6 -f "JetBrainsMono Bold 12pt" -ha left -va middle --max-width 420 --truncate -t "AMBER"
+cmd --batch text -p 335 126 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 420 --truncate -t ""
+cmd --batch fill -p 335 153 -s 420 76 -c 030607
+cmd --batch stroke -p 335 153 -s 420 76 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 351 179 -c 35d9e6 -f "JetBrainsMono Bold 12pt" -ha left -va middle --max-width 310 --truncate -t "PRINT READY"
+cmd --batch text -p 706 179 -c 56c596 -f "JetBrainsMono Bold 8pt" -ha center -va middle -t "ONLINE"
+cmd --batch text -p 351 203 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 388 --truncate -t "NOZZLE 220 C  /  BED 60 C"
+cmd --batch fill -p 335 245 -s 200 48 -c 050c0f
+cmd --batch stroke -p 335 245 -s 200 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 435 269 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha center -va middle --max-width 200 --truncate -t "NORMAL"
+cmd --batch fill -p 555 245 -s 200 48 -c 050c0f
+cmd --batch stroke -p 555 245 -s 200 48 -c b47aff -lw 2 -sd inner
+cmd --batch text -p 655 269 -c b47aff -f "JetBrainsMono Bold 8pt" -ha center -va middle --max-width 200 --truncate -t "SELECTED"
+cmd --batch fill -p 335 311 -s 200 48 -c 120708
+cmd --batch stroke -p 335 311 -s 200 48 -c ff4d5a -lw 2 -sd inner
+cmd --batch text -p 435 335 -c ff4d5a -f "JetBrainsMono Bold 8pt" -ha center -va middle --max-width 200 --truncate -t "ALERT"
+cmd --batch fill -p 555 311 -s 200 48 -c 244c66
+cmd --batch stroke -p 555 311 -s 200 48 -c 56c596 -lw 2 -sd inner
+cmd --batch text -p 655 335 -c 56c596 -f "JetBrainsMono Bold 8pt" -ha center -va middle --max-width 200 --truncate -t "READY"
+cmd --batch button -p 25 390 -s 90 47 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 58 --truncate -t "<"
+cmd --batch text -p 160 413 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "1/1"
+cmd --batch button -p 205 390 -s 90 47 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 58 --truncate -t ">"
+cmd --batch button -p 505 390 -s 125 47 --background 120708 --border ff4d5a --text-color ff4d5a -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 93 --truncate -t "CANCEL" --id 0:mod.cancel --layer base
+cmd --batch button -p 650 390 -s 125 47 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 93 --truncate -t "SAVE" --id 0:mod.apply --layer base
+hit mod.option.0 25 73 270 44 False base
+hit mod.option.1 25 123 270 44 False base
+hit mod.option.2 25 173 270 44 False base
+hit mod.option.3 25 223 270 44 False base
+hit mod.option.4 25 273 270 44 False base
+hit mod.cancel 505 390 125 47 False base
+hit mod.apply 650 390 125 47 False base
+rect r Grid 25 65 750 372
+rect r.0 Grid 25 73 750 306
+rect r.0.0 Column 25 73 270 244
+rect r.0.0.0 OptionButton 25 73 270 44
+rect r.0.0.1 OptionButton 25 123 270 44
+rect r.0.0.2 OptionButton 25 173 270 44
+rect r.0.0.3 OptionButton 25 223 270 44
+rect r.0.0.4 OptionButton 25 273 270 44
+rect r.0.1 Overlay 315 73 460 306
+rect r.0.1.0 Panel 315 73 460 306
+rect r.0.1.1 Column 315 73 460 306
+rect r.0.1.1.0 Column 335 93 420 44
+rect r.0.1.1.0.0 Text 335 93 420 22
+rect r.0.1.1.0.1 Text 335 115 420 22
+rect r.0.1.1.1 Overlay 335 153 420 76
+rect r.0.1.1.1.0 Panel 335 153 420 76
+rect r.0.1.1.1.1 Column 335 153 420 76
+rect r.0.1.1.1.1.0 Row 351 169 388 20
+rect r.0.1.1.1.1.0.0 Text 351 169 310 20
+rect r.0.1.1.1.1.0.1 Text 673 169 66 20
+rect r.0.1.1.1.1.1 Text 351 193 388 20
+rect r.0.1.1.2 Grid 335 245 420 114
+rect r.0.1.1.2.0 Overlay 335 245 200 48
+rect r.0.1.1.2.0.0 Panel 335 245 200 48
+rect r.0.1.1.2.0.1 Text 335 245 200 48
+rect r.0.1.1.2.1 Overlay 555 245 200 48
+rect r.0.1.1.2.1.0 Panel 555 245 200 48
+rect r.0.1.1.2.1.1 Text 555 245 200 48
+rect r.0.1.1.2.2 Overlay 335 311 200 48
+rect r.0.1.1.2.2.0 Panel 335 311 200 48
+rect r.0.1.1.2.2.1 Text 335 311 200 48
+rect r.0.1.1.2.3 Overlay 555 311 200 48
+rect r.0.1.1.2.3.0 Panel 555 311 200 48
+rect r.0.1.1.2.3.1 Text 555 311 200 48
+rect r.1 Grid 25 390 750 47
+rect r.1.0 Grid 25 390 270 47
+rect r.1.0.0 Button 25 390 90 47
+rect r.1.0.1 Text 115 390 90 47
+rect r.1.0.2 Button 205 390 90 47
+rect r.1.1 Row 505 390 270 47
+rect r.1.1.0 Button 505 390 125 47
+rect r.1.1.1 Button 650 390 125 47
+## reflect defaults
+page state {}
+page dependencies {"conditions": [], "states": {}}
+page actions [{"index": null, "kind": "parameter_action", "route": "apply", "wire_id": "mod.apply"}, {"index": null, "kind": "parameter_action", "route": "cancel", "wire_id": "mod.cancel"}, {"index": 0, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.0"}, {"index": 1, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.1"}, {"index": 2, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.2"}, {"index": 3, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.3"}, {"index": 4, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.4"}, {"index": null, "kind": "parameter_action", "route": "options.next", "wire_id": "mod.options.next"}, {"index": null, "kind": "parameter_action", "route": "options.prev", "wire_id": "mod.options.prev"}]
+page bindings []
+node {"actions": {}, "bindings": {}, "bounds": [25, 65, 750, 372], "component_template_instance": null, "condition": null, "container": true, "id": "path:0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 8, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 11, "columns": ["<ui.layout.Flex object>"], "row_gap": 11, "rows": ["<ui.layout.Flex object>", 47]}, "property_origins": {}, "ref": null, "structure_slot": null, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 73, 750, 306], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 20, "columns": ["<ui.layout.Flex object>", "<ui.layout.Flex object>"], "row_gap": 20, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 73, 270, 244], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": "content", "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "top", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 6}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {"action": {"index": 0, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.0"}}, "bindings": {}, "bounds": [25, 73, 270, 44], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": 44, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"index": 0, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.0"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "DEFAULT", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "OptionButton", "visible": true}
+node {"actions": {"action": {"index": 1, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.1"}}, "bindings": {}, "bounds": [25, 123, 270, 44], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": 44, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"index": 1, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.1"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "AMBER", "state": "selected", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "OptionButton", "visible": true}
+node {"actions": {"action": {"index": 2, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.2"}}, "bindings": {}, "bounds": [25, 173, 270, 44], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.0.2", "layout": {"allow_overflow": false, "grow": 1, "height": 44, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"index": 2, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.2"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "DARK", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "OptionButton", "visible": true}
+node {"actions": {"action": {"index": 3, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.3"}}, "bindings": {}, "bounds": [25, 223, 270, 44], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.0.3", "layout": {"allow_overflow": false, "grow": 1, "height": 44, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"index": 3, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.3"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "SYNTH", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 3}, "style": null, "template_instance": null, "type": "OptionButton", "visible": true}
+node {"actions": {"action": {"index": 4, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.4"}}, "bindings": {}, "bounds": [25, 273, 270, 44], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.0.4", "layout": {"allow_overflow": false, "grow": 1, "height": 44, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"index": 4, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.4"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "CYBERDECK", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 4}, "style": null, "template_instance": null, "type": "OptionButton", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [315, 73, 460, 306], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [315, 73, 460, 306], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.BORDER", "line_width": 2}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [315, 73, 460, 306], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [20, 20, 20, 20], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 16}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [335, 93, 420, 44], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": 44, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 0}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [335, 93, 420, 22], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono Bold 12pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "AMBER", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [335, 115, 420, 22], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.DIM", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [335, 153, 420, 76], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": 76, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [335, 153, 420, 76], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.BACKGROUND", "border": "ui.theme.ThemeColor.BORDER", "line_width": 2}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [335, 153, 420, 76], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1.1.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [16, 16, 16, 16], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 4}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [351, 169, 388, 20], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1.1.1.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "horizontal", "gap": 12}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Row", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [351, 169, 310, 20], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.1.1.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono Bold 12pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "PRINT READY", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [673, 169, 66, 20], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.1.1.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": "content"}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.SUCCESS", "fit": false, "font": "JetBrainsMono Bold 8pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "ONLINE", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [351, 193, 388, 20], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.1.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.TEXT", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "NOZZLE 220 C  /  BED 60 C", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [335, 245, 420, 114], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1.1.2", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 20, "columns": ["<ui.layout.Flex object>", "<ui.layout.Flex object>"], "row_gap": 18, "rows": ["<ui.layout.Flex object>", "<ui.layout.Flex object>"]}, "property_origins": {}, "ref": null, "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [335, 245, 200, 48], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1.1.2.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [335, 245, 200, 48], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.2.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeRole.BUTTON_BACKGROUND", "border": "ui.theme.ThemeRole.BUTTON_BORDER", "line_width": 2}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [335, 245, 200, 48], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.2.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeRole.BUTTON_TEXT", "fit": false, "font": "JetBrainsMono Bold 8pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": true, "value": "NORMAL", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [555, 245, 200, 48], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1.1.2.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [555, 245, 200, 48], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.2.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeRole.BUTTON_SELECTED_BACKGROUND", "border": "ui.theme.ThemeRole.BUTTON_SELECTED_BORDER", "line_width": 2}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [555, 245, 200, 48], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.2.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeRole.BUTTON_SELECTED_TEXT", "fit": false, "font": "JetBrainsMono Bold 8pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": true, "value": "SELECTED", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [335, 311, 200, 48], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1.1.2.2", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 2, "row": 1, "row_span": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [335, 311, 200, 48], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.2.2.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.DANGER_BACKGROUND", "border": "ui.theme.ThemeColor.DANGER", "line_width": 2}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [335, 311, 200, 48], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.2.2.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.DANGER", "fit": false, "font": "JetBrainsMono Bold 8pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": true, "value": "ALERT", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [555, 311, 200, 48], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1.1.2.3", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"column": 1, "column_span": 1, "index": 3, "row": 1, "row_span": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [555, 311, 200, 48], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.2.3.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PRIMARY_DARK", "border": "ui.theme.ThemeColor.SUCCESS", "line_width": 2}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [555, 311, 200, 48], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.2.3.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.SUCCESS", "fit": false, "font": "JetBrainsMono Bold 8pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": true, "value": "READY", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 390, 750, 47], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 20, "columns": ["<ui.layout.Flex object>", "<ui.layout.Flex object>"], "row_gap": 20, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 1, "row": 1, "row_span": 1}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 390, 270, 47], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 0, "columns": [90, "<ui.layout.Flex object>", 90], "row_gap": 0, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {"action": {"index": null, "kind": "parameter_action", "route": "options.prev", "wire_id": "mod.options.prev"}}, "bindings": {}, "bounds": [25, 390, 90, 47], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.1.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"index": null, "kind": "parameter_action", "route": "options.prev", "wire_id": "mod.options.prev"}, "button_layout": "center", "font": "JetBrainsMono Bold 8pt", "label": "<", "state": "disabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [115, 390, 90, 47], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.1.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.DIM", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "1/1", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {"action": {"index": null, "kind": "parameter_action", "route": "options.next", "wire_id": "mod.options.next"}}, "bindings": {}, "bounds": [205, 390, 90, 47], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.1.0.2", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"index": null, "kind": "parameter_action", "route": "options.next", "wire_id": "mod.options.next"}, "button_layout": "center", "font": "JetBrainsMono Bold 8pt", "label": ">", "state": "disabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"column": 2, "column_span": 1, "index": 2, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [505, 390, 270, 47], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "right", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": "content"}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "horizontal", "gap": 20}, "property_origins": {}, "ref": null, "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Row", "visible": true}
+node {"actions": {"action": {"index": null, "kind": "parameter_action", "route": "cancel", "wire_id": "mod.cancel"}}, "bindings": {}, "bounds": [505, 390, 125, 47], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.1.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 125}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"index": null, "kind": "parameter_action", "route": "cancel", "wire_id": "mod.cancel"}, "button_layout": "center", "font": "JetBrainsMono Bold 8pt", "label": "CANCEL", "state": "danger", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"index": null, "kind": "parameter_action", "route": "apply", "wire_id": "mod.apply"}}, "bindings": {}, "bounds": [650, 390, 125, 47], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.1.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 125}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"index": null, "kind": "parameter_action", "route": "apply", "wire_id": "mod.apply"}, "button_layout": "center", "font": "JetBrainsMono Bold 8pt", "label": "SAVE", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+## set all
+hit mod.option.0 25 73 270 44 False base
+hit mod.option.1 25 123 270 44 False base
+hit mod.option.2 25 173 270 44 False base
+hit mod.option.3 25 223 270 44 False base
+hit mod.option.4 25 273 270 44 False base
+hit mod.cancel 505 390 125 47 False base
+hit mod.apply 650 390 125 47 False base
+## redraw all
+cmd --batch fill -p 25 73 -s 270 44 -c 050c0f
+cmd --batch stroke -p 25 73 -s 270 44 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 160 95 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "DEFAULT"
+cmd --batch hitbox --id 0:mod.option.0 -p 25 73 -s 270 44 --layer base
+cmd --batch fill -p 25 123 -s 270 44 -c 050c0f
+cmd --batch stroke -p 25 123 -s 270 44 -c b47aff -lw 2 -sd inner
+cmd --batch text -p 160 145 -c b47aff -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "AMBER"
+cmd --batch image -p 47 133 --format fxi1
+cmd --batch hitbox --id 0:mod.option.1 -p 25 123 -s 270 44 --layer base
+cmd --batch fill -p 25 173 -s 270 44 -c 050c0f
+cmd --batch stroke -p 25 173 -s 270 44 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 160 195 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "DARK"
+cmd --batch hitbox --id 0:mod.option.2 -p 25 173 -s 270 44 --layer base
+cmd --batch fill -p 25 223 -s 270 44 -c 050c0f
+cmd --batch stroke -p 25 223 -s 270 44 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 160 245 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "SYNTH"
+cmd --batch hitbox --id 0:mod.option.3 -p 25 223 -s 270 44 --layer base
+cmd --batch fill -p 25 273 -s 270 44 -c 050c0f
+cmd --batch stroke -p 25 273 -s 270 44 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 160 295 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "CYBERDECK"
+cmd --batch hitbox --id 0:mod.option.4 -p 25 273 -s 270 44 --layer base
+cmd --batch fill -p 315 73 -s 460 306 -c 050c0f
+cmd --batch stroke -p 315 73 -s 460 306 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 335 104 -c 35d9e6 -f "JetBrainsMono Bold 12pt" -ha left -va middle --max-width 420 --truncate -t "AMBER"
+cmd --batch text -p 335 126 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 420 --truncate -t ""
+cmd --batch fill -p 335 153 -s 420 76 -c 030607
+cmd --batch stroke -p 335 153 -s 420 76 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 351 179 -c 35d9e6 -f "JetBrainsMono Bold 12pt" -ha left -va middle --max-width 310 --truncate -t "PRINT READY"
+cmd --batch text -p 706 179 -c 56c596 -f "JetBrainsMono Bold 8pt" -ha center -va middle -t "ONLINE"
+cmd --batch text -p 351 203 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 388 --truncate -t "NOZZLE 220 C  /  BED 60 C"
+cmd --batch fill -p 335 245 -s 200 48 -c 050c0f
+cmd --batch stroke -p 335 245 -s 200 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 435 269 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha center -va middle --max-width 200 --truncate -t "NORMAL"
+cmd --batch fill -p 555 245 -s 200 48 -c 050c0f
+cmd --batch stroke -p 555 245 -s 200 48 -c b47aff -lw 2 -sd inner
+cmd --batch text -p 655 269 -c b47aff -f "JetBrainsMono Bold 8pt" -ha center -va middle --max-width 200 --truncate -t "SELECTED"
+cmd --batch fill -p 335 311 -s 200 48 -c 120708
+cmd --batch stroke -p 335 311 -s 200 48 -c ff4d5a -lw 2 -sd inner
+cmd --batch text -p 435 335 -c ff4d5a -f "JetBrainsMono Bold 8pt" -ha center -va middle --max-width 200 --truncate -t "ALERT"
+cmd --batch fill -p 555 311 -s 200 48 -c 244c66
+cmd --batch stroke -p 555 311 -s 200 48 -c 56c596 -lw 2 -sd inner
+cmd --batch text -p 655 335 -c 56c596 -f "JetBrainsMono Bold 8pt" -ha center -va middle --max-width 200 --truncate -t "READY"
+cmd --batch button -p 25 390 -s 90 47 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 58 --truncate -t "<"
+cmd --batch text -p 160 413 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "1/1"
+cmd --batch button -p 205 390 -s 90 47 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 58 --truncate -t ">"
+cmd --batch button -p 505 390 -s 125 47 --background 120708 --border ff4d5a --text-color ff4d5a -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 93 --truncate -t "CANCEL" --id 0:mod.cancel --layer base
+cmd --batch button -p 650 390 -s 125 47 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 93 --truncate -t "SAVE" --id 0:mod.apply --layer base
+hit mod.option.0 25 73 270 44 False base
+hit mod.option.1 25 123 270 44 False base
+hit mod.option.2 25 173 270 44 False base
+hit mod.option.3 25 223 270 44 False base
+hit mod.option.4 25 273 270 44 False base
+hit mod.cancel 505 390 125 47 False base
+hit mod.apply 650 390 125 47 False base
+## press
+action mod.apply {"index": null, "kind": "parameter_action", "route": "apply", "wire_id": "mod.apply"}
+action mod.cancel {"index": null, "kind": "parameter_action", "route": "cancel", "wire_id": "mod.cancel"}
+action mod.option.0 {"index": 0, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.0"}
+action mod.option.1 {"index": 1, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.1"}
+action mod.option.2 {"index": 2, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.2"}
+action mod.option.3 {"index": 3, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.3"}
+action mod.option.4 {"index": 4, "kind": "parameter_action", "route": "option", "wire_id": "mod.option.4"}
+press mod.apply
+cmd --batch button -p 650 390 -s 125 47 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 93 --truncate -t "SAVE"
+cmd --batch button -p 650 390 -s 125 47 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 93 --truncate -t "SAVE"
+press mod.cancel
+cmd --batch button -p 505 390 -s 125 47 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 93 --truncate -t "CANCEL"
+cmd --batch button -p 505 390 -s 125 47 --background 120708 --border ff4d5a --text-color ff4d5a -lw 2 -f "JetBrainsMono Bold 8pt" --max-width 93 --truncate -t "CANCEL"
+press mod.option.0
+cmd --batch fill -p 25 73 -s 270 44 -c 103238
+cmd --batch stroke -p 25 73 -s 270 44 -c ffffff -lw 2 -sd inner
+cmd --batch text -p 160 95 -c ffffff -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "DEFAULT"
+cmd --batch fill -p 25 73 -s 270 44 -c 050c0f
+cmd --batch stroke -p 25 73 -s 270 44 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 160 95 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "DEFAULT"
+press mod.option.1
+cmd --batch fill -p 25 123 -s 270 44 -c 103238
+cmd --batch stroke -p 25 123 -s 270 44 -c ffffff -lw 2 -sd inner
+cmd --batch text -p 160 145 -c ffffff -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "AMBER"
+cmd --batch image -p 47 133 --format fxi1
+cmd --batch fill -p 25 123 -s 270 44 -c 050c0f
+cmd --batch stroke -p 25 123 -s 270 44 -c b47aff -lw 2 -sd inner
+cmd --batch text -p 160 145 -c b47aff -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "AMBER"
+cmd --batch image -p 47 133 --format fxi1
+press mod.option.2
+cmd --batch fill -p 25 173 -s 270 44 -c 103238
+cmd --batch stroke -p 25 173 -s 270 44 -c ffffff -lw 2 -sd inner
+cmd --batch text -p 160 195 -c ffffff -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "DARK"
+cmd --batch fill -p 25 173 -s 270 44 -c 050c0f
+cmd --batch stroke -p 25 173 -s 270 44 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 160 195 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "DARK"
+press mod.option.3
+cmd --batch fill -p 25 223 -s 270 44 -c 103238
+cmd --batch stroke -p 25 223 -s 270 44 -c ffffff -lw 2 -sd inner
+cmd --batch text -p 160 245 -c ffffff -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "SYNTH"
+cmd --batch fill -p 25 223 -s 270 44 -c 050c0f
+cmd --batch stroke -p 25 223 -s 270 44 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 160 245 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "SYNTH"
+press mod.option.4
+cmd --batch fill -p 25 273 -s 270 44 -c 103238
+cmd --batch stroke -p 25 273 -s 270 44 -c ffffff -lw 2 -sd inner
+cmd --batch text -p 160 295 -c ffffff -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "CYBERDECK"
+cmd --batch fill -p 25 273 -s 270 44 -c 050c0f
+cmd --batch stroke -p 25 273 -s 270 44 -c 35d9e6 -lw 2 -sd inner
+cmd --batch text -p 160 295 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle --max-width 166 --max-height 32 --wrap --truncate -t "CYBERDECK"

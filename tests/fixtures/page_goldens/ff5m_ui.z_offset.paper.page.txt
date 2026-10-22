@@ -1,0 +1,889 @@
+## draw defaults
+cmd --batch fill -p 20 66 -s 214 72 -c 050c0f
+cmd --batch stroke -p 20 66 -s 214 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 127 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "TRIGGER Z"
+cmd --batch text -p 119 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch fill -p 249 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 249 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 355 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE Z"
+cmd --batch text -p 347 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch fill -p 477 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 477 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 583 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z OFFSET"
+cmd --batch text -p 575 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch button -p 20 152 -s 325 70 --background 120708 --border ff4d5a --text-color ff4d5a -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "PROBE" --id 0:z.probe.cb2b934c509a --layer base
+cmd --batch button -p 365 152 -s 325 70 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "MOVE TO 5.000 MM" --id 0:z.move_safe_half.fa00c5629399 --layer base
+cmd --batch button -p 20 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.005 MM" --id 0:ui.a22abc5e012a --layer base
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM" --id 0:ui.c3a88db0743f --layer base
+cmd --batch button -p 292 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.025 MM" --id 0:ui.389e48f59259 --layer base
+cmd --batch button -p 428 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.100 MM" --id 0:ui.80c2c50bbd19 --layer base
+cmd --batch button -p 563 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.500 MM" --id 0:ui.24bce960f332 --layer base
+cmd --batch button -p 20 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "CLOSER  -0.010"
+cmd --batch button -p 365 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "FARTHER  +0.010"
+cmd --batch button -p 20 384 -s 205 48 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono 8pt" --max-width 173 --truncate -t "BACK TO START"
+cmd --batch button -p 245 384 -s 445 48 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 413 --truncate -t "ACCEPT ZONE"
+cmd --batch fill -p 710 66 -s 70 366 -c 050c0f
+cmd --batch stroke -p 710 66 -s 70 366 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 745 90 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "FORCE"
+cmd --batch text -p 745 249 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "N/A"
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+rect r Overlay paper.root 0 56 800 386
+rect r.0 Grid paper.layout 0 56 800 386
+rect r.0.0 Column paper.controls 20 66 670 366
+rect r.0.0.0 Grid paper.cards 20 66 670 72
+rect r.0.0.0.0 Overlay paper.reference 20 66 214 72
+rect r.0.0.0.0.0 Panel paper.reference.panel 20 66 214 72
+rect r.0.0.0.0.1 Text paper.reference.label 20 74 214 20
+rect r.0.0.0.0.2 Text paper.reference.value 20 105 214 20
+rect r.0.0.0.1 Overlay paper.nozzle 249 66 213 72
+rect r.0.0.0.1.0 Panel paper.nozzle.panel 249 66 213 72
+rect r.0.0.0.1.1 Text paper.nozzle.label 249 74 213 20
+rect r.0.0.0.1.2 Text paper.nozzle.value 249 105 213 20
+rect r.0.0.0.2 Overlay paper.candidate 477 66 213 72
+rect r.0.0.0.2.0 Panel paper.candidate.panel 477 66 213 72
+rect r.0.0.0.2.1 Text paper.candidate.label 477 74 213 20
+rect r.0.0.0.2.2 Text paper.candidate.value 477 105 213 20
+rect r.0.0.1 Spacer paper.spacer.1 20 138 670 14
+rect r.0.0.2 Grid paper.start 20 152 670 70
+rect r.0.0.2.0 Button paper.probe 20 152 325 70
+rect r.0.0.2.1 Button paper.move_safe_half 365 152 325 70
+rect r.0.0.3 Spacer paper.spacer.2 20 222 670 16
+rect r.0.0.4 Grid paper.steps 20 238 670 48
+rect r.0.0.4.0 Button paper.step.005 20 238 128 48
+rect r.0.0.4.1 Button paper.step.010 156 238 128 48
+rect r.0.0.4.2 Button paper.step.025 292 238 128 48
+rect r.0.0.4.3 Button paper.step.100 428 238 127 48
+rect r.0.0.4.4 Button paper.step.500 563 238 127 48
+rect r.0.0.5 Spacer paper.spacer.3 20 286 670 16
+rect r.0.0.6 Grid paper.adjust 20 302 670 66
+rect r.0.0.6.0 Button paper.closer 20 302 325 66
+rect r.0.0.6.1 Button paper.farther 365 302 325 66
+rect r.0.0.7 Spacer paper.spacer.4 20 368 670 16
+rect r.0.0.8 Grid paper.finish 20 384 670 48
+rect r.0.0.8.0 Button paper.reset 20 384 205 48
+rect r.0.0.8.1 Button paper.accept 245 384 445 48
+rect r.0.1 VerticalGauge paper.gauge 710 66 70 366
+rect r.1 When paper.pressure 0 56 800 386
+rect r.1.0 Dialog paper.pressure.dialog 95 112 610 260
+## reflect defaults
+page state {"ui.pages.z_offset.paper.state.PaperState.CANDIDATE": "--", "ui.pages.z_offset.paper.state.PaperState.DIALOG": null, "ui.pages.z_offset.paper.state.PaperState.DIALOG_WEIGHT": 0.0, "ui.pages.z_offset.paper.state.PaperState.GAUGE": null, "ui.pages.z_offset.paper.state.PaperState.MANUAL": false, "ui.pages.z_offset.paper.state.PaperState.MANUAL_START": 5.0, "ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START": false, "ui.pages.z_offset.paper.state.PaperState.NOZZLE": "--", "ui.pages.z_offset.paper.state.PaperState.PROBING": false, "ui.pages.z_offset.paper.state.PaperState.READY": false, "ui.pages.z_offset.paper.state.PaperState.REFERENCE": "--", "ui.pages.z_offset.paper.state.PaperState.STEP": 0.01}
+page dependencies {"conditions": [{"binding": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_content.<locals>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG"], "key": "ui.pages.z_offset.paper.state.PaperState.DIALOG", "keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG"], "kind": "direct", "resolved": null, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}, "child": {"ref": "paper.pressure.dialog", "type": "Dialog"}, "keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG"], "name": "paper.pressure", "node_id": "paper.pressure", "node_ref": "paper.pressure", "preview_result": false, "result": false}], "states": {"ui.pages.z_offset.paper.state.PaperState.CANDIDATE": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.z_offset.paper.state.PaperState.CANDIDATE", "name": "CANDIDATE", "properties": [{"direct": true, "node_id": "paper.candidate.value", "node_ref": "paper.candidate.value", "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.z_offset.paper.state.PaperState.DIALOG": {"affected_count": 1, "condition_count": 1, "conditions": [{"name": "paper.pressure", "node_id": "paper.pressure", "node_ref": "paper.pressure", "result": false}], "key": "ui.pages.z_offset.paper.state.PaperState.DIALOG", "name": "DIALOG", "properties": [], "property_count": 0}, "ui.pages.z_offset.paper.state.PaperState.DIALOG_WEIGHT": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.z_offset.paper.state.PaperState.DIALOG_WEIGHT", "name": "DIALOG_WEIGHT", "properties": [{"direct": true, "node_id": "paper.pressure.dialog", "node_ref": "paper.pressure.dialog", "node_type": "Dialog", "property": "lines"}], "property_count": 1}, "ui.pages.z_offset.paper.state.PaperState.GAUGE": {"affected_count": 0, "condition_count": 0, "conditions": [], "key": "ui.pages.z_offset.paper.state.PaperState.GAUGE", "name": "GAUGE", "properties": [], "property_count": 0}, "ui.pages.z_offset.paper.state.PaperState.MANUAL": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.z_offset.paper.state.PaperState.MANUAL", "name": "MANUAL", "properties": [{"direct": true, "node_id": "paper.reference.label", "node_ref": "paper.reference.label", "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.z_offset.paper.state.PaperState.MANUAL_START": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.z_offset.paper.state.PaperState.MANUAL_START", "name": "MANUAL_START", "properties": [{"direct": true, "node_id": "paper.move_safe_half", "node_ref": "paper.move_safe_half", "node_type": "Button", "property": "label"}], "property_count": 1}, "ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START": {"affected_count": 3, "condition_count": 0, "conditions": [], "key": "ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START", "name": "MOVING_TO_START", "properties": [{"direct": true, "node_id": "paper.probe", "node_ref": "paper.probe", "node_type": "Button", "property": "state"}, {"direct": true, "node_id": "paper.move_safe_half", "node_ref": "paper.move_safe_half", "node_type": "Button", "property": "label"}, {"direct": true, "node_id": "paper.move_safe_half", "node_ref": "paper.move_safe_half", "node_type": "Button", "property": "state"}], "property_count": 3}, "ui.pages.z_offset.paper.state.PaperState.NOZZLE": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.z_offset.paper.state.PaperState.NOZZLE", "name": "NOZZLE", "properties": [{"direct": true, "node_id": "paper.nozzle.value", "node_ref": "paper.nozzle.value", "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.z_offset.paper.state.PaperState.PROBING": {"affected_count": 3, "condition_count": 0, "conditions": [], "key": "ui.pages.z_offset.paper.state.PaperState.PROBING", "name": "PROBING", "properties": [{"direct": true, "node_id": "paper.probe", "node_ref": "paper.probe", "node_type": "Button", "property": "label"}, {"direct": true, "node_id": "paper.probe", "node_ref": "paper.probe", "node_type": "Button", "property": "state"}, {"direct": true, "node_id": "paper.move_safe_half", "node_ref": "paper.move_safe_half", "node_type": "Button", "property": "state"}], "property_count": 3}, "ui.pages.z_offset.paper.state.PaperState.READY": {"affected_count": 4, "condition_count": 0, "conditions": [], "key": "ui.pages.z_offset.paper.state.PaperState.READY", "name": "READY", "properties": [{"direct": true, "node_id": "paper.closer", "node_ref": "paper.closer", "node_type": "Button", "property": "state"}, {"direct": true, "node_id": "paper.farther", "node_ref": "paper.farther", "node_type": "Button", "property": "state"}, {"direct": true, "node_id": "paper.reset", "node_ref": "paper.reset", "node_type": "Button", "property": "state"}, {"direct": true, "node_id": "paper.accept", "node_ref": "paper.accept", "node_type": "Button", "property": "state"}], "property_count": 4}, "ui.pages.z_offset.paper.state.PaperState.REFERENCE": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ui.pages.z_offset.paper.state.PaperState.REFERENCE", "name": "REFERENCE", "properties": [{"direct": true, "node_id": "paper.reference.value", "node_ref": "paper.reference.value", "node_type": "Text", "property": "value"}], "property_count": 1}, "ui.pages.z_offset.paper.state.PaperState.STEP": {"affected_count": 7, "condition_count": 0, "conditions": [], "key": "ui.pages.z_offset.paper.state.PaperState.STEP", "name": "STEP", "properties": [{"direct": true, "node_id": "paper.step.005", "node_ref": "paper.step.005", "node_type": "Button", "property": "state"}, {"direct": true, "node_id": "paper.step.010", "node_ref": "paper.step.010", "node_type": "Button", "property": "state"}, {"direct": true, "node_id": "paper.step.025", "node_ref": "paper.step.025", "node_type": "Button", "property": "state"}, {"direct": true, "node_id": "paper.step.100", "node_ref": "paper.step.100", "node_type": "Button", "property": "state"}, {"direct": true, "node_id": "paper.step.500", "node_ref": "paper.step.500", "node_type": "Button", "property": "state"}, {"direct": true, "node_id": "paper.closer", "node_ref": "paper.closer", "node_type": "Button", "property": "label"}, {"direct": true, "node_id": "paper.farther", "node_ref": "paper.farther", "node_type": "Button", "property": "label"}], "property_count": 7}}}
+page actions [{"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.5, "wire_id": "ui.24bce960f332"}, {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.025, "wire_id": "ui.389e48f59259"}, {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.1, "wire_id": "ui.80c2c50bbd19"}, {"key": "ui.pages.z_offset.paper.state.PaperState.DIALOG", "kind": "set_value", "value": null, "wire_id": "ui.9b86df9b1f73"}, {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.005, "wire_id": "ui.a22abc5e012a"}, {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.01, "wire_id": "ui.c3a88db0743f"}, {"hint": null, "key": "ui.pages.z_offset.actions.ZOffsetCommand.ACCEPT", "kind": "command", "payload": null, "state_effect": null, "wire_id": "z.accept.e9730c285d9e"}, {"hint": {"axis": "z", "distance": null, "kind": "movement", "requires_homed": true, "speed": null}, "key": "ui.pages.z_offset.actions.ZOffsetCommand.CLOSER", "kind": "command", "payload": {"direction": "ff5m_ui.z_offset.actions.Adjustment.CLOSER"}, "state_effect": null, "wire_id": "z.closer.4ca1fd3f87b8"}, {"hint": {"axis": "z", "distance": null, "kind": "movement", "requires_homed": true, "speed": null}, "key": "ui.pages.z_offset.actions.ZOffsetCommand.FARTHER", "kind": "command", "payload": {"direction": "ff5m_ui.z_offset.actions.Adjustment.FARTHER"}, "state_effect": null, "wire_id": "z.farther.4f77d48826da"}, {"hint": {"axis": "z", "distance": null, "kind": "movement", "requires_homed": true, "speed": 600}, "key": "ui.pages.z_offset.actions.ZOffsetCommand.MOVE_SAFE_HALF", "kind": "command", "payload": null, "state_effect": null, "wire_id": "z.move_safe_half.fa00c5629399"}, {"hint": {"axis": "z", "kind": "probing"}, "key": "ui.pages.z_offset.actions.ZOffsetCommand.PROBE", "kind": "command", "payload": null, "state_effect": null, "wire_id": "z.probe.cb2b934c509a"}, {"hint": null, "key": "ui.pages.z_offset.actions.ZOffsetCommand.RESET", "kind": "command", "payload": null, "state_effect": null, "wire_id": "z.reset.2f68f4b2f916"}]
+page bindings [{"key": "ui.pages.z_offset.paper.state.PaperState.MANUAL", "nullable": false, "runtime_type": "builtins.bool"}, {"key": "ui.pages.z_offset.paper.state.PaperState.REFERENCE", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ui.pages.z_offset.paper.state.PaperState.NOZZLE", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ui.pages.z_offset.paper.state.PaperState.CANDIDATE", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ui.pages.z_offset.paper.state.PaperState.PROBING", "nullable": false, "runtime_type": "builtins.bool"}, {"key": "ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START", "nullable": false, "runtime_type": "builtins.bool"}, {"key": "ui.pages.z_offset.paper.state.PaperState.MANUAL_START", "nullable": false, "runtime_type": "builtins.float"}, {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "nullable": false, "runtime_type": "builtins.float"}, {"key": "ui.pages.z_offset.paper.state.PaperState.READY", "nullable": false, "runtime_type": "builtins.bool"}, {"key": "ui.pages.z_offset.paper.state.PaperState.GAUGE", "nullable": true, "runtime_type": "builtins.dict"}, {"key": "ui.pages.z_offset.paper.state.PaperState.DIALOG", "nullable": true, "runtime_type": "builtins.str"}, {"key": "ui.pages.z_offset.paper.state.PaperState.DIALOG_WEIGHT", "nullable": false, "runtime_type": "builtins.float"}]
+node {"actions": {}, "bindings": {}, "bounds": [0, 56, 800, 386], "component_template_instance": null, "condition": null, "container": true, "id": "paper.root", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "paper.root", "structure_slot": null, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [0, 56, 800, 386], "component_template_instance": null, "condition": null, "container": true, "id": "paper.layout", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [20, 10, 20, 10], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "explicit"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"column_gap": 20, "columns": ["<ui.layout.Flex object>", 70], "row_gap": 0, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": "paper.layout", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 66, 670, 366], "component_template_instance": null, "condition": null, "container": true, "id": "paper.controls", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 0}, "property_origins": {}, "ref": "paper.controls", "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 66, 670, 72], "component_template_instance": null, "condition": null, "container": true, "id": "paper.cards", "layout": {"allow_overflow": false, "grow": 1, "height": 72, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"column_gap": 15, "columns": ["<ui.layout.Flex object>", "<ui.layout.Flex object>", "<ui.layout.Flex object>"], "row_gap": 0, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": "paper.cards", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 66, 214, 72], "component_template_instance": {"instance_key": "paper.reference", "instance_scope": "paper.value_card[enum:ff5m_ui.z_offset.paper.page.PaperRef.REFERENCE]", "parameter_sources": {"card_ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "label": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "label_ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "panel_ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "value": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "value_ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}}, "parameters": {"card_ref": "paper.reference", "label": {"binding": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_cards.<locals>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.MANUAL"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.MANUAL"], "key": "ui.pages.z_offset.paper.state.PaperState.MANUAL", "keys": ["ui.pages.z_offset.paper.state.PaperState.MANUAL"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.MANUAL"], "kind": "derived", "resolved": "TRIGGER Z", "source": null, "transitive_keys": []}}, "label_ref": "paper.reference.label", "panel_ref": "paper.reference.panel", "value": {"binding": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_cards.<locals>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.REFERENCE"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.REFERENCE"], "key": "ui.pages.z_offset.paper.state.PaperState.REFERENCE", "keys": ["ui.pages.z_offset.paper.state.PaperState.REFERENCE"], "kind": "direct", "resolved": "--", "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.REFERENCE"], "kind": "derived", "resolved": "-- MM", "source": null, "transitive_keys": []}}, "value_ref": "paper.reference.value"}, "root": true, "symbol": "PaperComponent.VALUE_CARD", "template": "paper.value_card"}, "condition": null, "container": true, "id": "paper.reference", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "paper.reference", "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 66, 214, 72], "component_template_instance": {"instance_key": "paper.reference", "instance_scope": "paper.value_card[enum:ff5m_ui.z_offset.paper.page.PaperRef.REFERENCE]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "PaperComponent.VALUE_CARD", "template": "paper.value_card"}, "condition": null, "container": false, "id": "paper.reference.panel", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.BORDER", "line_width": 2}, "property_origins": {"background": {"kind": "explicit"}, "border": {"kind": "explicit"}, "line_width": {"kind": "explicit"}}, "ref": "paper.reference.panel", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {"value": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_cards.<locals>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.MANUAL"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.MANUAL"], "key": "ui.pages.z_offset.paper.state.PaperState.MANUAL", "keys": ["ui.pages.z_offset.paper.state.PaperState.MANUAL"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.MANUAL"], "kind": "derived", "resolved": "TRIGGER Z", "source": null, "transitive_keys": []}}, "bounds": [20, 74, 214, 20], "component_template_instance": {"instance_key": "paper.reference", "instance_scope": "paper.value_card[enum:ff5m_ui.z_offset.paper.page.PaperRef.REFERENCE]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "PaperComponent.VALUE_CARD", "template": "paper.value_card"}, "condition": null, "container": false, "id": "paper.reference.label", "layout": {"allow_overflow": false, "grow": 1, "height": 20, "horizontal": "stretch", "margin": [0, 8, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "top", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "explicit"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "TRIGGER Z", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "style", "style": "ui.text.primary", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "font": {"kind": "style", "style": "ui.text.primary", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "default"}, "vertical": {"kind": "default"}}, "ref": "paper.reference.label", "structure_slot": {"index": 1}, "style": "ui.text.primary", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_cards.<locals>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.REFERENCE"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.REFERENCE"], "key": "ui.pages.z_offset.paper.state.PaperState.REFERENCE", "keys": ["ui.pages.z_offset.paper.state.PaperState.REFERENCE"], "kind": "direct", "resolved": "--", "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.REFERENCE"], "kind": "derived", "resolved": "-- MM", "source": null, "transitive_keys": []}}, "bounds": [20, 105, 214, 20], "component_template_instance": {"instance_key": "paper.reference", "instance_scope": "paper.value_card[enum:ff5m_ui.z_offset.paper.page.PaperRef.REFERENCE]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "PaperComponent.VALUE_CARD", "template": "paper.value_card"}, "condition": null, "container": false, "id": "paper.reference.value", "layout": {"allow_overflow": false, "grow": 1, "height": 20, "horizontal": "stretch", "margin": [0, 39, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "top", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "explicit"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BRIGHT", "fit": false, "font": "JetBrainsMono Bold 12pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "-- MM", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "style", "style": "ui.text.bright.bold12", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "font": {"kind": "style", "style": "ui.text.bright.bold12", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "default"}, "vertical": {"kind": "default"}}, "ref": "paper.reference.value", "structure_slot": {"index": 2}, "style": "ui.text.bright.bold12", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [249, 66, 213, 72], "component_template_instance": {"instance_key": "paper.nozzle", "instance_scope": "paper.value_card[enum:ff5m_ui.z_offset.paper.page.PaperRef.NOZZLE]", "parameter_sources": {"card_ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "label": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "label_ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "panel_ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "value": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "value_ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}}, "parameters": {"card_ref": "paper.nozzle", "label": "NOZZLE Z", "label_ref": "paper.nozzle.label", "panel_ref": "paper.nozzle.panel", "value": {"binding": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_cards.<locals>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.NOZZLE"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.NOZZLE"], "key": "ui.pages.z_offset.paper.state.PaperState.NOZZLE", "keys": ["ui.pages.z_offset.paper.state.PaperState.NOZZLE"], "kind": "direct", "resolved": "--", "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.NOZZLE"], "kind": "derived", "resolved": "-- MM", "source": null, "transitive_keys": []}}, "value_ref": "paper.nozzle.value"}, "root": true, "symbol": "PaperComponent.VALUE_CARD", "template": "paper.value_card"}, "condition": null, "container": true, "id": "paper.nozzle", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "paper.nozzle", "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [249, 66, 213, 72], "component_template_instance": {"instance_key": "paper.nozzle", "instance_scope": "paper.value_card[enum:ff5m_ui.z_offset.paper.page.PaperRef.NOZZLE]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "PaperComponent.VALUE_CARD", "template": "paper.value_card"}, "condition": null, "container": false, "id": "paper.nozzle.panel", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.BORDER", "line_width": 2}, "property_origins": {"background": {"kind": "explicit"}, "border": {"kind": "explicit"}, "line_width": {"kind": "explicit"}}, "ref": "paper.nozzle.panel", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [249, 74, 213, 20], "component_template_instance": {"instance_key": "paper.nozzle", "instance_scope": "paper.value_card[enum:ff5m_ui.z_offset.paper.page.PaperRef.NOZZLE]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "PaperComponent.VALUE_CARD", "template": "paper.value_card"}, "condition": null, "container": false, "id": "paper.nozzle.label", "layout": {"allow_overflow": false, "grow": 1, "height": 20, "horizontal": "stretch", "margin": [0, 8, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "top", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "explicit"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "NOZZLE Z", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "style", "style": "ui.text.primary", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "font": {"kind": "style", "style": "ui.text.primary", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "default"}, "vertical": {"kind": "default"}}, "ref": "paper.nozzle.label", "structure_slot": {"index": 1}, "style": "ui.text.primary", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_cards.<locals>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.NOZZLE"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.NOZZLE"], "key": "ui.pages.z_offset.paper.state.PaperState.NOZZLE", "keys": ["ui.pages.z_offset.paper.state.PaperState.NOZZLE"], "kind": "direct", "resolved": "--", "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.NOZZLE"], "kind": "derived", "resolved": "-- MM", "source": null, "transitive_keys": []}}, "bounds": [249, 105, 213, 20], "component_template_instance": {"instance_key": "paper.nozzle", "instance_scope": "paper.value_card[enum:ff5m_ui.z_offset.paper.page.PaperRef.NOZZLE]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "PaperComponent.VALUE_CARD", "template": "paper.value_card"}, "condition": null, "container": false, "id": "paper.nozzle.value", "layout": {"allow_overflow": false, "grow": 1, "height": 20, "horizontal": "stretch", "margin": [0, 39, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "top", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "explicit"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BRIGHT", "fit": false, "font": "JetBrainsMono Bold 12pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "-- MM", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "style", "style": "ui.text.bright.bold12", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "font": {"kind": "style", "style": "ui.text.bright.bold12", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "default"}, "vertical": {"kind": "default"}}, "ref": "paper.nozzle.value", "structure_slot": {"index": 2}, "style": "ui.text.bright.bold12", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [477, 66, 213, 72], "component_template_instance": {"instance_key": "paper.candidate", "instance_scope": "paper.value_card[enum:ff5m_ui.z_offset.paper.page.PaperRef.CANDIDATE]", "parameter_sources": {"card_ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "label": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "label_ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "panel_ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "value": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "value_ref": {"origin": null, "reason": "Component parameter source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}}, "parameters": {"card_ref": "paper.candidate", "label": "Z OFFSET", "label_ref": "paper.candidate.label", "panel_ref": "paper.candidate.panel", "value": {"binding": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_cards.<locals>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.CANDIDATE"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.CANDIDATE"], "key": "ui.pages.z_offset.paper.state.PaperState.CANDIDATE", "keys": ["ui.pages.z_offset.paper.state.PaperState.CANDIDATE"], "kind": "direct", "resolved": "--", "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.CANDIDATE"], "kind": "derived", "resolved": "-- MM", "source": null, "transitive_keys": []}}, "value_ref": "paper.candidate.value"}, "root": true, "symbol": "PaperComponent.VALUE_CARD", "template": "paper.value_card"}, "condition": null, "container": true, "id": "paper.candidate", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "paper.candidate", "structure_slot": {"column": 2, "column_span": 1, "index": 2, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Overlay", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [477, 66, 213, 72], "component_template_instance": {"instance_key": "paper.candidate", "instance_scope": "paper.value_card[enum:ff5m_ui.z_offset.paper.page.PaperRef.CANDIDATE]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "PaperComponent.VALUE_CARD", "template": "paper.value_card"}, "condition": null, "container": false, "id": "paper.candidate.panel", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.BORDER", "line_width": 2}, "property_origins": {"background": {"kind": "explicit"}, "border": {"kind": "explicit"}, "line_width": {"kind": "explicit"}}, "ref": "paper.candidate.panel", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [477, 74, 213, 20], "component_template_instance": {"instance_key": "paper.candidate", "instance_scope": "paper.value_card[enum:ff5m_ui.z_offset.paper.page.PaperRef.CANDIDATE]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "PaperComponent.VALUE_CARD", "template": "paper.value_card"}, "condition": null, "container": false, "id": "paper.candidate.label", "layout": {"allow_overflow": false, "grow": 1, "height": 20, "horizontal": "stretch", "margin": [0, 8, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "top", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "explicit"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "Z OFFSET", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "style", "style": "ui.text.primary", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "font": {"kind": "style", "style": "ui.text.primary", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "default"}, "vertical": {"kind": "default"}}, "ref": "paper.candidate.label", "structure_slot": {"index": 1}, "style": "ui.text.primary", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_cards.<locals>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.CANDIDATE"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.CANDIDATE"], "key": "ui.pages.z_offset.paper.state.PaperState.CANDIDATE", "keys": ["ui.pages.z_offset.paper.state.PaperState.CANDIDATE"], "kind": "direct", "resolved": "--", "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.CANDIDATE"], "kind": "derived", "resolved": "-- MM", "source": null, "transitive_keys": []}}, "bounds": [477, 105, 213, 20], "component_template_instance": {"instance_key": "paper.candidate", "instance_scope": "paper.value_card[enum:ff5m_ui.z_offset.paper.page.PaperRef.CANDIDATE]", "parameter_sources": {}, "parameters": null, "root": false, "symbol": "PaperComponent.VALUE_CARD", "template": "paper.value_card"}, "condition": null, "container": false, "id": "paper.candidate.value", "layout": {"allow_overflow": false, "grow": 1, "height": 20, "horizontal": "stretch", "margin": [0, 39, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "top", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "explicit"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BRIGHT", "fit": false, "font": "JetBrainsMono Bold 12pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "-- MM", "vertical": "center", "wrap": false}, "property_origins": {"color": {"kind": "style", "style": "ui.text.bright.bold12", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "font": {"kind": "style", "style": "ui.text.bright.bold12", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}, "horizontal": {"kind": "default"}, "vertical": {"kind": "default"}}, "ref": "paper.candidate.value", "structure_slot": {"index": 2}, "style": "ui.text.bright.bold12", "template_instance": null, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 138, 670, 14], "component_template_instance": null, "condition": null, "container": false, "id": "paper.spacer.1", "layout": {"allow_overflow": false, "grow": 12, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "explicit"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "paper.spacer.1", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Spacer", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 152, 670, 70], "component_template_instance": null, "condition": null, "container": true, "id": "paper.start", "layout": {"allow_overflow": false, "grow": 1, "height": 70, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"column_gap": 20, "columns": ["<ui.layout.Flex object>", "<ui.layout.Flex object>"], "row_gap": 0, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": "paper.start", "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {"action": {"hint": {"axis": "z", "kind": "probing"}, "key": "ui.pages.z_offset.actions.ZOffsetCommand.PROBE", "kind": "command", "payload": null, "state_effect": null, "wire_id": "z.probe.cb2b934c509a"}}, "bindings": {"label": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_start.<locals>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.PROBING"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.PROBING"], "key": "ui.pages.z_offset.paper.state.PaperState.PROBING", "keys": ["ui.pages.z_offset.paper.state.PaperState.PROBING"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.PROBING"], "kind": "derived", "resolved": "PROBE", "source": null, "transitive_keys": []}, "state": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "_probe_state", "qualname": "_probe_state"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.PROBING", "ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.PROBING"], "key": "ui.pages.z_offset.paper.state.PaperState.PROBING", "keys": ["ui.pages.z_offset.paper.state.PaperState.PROBING"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START"], "key": "ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START", "keys": ["ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.PROBING", "ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START"], "kind": "derived", "resolved": "danger", "source": null, "transitive_keys": []}}, "bounds": [20, 152, 325, 70], "component_template_instance": null, "condition": null, "container": false, "id": "paper.probe", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"axis": "z", "kind": "probing"}, "key": "ui.pages.z_offset.actions.ZOffsetCommand.PROBE", "kind": "command", "payload": null, "state_effect": null, "wire_id": "z.probe.cb2b934c509a"}, "button_layout": "center", "font": "JetBrainsMono Bold 12pt", "label": "PROBE", "state": "danger", "subtitle": null}, "property_origins": {"font": {"kind": "style", "style": "ui.button.bold12", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}}, "ref": "paper.probe", "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": "ui.button.bold12", "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"hint": {"axis": "z", "distance": null, "kind": "movement", "requires_homed": true, "speed": 600}, "key": "ui.pages.z_offset.actions.ZOffsetCommand.MOVE_SAFE_HALF", "kind": "command", "payload": null, "state_effect": null, "wire_id": "z.move_safe_half.fa00c5629399"}}, "bindings": {"label": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_start.<locals>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.MANUAL_START", "ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.MANUAL_START"], "key": "ui.pages.z_offset.paper.state.PaperState.MANUAL_START", "keys": ["ui.pages.z_offset.paper.state.PaperState.MANUAL_START"], "kind": "direct", "resolved": 5.0, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START"], "key": "ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START", "keys": ["ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.MANUAL_START", "ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START"], "kind": "derived", "resolved": "MOVE TO 5.000 MM", "source": null, "transitive_keys": []}, "state": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "_move_state", "qualname": "_move_state"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.PROBING", "ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.PROBING"], "key": "ui.pages.z_offset.paper.state.PaperState.PROBING", "keys": ["ui.pages.z_offset.paper.state.PaperState.PROBING"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}, {"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START"], "key": "ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START", "keys": ["ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.PROBING", "ui.pages.z_offset.paper.state.PaperState.MOVING_TO_START"], "kind": "derived", "resolved": "enabled", "source": null, "transitive_keys": []}}, "bounds": [365, 152, 325, 70], "component_template_instance": null, "condition": null, "container": false, "id": "paper.move_safe_half", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"axis": "z", "distance": null, "kind": "movement", "requires_homed": true, "speed": 600}, "key": "ui.pages.z_offset.actions.ZOffsetCommand.MOVE_SAFE_HALF", "kind": "command", "payload": null, "state_effect": null, "wire_id": "z.move_safe_half.fa00c5629399"}, "button_layout": "center", "font": "JetBrainsMono Bold 12pt", "label": "MOVE TO 5.000 MM", "state": "enabled", "subtitle": null}, "property_origins": {"font": {"kind": "style", "style": "ui.button.bold12", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}}, "ref": "paper.move_safe_half", "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": "ui.button.bold12", "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 222, 670, 16], "component_template_instance": null, "condition": null, "container": false, "id": "paper.spacer.2", "layout": {"allow_overflow": false, "grow": 14, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "explicit"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "paper.spacer.2", "structure_slot": {"index": 3}, "style": null, "template_instance": null, "type": "Spacer", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 238, 670, 48], "component_template_instance": null, "condition": null, "container": true, "id": "paper.steps", "layout": {"allow_overflow": false, "grow": 1, "height": 48, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"column_gap": 8, "columns": ["<ui.layout.Flex object>", "<ui.layout.Flex object>", "<ui.layout.Flex object>", "<ui.layout.Flex object>", "<ui.layout.Flex object>"], "row_gap": 0, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": "paper.steps", "structure_slot": {"index": 4}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {"action": {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.005, "wire_id": "ui.a22abc5e012a"}}, "bindings": {"state": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_steps.<locals>.<genexpr>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "key": "ui.pages.z_offset.paper.state.PaperState.STEP", "keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "kind": "direct", "resolved": 0.01, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "kind": "derived", "resolved": "enabled", "source": null, "transitive_keys": []}}, "bounds": [20, 238, 128, 48], "component_template_instance": null, "condition": null, "container": false, "id": "paper.step.005", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.005, "wire_id": "ui.a22abc5e012a"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "0.005 MM", "state": "enabled", "subtitle": null}, "property_origins": {"font": {"kind": "style", "style": "ui.button", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}}, "ref": "paper.step.005", "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": "ui.button", "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.01, "wire_id": "ui.c3a88db0743f"}}, "bindings": {"state": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_steps.<locals>.<genexpr>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "key": "ui.pages.z_offset.paper.state.PaperState.STEP", "keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "kind": "direct", "resolved": 0.01, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "kind": "derived", "resolved": "selected", "source": null, "transitive_keys": []}}, "bounds": [156, 238, 128, 48], "component_template_instance": null, "condition": null, "container": false, "id": "paper.step.010", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.01, "wire_id": "ui.c3a88db0743f"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "0.010 MM", "state": "selected", "subtitle": null}, "property_origins": {"font": {"kind": "style", "style": "ui.button", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}}, "ref": "paper.step.010", "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": "ui.button", "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.025, "wire_id": "ui.389e48f59259"}}, "bindings": {"state": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_steps.<locals>.<genexpr>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "key": "ui.pages.z_offset.paper.state.PaperState.STEP", "keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "kind": "direct", "resolved": 0.01, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "kind": "derived", "resolved": "enabled", "source": null, "transitive_keys": []}}, "bounds": [292, 238, 128, 48], "component_template_instance": null, "condition": null, "container": false, "id": "paper.step.025", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.025, "wire_id": "ui.389e48f59259"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "0.025 MM", "state": "enabled", "subtitle": null}, "property_origins": {"font": {"kind": "style", "style": "ui.button", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}}, "ref": "paper.step.025", "structure_slot": {"column": 2, "column_span": 1, "index": 2, "row": 0, "row_span": 1}, "style": "ui.button", "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.1, "wire_id": "ui.80c2c50bbd19"}}, "bindings": {"state": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_steps.<locals>.<genexpr>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "key": "ui.pages.z_offset.paper.state.PaperState.STEP", "keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "kind": "direct", "resolved": 0.01, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "kind": "derived", "resolved": "enabled", "source": null, "transitive_keys": []}}, "bounds": [428, 238, 127, 48], "component_template_instance": null, "condition": null, "container": false, "id": "paper.step.100", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.1, "wire_id": "ui.80c2c50bbd19"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "0.100 MM", "state": "enabled", "subtitle": null}, "property_origins": {"font": {"kind": "style", "style": "ui.button", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}}, "ref": "paper.step.100", "structure_slot": {"column": 3, "column_span": 1, "index": 3, "row": 0, "row_span": 1}, "style": "ui.button", "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.5, "wire_id": "ui.24bce960f332"}}, "bindings": {"state": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_steps.<locals>.<genexpr>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "key": "ui.pages.z_offset.paper.state.PaperState.STEP", "keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "kind": "direct", "resolved": 0.01, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "kind": "derived", "resolved": "enabled", "source": null, "transitive_keys": []}}, "bounds": [563, 238, 127, 48], "component_template_instance": null, "condition": null, "container": false, "id": "paper.step.500", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.5, "wire_id": "ui.24bce960f332"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "0.500 MM", "state": "enabled", "subtitle": null}, "property_origins": {"font": {"kind": "style", "style": "ui.button", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}}, "ref": "paper.step.500", "structure_slot": {"column": 4, "column_span": 1, "index": 4, "row": 0, "row_span": 1}, "style": "ui.button", "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 286, 670, 16], "component_template_instance": null, "condition": null, "container": false, "id": "paper.spacer.3", "layout": {"allow_overflow": false, "grow": 14, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "explicit"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "paper.spacer.3", "structure_slot": {"index": 5}, "style": null, "template_instance": null, "type": "Spacer", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 302, 670, 66], "component_template_instance": null, "condition": null, "container": true, "id": "paper.adjust", "layout": {"allow_overflow": false, "grow": 1, "height": 66, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"column_gap": 20, "columns": ["<ui.layout.Flex object>", "<ui.layout.Flex object>"], "row_gap": 0, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": "paper.adjust", "structure_slot": {"index": 6}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {"action": {"hint": {"axis": "z", "distance": null, "kind": "movement", "requires_homed": true, "speed": null}, "key": "ui.pages.z_offset.actions.ZOffsetCommand.CLOSER", "kind": "command", "payload": {"direction": "ff5m_ui.z_offset.actions.Adjustment.CLOSER"}, "state_effect": null, "wire_id": "z.closer.4ca1fd3f87b8"}}, "bindings": {"label": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_adjust.<locals>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "key": "ui.pages.z_offset.paper.state.PaperState.STEP", "keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "kind": "direct", "resolved": 0.01, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "kind": "derived", "resolved": "CLOSER  -0.010", "source": null, "transitive_keys": []}, "state": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "_ready_state", "qualname": "_ready_state"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.READY"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.READY"], "key": "ui.pages.z_offset.paper.state.PaperState.READY", "keys": ["ui.pages.z_offset.paper.state.PaperState.READY"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.READY"], "kind": "derived", "resolved": "disabled", "source": null, "transitive_keys": []}}, "bounds": [20, 302, 325, 66], "component_template_instance": null, "condition": null, "container": false, "id": "paper.closer", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"axis": "z", "distance": null, "kind": "movement", "requires_homed": true, "speed": null}, "key": "ui.pages.z_offset.actions.ZOffsetCommand.CLOSER", "kind": "command", "payload": {"direction": "ff5m_ui.z_offset.actions.Adjustment.CLOSER"}, "state_effect": null, "wire_id": "z.closer.4ca1fd3f87b8"}, "button_layout": "center", "font": "JetBrainsMono Bold 12pt", "label": "CLOSER  -0.010", "state": "disabled", "subtitle": null}, "property_origins": {"font": {"kind": "style", "style": "ui.button.bold12", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}}, "ref": "paper.closer", "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": "ui.button.bold12", "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"hint": {"axis": "z", "distance": null, "kind": "movement", "requires_homed": true, "speed": null}, "key": "ui.pages.z_offset.actions.ZOffsetCommand.FARTHER", "kind": "command", "payload": {"direction": "ff5m_ui.z_offset.actions.Adjustment.FARTHER"}, "state_effect": null, "wire_id": "z.farther.4f77d48826da"}}, "bindings": {"label": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_adjust.<locals>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "key": "ui.pages.z_offset.paper.state.PaperState.STEP", "keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "kind": "direct", "resolved": 0.01, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.STEP"], "kind": "derived", "resolved": "FARTHER  +0.010", "source": null, "transitive_keys": []}, "state": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "_ready_state", "qualname": "_ready_state"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.READY"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.READY"], "key": "ui.pages.z_offset.paper.state.PaperState.READY", "keys": ["ui.pages.z_offset.paper.state.PaperState.READY"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.READY"], "kind": "derived", "resolved": "disabled", "source": null, "transitive_keys": []}}, "bounds": [365, 302, 325, 66], "component_template_instance": null, "condition": null, "container": false, "id": "paper.farther", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": {"axis": "z", "distance": null, "kind": "movement", "requires_homed": true, "speed": null}, "key": "ui.pages.z_offset.actions.ZOffsetCommand.FARTHER", "kind": "command", "payload": {"direction": "ff5m_ui.z_offset.actions.Adjustment.FARTHER"}, "state_effect": null, "wire_id": "z.farther.4f77d48826da"}, "button_layout": "center", "font": "JetBrainsMono Bold 12pt", "label": "FARTHER  +0.010", "state": "disabled", "subtitle": null}, "property_origins": {"font": {"kind": "style", "style": "ui.button.bold12", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}}, "ref": "paper.farther", "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": "ui.button.bold12", "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 368, 670, 16], "component_template_instance": null, "condition": null, "container": false, "id": "paper.spacer.4", "layout": {"allow_overflow": false, "grow": 14, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "explicit"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": "paper.spacer.4", "structure_slot": {"index": 7}, "style": null, "template_instance": null, "type": "Spacer", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [20, 384, 670, 48], "component_template_instance": null, "condition": null, "container": true, "id": "paper.finish", "layout": {"allow_overflow": false, "grow": 1, "height": 48, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"column_gap": 20, "columns": [205, "<ui.layout.Flex object>"], "row_gap": 0, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": "paper.finish", "structure_slot": {"index": 8}, "style": null, "template_instance": null, "type": "Grid", "visible": true}
+node {"actions": {"action": {"hint": null, "key": "ui.pages.z_offset.actions.ZOffsetCommand.RESET", "kind": "command", "payload": null, "state_effect": null, "wire_id": "z.reset.2f68f4b2f916"}}, "bindings": {"state": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "_ready_state", "qualname": "_ready_state"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.READY"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.READY"], "key": "ui.pages.z_offset.paper.state.PaperState.READY", "keys": ["ui.pages.z_offset.paper.state.PaperState.READY"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.READY"], "kind": "derived", "resolved": "disabled", "source": null, "transitive_keys": []}}, "bounds": [20, 384, 205, 48], "component_template_instance": null, "condition": null, "container": false, "id": "paper.reset", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": null, "key": "ui.pages.z_offset.actions.ZOffsetCommand.RESET", "kind": "command", "payload": null, "state_effect": null, "wire_id": "z.reset.2f68f4b2f916"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "BACK TO START", "state": "disabled", "subtitle": null}, "property_origins": {"font": {"kind": "style", "style": "ui.button", "style_property_source": {"origin": null, "reason": "Style property source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "style_source": null}}, "ref": "paper.reset", "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": "ui.button", "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"hint": null, "key": "ui.pages.z_offset.actions.ZOffsetCommand.ACCEPT", "kind": "command", "payload": null, "state_effect": null, "wire_id": "z.accept.e9730c285d9e"}}, "bindings": {"state": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "_ready_state", "qualname": "_ready_state"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.READY"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.READY"], "key": "ui.pages.z_offset.paper.state.PaperState.READY", "keys": ["ui.pages.z_offset.paper.state.PaperState.READY"], "kind": "direct", "resolved": false, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.READY"], "kind": "derived", "resolved": "disabled", "source": null, "transitive_keys": []}}, "bounds": [245, 384, 445, 48], "component_template_instance": null, "condition": null, "container": false, "id": "paper.accept", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": null, "key": "ui.pages.z_offset.actions.ZOffsetCommand.ACCEPT", "kind": "command", "payload": null, "state_effect": null, "wire_id": "z.accept.e9730c285d9e"}, "button_layout": "center", "font": "JetBrainsMono Bold 10pt", "label": "ACCEPT ZONE", "state": "disabled", "subtitle": null}, "property_origins": {"font": {"kind": "explicit"}}, "ref": "paper.accept", "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [710, 66, 70, 366], "component_template_instance": null, "condition": null, "container": false, "id": "paper.gauge", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": true, "properties": {"danger_above": 400.0, "title": "LOAD", "unavailable_title": "FORCE", "unavailable_value": "N/A"}, "property_origins": {}, "ref": "paper.gauge", "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": null, "type": "VerticalGauge", "visible": true}
+node {"actions": {}, "bindings": {"predicate": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_content.<locals>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG"], "key": "ui.pages.z_offset.paper.state.PaperState.DIALOG", "keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG"], "kind": "direct", "resolved": null, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}}, "bounds": [0, 56, 800, 386], "component_template_instance": null, "condition": {"binding": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_content.<locals>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG"], "key": "ui.pages.z_offset.paper.state.PaperState.DIALOG", "keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG"], "kind": "direct", "resolved": null, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG"], "kind": "derived", "resolved": false, "source": null, "transitive_keys": []}, "child": {"ref": "paper.pressure.dialog", "type": "Dialog"}, "keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG"], "name": "paper.pressure", "predicate_source": {"origin": null, "reason": "Source capture is unavailable", "rewrite": null, "scopes": [], "status": "read_only", "transformations": []}, "preview_result": false, "result": false}, "container": false, "id": "paper.pressure", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "default"}, "margin": {"kind": "default"}, "padding": {"kind": "default"}, "width": {"kind": "default"}}, "list_view": null, "own_visible": false, "properties": {"predicate": false}, "property_origins": {}, "ref": "paper.pressure", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "When", "visible": false}
+node {"actions": {}, "bindings": {"lines": {"callable": {"module": "ff5m_ui.z_offset.paper.page", "name": "<lambda>", "qualname": "_content.<locals>.<lambda>"}, "direct_keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG_WEIGHT"], "expression_source_contract": {"allowed_ast_nodes": ["Expression", "BoolOp", "BinOp", "UnaryOp", "IfExp", "Compare", "Name", "Load", "Constant", "Attribute", "Subscript", "Slice", "Tuple", "List", "Dict", "Set", "JoinedStr", "FormattedValue", "And", "Or", "Not", "UAdd", "USub", "Add", "Sub", "Mult", "Div", "FloorDiv", "Mod", "Pow", "Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"], "allowed_globals": ["ThemeColor", "ThemeRole"], "callable_forms": ["inline_lambda", "same_module_single_return"], "factory_names": ["derived"], "portable_default_types": ["builtins.NoneType", "builtins.str", "builtins.int", "builtins.float", "builtins.bool", "builtins.tuple", "builtins.list", "builtins.dict", "enum.Enum"], "sharing": "catalog_uses", "strategy": "core.python_expression"}, "inputs": [{"direct_keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG_WEIGHT"], "key": "ui.pages.z_offset.paper.state.PaperState.DIALOG_WEIGHT", "keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG_WEIGHT"], "kind": "direct", "resolved": 0.0, "source": null, "transitive_keys": []}], "keys": ["ui.pages.z_offset.paper.state.PaperState.DIALOG_WEIGHT"], "kind": "derived", "resolved": ["BED LOAD: 0 G", "THE NOZZLE IS PRESSING ON THE BED. MOVE IT FARTHER AWAY."], "source": null, "transitive_keys": []}}, "bounds": [95, 112, 610, 260], "component_template_instance": null, "condition": null, "container": false, "id": "paper.pressure.dialog", "layout": {"allow_overflow": false, "grow": 1, "height": 260, "horizontal": "center", "margin": [0, 56, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "top", "width": 610}, "layout_origins": {"grow": {"kind": "default"}, "height": {"kind": "explicit"}, "margin": {"kind": "explicit"}, "padding": {"kind": "default"}, "width": {"kind": "explicit"}}, "list_view": null, "own_visible": true, "properties": {"button_groups": [], "buttons": [[{"key": "ui.pages.z_offset.paper.state.PaperState.DIALOG", "kind": "set_value", "value": null, "wire_id": "ui.9b86df9b1f73"}, "OK", "danger"]], "lines": ["BED LOAD: 0 G", "THE NOZZLE IS PRESSING ON THE BED. MOVE IT FARTHER AWAY."], "modal": true, "page": 0, "page_actions": [], "title": "TOO MUCH PRESSURE", "tone": "danger"}, "property_origins": {}, "ref": "paper.pressure.dialog", "structure_slot": null, "style": null, "template_instance": null, "type": "Dialog", "visible": false}
+## set PaperState.MANUAL=True
+cmd --batch fill -p 20 66 -s 214 72 -c 050c0f
+cmd --batch stroke -p 20 66 -s 214 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 127 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "START Z"
+cmd --batch text -p 119 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.MANUAL
+cmd --batch fill -p 20 66 -s 214 72 -c 050c0f
+cmd --batch stroke -p 20 66 -s 214 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 127 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "TRIGGER Z"
+cmd --batch text -p 119 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.REFERENCE='Golden text long enough to wrap or truncate in narrow areas 123'
+cmd --batch fill -p 20 66 -s 214 72 -c 050c0f
+cmd --batch stroke -p 20 66 -s 214 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 127 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "TRIGGER Z"
+cmd --batch text -p 127 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "Golden text long enough to wrap or truncate in narrow areas 123 MM"
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.REFERENCE
+cmd --batch fill -p 20 66 -s 214 72 -c 050c0f
+cmd --batch stroke -p 20 66 -s 214 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 127 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "TRIGGER Z"
+cmd --batch text -p 119 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.REFERENCE=''
+cmd --batch fill -p 20 66 -s 214 72 -c 050c0f
+cmd --batch stroke -p 20 66 -s 214 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 127 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "TRIGGER Z"
+cmd --batch text -p 127 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " MM"
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.REFERENCE
+cmd --batch fill -p 20 66 -s 214 72 -c 050c0f
+cmd --batch stroke -p 20 66 -s 214 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 127 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "TRIGGER Z"
+cmd --batch text -p 119 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.NOZZLE='Golden text long enough to wrap or truncate in narrow areas 123'
+cmd --batch fill -p 249 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 249 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 355 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE Z"
+cmd --batch text -p 355 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "Golden text long enough to wrap or truncate in narrow areas 123 MM"
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.NOZZLE
+cmd --batch fill -p 249 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 249 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 355 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE Z"
+cmd --batch text -p 347 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.NOZZLE=''
+cmd --batch fill -p 249 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 249 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 355 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE Z"
+cmd --batch text -p 355 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " MM"
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.NOZZLE
+cmd --batch fill -p 249 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 249 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 355 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE Z"
+cmd --batch text -p 347 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.CANDIDATE='Golden text long enough to wrap or truncate in narrow areas 123'
+cmd --batch fill -p 477 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 477 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 583 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z OFFSET"
+cmd --batch text -p 583 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "Golden text long enough to wrap or truncate in narrow areas 123 MM"
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.CANDIDATE
+cmd --batch fill -p 477 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 477 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 583 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z OFFSET"
+cmd --batch text -p 575 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.CANDIDATE=''
+cmd --batch fill -p 477 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 477 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 583 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z OFFSET"
+cmd --batch text -p 583 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " MM"
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.CANDIDATE
+cmd --batch fill -p 477 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 477 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 583 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z OFFSET"
+cmd --batch text -p 575 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.PROBING=True
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 1:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 20 66 -s 214 72 -c 050c0f
+cmd --batch stroke -p 20 66 -s 214 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 127 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "TRIGGER Z"
+cmd --batch text -p 119 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch fill -p 249 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 249 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 355 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE Z"
+cmd --batch text -p 347 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch fill -p 477 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 477 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 583 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z OFFSET"
+cmd --batch text -p 575 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch button -p 20 152 -s 325 70 --background 050c0f --border f2c94c --text-color f2c94c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "PROBING..."
+cmd --batch button -p 365 152 -s 325 70 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "MOVE TO 5.000 MM"
+cmd --batch button -p 20 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.005 MM" --id 1:ui.a22abc5e012a --layer base
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM" --id 1:ui.c3a88db0743f --layer base
+cmd --batch button -p 292 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.025 MM" --id 1:ui.389e48f59259 --layer base
+cmd --batch button -p 428 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.100 MM" --id 1:ui.80c2c50bbd19 --layer base
+cmd --batch button -p 563 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.500 MM" --id 1:ui.24bce960f332 --layer base
+cmd --batch button -p 20 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "CLOSER  -0.010"
+cmd --batch button -p 365 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "FARTHER  +0.010"
+cmd --batch button -p 20 384 -s 205 48 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono 8pt" --max-width 173 --truncate -t "BACK TO START"
+cmd --batch button -p 245 384 -s 445 48 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 413 --truncate -t "ACCEPT ZONE"
+cmd --batch fill -p 710 66 -s 70 366 -c 050c0f
+cmd --batch stroke -p 710 66 -s 70 366 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 745 90 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "FORCE"
+cmd --batch text -p 745 249 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "N/A"
+hit global.wake 0 0 800 480 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.PROBING
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 2:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 20 66 -s 214 72 -c 050c0f
+cmd --batch stroke -p 20 66 -s 214 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 127 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "TRIGGER Z"
+cmd --batch text -p 119 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch fill -p 249 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 249 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 355 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE Z"
+cmd --batch text -p 347 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch fill -p 477 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 477 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 583 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z OFFSET"
+cmd --batch text -p 575 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch button -p 20 152 -s 325 70 --background 120708 --border ff4d5a --text-color ff4d5a -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "PROBE" --id 2:z.probe.cb2b934c509a --layer base
+cmd --batch button -p 365 152 -s 325 70 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "MOVE TO 5.000 MM" --id 2:z.move_safe_half.fa00c5629399 --layer base
+cmd --batch button -p 20 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.005 MM" --id 2:ui.a22abc5e012a --layer base
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM" --id 2:ui.c3a88db0743f --layer base
+cmd --batch button -p 292 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.025 MM" --id 2:ui.389e48f59259 --layer base
+cmd --batch button -p 428 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.100 MM" --id 2:ui.80c2c50bbd19 --layer base
+cmd --batch button -p 563 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.500 MM" --id 2:ui.24bce960f332 --layer base
+cmd --batch button -p 20 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "CLOSER  -0.010"
+cmd --batch button -p 365 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "FARTHER  +0.010"
+cmd --batch button -p 20 384 -s 205 48 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono 8pt" --max-width 173 --truncate -t "BACK TO START"
+cmd --batch button -p 245 384 -s 445 48 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 413 --truncate -t "ACCEPT ZONE"
+cmd --batch fill -p 710 66 -s 70 366 -c 050c0f
+cmd --batch stroke -p 710 66 -s 70 366 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 745 90 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "FORCE"
+cmd --batch text -p 745 249 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "N/A"
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.MOVING_TO_START=True
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 3:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 20 66 -s 214 72 -c 050c0f
+cmd --batch stroke -p 20 66 -s 214 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 127 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "TRIGGER Z"
+cmd --batch text -p 119 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch fill -p 249 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 249 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 355 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE Z"
+cmd --batch text -p 347 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch fill -p 477 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 477 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 583 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z OFFSET"
+cmd --batch text -p 575 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch button -p 20 152 -s 325 70 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "PROBE"
+cmd --batch button -p 365 152 -s 325 70 --background 050c0f --border f2c94c --text-color f2c94c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "MOVING TO 5.000 MM"
+cmd --batch button -p 20 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.005 MM" --id 3:ui.a22abc5e012a --layer base
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM" --id 3:ui.c3a88db0743f --layer base
+cmd --batch button -p 292 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.025 MM" --id 3:ui.389e48f59259 --layer base
+cmd --batch button -p 428 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.100 MM" --id 3:ui.80c2c50bbd19 --layer base
+cmd --batch button -p 563 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.500 MM" --id 3:ui.24bce960f332 --layer base
+cmd --batch button -p 20 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "CLOSER  -0.010"
+cmd --batch button -p 365 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "FARTHER  +0.010"
+cmd --batch button -p 20 384 -s 205 48 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono 8pt" --max-width 173 --truncate -t "BACK TO START"
+cmd --batch button -p 245 384 -s 445 48 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 413 --truncate -t "ACCEPT ZONE"
+cmd --batch fill -p 710 66 -s 70 366 -c 050c0f
+cmd --batch stroke -p 710 66 -s 70 366 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 745 90 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "FORCE"
+cmd --batch text -p 745 249 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "N/A"
+hit global.wake 0 0 800 480 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.MOVING_TO_START
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 4:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 20 66 -s 214 72 -c 050c0f
+cmd --batch stroke -p 20 66 -s 214 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 127 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "TRIGGER Z"
+cmd --batch text -p 119 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch fill -p 249 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 249 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 355 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE Z"
+cmd --batch text -p 347 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch fill -p 477 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 477 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 583 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z OFFSET"
+cmd --batch text -p 575 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch button -p 20 152 -s 325 70 --background 120708 --border ff4d5a --text-color ff4d5a -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "PROBE" --id 4:z.probe.cb2b934c509a --layer base
+cmd --batch button -p 365 152 -s 325 70 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "MOVE TO 5.000 MM" --id 4:z.move_safe_half.fa00c5629399 --layer base
+cmd --batch button -p 20 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.005 MM" --id 4:ui.a22abc5e012a --layer base
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM" --id 4:ui.c3a88db0743f --layer base
+cmd --batch button -p 292 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.025 MM" --id 4:ui.389e48f59259 --layer base
+cmd --batch button -p 428 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.100 MM" --id 4:ui.80c2c50bbd19 --layer base
+cmd --batch button -p 563 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.500 MM" --id 4:ui.24bce960f332 --layer base
+cmd --batch button -p 20 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "CLOSER  -0.010"
+cmd --batch button -p 365 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "FARTHER  +0.010"
+cmd --batch button -p 20 384 -s 205 48 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono 8pt" --max-width 173 --truncate -t "BACK TO START"
+cmd --batch button -p 245 384 -s 445 48 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 413 --truncate -t "ACCEPT ZONE"
+cmd --batch fill -p 710 66 -s 70 366 -c 050c0f
+cmd --batch stroke -p 710 66 -s 70 366 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 745 90 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "FORCE"
+cmd --batch text -p 745 249 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "N/A"
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.MANUAL_START=42.25
+cmd --batch button -p 365 152 -s 325 70 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "MOVE TO 42.250 MM" --id 4:z.move_safe_half.fa00c5629399 --layer base
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.MANUAL_START
+cmd --batch button -p 365 152 -s 325 70 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "MOVE TO 5.000 MM" --id 4:z.move_safe_half.fa00c5629399 --layer base
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.MANUAL_START=0.0
+cmd --batch button -p 365 152 -s 325 70 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "MOVE TO 0.000 MM" --id 4:z.move_safe_half.fa00c5629399 --layer base
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.MANUAL_START
+cmd --batch button -p 365 152 -s 325 70 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "MOVE TO 5.000 MM" --id 4:z.move_safe_half.fa00c5629399 --layer base
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.STEP=0.005
+cmd --batch button -p 20 238 -s 128 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.005 MM" --id 4:ui.a22abc5e012a --layer base
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM" --id 4:ui.c3a88db0743f --layer base
+cmd --batch button -p 20 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "CLOSER  -0.005"
+cmd --batch button -p 365 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "FARTHER  +0.005"
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.STEP
+cmd --batch button -p 20 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.005 MM" --id 4:ui.a22abc5e012a --layer base
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM" --id 4:ui.c3a88db0743f --layer base
+cmd --batch button -p 20 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "CLOSER  -0.010"
+cmd --batch button -p 365 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "FARTHER  +0.010"
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.STEP=0.025
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM" --id 4:ui.c3a88db0743f --layer base
+cmd --batch button -p 292 238 -s 128 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.025 MM" --id 4:ui.389e48f59259 --layer base
+cmd --batch button -p 20 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "CLOSER  -0.025"
+cmd --batch button -p 365 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "FARTHER  +0.025"
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.STEP
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM" --id 4:ui.c3a88db0743f --layer base
+cmd --batch button -p 292 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.025 MM" --id 4:ui.389e48f59259 --layer base
+cmd --batch button -p 20 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "CLOSER  -0.010"
+cmd --batch button -p 365 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "FARTHER  +0.010"
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.STEP=0.1
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM" --id 4:ui.c3a88db0743f --layer base
+cmd --batch button -p 428 238 -s 127 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.100 MM" --id 4:ui.80c2c50bbd19 --layer base
+cmd --batch button -p 20 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "CLOSER  -0.100"
+cmd --batch button -p 365 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "FARTHER  +0.100"
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.STEP
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM" --id 4:ui.c3a88db0743f --layer base
+cmd --batch button -p 428 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.100 MM" --id 4:ui.80c2c50bbd19 --layer base
+cmd --batch button -p 20 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "CLOSER  -0.010"
+cmd --batch button -p 365 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "FARTHER  +0.010"
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.STEP=0.5
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM" --id 4:ui.c3a88db0743f --layer base
+cmd --batch button -p 563 238 -s 127 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.500 MM" --id 4:ui.24bce960f332 --layer base
+cmd --batch button -p 20 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "CLOSER  -0.500"
+cmd --batch button -p 365 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "FARTHER  +0.500"
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.STEP
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM" --id 4:ui.c3a88db0743f --layer base
+cmd --batch button -p 563 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.500 MM" --id 4:ui.24bce960f332 --layer base
+cmd --batch button -p 20 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "CLOSER  -0.010"
+cmd --batch button -p 365 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "FARTHER  +0.010"
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.READY=True
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 5:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 20 66 -s 214 72 -c 050c0f
+cmd --batch stroke -p 20 66 -s 214 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 127 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "TRIGGER Z"
+cmd --batch text -p 119 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch fill -p 249 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 249 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 355 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE Z"
+cmd --batch text -p 347 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch fill -p 477 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 477 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 583 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z OFFSET"
+cmd --batch text -p 575 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch button -p 20 152 -s 325 70 --background 120708 --border ff4d5a --text-color ff4d5a -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "PROBE" --id 5:z.probe.cb2b934c509a --layer base
+cmd --batch button -p 365 152 -s 325 70 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "MOVE TO 5.000 MM" --id 5:z.move_safe_half.fa00c5629399 --layer base
+cmd --batch button -p 20 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.005 MM" --id 5:ui.a22abc5e012a --layer base
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM" --id 5:ui.c3a88db0743f --layer base
+cmd --batch button -p 292 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.025 MM" --id 5:ui.389e48f59259 --layer base
+cmd --batch button -p 428 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.100 MM" --id 5:ui.80c2c50bbd19 --layer base
+cmd --batch button -p 563 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.500 MM" --id 5:ui.24bce960f332 --layer base
+cmd --batch button -p 20 302 -s 325 66 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "CLOSER  -0.010" --id 5:z.closer.4ca1fd3f87b8 --layer base
+cmd --batch button -p 365 302 -s 325 66 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "FARTHER  +0.010" --id 5:z.farther.4f77d48826da --layer base
+cmd --batch button -p 20 384 -s 205 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 173 --truncate -t "BACK TO START" --id 5:z.reset.2f68f4b2f916 --layer base
+cmd --batch button -p 245 384 -s 445 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 413 --truncate -t "ACCEPT ZONE" --id 5:z.accept.e9730c285d9e --layer base
+cmd --batch fill -p 710 66 -s 70 366 -c 050c0f
+cmd --batch stroke -p 710 66 -s 70 366 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 745 90 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "FORCE"
+cmd --batch text -p 745 249 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "N/A"
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+hit z.closer.4ca1fd3f87b8 20 302 325 66 False base
+hit z.farther.4f77d48826da 365 302 325 66 False base
+hit z.reset.2f68f4b2f916 20 384 205 48 False base
+hit z.accept.e9730c285d9e 245 384 445 48 False base
+## restore PaperState.READY
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 6:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 20 66 -s 214 72 -c 050c0f
+cmd --batch stroke -p 20 66 -s 214 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 127 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "TRIGGER Z"
+cmd --batch text -p 119 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch fill -p 249 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 249 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 355 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE Z"
+cmd --batch text -p 347 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch fill -p 477 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 477 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 583 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z OFFSET"
+cmd --batch text -p 575 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t " -- MM"
+cmd --batch button -p 20 152 -s 325 70 --background 120708 --border ff4d5a --text-color ff4d5a -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "PROBE" --id 6:z.probe.cb2b934c509a --layer base
+cmd --batch button -p 365 152 -s 325 70 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "MOVE TO 5.000 MM" --id 6:z.move_safe_half.fa00c5629399 --layer base
+cmd --batch button -p 20 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.005 MM" --id 6:ui.a22abc5e012a --layer base
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM" --id 6:ui.c3a88db0743f --layer base
+cmd --batch button -p 292 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.025 MM" --id 6:ui.389e48f59259 --layer base
+cmd --batch button -p 428 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.100 MM" --id 6:ui.80c2c50bbd19 --layer base
+cmd --batch button -p 563 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.500 MM" --id 6:ui.24bce960f332 --layer base
+cmd --batch button -p 20 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "CLOSER  -0.010"
+cmd --batch button -p 365 302 -s 325 66 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "FARTHER  +0.010"
+cmd --batch button -p 20 384 -s 205 48 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono 8pt" --max-width 173 --truncate -t "BACK TO START"
+cmd --batch button -p 245 384 -s 445 48 --background 050c0f --border 263238 --text-color 56656c -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 413 --truncate -t "ACCEPT ZONE"
+cmd --batch fill -p 710 66 -s 70 366 -c 050c0f
+cmd --batch stroke -p 710 66 -s 70 366 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 745 90 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "FORCE"
+cmd --batch text -p 745 249 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "N/A"
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.GAUGE={'value': 1.5, 'minimum': 0.0, 'maximum': 4.0, 'initial': 0.5}
+cmd --batch fill -p 710 66 -s 70 366 -c 050c0f
+cmd --batch stroke -p 710 66 -s 70 366 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 745 86 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "LOAD"
+cmd --batch text -p 745 114 -c d9e4e8 -f "JetBrainsMono Bold 8pt" -ha center -va middle -t "2"
+cmd --batch fill -p 737 144 -s 16 260 -c 263238
+cmd --batch stroke -p 737 144 -s 16 260 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 739 306 -s 12 98 -c 35d9e6
+cmd --batch fill -p 716 372 -s 58 2 -c b47aff
+cmd --batch fill -p 713 370 -s 4 6 -c b47aff
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.GAUGE
+cmd --batch fill -p 710 66 -s 70 366 -c 050c0f
+cmd --batch stroke -p 710 66 -s 70 366 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 745 90 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "FORCE"
+cmd --batch text -p 745 249 -c 56656c -f "JetBrainsMono 8pt" -ha center -va middle -t "N/A"
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.DIALOG='Golden text long enough to wrap or truncate in narrow areas 123'
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.DIALOG
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set PaperState.DIALOG_WEIGHT=37.25
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## restore PaperState.DIALOG_WEIGHT
+hit global.wake 0 0 800 480 False base
+hit z.probe.cb2b934c509a 20 152 325 70 False base
+hit z.move_safe_half.fa00c5629399 365 152 325 70 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+## set all
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 7:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 20 66 -s 214 72 -c 050c0f
+cmd --batch stroke -p 20 66 -s 214 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 127 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "START Z"
+cmd --batch text -p 127 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "Golden text long enough to wrap or truncate in narrow areas 123 MM"
+cmd --batch fill -p 249 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 249 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 355 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE Z"
+cmd --batch text -p 355 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "Golden text long enough to wrap or truncate in narrow areas 123 MM"
+cmd --batch fill -p 477 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 477 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 583 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z OFFSET"
+cmd --batch text -p 583 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "Golden text long enough to wrap or truncate in narrow areas 123 MM"
+cmd --batch button -p 20 152 -s 325 70 --background 050c0f --border f2c94c --text-color f2c94c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "PROBING..."
+cmd --batch button -p 365 152 -s 325 70 --background 050c0f --border f2c94c --text-color f2c94c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "MOVING TO 42.250 MM"
+cmd --batch button -p 20 238 -s 128 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.005 MM" --id 7:ui.a22abc5e012a --layer base
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM" --id 7:ui.c3a88db0743f --layer base
+cmd --batch button -p 292 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.025 MM" --id 7:ui.389e48f59259 --layer base
+cmd --batch button -p 428 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.100 MM" --id 7:ui.80c2c50bbd19 --layer base
+cmd --batch button -p 563 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.500 MM" --id 7:ui.24bce960f332 --layer base
+cmd --batch button -p 20 302 -s 325 66 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "CLOSER  -0.005" --id 7:z.closer.4ca1fd3f87b8 --layer base
+cmd --batch button -p 365 302 -s 325 66 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "FARTHER  +0.005" --id 7:z.farther.4f77d48826da --layer base
+cmd --batch button -p 20 384 -s 205 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 173 --truncate -t "BACK TO START" --id 7:z.reset.2f68f4b2f916 --layer base
+cmd --batch button -p 245 384 -s 445 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 413 --truncate -t "ACCEPT ZONE" --id 7:z.accept.e9730c285d9e --layer base
+cmd --batch fill -p 710 66 -s 70 366 -c 050c0f
+cmd --batch stroke -p 710 66 -s 70 366 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 745 86 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "LOAD"
+cmd --batch text -p 745 114 -c d9e4e8 -f "JetBrainsMono Bold 8pt" -ha center -va middle -t "2"
+cmd --batch fill -p 737 144 -s 16 260 -c 263238
+cmd --batch stroke -p 737 144 -s 16 260 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 739 306 -s 12 98 -c 35d9e6
+cmd --batch fill -p 716 372 -s 58 2 -c b47aff
+cmd --batch fill -p 713 370 -s 4 6 -c b47aff
+hit global.wake 0 0 800 480 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+hit z.closer.4ca1fd3f87b8 20 302 325 66 False base
+hit z.farther.4f77d48826da 365 302 325 66 False base
+hit z.reset.2f68f4b2f916 20 384 205 48 False base
+hit z.accept.e9730c285d9e 245 384 445 48 False base
+## redraw all
+cmd --batch fill -p 20 66 -s 214 72 -c 050c0f
+cmd --batch stroke -p 20 66 -s 214 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 127 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "START Z"
+cmd --batch text -p 127 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "Golden text long enough to wrap or truncate in narrow areas 123 MM"
+cmd --batch fill -p 249 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 249 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 355 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "NOZZLE Z"
+cmd --batch text -p 355 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "Golden text long enough to wrap or truncate in narrow areas 123 MM"
+cmd --batch fill -p 477 66 -s 213 72 -c 050c0f
+cmd --batch stroke -p 477 66 -s 213 72 -c 295c66 -lw 2 -sd inner
+cmd --batch text -p 583 84 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "Z OFFSET"
+cmd --batch text -p 583 115 -c ffffff -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "Golden text long enough to wrap or truncate in narrow areas 123 MM"
+cmd --batch button -p 20 152 -s 325 70 --background 050c0f --border f2c94c --text-color f2c94c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "PROBING..."
+cmd --batch button -p 365 152 -s 325 70 --background 050c0f --border f2c94c --text-color f2c94c -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "MOVING TO 42.250 MM"
+cmd --batch button -p 20 238 -s 128 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.005 MM" --id 7:ui.a22abc5e012a --layer base
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM" --id 7:ui.c3a88db0743f --layer base
+cmd --batch button -p 292 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.025 MM" --id 7:ui.389e48f59259 --layer base
+cmd --batch button -p 428 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.100 MM" --id 7:ui.80c2c50bbd19 --layer base
+cmd --batch button -p 563 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.500 MM" --id 7:ui.24bce960f332 --layer base
+cmd --batch button -p 20 302 -s 325 66 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "CLOSER  -0.005" --id 7:z.closer.4ca1fd3f87b8 --layer base
+cmd --batch button -p 365 302 -s 325 66 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "FARTHER  +0.005" --id 7:z.farther.4f77d48826da --layer base
+cmd --batch button -p 20 384 -s 205 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 173 --truncate -t "BACK TO START" --id 7:z.reset.2f68f4b2f916 --layer base
+cmd --batch button -p 245 384 -s 445 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 413 --truncate -t "ACCEPT ZONE" --id 7:z.accept.e9730c285d9e --layer base
+cmd --batch fill -p 710 66 -s 70 366 -c 050c0f
+cmd --batch stroke -p 710 66 -s 70 366 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 745 86 -c 35d9e6 -f "JetBrainsMono 8pt" -ha center -va middle -t "LOAD"
+cmd --batch text -p 745 114 -c d9e4e8 -f "JetBrainsMono Bold 8pt" -ha center -va middle -t "2"
+cmd --batch fill -p 737 144 -s 16 260 -c 263238
+cmd --batch stroke -p 737 144 -s 16 260 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 739 306 -s 12 98 -c 35d9e6
+cmd --batch fill -p 716 372 -s 58 2 -c b47aff
+cmd --batch fill -p 713 370 -s 4 6 -c b47aff
+hit global.wake 0 0 800 480 False base
+hit ui.a22abc5e012a 20 238 128 48 False base
+hit ui.c3a88db0743f 156 238 128 48 False base
+hit ui.389e48f59259 292 238 128 48 False base
+hit ui.80c2c50bbd19 428 238 127 48 False base
+hit ui.24bce960f332 563 238 127 48 False base
+hit z.closer.4ca1fd3f87b8 20 302 325 66 False base
+hit z.farther.4f77d48826da 365 302 325 66 False base
+hit z.reset.2f68f4b2f916 20 384 205 48 False base
+hit z.accept.e9730c285d9e 245 384 445 48 False base
+## press
+action ui.24bce960f332 {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.5, "wire_id": "ui.24bce960f332"}
+action ui.389e48f59259 {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.025, "wire_id": "ui.389e48f59259"}
+action ui.80c2c50bbd19 {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.1, "wire_id": "ui.80c2c50bbd19"}
+action ui.a22abc5e012a {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.005, "wire_id": "ui.a22abc5e012a"}
+action ui.c3a88db0743f {"key": "ui.pages.z_offset.paper.state.PaperState.STEP", "kind": "set_value", "value": 0.01, "wire_id": "ui.c3a88db0743f"}
+action z.move_safe_half.fa00c5629399 {"hint": {"axis": "z", "distance": null, "kind": "movement", "requires_homed": true, "speed": 600}, "key": "ui.pages.z_offset.actions.ZOffsetCommand.MOVE_SAFE_HALF", "kind": "command", "payload": null, "state_effect": null, "wire_id": "z.move_safe_half.fa00c5629399"}
+action z.probe.cb2b934c509a {"hint": {"axis": "z", "kind": "probing"}, "key": "ui.pages.z_offset.actions.ZOffsetCommand.PROBE", "kind": "command", "payload": null, "state_effect": null, "wire_id": "z.probe.cb2b934c509a"}
+press ui.24bce960f332
+cmd --batch button -p 563 238 -s 127 48 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.500 MM"
+cmd --batch button -p 563 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.500 MM"
+press ui.389e48f59259
+cmd --batch button -p 292 238 -s 128 48 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.025 MM"
+cmd --batch button -p 292 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.025 MM"
+press ui.80c2c50bbd19
+cmd --batch button -p 428 238 -s 127 48 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.100 MM"
+cmd --batch button -p 428 238 -s 127 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 95 --truncate -t "0.100 MM"
+press ui.a22abc5e012a
+cmd --batch button -p 20 238 -s 128 48 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.005 MM"
+cmd --batch button -p 20 238 -s 128 48 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.005 MM"
+press ui.c3a88db0743f
+cmd --batch button -p 156 238 -s 128 48 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM"
+cmd --batch button -p 156 238 -s 128 48 --background 050c0f --border b47aff --text-color b47aff -lw 2 -f "JetBrainsMono 8pt" --max-width 96 --truncate -t "0.010 MM"
+press z.move_safe_half.fa00c5629399
+cmd --batch button -p 365 152 -s 325 70 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "MOVE TO 5.000 MM"
+cmd --batch button -p 365 152 -s 325 70 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "MOVE TO 5.000 MM"
+press z.probe.cb2b934c509a
+cmd --batch button -p 20 152 -s 325 70 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "PROBE"
+cmd --batch button -p 20 152 -s 325 70 --background 120708 --border ff4d5a --text-color ff4d5a -lw 2 -f "JetBrainsMono Bold 12pt" --max-width 293 --truncate -t "PROBE"

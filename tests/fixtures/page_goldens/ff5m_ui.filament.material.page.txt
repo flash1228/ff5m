@@ -1,0 +1,13 @@
+## draw defaults
+cmd --batch text -p 400 246 -c 56656c -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "NO MATERIALS ENABLED"
+rect r Text filament.material.empty 12 64 776 364
+## reflect defaults
+page state {}
+page dependencies {"conditions": [], "states": {}}
+page actions []
+page bindings []
+node {"actions": {}, "bindings": {}, "bounds": [12, 64, 776, 364], "component_template_instance": null, "condition": null, "container": false, "id": "filament.material.empty", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.DIM", "fit": false, "font": "JetBrainsMono Bold 12pt", "horizontal": "center", "max_height": null, "max_width": null, "truncate": false, "value": "NO MATERIALS ENABLED", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": "filament.material.empty", "structure_slot": null, "style": null, "template_instance": null, "type": "Text", "visible": true}
+## set all
+## redraw all
+cmd --batch text -p 400 246 -c 56656c -f "JetBrainsMono Bold 12pt" -ha center -va middle -t "NO MATERIALS ENABLED"
+## press

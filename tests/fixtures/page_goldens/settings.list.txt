@@ -1,0 +1,1271 @@
+## draw page 0
+cmd --batch fill -p 25 82 -s 4 24 -c 35d9e6
+cmd --batch text -p 39 94 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 99 --truncate -t "ESSENTIAL"
+cmd --batch fill -p 148 82 -s 447 1 -c 295c66
+cmd --batch text -p 715 94 -c 56656c -f "JetBrainsMono 8pt" -ha right -va middle -t "01-05 / 11"
+cmd --batch fill -p 25 108 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 108 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 122 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "DISPLAY"
+cmd --batch text -p 40 140 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "display"
+cmd --batch text -p 40 158 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Choose the active local screen."
+cmd --batch button -p 520 117 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "FEATHER >" --id 0:mod.parameter.da53dfefaf42 --layer base
+cmd --batch fill -p 25 174 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 174 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 188 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "Z-OFFSET"
+cmd --batch text -p 40 206 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "z_offset"
+cmd --batch text -p 40 224 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Set the saved nozzle-to-bed Z offset."
+cmd --batch button -p 520 183 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "0 >" --id 0:mod.parameter.25ccb20a89bc --layer base
+cmd --batch fill -p 25 240 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 240 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 254 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "LOAD Z-OFFSET"
+cmd --batch text -p 40 272 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "load_zoffset"
+cmd --batch text -p 40 290 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Load the saved Z offset during startup."
+cmd --batch fill -p 624 253 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 253 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 629 258 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 0:mod.parameter.72038be91e7c -p 624 253 -s 76 38 --layer base
+cmd --batch fill -p 25 306 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 306 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 320 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "USE KAMP"
+cmd --batch text -p 40 338 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "use_kamp"
+cmd --batch text -p 40 356 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Use adaptive meshing and purging."
+cmd --batch fill -p 624 319 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 319 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 629 324 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 0:mod.parameter.c07edf5a4567 -p 624 319 -s 76 38 --layer base
+cmd --batch fill -p 25 372 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 372 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 386 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "ALT. CAMERA"
+cmd --batch text -p 40 404 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "camera"
+cmd --batch text -p 40 422 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Enable the low-memory camera service."
+cmd --batch fill -p 624 385 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 385 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 629 390 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 0:mod.parameter.8466d198481b -p 624 385 -s 76 38 --layer base
+cmd --batch fill -p 728 76 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 76 -s 52 48 -c 263238 -lw 2 -sd inner
+cmd --batch fill -p 751 99 -s 7 12 -c 56656c
+cmd --batch fill -p 753 89 -s 3 2 -c 56656c
+cmd --batch fill -p 751 91 -s 7 2 -c 56656c
+cmd --batch fill -p 749 93 -s 11 2 -c 56656c
+cmd --batch fill -p 747 95 -s 15 2 -c 56656c
+cmd --batch fill -p 745 97 -s 19 2 -c 56656c
+cmd --batch stroke -p 749 134 -s 10 250 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 751 136 -s 6 22 -c 35d9e6
+cmd --batch fill -p 728 394 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 394 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 407 -s 7 12 -c 35d9e6
+cmd --batch fill -p 745 419 -s 19 2 -c 35d9e6
+cmd --batch fill -p 747 421 -s 15 2 -c 35d9e6
+cmd --batch fill -p 749 423 -s 11 2 -c 35d9e6
+cmd --batch fill -p 751 425 -s 7 2 -c 35d9e6
+cmd --batch fill -p 753 427 -s 3 2 -c 35d9e6
+cmd --batch hitbox --id 0:mod.next -p 728 394 -s 52 48 --layer base
+hit mod.parameter.da53dfefaf42 520 117 180 46 False base
+hit mod.parameter.25ccb20a89bc 520 183 180 46 False base
+hit mod.parameter.72038be91e7c 624 253 76 38 False base
+hit mod.parameter.c07edf5a4567 624 319 76 38 False base
+hit mod.parameter.8466d198481b 624 385 76 38 False base
+hit mod.next 728 394 52 48 False base
+rect r Row 25 76 755 366
+rect r.0 ListView settings.rows 25 76 690 362
+rect r.0.0 Row 25 76 690 32
+rect r.0.0.0 Fill 25 82 4 24
+rect r.0.0.1 Row 39 82 556 24
+rect r.0.0.1.0 Text 39 82 99 24
+rect r.0.0.1.1 Fill 148 82 447 1
+rect r.0.0.2 Text 605 82 110 24
+rect r.0.1 ControlRow 25 108 690 64
+rect r.0.1.0 Panel 25 108 690 64
+rect r.0.1.1 Grid 25 108 690 64
+rect r.0.1.1.0 Column 40 113 465 54
+rect r.0.1.1.0.0 Text 40 113 465 18
+rect r.0.1.1.0.1 Text 40 131 465 18
+rect r.0.1.1.0.2 Text 40 149 465 18
+rect r.0.1.1.1 Overlay 520 113 180 54
+rect r.0.1.1.1.0 Button 520 117 180 46
+rect r.0.2 ControlRow 25 174 690 64
+rect r.0.2.0 Panel 25 174 690 64
+rect r.0.2.1 Grid 25 174 690 64
+rect r.0.2.1.0 Column 40 179 465 54
+rect r.0.2.1.0.0 Text 40 179 465 18
+rect r.0.2.1.0.1 Text 40 197 465 18
+rect r.0.2.1.0.2 Text 40 215 465 18
+rect r.0.2.1.1 Overlay 520 179 180 54
+rect r.0.2.1.1.0 Button 520 183 180 46
+rect r.0.3 ControlRow 25 240 690 64
+rect r.0.3.0 Panel 25 240 690 64
+rect r.0.3.1 Grid 25 240 690 64
+rect r.0.3.1.0 Column 40 245 465 54
+rect r.0.3.1.0.0 Text 40 245 465 18
+rect r.0.3.1.0.1 Text 40 263 465 18
+rect r.0.3.1.0.2 Text 40 281 465 18
+rect r.0.3.1.1 Overlay 520 245 180 54
+rect r.0.3.1.1.0 ToggleSwitch 624 253 76 38
+rect r.0.4 ControlRow 25 306 690 64
+rect r.0.4.0 Panel 25 306 690 64
+rect r.0.4.1 Grid 25 306 690 64
+rect r.0.4.1.0 Column 40 311 465 54
+rect r.0.4.1.0.0 Text 40 311 465 18
+rect r.0.4.1.0.1 Text 40 329 465 18
+rect r.0.4.1.0.2 Text 40 347 465 18
+rect r.0.4.1.1 Overlay 520 311 180 54
+rect r.0.4.1.1.0 ToggleSwitch 624 319 76 38
+rect r.0.5 ControlRow 25 372 690 64
+rect r.0.5.0 Panel 25 372 690 64
+rect r.0.5.1 Grid 25 372 690 64
+rect r.0.5.1.0 Column 40 377 465 54
+rect r.0.5.1.0.0 Text 40 377 465 18
+rect r.0.5.1.0.1 Text 40 395 465 18
+rect r.0.5.1.0.2 Text 40 413 465 18
+rect r.0.5.1.1 Overlay 520 377 180 54
+rect r.0.5.1.1.0 ToggleSwitch 624 385 76 38
+rect r.1 Column 728 76 52 366
+rect r.1.0 ArrowButton 728 76 52 48
+rect r.1.1 ScrollIndicator 749 134 10 250
+rect r.1.2 ArrowButton 728 394 52 48
+## reflect page 0
+page state {"ff5m_ui.parameter_controls.ParameterListState.COUNT": 11, "ff5m_ui.parameter_controls.ParameterListState.NEXT": "enabled", "ff5m_ui.parameter_controls.ParameterListState.PAGE": 0, "ff5m_ui.parameter_controls.ParameterListState.PREVIOUS": "disabled", "ff5m_ui.parameter_controls.ParameterListState.ROWS": [{"counter": "01-05 / 11", "id": "category:ESSENTIAL", "kind": "heading", "label": "ESSENTIAL"}, {"active": false, "description": "Choose the active local screen.", "enabled": true, "id": "display", "kind": "value", "label": "DISPLAY", "parameter": "display", "state": "enabled", "subtitle": "display", "value": "FEATHER >"}, {"active": false, "description": "Set the saved nozzle-to-bed Z offset.", "enabled": true, "id": "z_offset", "kind": "value", "label": "Z-OFFSET", "parameter": "z_offset", "state": "enabled", "subtitle": "z_offset", "value": "0 >"}, {"active": false, "description": "Load the saved Z offset during startup.", "enabled": true, "id": "load_zoffset", "kind": "toggle", "label": "LOAD Z-OFFSET", "parameter": "load_zoffset", "state": "enabled", "subtitle": "load_zoffset", "value": "OFF >"}, {"active": false, "description": "Use adaptive meshing and purging.", "enabled": true, "id": "use_kamp", "kind": "toggle", "label": "USE KAMP", "parameter": "use_kamp", "state": "enabled", "subtitle": "use_kamp", "value": "OFF >"}, {"active": false, "description": "Enable the low-memory camera service.", "enabled": true, "id": "camera", "kind": "toggle", "label": "ALT. CAMERA", "parameter": "camera", "state": "enabled", "subtitle": "camera", "value": "OFF >"}]}
+page dependencies {"conditions": [], "states": {"ff5m_ui.parameter_controls.ParameterListState.COUNT": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ff5m_ui.parameter_controls.ParameterListState.COUNT", "name": "COUNT", "properties": [{"direct": true, "node_id": "path:0.1.1", "node_ref": null, "node_type": "ScrollIndicator", "property": "count"}], "property_count": 1}, "ff5m_ui.parameter_controls.ParameterListState.NEXT": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ff5m_ui.parameter_controls.ParameterListState.NEXT", "name": "NEXT", "properties": [{"direct": true, "node_id": "path:0.1.2", "node_ref": null, "node_type": "ArrowButton", "property": "state"}], "property_count": 1}, "ff5m_ui.parameter_controls.ParameterListState.PAGE": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ff5m_ui.parameter_controls.ParameterListState.PAGE", "name": "PAGE", "properties": [{"direct": true, "node_id": "path:0.1.1", "node_ref": null, "node_type": "ScrollIndicator", "property": "position"}], "property_count": 1}, "ff5m_ui.parameter_controls.ParameterListState.PREVIOUS": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ff5m_ui.parameter_controls.ParameterListState.PREVIOUS", "name": "PREVIOUS", "properties": [{"direct": true, "node_id": "path:0.1.0", "node_ref": null, "node_type": "ArrowButton", "property": "state"}], "property_count": 1}, "ff5m_ui.parameter_controls.ParameterListState.ROWS": {"affected_count": 1, "condition_count": 0, "conditions": [], "key": "ff5m_ui.parameter_controls.ParameterListState.ROWS", "name": "ROWS", "properties": [{"direct": true, "node_id": "settings.rows", "node_ref": "settings.rows", "node_type": "ListView", "property": "items"}], "property_count": 1}}}
+page actions [{"index": null, "kind": "parameter_action", "route": "next", "wire_id": "mod.next"}, {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "z_offset", "state_effect": null, "wire_id": "mod.parameter.25ccb20a89bc"}, {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "load_zoffset", "state_effect": null, "wire_id": "mod.parameter.72038be91e7c"}, {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "camera", "state_effect": null, "wire_id": "mod.parameter.8466d198481b"}, {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "use_kamp", "state_effect": null, "wire_id": "mod.parameter.c07edf5a4567"}, {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "display", "state_effect": null, "wire_id": "mod.parameter.da53dfefaf42"}, {"index": null, "kind": "parameter_action", "route": "prev", "wire_id": "mod.prev"}]
+page bindings [{"key": "ff5m_ui.parameter_controls.ParameterListState.ROWS", "nullable": false, "runtime_type": "builtins.list"}, {"key": "ff5m_ui.parameter_controls.ParameterListState.PREVIOUS", "nullable": false, "runtime_type": "builtins.str"}, {"key": "ff5m_ui.parameter_controls.ParameterListState.PAGE", "nullable": false, "runtime_type": "builtins.int"}, {"key": "ff5m_ui.parameter_controls.ParameterListState.COUNT", "nullable": false, "runtime_type": "builtins.int"}, {"key": "ff5m_ui.parameter_controls.ParameterListState.NEXT", "nullable": false, "runtime_type": "builtins.str"}]
+node {"actions": {}, "bindings": {}, "bounds": [25, 76, 755, 366], "component_template_instance": null, "condition": null, "container": true, "id": "path:0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "horizontal", "gap": 13}, "property_origins": {}, "ref": null, "structure_slot": null, "style": null, "template_instance": null, "type": "Row", "visible": true}
+node {"actions": {}, "bindings": {"item_key": {"direct_keys": [], "error": "item('id') can only resolve inside a Template item scope", "field": "id", "keys": [], "kind": "item", "resolved": null, "source": null, "transitive_keys": []}, "items": {"direct_keys": ["ff5m_ui.parameter_controls.ParameterListState.ROWS"], "key": "ff5m_ui.parameter_controls.ParameterListState.ROWS", "keys": ["ff5m_ui.parameter_controls.ParameterListState.ROWS"], "kind": "direct", "resolved": [{"counter": "01-05 / 11", "id": "category:ESSENTIAL", "kind": "heading", "label": "ESSENTIAL"}, {"active": false, "description": "Choose the active local screen.", "enabled": true, "id": "display", "kind": "value", "label": "DISPLAY", "parameter": "display", "state": "enabled", "subtitle": "display", "value": "FEATHER >"}, {"active": false, "description": "Set the saved nozzle-to-bed Z offset.", "enabled": true, "id": "z_offset", "kind": "value", "label": "Z-OFFSET", "parameter": "z_offset", "state": "enabled", "subtitle": "z_offset", "value": "0 >"}, {"active": false, "description": "Load the saved Z offset during startup.", "enabled": true, "id": "load_zoffset", "kind": "toggle", "label": "LOAD Z-OFFSET", "parameter": "load_zoffset", "state": "enabled", "subtitle": "load_zoffset", "value": "OFF >"}, {"active": false, "description": "Use adaptive meshing and purging.", "enabled": true, "id": "use_kamp", "kind": "toggle", "label": "USE KAMP", "parameter": "use_kamp", "state": "enabled", "subtitle": "use_kamp", "value": "OFF >"}, {"active": false, "description": "Enable the low-memory camera service.", "enabled": true, "id": "camera", "kind": "toggle", "label": "ALT. CAMERA", "parameter": "camera", "state": "enabled", "subtitle": "camera", "value": "OFF >"}], "source": null, "transitive_keys": []}, "template_key": {"direct_keys": [], "error": "item('kind') can only resolve inside a Template item scope", "field": "kind", "keys": [], "kind": "item", "resolved": null, "source": null, "transitive_keys": []}}, "bounds": [25, 76, 690, 362], "component_template_instance": null, "condition": null, "container": true, "id": "settings.rows", "layout": {"allow_overflow": false, "grow": 1, "height": "content", "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "top", "width": null}, "layout_origins": {}, "list_view": {"direction": "vertical", "fallback_template": null, "gap": 0, "item_key_binding": {"direct_keys": [], "error": "item('id') can only resolve inside a Template item scope", "field": "id", "keys": [], "kind": "item", "resolved": null, "source": null, "transitive_keys": []}, "items_binding": {"direct_keys": ["ff5m_ui.parameter_controls.ParameterListState.ROWS"], "key": "ff5m_ui.parameter_controls.ParameterListState.ROWS", "keys": ["ff5m_ui.parameter_controls.ParameterListState.ROWS"], "kind": "direct", "resolved": [{"counter": "01-05 / 11", "id": "category:ESSENTIAL", "kind": "heading", "label": "ESSENTIAL"}, {"active": false, "description": "Choose the active local screen.", "enabled": true, "id": "display", "kind": "value", "label": "DISPLAY", "parameter": "display", "state": "enabled", "subtitle": "display", "value": "FEATHER >"}, {"active": false, "description": "Set the saved nozzle-to-bed Z offset.", "enabled": true, "id": "z_offset", "kind": "value", "label": "Z-OFFSET", "parameter": "z_offset", "state": "enabled", "subtitle": "z_offset", "value": "0 >"}, {"active": false, "description": "Load the saved Z offset during startup.", "enabled": true, "id": "load_zoffset", "kind": "toggle", "label": "LOAD Z-OFFSET", "parameter": "load_zoffset", "state": "enabled", "subtitle": "load_zoffset", "value": "OFF >"}, {"active": false, "description": "Use adaptive meshing and purging.", "enabled": true, "id": "use_kamp", "kind": "toggle", "label": "USE KAMP", "parameter": "use_kamp", "state": "enabled", "subtitle": "use_kamp", "value": "OFF >"}, {"active": false, "description": "Enable the low-memory camera service.", "enabled": true, "id": "camera", "kind": "toggle", "label": "ALT. CAMERA", "parameter": "camera", "state": "enabled", "subtitle": "camera", "value": "OFF >"}], "source": null, "transitive_keys": []}, "template_key_binding": {"direct_keys": [], "error": "item('kind') can only resolve inside a Template item scope", "field": "kind", "keys": [], "kind": "item", "resolved": null, "source": null, "transitive_keys": []}, "templates": [{"name": "heading", "root_source": null, "sample": null, "source": null}, {"name": "next", "root_source": null, "sample": null, "source": null}, {"name": "section", "root_source": null, "sample": null, "source": null}, {"name": "toggle", "root_source": null, "sample": null, "source": null}, {"name": "value", "root_source": null, "sample": null, "source": null}]}, "own_visible": true, "properties": {"direction": "vertical", "gap": 0, "item_key": {"error": "item('id') can only resolve inside a Template item scope"}, "items": [{"counter": "01-05 / 11", "id": "category:ESSENTIAL", "kind": "heading", "label": "ESSENTIAL"}, {"active": false, "description": "Choose the active local screen.", "enabled": true, "id": "display", "kind": "value", "label": "DISPLAY", "parameter": "display", "state": "enabled", "subtitle": "display", "value": "FEATHER >"}, {"active": false, "description": "Set the saved nozzle-to-bed Z offset.", "enabled": true, "id": "z_offset", "kind": "value", "label": "Z-OFFSET", "parameter": "z_offset", "state": "enabled", "subtitle": "z_offset", "value": "0 >"}, {"active": false, "description": "Load the saved Z offset during startup.", "enabled": true, "id": "load_zoffset", "kind": "toggle", "label": "LOAD Z-OFFSET", "parameter": "load_zoffset", "state": "enabled", "subtitle": "load_zoffset", "value": "OFF >"}, {"active": false, "description": "Use adaptive meshing and purging.", "enabled": true, "id": "use_kamp", "kind": "toggle", "label": "USE KAMP", "parameter": "use_kamp", "state": "enabled", "subtitle": "use_kamp", "value": "OFF >"}, {"active": false, "description": "Enable the low-memory camera service.", "enabled": true, "id": "camera", "kind": "toggle", "label": "ALT. CAMERA", "parameter": "camera", "state": "enabled", "subtitle": "camera", "value": "OFF >"}], "reuse_items": true, "template_key": {"error": "item('kind') can only resolve inside a Template item scope"}, "templates": ["heading", "next", "section", "toggle", "value"]}, "property_origins": {}, "ref": "settings.rows", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "ListView", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 76, 690, 32], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": 32, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 6, 0, 2], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "horizontal", "gap": 10}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 0, "item_key": "category:ESSENTIAL", "root": true, "template": "heading"}, "type": "Row", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 82, 4, 24], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 4}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 0, "item_key": "category:ESSENTIAL", "root": false, "template": "heading"}, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [39, 82, 556, 24], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "horizontal", "gap": 10}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": {"index": 0, "item_key": "category:ESSENTIAL", "root": false, "template": "heading"}, "type": "Row", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": [], "field": "label", "keys": [], "kind": "item", "resolved": "ESSENTIAL", "source": null, "transitive_keys": []}}, "bounds": [39, 82, 99, 24], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.0.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": "content"}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono Bold 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "ESSENTIAL", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 0, "item_key": "category:ESSENTIAL", "root": false, "template": "heading"}, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [148, 82, 447, 1], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.0.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": 1, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.BORDER"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": {"index": 0, "item_key": "category:ESSENTIAL", "root": false, "template": "heading"}, "type": "Fill", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": [], "field": "counter", "keys": [], "kind": "item", "resolved": "01-05 / 11", "source": null, "transitive_keys": []}}, "bounds": [605, 82, 110, 24], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.0.2", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": "content"}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.DIM", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "right", "max_height": null, "max_width": null, "truncate": false, "value": "01-05 / 11", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 2}, "style": null, "template_instance": {"index": 0, "item_key": "category:ESSENTIAL", "root": false, "template": "heading"}, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 108, 690, 64], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": 64, "horizontal": "stretch", "margin": [0, 0, 0, 2], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": {"index": 1, "item_key": "display", "root": true, "template": "value"}, "type": "ControlRow", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 108, 690, 64], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.BORDER", "line_width": 1}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 1, "item_key": "display", "root": false, "template": "value"}, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 108, 690, 64], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [15, 5, 15, 5], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 15, "columns": ["<ui.layout.Flex object>", 180], "row_gap": 15, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": {"index": 1, "item_key": "display", "root": false, "template": "value"}, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [40, 113, 465, 54], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 0}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": {"index": 1, "item_key": "display", "root": false, "template": "value"}, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": [], "field": "label", "keys": [], "kind": "item", "resolved": "DISPLAY", "source": null, "transitive_keys": []}}, "bounds": [40, 113, 465, 18], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": 18, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono Bold 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "DISPLAY", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 1, "item_key": "display", "root": false, "template": "value"}, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": [], "field": "subtitle", "keys": [], "kind": "item", "resolved": "display", "source": null, "transitive_keys": []}}, "bounds": [40, 131, 465, 18], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": 18, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.DIM", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "display", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": {"index": 1, "item_key": "display", "root": false, "template": "value"}, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": [], "field": "description", "keys": [], "kind": "item", "resolved": "Choose the active local screen.", "source": null, "transitive_keys": []}}, "bounds": [40, 149, 465, 18], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.0.2", "layout": {"allow_overflow": false, "grow": 1, "height": 18, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.TEXT", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "Choose the active local screen.", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 2}, "style": null, "template_instance": {"index": 1, "item_key": "display", "root": false, "template": "value"}, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [520, 113, 180, 54], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.1.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 180}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": {"index": 1, "item_key": "display", "root": false, "template": "value"}, "type": "Overlay", "visible": true}
+node {"actions": {"action": {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "display", "state_effect": null, "wire_id": "mod.parameter.da53dfefaf42"}}, "bindings": {"label": {"direct_keys": [], "field": "value", "keys": [], "kind": "item", "resolved": "FEATHER >", "source": null, "transitive_keys": []}, "state": {"direct_keys": [], "field": "state", "keys": [], "kind": "item", "resolved": "enabled", "source": null, "transitive_keys": []}}, "bounds": [520, 117, 180, 46], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.1.1.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": 46, "horizontal": "right", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "center", "width": 180}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "display", "state_effect": null, "wire_id": "mod.parameter.da53dfefaf42"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "FEATHER >", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 1, "item_key": "display", "root": false, "template": "value"}, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 174, 690, 64], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.2", "layout": {"allow_overflow": false, "grow": 1, "height": 64, "horizontal": "stretch", "margin": [0, 0, 0, 2], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 2}, "style": null, "template_instance": {"index": 2, "item_key": "z_offset", "root": true, "template": "value"}, "type": "ControlRow", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 174, 690, 64], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.2.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.BORDER", "line_width": 1}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 2, "item_key": "z_offset", "root": false, "template": "value"}, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 174, 690, 64], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.2.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [15, 5, 15, 5], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 15, "columns": ["<ui.layout.Flex object>", 180], "row_gap": 15, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": {"index": 2, "item_key": "z_offset", "root": false, "template": "value"}, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [40, 179, 465, 54], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.2.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 0}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": {"index": 2, "item_key": "z_offset", "root": false, "template": "value"}, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": [], "field": "label", "keys": [], "kind": "item", "resolved": "Z-OFFSET", "source": null, "transitive_keys": []}}, "bounds": [40, 179, 465, 18], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.2.1.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": 18, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono Bold 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "Z-OFFSET", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 2, "item_key": "z_offset", "root": false, "template": "value"}, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": [], "field": "subtitle", "keys": [], "kind": "item", "resolved": "z_offset", "source": null, "transitive_keys": []}}, "bounds": [40, 197, 465, 18], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.2.1.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": 18, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.DIM", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "z_offset", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": {"index": 2, "item_key": "z_offset", "root": false, "template": "value"}, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": [], "field": "description", "keys": [], "kind": "item", "resolved": "Set the saved nozzle-to-bed Z offset.", "source": null, "transitive_keys": []}}, "bounds": [40, 215, 465, 18], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.2.1.0.2", "layout": {"allow_overflow": false, "grow": 1, "height": 18, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.TEXT", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "Set the saved nozzle-to-bed Z offset.", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 2}, "style": null, "template_instance": {"index": 2, "item_key": "z_offset", "root": false, "template": "value"}, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [520, 179, 180, 54], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.2.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 180}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": {"index": 2, "item_key": "z_offset", "root": false, "template": "value"}, "type": "Overlay", "visible": true}
+node {"actions": {"action": {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "z_offset", "state_effect": null, "wire_id": "mod.parameter.25ccb20a89bc"}}, "bindings": {"label": {"direct_keys": [], "field": "value", "keys": [], "kind": "item", "resolved": "0 >", "source": null, "transitive_keys": []}, "state": {"direct_keys": [], "field": "state", "keys": [], "kind": "item", "resolved": "enabled", "source": null, "transitive_keys": []}}, "bounds": [520, 183, 180, 46], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.2.1.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": 46, "horizontal": "right", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "center", "width": 180}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "z_offset", "state_effect": null, "wire_id": "mod.parameter.25ccb20a89bc"}, "button_layout": "center", "font": "JetBrainsMono 8pt", "label": "0 >", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 2, "item_key": "z_offset", "root": false, "template": "value"}, "type": "Button", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 240, 690, 64], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.3", "layout": {"allow_overflow": false, "grow": 1, "height": 64, "horizontal": "stretch", "margin": [0, 0, 0, 2], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 3}, "style": null, "template_instance": {"index": 3, "item_key": "load_zoffset", "root": true, "template": "toggle"}, "type": "ControlRow", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 240, 690, 64], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.3.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.BORDER", "line_width": 1}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 3, "item_key": "load_zoffset", "root": false, "template": "toggle"}, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 240, 690, 64], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.3.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [15, 5, 15, 5], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 15, "columns": ["<ui.layout.Flex object>", 180], "row_gap": 15, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": {"index": 3, "item_key": "load_zoffset", "root": false, "template": "toggle"}, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [40, 245, 465, 54], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.3.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 0}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": {"index": 3, "item_key": "load_zoffset", "root": false, "template": "toggle"}, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": [], "field": "label", "keys": [], "kind": "item", "resolved": "LOAD Z-OFFSET", "source": null, "transitive_keys": []}}, "bounds": [40, 245, 465, 18], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.3.1.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": 18, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono Bold 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "LOAD Z-OFFSET", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 3, "item_key": "load_zoffset", "root": false, "template": "toggle"}, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": [], "field": "subtitle", "keys": [], "kind": "item", "resolved": "load_zoffset", "source": null, "transitive_keys": []}}, "bounds": [40, 263, 465, 18], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.3.1.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": 18, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.DIM", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "load_zoffset", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": {"index": 3, "item_key": "load_zoffset", "root": false, "template": "toggle"}, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": [], "field": "description", "keys": [], "kind": "item", "resolved": "Load the saved Z offset during startup.", "source": null, "transitive_keys": []}}, "bounds": [40, 281, 465, 18], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.3.1.0.2", "layout": {"allow_overflow": false, "grow": 1, "height": 18, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.TEXT", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "Load the saved Z offset during startup.", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 2}, "style": null, "template_instance": {"index": 3, "item_key": "load_zoffset", "root": false, "template": "toggle"}, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [520, 245, 180, 54], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.3.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 180}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": {"index": 3, "item_key": "load_zoffset", "root": false, "template": "toggle"}, "type": "Overlay", "visible": true}
+node {"actions": {"action": {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "load_zoffset", "state_effect": null, "wire_id": "mod.parameter.72038be91e7c"}}, "bindings": {"active": {"direct_keys": [], "field": "active", "keys": [], "kind": "item", "resolved": false, "source": null, "transitive_keys": []}, "enabled": {"direct_keys": [], "field": "enabled", "keys": [], "kind": "item", "resolved": true, "source": null, "transitive_keys": []}}, "bounds": [624, 253, 76, 38], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.3.1.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": 38, "horizontal": "right", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "center", "width": 76}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"action": {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "load_zoffset", "state_effect": null, "wire_id": "mod.parameter.72038be91e7c"}, "active": false, "enabled": true}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 3, "item_key": "load_zoffset", "root": false, "template": "toggle"}, "type": "ToggleSwitch", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 306, 690, 64], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.4", "layout": {"allow_overflow": false, "grow": 1, "height": 64, "horizontal": "stretch", "margin": [0, 0, 0, 2], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 4}, "style": null, "template_instance": {"index": 4, "item_key": "use_kamp", "root": true, "template": "toggle"}, "type": "ControlRow", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 306, 690, 64], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.4.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.BORDER", "line_width": 1}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 4, "item_key": "use_kamp", "root": false, "template": "toggle"}, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 306, 690, 64], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.4.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [15, 5, 15, 5], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 15, "columns": ["<ui.layout.Flex object>", 180], "row_gap": 15, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": {"index": 4, "item_key": "use_kamp", "root": false, "template": "toggle"}, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [40, 311, 465, 54], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.4.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 0}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": {"index": 4, "item_key": "use_kamp", "root": false, "template": "toggle"}, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": [], "field": "label", "keys": [], "kind": "item", "resolved": "USE KAMP", "source": null, "transitive_keys": []}}, "bounds": [40, 311, 465, 18], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.4.1.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": 18, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono Bold 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "USE KAMP", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 4, "item_key": "use_kamp", "root": false, "template": "toggle"}, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": [], "field": "subtitle", "keys": [], "kind": "item", "resolved": "use_kamp", "source": null, "transitive_keys": []}}, "bounds": [40, 329, 465, 18], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.4.1.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": 18, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.DIM", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "use_kamp", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": {"index": 4, "item_key": "use_kamp", "root": false, "template": "toggle"}, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": [], "field": "description", "keys": [], "kind": "item", "resolved": "Use adaptive meshing and purging.", "source": null, "transitive_keys": []}}, "bounds": [40, 347, 465, 18], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.4.1.0.2", "layout": {"allow_overflow": false, "grow": 1, "height": 18, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.TEXT", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "Use adaptive meshing and purging.", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 2}, "style": null, "template_instance": {"index": 4, "item_key": "use_kamp", "root": false, "template": "toggle"}, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [520, 311, 180, 54], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.4.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 180}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": {"index": 4, "item_key": "use_kamp", "root": false, "template": "toggle"}, "type": "Overlay", "visible": true}
+node {"actions": {"action": {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "use_kamp", "state_effect": null, "wire_id": "mod.parameter.c07edf5a4567"}}, "bindings": {"active": {"direct_keys": [], "field": "active", "keys": [], "kind": "item", "resolved": false, "source": null, "transitive_keys": []}, "enabled": {"direct_keys": [], "field": "enabled", "keys": [], "kind": "item", "resolved": true, "source": null, "transitive_keys": []}}, "bounds": [624, 319, 76, 38], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.4.1.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": 38, "horizontal": "right", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "center", "width": 76}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"action": {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "use_kamp", "state_effect": null, "wire_id": "mod.parameter.c07edf5a4567"}, "active": false, "enabled": true}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 4, "item_key": "use_kamp", "root": false, "template": "toggle"}, "type": "ToggleSwitch", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 372, 690, 64], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.5", "layout": {"allow_overflow": false, "grow": 1, "height": 64, "horizontal": "stretch", "margin": [0, 0, 0, 2], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"index": 5}, "style": null, "template_instance": {"index": 5, "item_key": "camera", "root": true, "template": "toggle"}, "type": "ControlRow", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 372, 690, 64], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.5.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.BORDER", "line_width": 1}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 5, "item_key": "camera", "root": false, "template": "toggle"}, "type": "Panel", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [25, 372, 690, 64], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.5.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [15, 5, 15, 5], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"column_gap": 15, "columns": ["<ui.layout.Flex object>", 180], "row_gap": 15, "rows": ["<ui.layout.Flex object>"]}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": {"index": 5, "item_key": "camera", "root": false, "template": "toggle"}, "type": "Grid", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [40, 377, 465, 54], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.5.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 0}, "property_origins": {}, "ref": null, "structure_slot": {"column": 0, "column_span": 1, "index": 0, "row": 0, "row_span": 1}, "style": null, "template_instance": {"index": 5, "item_key": "camera", "root": false, "template": "toggle"}, "type": "Column", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": [], "field": "label", "keys": [], "kind": "item", "resolved": "ALT. CAMERA", "source": null, "transitive_keys": []}}, "bounds": [40, 377, 465, 18], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.5.1.0.0", "layout": {"allow_overflow": false, "grow": 1, "height": 18, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.PRIMARY", "fit": false, "font": "JetBrainsMono Bold 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "ALT. CAMERA", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 5, "item_key": "camera", "root": false, "template": "toggle"}, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": [], "field": "subtitle", "keys": [], "kind": "item", "resolved": "camera", "source": null, "transitive_keys": []}}, "bounds": [40, 395, 465, 18], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.5.1.0.1", "layout": {"allow_overflow": false, "grow": 1, "height": 18, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.DIM", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "camera", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": {"index": 5, "item_key": "camera", "root": false, "template": "toggle"}, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {"value": {"direct_keys": [], "field": "description", "keys": [], "kind": "item", "resolved": "Enable the low-memory camera service.", "source": null, "transitive_keys": []}}, "bounds": [40, 413, 465, 18], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.5.1.0.2", "layout": {"allow_overflow": false, "grow": 1, "height": 18, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"color": "ui.theme.ThemeColor.TEXT", "fit": false, "font": "JetBrainsMono 8pt", "horizontal": "left", "max_height": null, "max_width": null, "truncate": true, "value": "Enable the low-memory camera service.", "vertical": "center", "wrap": false}, "property_origins": {}, "ref": null, "structure_slot": {"index": 2}, "style": null, "template_instance": {"index": 5, "item_key": "camera", "root": false, "template": "toggle"}, "type": "Text", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [520, 377, 180, 54], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0.5.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 180}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {}, "property_origins": {}, "ref": null, "structure_slot": {"column": 1, "column_span": 1, "index": 1, "row": 0, "row_span": 1}, "style": null, "template_instance": {"index": 5, "item_key": "camera", "root": false, "template": "toggle"}, "type": "Overlay", "visible": true}
+node {"actions": {"action": {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "camera", "state_effect": null, "wire_id": "mod.parameter.8466d198481b"}}, "bindings": {"active": {"direct_keys": [], "field": "active", "keys": [], "kind": "item", "resolved": false, "source": null, "transitive_keys": []}, "enabled": {"direct_keys": [], "field": "enabled", "keys": [], "kind": "item", "resolved": true, "source": null, "transitive_keys": []}}, "bounds": [624, 385, 76, 38], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.0.5.1.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": 38, "horizontal": "right", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "center", "width": 76}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"action": {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "camera", "state_effect": null, "wire_id": "mod.parameter.8466d198481b"}, "active": false, "enabled": true}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": {"index": 5, "item_key": "camera", "root": false, "template": "toggle"}, "type": "ToggleSwitch", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [728, 76, 52, 366], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 52}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 0}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {"action": {"index": null, "kind": "parameter_action", "route": "prev", "wire_id": "mod.prev"}}, "bindings": {"state": {"direct_keys": ["ff5m_ui.parameter_controls.ParameterListState.PREVIOUS"], "key": "ff5m_ui.parameter_controls.ParameterListState.PREVIOUS", "keys": ["ff5m_ui.parameter_controls.ParameterListState.PREVIOUS"], "kind": "direct", "resolved": "disabled", "source": null, "transitive_keys": []}}, "bounds": [728, 76, 52, 48], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.1.0", "layout": {"allow_overflow": false, "grow": 1, "height": 48, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"action": {"index": null, "kind": "parameter_action", "route": "prev", "wire_id": "mod.prev"}, "direction": "up", "state": "disabled"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "ArrowButton", "visible": true}
+node {"actions": {}, "bindings": {"count": {"direct_keys": ["ff5m_ui.parameter_controls.ParameterListState.COUNT"], "key": "ff5m_ui.parameter_controls.ParameterListState.COUNT", "keys": ["ff5m_ui.parameter_controls.ParameterListState.COUNT"], "kind": "direct", "resolved": 11, "source": null, "transitive_keys": []}, "position": {"direct_keys": ["ff5m_ui.parameter_controls.ParameterListState.PAGE"], "key": "ff5m_ui.parameter_controls.ParameterListState.PAGE", "keys": ["ff5m_ui.parameter_controls.ParameterListState.PAGE"], "kind": "direct", "resolved": 0, "source": null, "transitive_keys": []}}, "bounds": [749, 134, 10, 250], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.1.1", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "center", "margin": [0, 10, 0, 10], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": 10}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"count": 11, "line_width": 1, "minimum_thumb": 18, "position": 0, "thumb_color": "ui.theme.ThemeColor.PRIMARY", "track_color": "ui.theme.ThemeColor.BORDER"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "ScrollIndicator", "visible": true}
+node {"actions": {"action": {"index": null, "kind": "parameter_action", "route": "next", "wire_id": "mod.next"}}, "bindings": {"state": {"direct_keys": ["ff5m_ui.parameter_controls.ParameterListState.NEXT"], "key": "ff5m_ui.parameter_controls.ParameterListState.NEXT", "keys": ["ff5m_ui.parameter_controls.ParameterListState.NEXT"], "kind": "direct", "resolved": "enabled", "source": null, "transitive_keys": []}}, "bounds": [728, 394, 52, 48], "component_template_instance": null, "condition": null, "container": false, "id": "path:0.1.2", "layout": {"allow_overflow": false, "grow": 1, "height": 48, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"action": {"index": null, "kind": "parameter_action", "route": "next", "wire_id": "mod.next"}, "direction": "down", "state": "enabled"}, "property_origins": {}, "ref": null, "structure_slot": {"index": 2}, "style": null, "template_instance": null, "type": "ArrowButton", "visible": true}
+## page 1
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 1:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 25 82 -s 4 24 -c 35d9e6
+cmd --batch text -p 39 94 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 187 --truncate -t "ESSENTIAL (CONT.)"
+cmd --batch fill -p 236 82 -s 359 1 -c 295c66
+cmd --batch text -p 715 94 -c 56656c -f "JetBrainsMono 8pt" -ha right -va middle -t "06-10 / 11"
+cmd --batch fill -p 25 108 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 108 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 122 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "MESH BED BEFORE PRINTING"
+cmd --batch text -p 40 140 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "print_leveling"
+cmd --batch text -p 40 158 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Run bed meshing before each print."
+cmd --batch fill -p 624 121 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 121 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 629 126 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 1:mod.parameter.416988a6698b -p 624 121 -s 76 38 --layer base
+cmd --batch fill -p 25 174 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 174 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 188 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "SAFE Z HEIGHT, MM"
+cmd --batch text -p 40 206 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "safe_z"
+cmd --batch text -p 40 224 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Set the Z height before lateral moves."
+cmd --batch button -p 520 183 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "10 >" --id 1:mod.parameter.0e454a6eac22 --layer base
+cmd --batch fill -p 25 240 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 240 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 254 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "PAUSE MINIMUM Z, MM"
+cmd --batch text -p 40 272 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "pause_z_min"
+cmd --batch text -p 40 290 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Set the minimum Z for pause parking."
+cmd --batch button -p 520 249 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "50 >" --id 1:mod.parameter.9f0bc1b21bb3 --layer base
+cmd --batch fill -p 25 306 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 306 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 320 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "USE FILAMENT SWITCH SENSOR"
+cmd --batch text -p 40 338 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "filament_switch_sensor"
+cmd --batch text -p 40 356 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Pause when the sensor triggers."
+cmd --batch fill -p 624 319 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 319 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 667 324 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 1:mod.parameter.4f1939d17b74 -p 624 319 -s 76 38 --layer base
+cmd --batch fill -p 25 372 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 372 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 386 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "CHAMBER LIGHT BRIGHTNESS"
+cmd --batch text -p 40 404 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "chamber_light"
+cmd --batch text -p 40 422 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Last selected light brightness."
+cmd --batch button -p 520 381 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "50 >" --id 1:mod.parameter.1acdb1e877fc --layer base
+cmd --batch fill -p 728 76 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 76 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 99 -s 7 12 -c 35d9e6
+cmd --batch fill -p 753 89 -s 3 2 -c 35d9e6
+cmd --batch fill -p 751 91 -s 7 2 -c 35d9e6
+cmd --batch fill -p 749 93 -s 11 2 -c 35d9e6
+cmd --batch fill -p 747 95 -s 15 2 -c 35d9e6
+cmd --batch fill -p 745 97 -s 19 2 -c 35d9e6
+cmd --batch hitbox --id 1:mod.prev -p 728 76 -s 52 48 --layer base
+cmd --batch stroke -p 749 134 -s 10 250 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 751 158 -s 6 22 -c 35d9e6
+cmd --batch fill -p 728 394 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 394 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 407 -s 7 12 -c 35d9e6
+cmd --batch fill -p 745 419 -s 19 2 -c 35d9e6
+cmd --batch fill -p 747 421 -s 15 2 -c 35d9e6
+cmd --batch fill -p 749 423 -s 11 2 -c 35d9e6
+cmd --batch fill -p 751 425 -s 7 2 -c 35d9e6
+cmd --batch fill -p 753 427 -s 3 2 -c 35d9e6
+cmd --batch hitbox --id 1:mod.next -p 728 394 -s 52 48 --layer base
+hit global.wake 0 0 800 480 False base
+hit mod.parameter.416988a6698b 624 121 76 38 False base
+hit mod.parameter.0e454a6eac22 520 183 180 46 False base
+hit mod.parameter.9f0bc1b21bb3 520 249 180 46 False base
+hit mod.parameter.4f1939d17b74 624 319 76 38 False base
+hit mod.parameter.1acdb1e877fc 520 381 180 46 False base
+hit mod.prev 728 76 52 48 False base
+hit mod.next 728 394 52 48 False base
+rect r.0.0.1.0 Text 39 82 187 24
+rect r.0.0.1.1 Fill 236 82 359 1
+rect r.0.1.1.1.0 ToggleSwitch 624 121 76 38
+rect r.0.3.1.1.0 Button 520 249 180 46
+rect r.0.5.1.1.0 Button 520 381 180 46
+gone r.0.1.1.1.0 Button
+gone r.0.3.1.1.0 ToggleSwitch
+gone r.0.5.1.1.0 ToggleSwitch
+## page 2
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 2:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 25 82 -s 4 24 -c 35d9e6
+cmd --batch text -p 39 94 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 187 --truncate -t "ESSENTIAL (CONT.)"
+cmd --batch fill -p 236 82 -s 359 1 -c 295c66
+cmd --batch text -p 715 94 -c 56656c -f "JetBrainsMono 8pt" -ha right -va middle -t "11-11 / 11"
+cmd --batch fill -p 25 108 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 108 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 122 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "CHAMBER LIGHT MODE"
+cmd --batch text -p 40 140 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "chamber_light_mode"
+cmd --batch text -p 40 158 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Choose when brightness is applied."
+cmd --batch button -p 520 117 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "AT_BOOT >" --id 2:mod.parameter.1eaa9d02b992 --layer base
+cmd --batch fill -p 25 214 -s 4 24 -c 35d9e6
+cmd --batch text -p 39 226 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 165 --truncate -t "SAFETY & TUNING"
+cmd --batch fill -p 214 214 -s 381 1 -c 295c66
+cmd --batch text -p 715 226 -c 56656c -f "JetBrainsMono 8pt" -ha right -va middle -t "01-03 / 07"
+cmd --batch fill -p 25 240 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 240 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 254 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "BED COLLISION PROTECTION"
+cmd --batch text -p 40 272 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "weight_check"
+cmd --batch text -p 40 290 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Enable load-cell collision protection."
+cmd --batch fill -p 624 253 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 253 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 629 258 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 2:mod.parameter.28a22b29d716 -p 624 253 -s 76 38 --layer base
+cmd --batch fill -p 25 306 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 306 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 320 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "NOZZLE CONTACT CHECK"
+cmd --batch text -p 40 338 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "nozzle_contact_check"
+cmd --batch text -p 40 356 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Cancel if the nozzle touches the bed."
+cmd --batch fill -p 624 319 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 319 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 667 324 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 2:mod.parameter.cf52716040aa -p 624 319 -s 76 38 --layer base
+cmd --batch fill -p 25 372 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 372 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 386 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "BED COLLISION PROTECTION, WEIGHT"
+cmd --batch text -p 40 404 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "weight_check_max"
+cmd --batch text -p 40 422 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Load limit for bed checks."
+cmd --batch button -p 520 381 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "1200 >" --id 2:mod.parameter.7bd4ce92f95d --layer base
+cmd --batch fill -p 728 76 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 76 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 99 -s 7 12 -c 35d9e6
+cmd --batch fill -p 753 89 -s 3 2 -c 35d9e6
+cmd --batch fill -p 751 91 -s 7 2 -c 35d9e6
+cmd --batch fill -p 749 93 -s 11 2 -c 35d9e6
+cmd --batch fill -p 747 95 -s 15 2 -c 35d9e6
+cmd --batch fill -p 745 97 -s 19 2 -c 35d9e6
+cmd --batch hitbox --id 2:mod.prev -p 728 76 -s 52 48 --layer base
+cmd --batch stroke -p 749 134 -s 10 250 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 751 180 -s 6 22 -c 35d9e6
+cmd --batch fill -p 728 394 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 394 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 407 -s 7 12 -c 35d9e6
+cmd --batch fill -p 745 419 -s 19 2 -c 35d9e6
+cmd --batch fill -p 747 421 -s 15 2 -c 35d9e6
+cmd --batch fill -p 749 423 -s 11 2 -c 35d9e6
+cmd --batch fill -p 751 425 -s 7 2 -c 35d9e6
+cmd --batch fill -p 753 427 -s 3 2 -c 35d9e6
+cmd --batch hitbox --id 2:mod.next -p 728 394 -s 52 48 --layer base
+hit global.wake 0 0 800 480 False base
+hit mod.parameter.1eaa9d02b992 520 117 180 46 False base
+hit mod.parameter.28a22b29d716 624 253 76 38 False base
+hit mod.parameter.cf52716040aa 624 319 76 38 False base
+hit mod.parameter.7bd4ce92f95d 520 381 180 46 False base
+hit mod.prev 728 76 52 48 False base
+hit mod.next 728 394 52 48 False base
+rect r.0.1.1.1.0 Button 520 117 180 46
+rect r.0.2 Row 25 174 690 66
+rect r.0.2.0 Fill 25 214 4 24
+rect r.0.2.1 Row 39 214 556 24
+rect r.0.2.1.0 Text 39 214 165 24
+rect r.0.2.1.1 Fill 214 214 381 1
+rect r.0.2.2 Text 605 214 110 24
+rect r.0.3.1.1.0 ToggleSwitch 624 253 76 38
+gone r.0.1.1.1.0 ToggleSwitch
+gone r.0.2 ControlRow
+gone r.0.2.0 Panel
+gone r.0.2.1 Grid
+gone r.0.2.1.0 Column
+gone r.0.2.1.0.0 Text
+gone r.0.2.1.0.1 Text
+gone r.0.2.1.0.2 Text
+gone r.0.2.1.1 Overlay
+gone r.0.2.1.1.0 Button
+gone r.0.3.1.1.0 Button
+## page 3
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 3:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 25 82 -s 4 24 -c 35d9e6
+cmd --batch text -p 39 94 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 253 --truncate -t "SAFETY & TUNING (CONT.)"
+cmd --batch fill -p 302 82 -s 293 1 -c 295c66
+cmd --batch text -p 715 94 -c 56656c -f "JetBrainsMono 8pt" -ha right -va middle -t "04-07 / 07"
+cmd --batch fill -p 25 108 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 108 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 122 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "ALLOWED THRESHOLD WEIGHT ON LOAD CELL"
+cmd --batch text -p 40 140 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "cell_weight"
+cmd --batch text -p 40 158 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Set the allowed load-cell threshold."
+cmd --batch button -p 520 117 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "0 >" --id 3:mod.parameter.84d639e83987 --layer base
+cmd --batch fill -p 25 174 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 174 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 188 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "BED MESH VALIDATION"
+cmd --batch text -p 40 206 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "bed_mesh_validation"
+cmd --batch text -p 40 224 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Validate bed mesh measurements."
+cmd --batch fill -p 624 187 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 187 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 629 192 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 3:mod.parameter.055650e560a7 -p 624 187 -s 76 38 --layer base
+cmd --batch fill -p 25 240 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 240 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 254 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "FIRMWARE PARAMETER TUNING"
+cmd --batch text -p 40 272 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "tune_config"
+cmd --batch text -p 40 290 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Apply tuned Forge-X printer parameters."
+cmd --batch fill -p 624 253 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 253 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 629 258 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 3:mod.parameter.0bdd802ff738 -p 624 253 -s 76 38 --layer base
+cmd --batch fill -p 25 306 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 306 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 320 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "TUNE KLIPPER PARAMETERS"
+cmd --batch text -p 40 338 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "tune_klipper"
+cmd --batch text -p 40 356 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Apply Forge-X Klipper tuning."
+cmd --batch fill -p 624 319 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 319 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 667 324 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 3:mod.parameter.8566ec39fedb -p 624 319 -s 76 38 --layer base
+cmd --batch fill -p 25 372 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 372 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 370 404 -c d9e4e8 -f "JetBrainsMono Bold 8pt" -ha center -va middle --max-width 650 --truncate -t "NEXT: PRINT BEHAVIOR >"
+cmd --batch hitbox --id 3:mod.more -p 25 372 -s 690 64 --layer base
+cmd --batch fill -p 728 76 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 76 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 99 -s 7 12 -c 35d9e6
+cmd --batch fill -p 753 89 -s 3 2 -c 35d9e6
+cmd --batch fill -p 751 91 -s 7 2 -c 35d9e6
+cmd --batch fill -p 749 93 -s 11 2 -c 35d9e6
+cmd --batch fill -p 747 95 -s 15 2 -c 35d9e6
+cmd --batch fill -p 745 97 -s 19 2 -c 35d9e6
+cmd --batch hitbox --id 3:mod.prev -p 728 76 -s 52 48 --layer base
+cmd --batch stroke -p 749 134 -s 10 250 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 751 203 -s 6 22 -c 35d9e6
+cmd --batch fill -p 728 394 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 394 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 407 -s 7 12 -c 35d9e6
+cmd --batch fill -p 745 419 -s 19 2 -c 35d9e6
+cmd --batch fill -p 747 421 -s 15 2 -c 35d9e6
+cmd --batch fill -p 749 423 -s 11 2 -c 35d9e6
+cmd --batch fill -p 751 425 -s 7 2 -c 35d9e6
+cmd --batch fill -p 753 427 -s 3 2 -c 35d9e6
+cmd --batch hitbox --id 3:mod.next -p 728 394 -s 52 48 --layer base
+hit global.wake 0 0 800 480 False base
+hit mod.parameter.84d639e83987 520 117 180 46 False base
+hit mod.parameter.055650e560a7 624 187 76 38 False base
+hit mod.parameter.0bdd802ff738 624 253 76 38 False base
+hit mod.parameter.8566ec39fedb 624 319 76 38 False base
+hit mod.more 25 372 690 64 False base
+hit mod.prev 728 76 52 48 False base
+hit mod.next 728 394 52 48 False base
+rect r.0 ListView settings.rows 25 76 690 360
+rect r.0.0.1.0 Text 39 82 253 24
+rect r.0.0.1.1 Fill 302 82 293 1
+rect r.0.2 ControlRow 25 174 690 64
+rect r.0.2.0 Panel 25 174 690 64
+rect r.0.2.1 Grid 25 174 690 64
+rect r.0.2.1.0 Column 40 179 465 54
+rect r.0.2.1.0.0 Text 40 179 465 18
+rect r.0.2.1.0.1 Text 40 197 465 18
+rect r.0.2.1.0.2 Text 40 215 465 18
+rect r.0.2.1.1 Overlay 520 179 180 54
+rect r.0.2.1.1.0 ToggleSwitch 624 187 76 38
+rect r.0.5 Overlay 25 372 690 64
+rect r.0.5.1 Text 45 372 650 64
+rect r.0.5.2 Hitbox 25 372 690 64
+gone r.0.2 Row
+gone r.0.2.0 Fill
+gone r.0.2.1 Row
+gone r.0.2.1.0 Text
+gone r.0.2.1.1 Fill
+gone r.0.2.2 Text
+gone r.0.5 ControlRow
+gone r.0.5.1 Grid
+gone r.0.5.1.0 Column
+gone r.0.5.1.0.0 Text
+gone r.0.5.1.0.1 Text
+gone r.0.5.1.0.2 Text
+gone r.0.5.1.1 Overlay
+gone r.0.5.1.1.0 Button
+## page 4
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 4:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 25 82 -s 4 24 -c 35d9e6
+cmd --batch text -p 39 94 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 154 --truncate -t "PRINT BEHAVIOR"
+cmd --batch fill -p 203 82 -s 392 1 -c 295c66
+cmd --batch text -p 715 94 -c 56656c -f "JetBrainsMono 8pt" -ha right -va middle -t "01-05 / 10"
+cmd --batch fill -p 25 108 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 108 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 122 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "NOZZLE PRIMING BEFORE PRINT"
+cmd --batch text -p 40 140 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "disable_priming"
+cmd --batch text -p 40 158 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Control the purge line before printing."
+cmd --batch fill -p 624 121 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 121 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 667 126 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 4:mod.parameter.488ee0fe9e9e -p 624 121 -s 76 38 --layer base
+cmd --batch fill -p 25 174 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 174 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 188 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "PURGE ALGORITHM"
+cmd --batch text -p 40 206 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "zclear"
+cmd --batch text -p 40 224 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Select the purge-line implementation."
+cmd --batch button -p 520 183 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "ORCA >" --id 4:mod.parameter.a9d8e306e29f --layer base
+cmd --batch fill -p 25 240 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 240 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 254 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "NOZZLE CLEANING BEFORE CALIBRATION"
+cmd --batch text -p 40 272 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "disable_cleaning"
+cmd --batch text -p 40 290 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Clean the nozzle before calibration."
+cmd --batch fill -p 624 253 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 253 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 667 258 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 4:mod.parameter.1e21d5113661 -p 624 253 -s 76 38 --layer base
+cmd --batch fill -p 25 306 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 306 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 320 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "CLEAR_NOZZLE TEMPERATURE, Cº"
+cmd --batch text -p 40 338 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "clear_cooldown_temp"
+cmd --batch text -p 40 356 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Set the nozzle cooldown temperature."
+cmd --batch button -p 520 315 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "150 >" --id 4:mod.parameter.3e1664b1ba51 --layer base
+cmd --batch fill -p 25 372 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 372 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 386 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "LOAD Z-OFFSET DURING CLEANING"
+cmd --batch text -p 40 404 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "load_zoffset_cleaning"
+cmd --batch text -p 40 422 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Apply saved Z offset while cleaning."
+cmd --batch fill -p 624 385 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 385 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 629 390 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 4:mod.parameter.c9e1e4f85856 -p 624 385 -s 76 38 --layer base
+cmd --batch fill -p 728 76 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 76 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 99 -s 7 12 -c 35d9e6
+cmd --batch fill -p 753 89 -s 3 2 -c 35d9e6
+cmd --batch fill -p 751 91 -s 7 2 -c 35d9e6
+cmd --batch fill -p 749 93 -s 11 2 -c 35d9e6
+cmd --batch fill -p 747 95 -s 15 2 -c 35d9e6
+cmd --batch fill -p 745 97 -s 19 2 -c 35d9e6
+cmd --batch hitbox --id 4:mod.prev -p 728 76 -s 52 48 --layer base
+cmd --batch stroke -p 749 134 -s 10 250 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 751 225 -s 6 22 -c 35d9e6
+cmd --batch fill -p 728 394 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 394 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 407 -s 7 12 -c 35d9e6
+cmd --batch fill -p 745 419 -s 19 2 -c 35d9e6
+cmd --batch fill -p 747 421 -s 15 2 -c 35d9e6
+cmd --batch fill -p 749 423 -s 11 2 -c 35d9e6
+cmd --batch fill -p 751 425 -s 7 2 -c 35d9e6
+cmd --batch fill -p 753 427 -s 3 2 -c 35d9e6
+cmd --batch hitbox --id 4:mod.next -p 728 394 -s 52 48 --layer base
+hit global.wake 0 0 800 480 False base
+hit mod.parameter.488ee0fe9e9e 624 121 76 38 False base
+hit mod.parameter.a9d8e306e29f 520 183 180 46 False base
+hit mod.parameter.1e21d5113661 624 253 76 38 False base
+hit mod.parameter.3e1664b1ba51 520 315 180 46 False base
+hit mod.parameter.c9e1e4f85856 624 385 76 38 False base
+hit mod.prev 728 76 52 48 False base
+hit mod.next 728 394 52 48 False base
+rect r.0 ListView settings.rows 25 76 690 362
+rect r.0.0.1.0 Text 39 82 154 24
+rect r.0.0.1.1 Fill 203 82 392 1
+rect r.0.1.1.1.0 ToggleSwitch 624 121 76 38
+rect r.0.2.1.1.0 Button 520 183 180 46
+rect r.0.4.1.1.0 Button 520 315 180 46
+rect r.0.5 ControlRow 25 372 690 64
+rect r.0.5.1 Grid 25 372 690 64
+rect r.0.5.1.0 Column 40 377 465 54
+rect r.0.5.1.0.0 Text 40 377 465 18
+rect r.0.5.1.0.1 Text 40 395 465 18
+rect r.0.5.1.0.2 Text 40 413 465 18
+rect r.0.5.1.1 Overlay 520 377 180 54
+rect r.0.5.1.1.0 ToggleSwitch 624 385 76 38
+gone r.0.1.1.1.0 Button
+gone r.0.2.1.1.0 ToggleSwitch
+gone r.0.4.1.1.0 ToggleSwitch
+gone r.0.5 Overlay
+gone r.0.5.1 Text
+gone r.0.5.2 Hitbox
+## page 5
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 5:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 25 82 -s 4 24 -c 35d9e6
+cmd --batch text -p 39 94 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 242 --truncate -t "PRINT BEHAVIOR (CONT.)"
+cmd --batch fill -p 291 82 -s 304 1 -c 295c66
+cmd --batch text -p 715 94 -c 56656c -f "JetBrainsMono 8pt" -ha right -va middle -t "06-10 / 10"
+cmd --batch fill -p 25 108 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 108 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 122 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "SKEW CORRECTION"
+cmd --batch text -p 40 140 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "disable_skew"
+cmd --batch text -p 40 158 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Apply the configured skew correction."
+cmd --batch fill -p 624 121 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 121 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 629 126 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 5:mod.parameter.35592c00ee0a -p 624 121 -s 76 38 --layer base
+cmd --batch fill -p 25 174 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 174 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 188 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "PARKING OFFSET AFTER PRINT, MM"
+cmd --batch text -p 40 206 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "park_dz"
+cmd --batch text -p 40 224 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Set the Z lift after a print."
+cmd --batch button -p 520 183 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "50 >" --id 5:mod.parameter.8958107c6125 --layer base
+cmd --batch fill -p 25 240 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 240 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 254 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "MOTORS"
+cmd --batch text -p 40 272 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "stop_motor"
+cmd --batch text -p 40 290 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Choose motor behavior after a print."
+cmd --batch fill -p 624 253 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 253 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 667 258 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 5:mod.parameter.7003844500bb -p 624 253 -s 76 38 --layer base
+cmd --batch fill -p 25 306 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 306 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 320 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "AUTO-RESTART"
+cmd --batch text -p 40 338 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "auto_reboot"
+cmd --batch text -p 40 356 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Restart after a completed print."
+cmd --batch button -p 520 315 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "OFF >" --id 5:mod.parameter.361dca478f56 --layer base
+cmd --batch fill -p 25 372 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 372 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 386 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "ENABLE POWER LOSS RECOVERY FEATURE"
+cmd --batch text -p 40 404 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "power_loss_recovery"
+cmd --batch text -p 40 422 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Offer recovery after power loss."
+cmd --batch fill -p 624 385 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 385 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 667 390 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 5:mod.parameter.098be0a3dc66 -p 624 385 -s 76 38 --layer base
+cmd --batch fill -p 728 76 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 76 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 99 -s 7 12 -c 35d9e6
+cmd --batch fill -p 753 89 -s 3 2 -c 35d9e6
+cmd --batch fill -p 751 91 -s 7 2 -c 35d9e6
+cmd --batch fill -p 749 93 -s 11 2 -c 35d9e6
+cmd --batch fill -p 747 95 -s 15 2 -c 35d9e6
+cmd --batch fill -p 745 97 -s 19 2 -c 35d9e6
+cmd --batch hitbox --id 5:mod.prev -p 728 76 -s 52 48 --layer base
+cmd --batch stroke -p 749 134 -s 10 250 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 751 248 -s 6 22 -c 35d9e6
+cmd --batch fill -p 728 394 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 394 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 407 -s 7 12 -c 35d9e6
+cmd --batch fill -p 745 419 -s 19 2 -c 35d9e6
+cmd --batch fill -p 747 421 -s 15 2 -c 35d9e6
+cmd --batch fill -p 749 423 -s 11 2 -c 35d9e6
+cmd --batch fill -p 751 425 -s 7 2 -c 35d9e6
+cmd --batch fill -p 753 427 -s 3 2 -c 35d9e6
+cmd --batch hitbox --id 5:mod.next -p 728 394 -s 52 48 --layer base
+hit global.wake 0 0 800 480 False base
+hit mod.parameter.35592c00ee0a 624 121 76 38 False base
+hit mod.parameter.8958107c6125 520 183 180 46 False base
+hit mod.parameter.7003844500bb 624 253 76 38 False base
+hit mod.parameter.361dca478f56 520 315 180 46 False base
+hit mod.parameter.098be0a3dc66 624 385 76 38 False base
+hit mod.prev 728 76 52 48 False base
+hit mod.next 728 394 52 48 False base
+rect r.0.0.1.0 Text 39 82 242 24
+rect r.0.0.1.1 Fill 291 82 304 1
+## page 6
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 6:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 25 82 -s 4 24 -c 35d9e6
+cmd --batch text -p 39 94 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 99 --truncate -t "USABILITY"
+cmd --batch fill -p 148 82 -s 447 1 -c 295c66
+cmd --batch text -p 715 94 -c 56656c -f "JetBrainsMono 8pt" -ha right -va middle -t "01-05 / 07"
+cmd --batch fill -p 25 108 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 108 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 122 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "SOUND INDICATION"
+cmd --batch text -p 40 140 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "sound"
+cmd --batch text -p 40 158 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Enable local sound feedback."
+cmd --batch fill -p 624 121 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 121 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 667 126 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 6:mod.parameter.74fb22c6066d -p 624 121 -s 76 38 --layer base
+cmd --batch fill -p 25 174 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 174 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 188 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "SCREEN BRIGHTNESS"
+cmd --batch text -p 40 206 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "backlight"
+cmd --batch text -p 40 224 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Set normal display brightness percent."
+cmd --batch button -p 520 183 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "80 >" --id 6:mod.parameter.25d9fa0268b3 --layer base
+cmd --batch fill -p 25 240 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 240 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 254 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "DISPLAY ECO MODE"
+cmd --batch text -p 40 272 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "display_eco"
+cmd --batch text -p 40 290 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Dim the display after inactivity."
+cmd --batch fill -p 624 253 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 253 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 667 258 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 6:mod.parameter.810a8cd25d29 -p 624 253 -s 76 38 --layer base
+cmd --batch fill -p 25 306 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 306 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 320 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "SCREEN BRIGHTNESS IN ECO MODE"
+cmd --batch text -p 40 338 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "backlight_eco"
+cmd --batch text -p 40 356 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Set dimmed display brightness percent."
+cmd --batch button -p 520 315 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "30 >" --id 6:mod.parameter.c74a5ef03d85 --layer base
+cmd --batch fill -p 25 372 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 372 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 386 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "FEATHER COLOR THEME"
+cmd --batch text -p 40 404 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "feather_theme"
+cmd --batch text -p 40 422 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Choose the Feather color palette."
+cmd --batch button -p 520 381 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "DEFAULT >" --id 6:mod.parameter.fff5c08711ff --layer base
+cmd --batch fill -p 728 76 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 76 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 99 -s 7 12 -c 35d9e6
+cmd --batch fill -p 753 89 -s 3 2 -c 35d9e6
+cmd --batch fill -p 751 91 -s 7 2 -c 35d9e6
+cmd --batch fill -p 749 93 -s 11 2 -c 35d9e6
+cmd --batch fill -p 747 95 -s 15 2 -c 35d9e6
+cmd --batch fill -p 745 97 -s 19 2 -c 35d9e6
+cmd --batch hitbox --id 6:mod.prev -p 728 76 -s 52 48 --layer base
+cmd --batch stroke -p 749 134 -s 10 250 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 751 270 -s 6 22 -c 35d9e6
+cmd --batch fill -p 728 394 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 394 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 407 -s 7 12 -c 35d9e6
+cmd --batch fill -p 745 419 -s 19 2 -c 35d9e6
+cmd --batch fill -p 747 421 -s 15 2 -c 35d9e6
+cmd --batch fill -p 749 423 -s 11 2 -c 35d9e6
+cmd --batch fill -p 751 425 -s 7 2 -c 35d9e6
+cmd --batch fill -p 753 427 -s 3 2 -c 35d9e6
+cmd --batch hitbox --id 6:mod.next -p 728 394 -s 52 48 --layer base
+hit global.wake 0 0 800 480 False base
+hit mod.parameter.74fb22c6066d 624 121 76 38 False base
+hit mod.parameter.25d9fa0268b3 520 183 180 46 False base
+hit mod.parameter.810a8cd25d29 624 253 76 38 False base
+hit mod.parameter.c74a5ef03d85 520 315 180 46 False base
+hit mod.parameter.fff5c08711ff 520 381 180 46 False base
+hit mod.prev 728 76 52 48 False base
+hit mod.next 728 394 52 48 False base
+rect r.0.0.1.0 Text 39 82 99 24
+rect r.0.0.1.1 Fill 148 82 447 1
+rect r.0.5.1.1.0 Button 520 381 180 46
+gone r.0.5.1.1.0 ToggleSwitch
+## page 7
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 7:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 25 82 -s 4 24 -c 35d9e6
+cmd --batch text -p 39 94 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 187 --truncate -t "USABILITY (CONT.)"
+cmd --batch fill -p 236 82 -s 359 1 -c 295c66
+cmd --batch text -p 715 94 -c 56656c -f "JetBrainsMono 8pt" -ha right -va middle -t "06-07 / 07"
+cmd --batch fill -p 25 108 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 108 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 122 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "FEATHER STATUS BAR"
+cmd --batch text -p 40 140 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "feather_status_bar"
+cmd --batch text -p 40 158 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Choose the bottom status bar layout."
+cmd --batch button -p 520 117 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "METRICS >" --id 7:mod.parameter.1e7abada9f18 --layer base
+cmd --batch fill -p 25 174 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 174 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 188 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "PREVIEW BACK TO FILES"
+cmd --batch text -p 40 206 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "feather_preview_back_to_files"
+cmd --batch text -p 40 224 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Back from preview opens file browser."
+cmd --batch fill -p 624 187 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 187 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 667 192 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 7:mod.parameter.4f13ca55fa5b -p 624 187 -s 76 38 --layer base
+cmd --batch fill -p 25 280 -s 4 24 -c 35d9e6
+cmd --batch text -p 39 292 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 165 --truncate -t "SYSTEM SERVICES"
+cmd --batch fill -p 214 280 -s 381 1 -c 295c66
+cmd --batch text -p 715 292 -c 56656c -f "JetBrainsMono 8pt" -ha right -va middle -t "01-02 / 07"
+cmd --batch fill -p 25 306 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 306 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 320 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "SWAP"
+cmd --batch text -p 40 338 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "use_swap"
+cmd --batch text -p 40 356 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Select the swap storage backend."
+cmd --batch button -p 520 315 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "MMC >" --id 7:mod.parameter.eb7e715dce8f --layer base
+cmd --batch fill -p 25 372 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 372 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 386 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "MD5 VERIFICATION"
+cmd --batch text -p 40 404 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "check_md5"
+cmd --batch text -p 40 422 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Verify supported G-code file checksums."
+cmd --batch fill -p 624 385 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 385 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 667 390 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 7:mod.parameter.ce737e29bf10 -p 624 385 -s 76 38 --layer base
+cmd --batch fill -p 728 76 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 76 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 99 -s 7 12 -c 35d9e6
+cmd --batch fill -p 753 89 -s 3 2 -c 35d9e6
+cmd --batch fill -p 751 91 -s 7 2 -c 35d9e6
+cmd --batch fill -p 749 93 -s 11 2 -c 35d9e6
+cmd --batch fill -p 747 95 -s 15 2 -c 35d9e6
+cmd --batch fill -p 745 97 -s 19 2 -c 35d9e6
+cmd --batch hitbox --id 7:mod.prev -p 728 76 -s 52 48 --layer base
+cmd --batch stroke -p 749 134 -s 10 250 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 751 292 -s 6 22 -c 35d9e6
+cmd --batch fill -p 728 394 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 394 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 407 -s 7 12 -c 35d9e6
+cmd --batch fill -p 745 419 -s 19 2 -c 35d9e6
+cmd --batch fill -p 747 421 -s 15 2 -c 35d9e6
+cmd --batch fill -p 749 423 -s 11 2 -c 35d9e6
+cmd --batch fill -p 751 425 -s 7 2 -c 35d9e6
+cmd --batch fill -p 753 427 -s 3 2 -c 35d9e6
+cmd --batch hitbox --id 7:mod.next -p 728 394 -s 52 48 --layer base
+hit global.wake 0 0 800 480 False base
+hit mod.parameter.1e7abada9f18 520 117 180 46 False base
+hit mod.parameter.4f13ca55fa5b 624 187 76 38 False base
+hit mod.parameter.eb7e715dce8f 520 315 180 46 False base
+hit mod.parameter.ce737e29bf10 624 385 76 38 False base
+hit mod.prev 728 76 52 48 False base
+hit mod.next 728 394 52 48 False base
+rect r.0.0.1.0 Text 39 82 187 24
+rect r.0.0.1.1 Fill 236 82 359 1
+rect r.0.1.1.1.0 Button 520 117 180 46
+rect r.0.2.1.1.0 ToggleSwitch 624 187 76 38
+rect r.0.3 Row 25 240 690 66
+rect r.0.3.0 Fill 25 280 4 24
+rect r.0.3.1 Row 39 280 556 24
+rect r.0.3.1.0 Text 39 280 165 24
+rect r.0.3.1.1 Fill 214 280 381 1
+rect r.0.3.2 Text 605 280 110 24
+rect r.0.5.1.1.0 ToggleSwitch 624 385 76 38
+gone r.0.1.1.1.0 ToggleSwitch
+gone r.0.2.1.1.0 Button
+gone r.0.3 ControlRow
+gone r.0.3.0 Panel
+gone r.0.3.1 Grid
+gone r.0.3.1.0 Column
+gone r.0.3.1.0.0 Text
+gone r.0.3.1.0.1 Text
+gone r.0.3.1.0.2 Text
+gone r.0.3.1.1 Overlay
+gone r.0.3.1.1.0 ToggleSwitch
+gone r.0.5.1.1.0 Button
+## page 8
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 8:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 25 82 -s 4 24 -c 35d9e6
+cmd --batch text -p 39 94 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 253 --truncate -t "SYSTEM SERVICES (CONT.)"
+cmd --batch fill -p 302 82 -s 293 1 -c 295c66
+cmd --batch text -p 715 94 -c 56656c -f "JetBrainsMono 8pt" -ha right -va middle -t "03-07 / 07"
+cmd --batch fill -p 25 108 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 108 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 122 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "CHECK FOR FORGE-X UPDATES"
+cmd --batch text -p 40 140 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "mod_check_update"
+cmd --batch text -p 40 158 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Check for Forge-X updates."
+cmd --batch fill -p 624 121 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 121 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 667 126 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 8:mod.parameter.00ab133e6580 -p 624 121 -s 76 38 --layer base
+cmd --batch fill -p 25 174 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 174 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 188 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "UPDATE CHECK INTERVAL"
+cmd --batch text -p 40 206 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "mod_check_update_interval"
+cmd --batch text -p 40 224 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Minutes between successful checks."
+cmd --batch button -p 520 183 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "360 >" --id 8:mod.parameter.427be5a2a3ba --layer base
+cmd --batch fill -p 25 240 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 240 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 254 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "SSH TUNNEL"
+cmd --batch text -p 40 272 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "zssh"
+cmd --batch text -p 40 290 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Enable the remote SSH tunnel service."
+cmd --batch fill -p 624 253 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 253 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 629 258 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 8:mod.parameter.e7b238f1a3cd -p 624 253 -s 76 38 --layer base
+cmd --batch fill -p 25 306 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 306 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 320 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "DISABLE WEB UI"
+cmd --batch text -p 40 338 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "disable_web"
+cmd --batch text -p 40 356 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Disable local HTTP web interfaces."
+cmd --batch fill -p 624 319 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 319 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 629 324 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 8:mod.parameter.7c07cfd76398 -p 624 319 -s 76 38 --layer base
+cmd --batch fill -p 25 372 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 372 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 386 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "DISABLE MOONRAKER"
+cmd --batch text -p 40 404 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "disable_moonraker"
+cmd --batch text -p 40 422 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Printer restart required."
+cmd --batch fill -p 624 385 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 385 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 629 390 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 8:mod.parameter.867883cd9d88 -p 624 385 -s 76 38 --layer base
+cmd --batch fill -p 728 76 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 76 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 99 -s 7 12 -c 35d9e6
+cmd --batch fill -p 753 89 -s 3 2 -c 35d9e6
+cmd --batch fill -p 751 91 -s 7 2 -c 35d9e6
+cmd --batch fill -p 749 93 -s 11 2 -c 35d9e6
+cmd --batch fill -p 747 95 -s 15 2 -c 35d9e6
+cmd --batch fill -p 745 97 -s 19 2 -c 35d9e6
+cmd --batch hitbox --id 8:mod.prev -p 728 76 -s 52 48 --layer base
+cmd --batch stroke -p 749 134 -s 10 250 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 751 315 -s 6 22 -c 35d9e6
+cmd --batch fill -p 728 394 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 394 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 407 -s 7 12 -c 35d9e6
+cmd --batch fill -p 745 419 -s 19 2 -c 35d9e6
+cmd --batch fill -p 747 421 -s 15 2 -c 35d9e6
+cmd --batch fill -p 749 423 -s 11 2 -c 35d9e6
+cmd --batch fill -p 751 425 -s 7 2 -c 35d9e6
+cmd --batch fill -p 753 427 -s 3 2 -c 35d9e6
+cmd --batch hitbox --id 8:mod.next -p 728 394 -s 52 48 --layer base
+hit global.wake 0 0 800 480 False base
+hit mod.parameter.00ab133e6580 624 121 76 38 False base
+hit mod.parameter.427be5a2a3ba 520 183 180 46 False base
+hit mod.parameter.e7b238f1a3cd 624 253 76 38 False base
+hit mod.parameter.7c07cfd76398 624 319 76 38 False base
+hit mod.parameter.867883cd9d88 624 385 76 38 False base
+hit mod.prev 728 76 52 48 False base
+hit mod.next 728 394 52 48 False base
+rect r.0.0.1.0 Text 39 82 253 24
+rect r.0.0.1.1 Fill 302 82 293 1
+rect r.0.1.1.1.0 ToggleSwitch 624 121 76 38
+rect r.0.2.1.1.0 Button 520 183 180 46
+rect r.0.3 ControlRow 25 240 690 64
+rect r.0.3.0 Panel 25 240 690 64
+rect r.0.3.1 Grid 25 240 690 64
+rect r.0.3.1.0 Column 40 245 465 54
+rect r.0.3.1.0.0 Text 40 245 465 18
+rect r.0.3.1.0.1 Text 40 263 465 18
+rect r.0.3.1.0.2 Text 40 281 465 18
+rect r.0.3.1.1 Overlay 520 245 180 54
+rect r.0.3.1.1.0 ToggleSwitch 624 253 76 38
+rect r.0.4.1.1.0 ToggleSwitch 624 319 76 38
+gone r.0.1.1.1.0 Button
+gone r.0.2.1.1.0 ToggleSwitch
+gone r.0.3 Row
+gone r.0.3.0 Fill
+gone r.0.3.1 Row
+gone r.0.3.1.0 Text
+gone r.0.3.1.1 Fill
+gone r.0.3.2 Text
+gone r.0.4.1.1.0 Button
+## page 9
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 9:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 25 82 -s 4 24 -c 35d9e6
+cmd --batch text -p 39 94 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 132 --truncate -t "EXPERIMENTAL"
+cmd --batch fill -p 181 82 -s 414 1 -c 295c66
+cmd --batch text -p 715 94 -c 56656c -f "JetBrainsMono 8pt" -ha right -va middle -t "01-02 / 02"
+cmd --batch fill -p 25 108 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 108 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 122 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "KLIPPER REAL-TIME PRIORITY (SCHED_RR)"
+cmd --batch text -p 40 140 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "klipper_rt"
+cmd --batch text -p 40 158 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Give Klipper low real-time priority."
+cmd --batch fill -p 624 121 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 121 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 629 126 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 9:mod.parameter.14a731ba861e -p 624 121 -s 76 38 --layer base
+cmd --batch fill -p 25 174 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 174 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 188 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "USER PATCH OVERRIDES"
+cmd --batch text -p 40 206 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "user_plugins_override_patches"
+cmd --batch text -p 40 224 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Allow replacing Forge-X patches."
+cmd --batch fill -p 624 187 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 187 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 629 192 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 9:mod.parameter.a52198eed942 -p 624 187 -s 76 38 --layer base
+cmd --batch fill -p 25 280 -s 4 24 -c 35d9e6
+cmd --batch text -p 39 292 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 44 --truncate -t "MIDI"
+cmd --batch fill -p 93 280 -s 502 1 -c 295c66
+cmd --batch text -p 715 292 -c 56656c -f "JetBrainsMono 8pt" -ha right -va middle -t "01-02 / 03"
+cmd --batch fill -p 25 306 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 306 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 320 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "MIDI ON STARTUP"
+cmd --batch text -p 40 338 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "midi_on"
+cmd --batch text -p 40 356 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Set the MIDI played at startup."
+cmd --batch button -p 520 315 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "<EMPTY> >" --id 9:mod.parameter.47a3fed59e4c --layer base
+cmd --batch fill -p 25 372 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 372 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 386 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "MIDI WHEN STARTING PRINT"
+cmd --batch text -p 40 404 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "midi_start"
+cmd --batch text -p 40 422 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Set the MIDI played at print start."
+cmd --batch button -p 520 381 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "<EMPTY> >" --id 9:mod.parameter.15e0375230fc --layer base
+cmd --batch fill -p 728 76 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 76 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 99 -s 7 12 -c 35d9e6
+cmd --batch fill -p 753 89 -s 3 2 -c 35d9e6
+cmd --batch fill -p 751 91 -s 7 2 -c 35d9e6
+cmd --batch fill -p 749 93 -s 11 2 -c 35d9e6
+cmd --batch fill -p 747 95 -s 15 2 -c 35d9e6
+cmd --batch fill -p 745 97 -s 19 2 -c 35d9e6
+cmd --batch hitbox --id 9:mod.prev -p 728 76 -s 52 48 --layer base
+cmd --batch stroke -p 749 134 -s 10 250 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 751 337 -s 6 22 -c 35d9e6
+cmd --batch fill -p 728 394 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 394 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 407 -s 7 12 -c 35d9e6
+cmd --batch fill -p 745 419 -s 19 2 -c 35d9e6
+cmd --batch fill -p 747 421 -s 15 2 -c 35d9e6
+cmd --batch fill -p 749 423 -s 11 2 -c 35d9e6
+cmd --batch fill -p 751 425 -s 7 2 -c 35d9e6
+cmd --batch fill -p 753 427 -s 3 2 -c 35d9e6
+cmd --batch hitbox --id 9:mod.next -p 728 394 -s 52 48 --layer base
+hit global.wake 0 0 800 480 False base
+hit mod.parameter.14a731ba861e 624 121 76 38 False base
+hit mod.parameter.a52198eed942 624 187 76 38 False base
+hit mod.parameter.47a3fed59e4c 520 315 180 46 False base
+hit mod.parameter.15e0375230fc 520 381 180 46 False base
+hit mod.prev 728 76 52 48 False base
+hit mod.next 728 394 52 48 False base
+rect r.0.0.1.0 Text 39 82 132 24
+rect r.0.0.1.1 Fill 181 82 414 1
+rect r.0.2.1.1.0 ToggleSwitch 624 187 76 38
+rect r.0.3 Row 25 240 690 66
+rect r.0.3.0 Fill 25 280 4 24
+rect r.0.3.1 Row 39 280 556 24
+rect r.0.3.1.0 Text 39 280 44 24
+rect r.0.3.1.1 Fill 93 280 502 1
+rect r.0.3.2 Text 605 280 110 24
+rect r.0.4.1.1.0 Button 520 315 180 46
+rect r.0.5.1.1.0 Button 520 381 180 46
+gone r.0.2.1.1.0 Button
+gone r.0.3 ControlRow
+gone r.0.3.0 Panel
+gone r.0.3.1 Grid
+gone r.0.3.1.0 Column
+gone r.0.3.1.0.0 Text
+gone r.0.3.1.0.1 Text
+gone r.0.3.1.0.2 Text
+gone r.0.3.1.1 Overlay
+gone r.0.3.1.1.0 ToggleSwitch
+gone r.0.4.1.1.0 ToggleSwitch
+gone r.0.5.1.1.0 ToggleSwitch
+## page 10
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 10:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 25 82 -s 4 24 -c 35d9e6
+cmd --batch text -p 39 94 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 132 --truncate -t "MIDI (CONT.)"
+cmd --batch fill -p 181 82 -s 414 1 -c 295c66
+cmd --batch text -p 715 94 -c 56656c -f "JetBrainsMono 8pt" -ha right -va middle -t "03-03 / 03"
+cmd --batch fill -p 25 108 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 108 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 122 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "MIDI WHEN COMPLETING PRINT"
+cmd --batch text -p 40 140 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "midi_end"
+cmd --batch text -p 40 158 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Set the MIDI played after printing."
+cmd --batch button -p 520 117 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "<EMPTY> >" --id 10:mod.parameter.8ba2ea074b85 --layer base
+cmd --batch fill -p 728 76 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 76 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 99 -s 7 12 -c 35d9e6
+cmd --batch fill -p 753 89 -s 3 2 -c 35d9e6
+cmd --batch fill -p 751 91 -s 7 2 -c 35d9e6
+cmd --batch fill -p 749 93 -s 11 2 -c 35d9e6
+cmd --batch fill -p 747 95 -s 15 2 -c 35d9e6
+cmd --batch fill -p 745 97 -s 19 2 -c 35d9e6
+cmd --batch hitbox --id 10:mod.prev -p 728 76 -s 52 48 --layer base
+cmd --batch stroke -p 749 134 -s 10 250 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 751 360 -s 6 22 -c 35d9e6
+cmd --batch fill -p 728 394 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 394 -s 52 48 -c 263238 -lw 2 -sd inner
+cmd --batch fill -p 751 407 -s 7 12 -c 56656c
+cmd --batch fill -p 745 419 -s 19 2 -c 56656c
+cmd --batch fill -p 747 421 -s 15 2 -c 56656c
+cmd --batch fill -p 749 423 -s 11 2 -c 56656c
+cmd --batch fill -p 751 425 -s 7 2 -c 56656c
+cmd --batch fill -p 753 427 -s 3 2 -c 56656c
+hit global.wake 0 0 800 480 False base
+hit mod.parameter.8ba2ea074b85 520 117 180 46 False base
+hit mod.prev 728 76 52 48 False base
+rect r.0 ListView settings.rows 25 76 690 98
+rect r.0.1.1.1.0 Button 520 117 180 46
+gone r.0.1.1.1.0 ToggleSwitch
+gone r.0.2 ControlRow
+gone r.0.2.0 Panel
+gone r.0.2.1 Grid
+gone r.0.2.1.0 Column
+gone r.0.2.1.0.0 Text
+gone r.0.2.1.0.1 Text
+gone r.0.2.1.0.2 Text
+gone r.0.2.1.1 Overlay
+gone r.0.2.1.1.0 ToggleSwitch
+gone r.0.3 Row
+gone r.0.3.0 Fill
+gone r.0.3.1 Row
+gone r.0.3.1.0 Text
+gone r.0.3.1.1 Fill
+gone r.0.3.2 Text
+gone r.0.4 ControlRow
+gone r.0.4.0 Panel
+gone r.0.4.1 Grid
+gone r.0.4.1.0 Column
+gone r.0.4.1.0.0 Text
+gone r.0.4.1.0.1 Text
+gone r.0.4.1.0.2 Text
+gone r.0.4.1.1 Overlay
+gone r.0.4.1.1.0 Button
+gone r.0.5 ControlRow
+gone r.0.5.0 Panel
+gone r.0.5.1 Grid
+gone r.0.5.1.0 Column
+gone r.0.5.1.0.0 Text
+gone r.0.5.1.0.1 Text
+gone r.0.5.1.0.2 Text
+gone r.0.5.1.1 Overlay
+gone r.0.5.1.1.0 Button
+## page 0
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 11:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 0 0 -s 800 442 -c 030607
+cmd --batch stroke -p 8 4 -s 784 439 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 10 6 -s 780 49 -c 050c0f
+cmd --batch text -p 400 29 -c 35d9e6 -f "JetBrainsMono 12pt" -ha center -va middle --max-width 740 --truncate -t ""
+cmd --batch fill -p 18 55 -s 764 1 -c 295c66
+cmd --batch fill -p 18 442 -s 764 1 -c 295c66
+cmd --batch fill -p 25 82 -s 4 24 -c 35d9e6
+cmd --batch text -p 39 94 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 99 --truncate -t "ESSENTIAL"
+cmd --batch fill -p 148 82 -s 447 1 -c 295c66
+cmd --batch text -p 715 94 -c 56656c -f "JetBrainsMono 8pt" -ha right -va middle -t "01-05 / 11"
+cmd --batch fill -p 25 108 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 108 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 122 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "DISPLAY"
+cmd --batch text -p 40 140 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "display"
+cmd --batch text -p 40 158 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Choose the active local screen."
+cmd --batch button -p 520 117 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "FEATHER >" --id 11:mod.parameter.da53dfefaf42 --layer base
+cmd --batch fill -p 25 174 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 174 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 188 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "Z-OFFSET"
+cmd --batch text -p 40 206 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "z_offset"
+cmd --batch text -p 40 224 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Set the saved nozzle-to-bed Z offset."
+cmd --batch button -p 520 183 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "0 >" --id 11:mod.parameter.25ccb20a89bc --layer base
+cmd --batch fill -p 25 240 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 240 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 254 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "LOAD Z-OFFSET"
+cmd --batch text -p 40 272 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "load_zoffset"
+cmd --batch text -p 40 290 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Load the saved Z offset during startup."
+cmd --batch fill -p 624 253 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 253 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 629 258 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 11:mod.parameter.72038be91e7c -p 624 253 -s 76 38 --layer base
+cmd --batch fill -p 25 306 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 306 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 320 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "USE KAMP"
+cmd --batch text -p 40 338 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "use_kamp"
+cmd --batch text -p 40 356 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Use adaptive meshing and purging."
+cmd --batch fill -p 624 319 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 319 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 629 324 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 11:mod.parameter.c07edf5a4567 -p 624 319 -s 76 38 --layer base
+cmd --batch fill -p 25 372 -s 690 64 -c 050c0f
+cmd --batch stroke -p 25 372 -s 690 64 -c 295c66 -lw 1 -sd inner
+cmd --batch text -p 40 386 -c 35d9e6 -f "JetBrainsMono Bold 8pt" -ha left -va middle --max-width 465 --truncate -t "ALT. CAMERA"
+cmd --batch text -p 40 404 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "camera"
+cmd --batch text -p 40 422 -c d9e4e8 -f "JetBrainsMono 8pt" -ha left -va middle --max-width 465 --truncate -t "Enable the low-memory camera service."
+cmd --batch fill -p 624 385 -s 76 38 -c 050c0f
+cmd --batch stroke -p 624 385 -s 76 38 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 629 390 -s 28 28 -c 35d9e6
+cmd --batch hitbox --id 11:mod.parameter.8466d198481b -p 624 385 -s 76 38 --layer base
+cmd --batch fill -p 728 76 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 76 -s 52 48 -c 263238 -lw 2 -sd inner
+cmd --batch fill -p 751 99 -s 7 12 -c 56656c
+cmd --batch fill -p 753 89 -s 3 2 -c 56656c
+cmd --batch fill -p 751 91 -s 7 2 -c 56656c
+cmd --batch fill -p 749 93 -s 11 2 -c 56656c
+cmd --batch fill -p 747 95 -s 15 2 -c 56656c
+cmd --batch fill -p 745 97 -s 19 2 -c 56656c
+cmd --batch stroke -p 749 134 -s 10 250 -c 295c66 -lw 1 -sd inner
+cmd --batch fill -p 751 136 -s 6 22 -c 35d9e6
+cmd --batch fill -p 728 394 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 394 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 407 -s 7 12 -c 35d9e6
+cmd --batch fill -p 745 419 -s 19 2 -c 35d9e6
+cmd --batch fill -p 747 421 -s 15 2 -c 35d9e6
+cmd --batch fill -p 749 423 -s 11 2 -c 35d9e6
+cmd --batch fill -p 751 425 -s 7 2 -c 35d9e6
+cmd --batch fill -p 753 427 -s 3 2 -c 35d9e6
+cmd --batch hitbox --id 11:mod.next -p 728 394 -s 52 48 --layer base
+hit global.wake 0 0 800 480 False base
+hit mod.parameter.da53dfefaf42 520 117 180 46 False base
+hit mod.parameter.25ccb20a89bc 520 183 180 46 False base
+hit mod.parameter.72038be91e7c 624 253 76 38 False base
+hit mod.parameter.c07edf5a4567 624 319 76 38 False base
+hit mod.parameter.8466d198481b 624 385 76 38 False base
+hit mod.next 728 394 52 48 False base
+rect r.0 ListView settings.rows 25 76 690 362
+rect r.0.0.1.0 Text 39 82 99 24
+rect r.0.0.1.1 Fill 148 82 447 1
+rect r.0.2 ControlRow 25 174 690 64
+rect r.0.2.0 Panel 25 174 690 64
+rect r.0.2.1 Grid 25 174 690 64
+rect r.0.2.1.0 Column 40 179 465 54
+rect r.0.2.1.0.0 Text 40 179 465 18
+rect r.0.2.1.0.1 Text 40 197 465 18
+rect r.0.2.1.0.2 Text 40 215 465 18
+rect r.0.2.1.1 Overlay 520 179 180 54
+rect r.0.2.1.1.0 Button 520 183 180 46
+rect r.0.3 ControlRow 25 240 690 64
+rect r.0.3.0 Panel 25 240 690 64
+rect r.0.3.1 Grid 25 240 690 64
+rect r.0.3.1.0 Column 40 245 465 54
+rect r.0.3.1.0.0 Text 40 245 465 18
+rect r.0.3.1.0.1 Text 40 263 465 18
+rect r.0.3.1.0.2 Text 40 281 465 18
+rect r.0.3.1.1 Overlay 520 245 180 54
+rect r.0.3.1.1.0 ToggleSwitch 624 253 76 38
+rect r.0.4 ControlRow 25 306 690 64
+rect r.0.4.0 Panel 25 306 690 64
+rect r.0.4.1 Grid 25 306 690 64
+rect r.0.4.1.0 Column 40 311 465 54
+rect r.0.4.1.0.0 Text 40 311 465 18
+rect r.0.4.1.0.1 Text 40 329 465 18
+rect r.0.4.1.0.2 Text 40 347 465 18
+rect r.0.4.1.1 Overlay 520 311 180 54
+rect r.0.4.1.1.0 ToggleSwitch 624 319 76 38
+rect r.0.5 ControlRow 25 372 690 64
+rect r.0.5.0 Panel 25 372 690 64
+rect r.0.5.1 Grid 25 372 690 64
+rect r.0.5.1.0 Column 40 377 465 54
+rect r.0.5.1.0.0 Text 40 377 465 18
+rect r.0.5.1.0.1 Text 40 395 465 18
+rect r.0.5.1.0.2 Text 40 413 465 18
+rect r.0.5.1.1 Overlay 520 377 180 54
+rect r.0.5.1.1.0 ToggleSwitch 624 385 76 38
+## press
+action mod.next {"index": null, "kind": "parameter_action", "route": "next", "wire_id": "mod.next"}
+action mod.parameter.25ccb20a89bc {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "z_offset", "state_effect": null, "wire_id": "mod.parameter.25ccb20a89bc"}
+action mod.parameter.72038be91e7c {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "load_zoffset", "state_effect": null, "wire_id": "mod.parameter.72038be91e7c"}
+action mod.parameter.8466d198481b {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "camera", "state_effect": null, "wire_id": "mod.parameter.8466d198481b"}
+action mod.parameter.c07edf5a4567 {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "use_kamp", "state_effect": null, "wire_id": "mod.parameter.c07edf5a4567"}
+action mod.parameter.da53dfefaf42 {"hint": null, "key": "ff5m_ui.parameter_controls.ParameterCommand.OPEN", "kind": "command", "payload": "display", "state_effect": null, "wire_id": "mod.parameter.da53dfefaf42"}
+press mod.next
+cmd --batch fill -p 728 394 -s 52 48 -c 103238
+cmd --batch stroke -p 728 394 -s 52 48 -c ffffff -lw 2 -sd inner
+cmd --batch fill -p 751 407 -s 7 12 -c ffffff
+cmd --batch fill -p 745 419 -s 19 2 -c ffffff
+cmd --batch fill -p 747 421 -s 15 2 -c ffffff
+cmd --batch fill -p 749 423 -s 11 2 -c ffffff
+cmd --batch fill -p 751 425 -s 7 2 -c ffffff
+cmd --batch fill -p 753 427 -s 3 2 -c ffffff
+cmd --batch fill -p 728 394 -s 52 48 -c 050c0f
+cmd --batch stroke -p 728 394 -s 52 48 -c 35d9e6 -lw 2 -sd inner
+cmd --batch fill -p 751 407 -s 7 12 -c 35d9e6
+cmd --batch fill -p 745 419 -s 19 2 -c 35d9e6
+cmd --batch fill -p 747 421 -s 15 2 -c 35d9e6
+cmd --batch fill -p 749 423 -s 11 2 -c 35d9e6
+cmd --batch fill -p 751 425 -s 7 2 -c 35d9e6
+cmd --batch fill -p 753 427 -s 3 2 -c 35d9e6
+press mod.parameter.25ccb20a89bc
+cmd --batch button -p 520 183 -s 180 46 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "0 >"
+cmd --batch button -p 520 183 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "0 >"
+press mod.parameter.da53dfefaf42
+cmd --batch button -p 520 117 -s 180 46 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "FEATHER >"
+cmd --batch button -p 520 117 -s 180 46 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 8pt" --max-width 148 --truncate -t "FEATHER >"

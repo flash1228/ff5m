@@ -1,0 +1,59 @@
+## files page 0
+cmd --batch button -p 30 62 -s 740 56 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_00_.gcode  >" --id 0:file.item0 --layer base
+cmd --batch button -p 30 127 -s 740 56 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_01_xxxxxxx.gcode" --id 0:file.item1 --layer base
+cmd --batch button -p 30 192 -s 740 56 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_02_xxxxxxxxxxxxxx.gcode" --id 0:file.item2 --layer base
+cmd --batch button -p 30 257 -s 740 56 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_03_xxxxxxxxxxxxxxxxxxxxx.gcode" --id 0:file.item3 --layer base
+cmd --batch button -p 30 322 -s 740 56 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_04_xxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode  >" --id 0:file.item4 --layer base
+hit file.item0 30 62 740 56 False base
+hit file.item1 30 127 740 56 False base
+hit file.item2 30 192 740 56 False base
+hit file.item3 30 257 740 56 False base
+hit file.item4 30 322 740 56 False base
+rect r Overlay 30 62 740 316
+rect r.0 Column 30 62 740 316
+rect r.0.0 Button files.slot.0 30 62 740 56
+rect r.0.1 Button files.slot.1 30 127 740 56
+rect r.0.2 Button files.slot.2 30 192 740 56
+rect r.0.3 Button files.slot.3 30 257 740 56
+rect r.0.4 Button files.slot.4 30 322 740 56
+rect r.1 Text files.empty 30 82 740 296
+## files page 1
+cmd --batch button -p 30 62 -s 740 56 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_05_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode" --id 0:file.item0 --layer base
+cmd --batch button -p 30 127 -s 740 56 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_06_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode" --id 0:file.item1 --layer base
+cmd --batch button -p 30 192 -s 740 56 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_07_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode" --id 0:file.item2 --layer base
+cmd --batch button -p 30 257 -s 740 56 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_08_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode  >" --id 0:file.item3 --layer base
+cmd --batch button -p 30 322 -s 740 56 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_09_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode" --id 0:file.item4 --layer base
+hit file.item0 30 62 740 56 False base
+hit file.item1 30 127 740 56 False base
+hit file.item2 30 192 740 56 False base
+hit file.item3 30 257 740 56 False base
+hit file.item4 30 322 740 56 False base
+## files page 2
+cmd --batch button -p 30 62 -s 740 56 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_10_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode" --id 0:file.item0 --layer base
+cmd --batch button -p 30 127 -s 740 56 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_11_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode" --id 0:file.item1 --layer base
+hit file.item0 30 62 740 56 False base
+hit file.item1 30 127 740 56 False base
+hit file.item2 30 192 740 56 False base
+hit file.item3 30 257 740 56 False base
+hit file.item4 30 322 740 56 False base
+## press
+action file.item0 {"index": 0, "kind": "file_row", "wire_id": "file.item0"}
+action file.item1 {"index": 1, "kind": "file_row", "wire_id": "file.item1"}
+action file.item2 {"index": 2, "kind": "file_row", "wire_id": "file.item2"}
+action file.item3 {"index": 3, "kind": "file_row", "wire_id": "file.item3"}
+action file.item4 {"index": 4, "kind": "file_row", "wire_id": "file.item4"}
+press file.item0
+cmd --batch button -p 30 62 -s 740 56 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_05_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode"
+cmd --batch button -p 30 62 -s 740 56 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_05_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode"
+press file.item1
+cmd --batch button -p 30 127 -s 740 56 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_06_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode"
+cmd --batch button -p 30 127 -s 740 56 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_06_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode"
+press file.item2
+cmd --batch button -p 30 192 -s 740 56 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_07_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode"
+cmd --batch button -p 30 192 -s 740 56 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_07_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode"
+press file.item3
+cmd --batch button -p 30 257 -s 740 56 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_08_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode  >"
+cmd --batch button -p 30 257 -s 740 56 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_08_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode  >"
+press file.item4
+cmd --batch button -p 30 322 -s 740 56 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_09_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode"
+cmd --batch button -p 30 322 -s 740 56 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono 12pt" --max-width 708 --truncate -t "model_09_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.gcode"

@@ -1,0 +1,55 @@
+## draw defaults
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 0:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch hitbox --id 0:more.close -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 294 186 -s 308 168 -c 050c0f
+cmd --batch stroke -p 294 186 -s 308 168 -c 35d9e6 -lw 3 -sd inner
+cmd --batch button -p 310 202 -s 276 64 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 244 --truncate -t "Change Filament" --id 0:more.filament --layer base
+cmd --batch button -p 310 274 -s 276 64 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 244 --truncate -t "Exclude Model" --id 0:more.exclude --layer base
+hit global.wake 0 0 800 480 False base
+hit more.close 0 0 800 480 False base
+hit more.filament 310 202 276 64 False base
+hit more.exclude 310 274 276 64 False base
+rect r Popup more.popup 294 186 308 168
+rect r.0 Column 310 202 276 136
+rect r.0.0 Button more.filament 310 202 276 64
+rect r.0.1 Button more.exclude 310 274 276 64
+## reflect defaults
+page state {}
+page dependencies {"conditions": [], "states": {}}
+page actions [{"kind": "printing_action", "route": "more.close", "wire_id": "more.close"}, {"kind": "printing_action", "route": "more.exclude", "wire_id": "more.exclude"}, {"kind": "printing_action", "route": "more.filament", "wire_id": "more.filament"}]
+page bindings []
+node {"actions": {"action": {"kind": "printing_action", "route": "more.close", "wire_id": "more.close"}}, "bindings": {}, "bounds": [294, 186, 308, 168], "component_template_instance": null, "condition": null, "container": true, "id": "more.popup", "layout": {"allow_overflow": false, "grow": 1, "height": 168, "horizontal": "left", "margin": [0, 0, 0, 0], "offset": [294, 186], "padding": [0, 0, 0, 0], "vertical": "top", "width": 308}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"action": {"kind": "printing_action", "route": "more.close", "wire_id": "more.close"}, "background": "ui.theme.ThemeColor.PANEL", "border": "ui.theme.ThemeColor.PRIMARY", "line_width": 3, "preserve_header_action": true}, "property_origins": {}, "ref": "more.popup", "structure_slot": null, "style": null, "template_instance": null, "type": "Popup", "visible": true}
+node {"actions": {}, "bindings": {}, "bounds": [310, 202, 276, 136], "component_template_instance": null, "condition": null, "container": true, "id": "path:0.0", "layout": {"allow_overflow": false, "grow": 1, "height": null, "horizontal": "stretch", "margin": [16, 16, 16, 16], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"direction": "vertical", "gap": 8}, "property_origins": {}, "ref": null, "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Column", "visible": true}
+node {"actions": {"action": {"kind": "printing_action", "route": "more.filament", "wire_id": "more.filament"}}, "bindings": {}, "bounds": [310, 202, 276, 64], "component_template_instance": null, "condition": null, "container": false, "id": "more.filament", "layout": {"allow_overflow": false, "grow": 1, "height": 64, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "printing_action", "route": "more.filament", "wire_id": "more.filament"}, "button_layout": "center", "font": "JetBrainsMono Bold 10pt", "label": "Change Filament", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "more.filament", "structure_slot": {"index": 0}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+node {"actions": {"action": {"kind": "printing_action", "route": "more.exclude", "wire_id": "more.exclude"}}, "bindings": {}, "bounds": [310, 274, 276, 64], "component_template_instance": null, "condition": null, "container": false, "id": "more.exclude", "layout": {"allow_overflow": false, "grow": 1, "height": 64, "horizontal": "stretch", "margin": [0, 0, 0, 0], "offset": [0, 0], "padding": [0, 0, 0, 0], "vertical": "stretch", "width": null}, "layout_origins": {}, "list_view": null, "own_visible": true, "properties": {"accent": null, "action": {"kind": "printing_action", "route": "more.exclude", "wire_id": "more.exclude"}, "button_layout": "center", "font": "JetBrainsMono Bold 10pt", "label": "Exclude Model", "state": "enabled", "subtitle": null}, "property_origins": {}, "ref": "more.exclude", "structure_slot": {"index": 1}, "style": null, "template_instance": null, "type": "Button", "visible": true}
+## set all
+hit global.wake 0 0 800 480 False base
+hit more.close 0 0 800 480 False base
+hit more.filament 310 202 276 64 False base
+hit more.exclude 310 274 276 64 False base
+## redraw all
+cmd --batch clear-hitboxes --layer base
+cmd --batch clear-hitboxes --layer overlay
+cmd --batch hitbox --id 0:global.wake -p 0 0 -s 800 480 --layer base
+cmd --batch hitbox --id 0:more.close -p 0 0 -s 800 480 --layer base
+cmd --batch fill -p 294 186 -s 308 168 -c 050c0f
+cmd --batch stroke -p 294 186 -s 308 168 -c 35d9e6 -lw 3 -sd inner
+cmd --batch button -p 310 202 -s 276 64 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 244 --truncate -t "Change Filament" --id 0:more.filament --layer base
+cmd --batch button -p 310 274 -s 276 64 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 244 --truncate -t "Exclude Model" --id 0:more.exclude --layer base
+hit global.wake 0 0 800 480 False base
+hit more.close 0 0 800 480 False base
+hit more.filament 310 202 276 64 False base
+hit more.exclude 310 274 276 64 False base
+## press
+action global.wake null
+action more.close {"kind": "printing_action", "route": "more.close", "wire_id": "more.close"}
+action more.exclude {"kind": "printing_action", "route": "more.exclude", "wire_id": "more.exclude"}
+action more.filament {"kind": "printing_action", "route": "more.filament", "wire_id": "more.filament"}
+press more.exclude
+cmd --batch button -p 310 274 -s 276 64 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 244 --truncate -t "Exclude Model"
+cmd --batch button -p 310 274 -s 276 64 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 244 --truncate -t "Exclude Model"
+press more.filament
+cmd --batch button -p 310 202 -s 276 64 --background 103238 --border ffffff --text-color ffffff -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 244 --truncate -t "Change Filament"
+cmd --batch button -p 310 202 -s 276 64 --background 050c0f --border 35d9e6 --text-color 35d9e6 -lw 2 -f "JetBrainsMono Bold 10pt" --max-width 244 --truncate -t "Change Filament"
