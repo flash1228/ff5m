@@ -29,6 +29,20 @@ python3 -m venv .venv
 .venv/bin/python -m unittest discover -s tests
 ```
 
+The Feather framework (`ui/`) builds every node on the native `feather_engine`
+extension (one limited-API binary per platform for CPython 3.7 and later).
+Install the host build into `.venv` before running the suite; without it,
+importing `ui.layout` fails with an `ImportError` naming the required engine
+ABI. The printer has no installed engine and loads the ARM build shipped as
+`ui/feather_engine.abi3.so`; republish it with `build.sh --publish <this
+checkout>` from `forge-x-private/src/feather_engine` after every engine change.
+The engine keeps declared node values in its own records, not in `__dict__`,
+and reads each node class's hook implementations again whenever the class or
+a base changes, so a test or harness may replace a framework hook on a node
+class with `mock.patch.object` (for example
+`tests/visual_checks/composition_scenes.py`); patching a hook on an instance
+has no effect.
+
 The G-code macro tests use the same Jinja delimiters and config-comment rules
 as Klipper. They render macros against explicit status snapshots and inspect
 the resulting G-code. They do not emulate motion, heaters, or the MCU.

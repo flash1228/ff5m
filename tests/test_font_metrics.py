@@ -21,7 +21,6 @@ from ff5m_ui.home import page as home_page  # noqa: E402
 from ff5m_ui.move import runtime as move_ui  # noqa: E402
 from ff5m_ui.z_offset import runtime as z_offset_ui  # noqa: E402
 from ui import FeatherRenderer, font_metrics  # noqa: E402
-from ui import renderer as ui_renderer  # noqa: E402
 
 
 def manifest(advance=16):
@@ -97,20 +96,6 @@ class FontManifestTest(unittest.TestCase):
             self.assertLess(metric.top, metric.bottom)
             self.assertTrue(metric.unicode_ranges)
 
-        requested = set()
-
-        class RecordingMetrics:
-            def __getattr__(self, name):
-                return getattr(loaded, name)
-
-            def normalize_font(self, font, allow_proportional=False):
-                requested.add(font)
-                return loaded.normalize_font(font, allow_proportional)
-
-            def normalize_for_text(self, font, value):
-                requested.add(font)
-                return loaded.normalize_for_text(font, value)
-
         pages = (
             home_page.PAGE,
             benchmark_page.PAGE,
@@ -127,21 +112,19 @@ class FontManifestTest(unittest.TestCase):
             z_offset_ui.PAPER_PAGE,
             z_offset_ui.SUMMARY_PAGE,
         )
-        with mock.patch.object(
-                ui_renderer, "get_font_metrics",
-                return_value=RecordingMetrics()):
+        # A font whose family the manifest lacks falls back to the default
+        # family and is logged as unsupported; drawing reports it.
+        self.addCleanup(font_metrics.set_font_metrics,
+                        font_metrics.get_font_metrics())
+        font_metrics.set_font_metrics(loaded)
+        with mock.patch("logging.warning") as warning:
+            FeatherRenderer().text(0, 0, "probe", font="Missing 12pt")
+            self.assertEqual(len(warning.call_args_list), 1)
+            warning.reset_mock()
             for page in pages:
                 page.draw(FeatherRenderer(), page.initial_state())
 
-        self.assertTrue(requested)
-        missing_families = []
-        for requested_font in sorted(requested):
-            normalized = loaded.normalize_font(requested_font)
-            requested_family = requested_font.rsplit(" ", 1)[0]
-            normalized_family = normalized.rsplit(" ", 1)[0]
-            if requested_family != normalized_family:
-                missing_families.append(requested_font)
-        self.assertEqual(missing_families, [])
+        self.assertEqual([call[0][1] for call in warning.call_args_list], [])
         self.assertEqual(
             loaded.normalize_for_text("Roboto 10pt", "ẞ"),
             "JetBrainsMono 10pt")

@@ -242,11 +242,14 @@ class PropertySpec:
     def set_on(self, node, value):
         source_name = self.source.runtime_name or self.name
         if self.source.storage == "kwargs":
-            values = getattr(node, "kwargs")
+            # Assign a new mapping: setting the property is what marks the
+            # node for its next update (C3).
+            values = dict(getattr(node, "kwargs"))
             if value is None and self.nullable:
                 values.pop(source_name, None)
             else:
                 values[source_name] = value
+            node.kwargs = values
             return
         if self.source.runtime_index is not None:
             values = list(getattr(node, source_name))
@@ -313,6 +316,7 @@ class PropertySpec:
             "rewrite": source["rewrite"],
             "source_name": source["name"],
             "source_index": source["index"],
+            "source_policy": source["policy"],
         }
         result.update(self.editor.metadata)
         return result

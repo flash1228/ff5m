@@ -4,7 +4,7 @@
 
 ## Public Feather UI package.
 
-__version__ = "2.11.0"
+__version__ = "2.12.0"
 FRAMEWORK_API_VERSION = 2
 REFLECTION_SCHEMA_VERSION = "2.4.0"
 FRAMEWORK_CAPABILITIES = (
@@ -32,6 +32,12 @@ FRAMEWORK_CAPABILITIES = (
     "slider-knob",
     "labelled-slider",
     "stacked-metrics",
+    "page-chrome-geometry",
+    "page-bounds-source",
+    "single-template-list",
+    "page-declarations-source",
+    "page-action-references",
+    "state-case-properties",
 )
 
 
@@ -65,8 +71,8 @@ _EXPORT_GROUPS = (
     ("renderer", (
         "CONTENT_BOTTOM", "FOOTER_HEIGHT", "FOOTER_Y",
         "HEADER_BOTTOM", "MAX_ATOMIC_DRAW", "MAX_PENDING_DRAW",
-        "SCREEN_HEIGHT", "SCREEN_WIDTH",
-        "FeatherRenderer", "rectangles_overlap",
+        "SCREEN_HEIGHT", "SCREEN_WIDTH", "PAGE_CHROME_CONTRACT",
+        "PageChromeContract", "FeatherRenderer", "rectangles_overlap",
     )),
     ("render_worker", (
         "MAX_BATCHES", "MAX_BATCH_BYTES", "RenderBatch",
@@ -112,7 +118,10 @@ _EXPORT_GROUPS = (
         "Dirty", "Equal", "EqualTracks", "Flex", "Grid", "Insets",
         "LAYOUT_SCHEMA", "LayoutModifierSpec", "LayoutResult", "LayoutSourceContract",
         "List", "ListView", "Node", "Overlay", "Param", "ParamRef", "Template",
-        "Override", "PAGE_DISCOVERY_CONTRACT", "PageDiscoveryContract",
+        "ACTION_REFERENCE_SOURCE_CONTRACT", "ActionReferenceSourceContract",
+        "Override", "PAGE_BOUNDS_SOURCE_CONTRACT", "PAGE_DECLARATIONS_SOURCE_CONTRACT",
+        "PAGE_DISCOVERY_CONTRACT", "PageBoundsSourceContract",
+        "PageDeclarationsSourceContract", "PageDiscoveryContract",
         "PageTree", "Rect", "Row", "Spacer", "Span",
         "StateCase", "StructureContract", "StructureSourceContract", "Tree", "When", "WrapPanel", "split",
         "param", "subdivision_positions",
@@ -155,7 +164,7 @@ __all__ = (
     "ThemeSchemaError", "normalize_theme_name", "validate_theme_data",
     "CONTENT_BOTTOM", "FOOTER_HEIGHT", "FOOTER_Y",
     "HEADER_BOTTOM", "MAX_ATOMIC_DRAW", "MAX_PENDING_DRAW",
-    "SCREEN_HEIGHT", "SCREEN_WIDTH",
+    "SCREEN_HEIGHT", "SCREEN_WIDTH", "PAGE_CHROME_CONTRACT", "PageChromeContract",
     "MAX_BATCHES", "MAX_BATCH_BYTES", "RenderBatch", "RenderBatchQueue",
     "TyperRenderWorker",
     "PendingReceipt", "ReceiptMeasurement", "ReceiptTracker",
@@ -185,6 +194,9 @@ __all__ = (
     "LAYOUT_SCHEMA", "LayoutModifierSpec", "LayoutResult",
     "LayoutSourceContract", "List", "ListView",
     "Node", "Overlay", "Override", "Param", "ParamRef", "param", "PAGE_DISCOVERY_CONTRACT", "Template",
+    "PAGE_BOUNDS_SOURCE_CONTRACT", "PageBoundsSourceContract",
+    "PAGE_DECLARATIONS_SOURCE_CONTRACT", "PageDeclarationsSourceContract",
+    "ACTION_REFERENCE_SOURCE_CONTRACT", "ActionReferenceSourceContract",
     "PageDiscoveryContract", "PageTree", "Rect", "Row",
     "Spacer", "Span", "StateCase", "StructureContract", "StructureSourceContract", "Tree", "When", "WrapPanel", "split",
     "subdivision_positions", "ArrowButton", "Button",

@@ -13,19 +13,25 @@ from collections import namedtuple
 from contextlib import contextmanager
 
 from .actions import Action, DismissToast, action_wire_id
+from .engine import (
+    NATIVE_METHODS, CommandBatch, CommandList, RendererBase, dialog_layout, quote, renderer_normalize_font,
+    renderer_normalize_font_for_text, renderer_text_width,
+)
 from .font_metrics import (
     get_font_metrics, load_runtime_metrics, set_font_metrics,
 )
 from .layout_helpers import (
-    DIALOG_BODY_FONT, DIALOG_BODY_Y, DIALOG_BUTTON_BOTTOM,
+    DIALOG_BODY_FONT, DIALOG_BODY_HALF_HEIGHT, DIALOG_BODY_Y, DIALOG_BUTTON_BOTTOM,
+    DIALOG_BUTTON_COMPACT_FONT, DIALOG_BUTTON_FONT, DIALOG_BUTTON_MEDIUM_FONT,
     DIALOG_MIN_HEIGHT, DIALOG_MIN_WIDTH,
     DIALOG_BUTTON_HEIGHT, DIALOG_BUTTON_GAP, DIALOG_COMPACT_BUTTON_BOTTOM,
-    DIALOG_LINE_SPACING, DIALOG_PAGER_RESERVE, DIALOG_TITLE_FONT,
-    DIALOG_TITLE_TOP, DIALOG_TOP, DIALOG_BOTTOM_INSET,
+    DIALOG_COMPACT_GAP, DIALOG_COMPACT_TITLE_TOP, DIALOG_GROUP_BUTTON_BOTTOM,
+    DIALOG_LINE_SPACING, DIALOG_MULTILINE_GAP, DIALOG_ONE_LINE_GAP,
+    DIALOG_PAGER_MIN_HEIGHT, DIALOG_PAGER_RESERVE, DIALOG_TITLE_FONT,
+    DIALOG_TITLE_LINE_SPACING, DIALOG_TITLE_TOP, DIALOG_TOP, DIALOG_BOTTOM_INSET,
     DIALOG_STATUS_FONT, DIALOG_STATUS_GAP,
     dialog_horizontal_bounds, dialog_vertical_bounds, dialog_pager_bounds,
-    dialog_button_layout, dialog_button_rows, layout_dialog_body,
-    layout_title_only_dialog,
+    dialog_button_rows,
 )
 from .numeric_input import NumericInputSpec
 from .render_receipts import validate_render_receipt_token
@@ -42,6 +48,17 @@ from .render_worker import (
 
 Hitbox = namedtuple("Hitbox", "action x y width height continuous layer")
 
+# The fonts and constants of the engine's dialog layout, in dialog_layout's order; the renderer's paddings and
+# the screen size follow them.
+_DIALOG_POLICY = (
+    DIALOG_TITLE_FONT, DIALOG_BODY_FONT, DIALOG_BUTTON_FONT, DIALOG_BUTTON_MEDIUM_FONT, DIALOG_BUTTON_COMPACT_FONT,
+    DIALOG_TOP, DIALOG_BOTTOM_INSET, DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT, DIALOG_TITLE_TOP, DIALOG_BODY_Y,
+    DIALOG_LINE_SPACING, DIALOG_BODY_HALF_HEIGHT, DIALOG_PAGER_RESERVE, DIALOG_TITLE_LINE_SPACING,
+    DIALOG_BUTTON_HEIGHT, DIALOG_BUTTON_GAP, DIALOG_BUTTON_BOTTOM, DIALOG_ONE_LINE_GAP, DIALOG_MULTILINE_GAP,
+    DIALOG_GROUP_BUTTON_BOTTOM, DIALOG_COMPACT_TITLE_TOP, DIALOG_COMPACT_GAP, DIALOG_COMPACT_BUTTON_BOTTOM,
+    DIALOG_PAGER_MIN_HEIGHT,
+)
+
 
 DRAW_PIPE = "/tmp/typer"
 EVENT_PIPE = "/tmp/feather-events"
@@ -57,6 +74,43 @@ HEADER_BOTTOM = 55
 FOOTER_Y = 444
 FOOTER_HEIGHT = 32
 CONTENT_BOTTOM = FOOTER_Y - 2
+
+
+class PageChromeContract:
+    """Framework-owned geometry of the page chrome painted around content.
+
+    ``begin_page`` paints a header above ``HEADER_BOTTOM`` and a persistent
+    footer below ``CONTENT_BOTTOM``. Authoring tools place new page content
+    inside ``content_bounds`` so that it does not overlap that chrome.
+    """
+
+    __slots__ = ("strategy", "content_insets")
+
+    def __init__(self, strategy, content_insets):
+        self.strategy = str(strategy)
+        left, top, right, bottom = (int(value) for value in content_insets)
+        if min(left, top, right, bottom) < 0:
+            raise ValueError("Page content insets must be non-negative")
+        self.content_insets = (left, top, right, bottom)
+
+    def content_bounds(self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT):
+        left, top, right, bottom = self.content_insets
+        width, height = int(width), int(height)
+        if width - left - right <= 0 or height - top - bottom <= 0:
+            raise ValueError("Viewport is smaller than the page chrome")
+        return (left, top, width - left - right, height - top - bottom)
+
+    def as_dict(self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT):
+        return {
+            "strategy": self.strategy,
+            "content_insets": list(self.content_insets),
+            "content_bounds": list(self.content_bounds(width, height)),
+        }
+
+
+PAGE_CHROME_CONTRACT = PageChromeContract(
+    "core.page_chrome",
+    (12, HEADER_BOTTOM + 9, 12, SCREEN_HEIGHT - CONTENT_BOTTOM + 4))
 BUSY_NOTICE_X = 622
 BUSY_NOTICE_Y = 9
 BUSY_NOTICE_WIDTH = 160
@@ -91,13 +145,58 @@ class BinaryCommand(str):
 
 def _immutable_commands(commands):
     """Freeze a batch: binary commands as they are, everything else as text."""
-    return tuple(
-        command if isinstance(command, BinaryCommand) else str(command)
-        for command in commands)
+    if isinstance(commands, CommandBatch):
+        return commands
+    return CommandBatch(commands, BinaryCommand)
 
 
-class FeatherRenderer:
+_NATIVE = NATIVE_METHODS["renderer"]
+
+
+class FeatherRenderer(RendererBase):
     """Translate small UI primitives into typer display-list commands."""
+
+    # The engine draws the primitives. They read the renderer's palette,
+    # surface, button and hitbox state, and call each other through the
+    # instance, so a subclass or instance attribute may replace any of them.
+    color = _NATIVE["color"]
+    fill = _NATIVE["fill"]
+    stroke = _NATIVE["stroke"]
+    panel = _NATIVE["panel"]
+    text = _NATIVE["text"]
+    composite_button = _NATIVE["composite_button"]
+    button = _NATIVE["button"]
+    buttons = _NATIVE["buttons"]
+    # Button layouts other than a centred label, and the geometric up/down
+    # arrow button.
+    _button_colors = _NATIVE["_button_colors"]
+    _button_commands = _NATIVE["_button_commands"]
+    arrow_button = _NATIVE["arrow_button"]
+    _arrow_button_commands = _NATIVE["_arrow_button_commands"]
+    _wire_action = _NATIVE["_wire_action"]
+    # Input regions: action_hitbox registers one and returns its command,
+    # button_hitbox skips inactive buttons, and redraw_page_hitboxes replays
+    # the page chrome's regions without painting.
+    _hitbox = _NATIVE["_hitbox"]
+    clear_hitboxes = _NATIVE["clear_hitboxes"]
+    action_hitbox = _NATIVE["action_hitbox"]
+    button_hitbox = _NATIVE["button_hitbox"]
+    _wake_hitbox = _NATIVE["_wake_hitbox"]
+    redraw_page_hitboxes = _NATIVE["redraw_page_hitboxes"]
+    # Framework values the native primitives use.
+    _action_type = Action
+    _button_spec = _ButtonSpec
+    _literal_types = (ThemeColor, ThemeRole)
+    _font_metrics = staticmethod(get_font_metrics)
+    _default_background = ThemeColor.BACKGROUND
+    _default_foreground = ThemeColor.PRIMARY
+    _default_panel = ThemeColor.PANEL
+    _default_subtitle = ThemeColor.DIM
+    # Page chrome bounds. The wake region covers the screen and is registered
+    # before every control, which Typer gives precedence where they overlap.
+    _wake_bounds = (0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
+    _back_bounds = (14, 7, 146, 46)
+    _header_action_bounds = (648, 7, 132, 46)
 
     BUTTON_COLORS = {
         "primary": (ThemeRole.ACCENT_BACKGROUND, ThemeRole.ACCENT_BORDER,
@@ -191,39 +290,37 @@ class FeatherRenderer:
         """Route every ordinary submission through the screen composition root."""
         self._frame_owner = owner
 
+    # The engine keeps the input (generation, buttons, regions and pressed
+    # buttons) with its own snapshot; these are the other surface fields.
     _SURFACE_FIELDS = (
-        "_generation", "_buttons", "_toggles", "_hitboxes", "_pressed_buttons",
-        "_page_title", "_page_back", "_semantic_page_id", "_loader_active",
-        "_menu_suppressed", "_footer_drawn", "_last_footer", "_header_action",
-        "_overlay_hitboxes", "_dialog_bounds",
+        "_toggles", "_page_title", "_page_back", "_semantic_page_id",
+        "_loader_active", "_menu_suppressed", "_footer_drawn", "_last_footer",
+        "_header_action", "_dialog_bounds",
     )
     # Surface fields mutated in place; the snapshot copies them. Every other
     # field is replaced on change, so the snapshot shares its value.
-    _SURFACE_CONTAINERS = (
-        "_buttons", "_toggles", "_hitboxes", "_pressed_buttons", "_overlay_hitboxes",
-    )
+    _SURFACE_CONTAINERS = ("_toggles",)
 
     @property
     def render_allowed(self):
         return not (self._output_frozen or self._output_held)
 
-    def _prepare_surface(self):
-        if not self.render_allowed:
-            return False
-        if self._prepared_surface is None:
-            surface = {name: getattr(self, name) for name in self._SURFACE_FIELDS}
-            for name in self._SURFACE_CONTAINERS:
-                surface[name] = surface[name].copy()
-            self._prepared_surface = surface
-        return True
+    # Whether the renderer may draw; the first call of a surface keeps the
+    # visible surface fields and snapshots the input.
+    _prepare_surface = _NATIVE["_prepare_surface"]
 
     def _finish_surface(self, accepted):
         previous = self._prepared_surface
         self._prepared_surface = None
         self._footer_paint = None
-        if previous is not None and not accepted:
-            for name, value in previous.items():
-                setattr(self, name, value)
+        if previous is None:
+            return
+        if accepted:
+            self._drop_input_snapshot()
+            return
+        for name, value in previous.items():
+            setattr(self, name, value)
+        self._restore_input()
 
     def discard_surface(self):
         """Roll back a prepared surface that was not submitted."""
@@ -253,8 +350,8 @@ class FeatherRenderer:
     @property
     def touch_warning_allowed(self):
         """Whether the visible surface has controls worth protecting."""
-        actions = set(self._visible_value("_buttons"))
-        actions.update(action for action, _spec in self._visible_value("_hitboxes")
+        actions = set(self._visible_input("_buttons"))
+        actions.update(action for action, _spec in self._visible_input("_hitboxes")
                        if action != "global.wake")
         return not self._visible_value("_loader_active") and bool(actions)
 
@@ -285,21 +382,10 @@ class FeatherRenderer:
             "--batch clear -c %s" % self.color(ThemeColor.BACKGROUND),
         ], kind="critical", key=key)
 
-    @staticmethod
-    def quote(value):
-        value = str(value)
-        if (value != "--end" and "\r" not in value and "\n" not in value
-                and "\\" not in value and '"' not in value):
-            return '"%s"' % value
-        value = value.replace("\r\n", "\n").replace("\r", "\n")
-        # A line containing only the pipe sentinel would terminate the frame
-        # before Typer tokenizes the quoted text. Keep the visible content and
-        # make that reserved line harmless without flattening real line breaks.
-        value = "\n".join(
-            " --end" if line == "--end" else line
-            for line in value.split("\n"))
-        value = value.replace("\\", "\\\\").replace('"', '\\"')
-        return '"%s"' % value
+    # str(value) as one double-quoted Typer token: line breaks become "\n", a
+    # line holding only the frame sentinel "--end" gets a leading space, and
+    # backslashes and quotes are escaped.
+    quote = staticmethod(quote)
 
     def start(self):
         """Start only the daemon worker; Typer is launched in that thread."""
@@ -381,7 +467,7 @@ class FeatherRenderer:
         """Submit consecutive ordinary draws as one admitted frame."""
         if self._composite_commands is not None:
             raise RuntimeError("render composition is already active")
-        self._composite_commands = []
+        self._composite_commands = CommandList()
         self._composite_kind = None
         self._composite_key = None
         self._composite_receipt = None
@@ -423,19 +509,19 @@ class FeatherRenderer:
             self._header_action = requested_header
             return
         if commands and preserve_input and previous is not None:
-            if self._input_signature() != self._input_signature(previous):
+            if self._input_changed():
                 # Replace only input IDs after building pixels once. These
                 # final resets remove IDs embedded in the earlier draw commands.
                 frame["input_changed"] = True
                 # Input replacement is a prerequisite for later pixel-only updates.
                 key = None
                 self._generation += 1
-                self._pressed_buttons.clear()
+                self._pressed_buttons = set()
                 commands.extend(self._input_commands())
                 if kind is None:
                     kind = "state"
             else:
-                self._pressed_buttons = previous["_pressed_buttons"].copy()
+                self._restore_pressed()
         if commands:
             if receipt is None:
                 frame["accepted"] = self.send(commands, kind=kind, key=key)
@@ -455,10 +541,6 @@ class FeatherRenderer:
     def retaining_background(self):
         """The current foreground pass must leave retained backdrop pixels intact."""
         return self._retain_background
-
-    def _input_signature(self, values=None):
-        value = (lambda name: getattr(self, name)) if values is None else values.__getitem__
-        return tuple(value("_hitboxes")), tuple(value("_overlay_hitboxes"))
 
     def _input_commands(self):
         commands = [self.clear_hitboxes("base"), self.clear_hitboxes("overlay")]
@@ -606,8 +688,7 @@ class FeatherRenderer:
         status["semantic_page_id"] = self._semantic_page_id
         return status
 
-    def set_semantic_page(self, page_id):
-        self._semantic_page_id = str(page_id)
+    set_semantic_page = _NATIVE["set_semantic_page"]
 
     @staticmethod
     def _serialized_size(commands, receipt=None):
@@ -616,12 +697,8 @@ class FeatherRenderer:
                    validate_render_receipt_token(receipt))
         if not commands:
             return 0
-        return 32 + len(receipt or "") + sum(
-            (len(command.payload) + len(command)
-             if isinstance(command, BinaryCommand)
-             else len(command) if command.isascii()
-             else len(command.encode("utf-8"))) + 64
-            for command in commands)
+        # Each command's bytes, a binary one's payload and characters.
+        return 32 + len(receipt or "") + _immutable_commands(commands).size(64)
 
     @staticmethod
     def _encode_frames(commands, receipt=None, receipt_phase="presented"):
@@ -636,44 +713,11 @@ class FeatherRenderer:
                 final_command += " --receipt-phase staged"
         elif receipt_phase != "presented":
             raise ValueError("staged receipts require a token")
-        intermediate_suffix = b"--end\n"
         final_suffix = (final_command + "\n--end\n").encode("utf-8")
-        frames = []
-        current = bytearray()
-
-        def emit_text(suffix):
-            if current:
-                frames.append(bytearray(current) + suffix)
-                current.clear()
-
-        for command in commands:
-            if isinstance(command, BinaryCommand):
-                emit_text(intermediate_suffix)
-                header = ("--binary %d %s\n" % (
-                    len(command.payload), str(command))).encode("utf-8")
-                frame = bytearray(header)
-                frame.extend(command.payload)
-                if len(frame) > MAX_ATOMIC_DRAW:
-                    raise ValueError(
-                        "single Typer binary command exceeds MAX_ATOMIC_DRAW")
-                frames.append(frame)
-                continue
-
-            line = (str(command) + "\n").encode("utf-8")
-            if len(line) + len(final_suffix) > MAX_ATOMIC_DRAW:
-                raise ValueError(
-                    "single Typer command exceeds MAX_ATOMIC_DRAW")
-            if current and len(current) + len(line) + len(final_suffix) > \
-                    MAX_ATOMIC_DRAW:
-                emit_text(intermediate_suffix)
-            current.extend(line)
-
-        if current:
-            emit_text(final_suffix)
-        elif frames:
-            frames.append(bytearray(final_suffix))
-
-        return frames
+        # Text commands are packed as lines up to MAX_ATOMIC_DRAW; a binary
+        # command is a frame of its own, its header followed by the payload.
+        return _immutable_commands(commands).frames(
+            final_suffix, b"--end\n", MAX_ATOMIC_DRAW)
 
     def decode_action(self, action):
         """Reject taps emitted for a page that has already been replaced."""
@@ -684,15 +728,11 @@ class FeatherRenderer:
             generation = int(prefix)
         except ValueError:
             return None
-        return logical if generation == self._visible_value("_generation") else None
-
-    def _wire_action(self, action):
-        logical = action_wire_id(action) if isinstance(action, Action) else str(action)
-        return "%d:%s" % (self._generation, logical)
+        return logical if generation == self._visible_input("_generation") else None
 
     @property
     def generation(self):
-        return self._visible_value("_generation")
+        return self._visible_input("_generation")
 
     def invalidate_input_generation(self):
         """Prepare a new input generation for a replacement surface."""
@@ -761,13 +801,6 @@ class FeatherRenderer:
             self._footer_drawn = False
         return changed
 
-    def color(self, value):
-        return self._palette.resolve(value)
-
-    def fill(self, x, y, width, height, color=ThemeColor.BACKGROUND):
-        return "--batch fill -p %d %d -s %d %d -c %s" % (
-            x, y, width, height, self.color(color))
-
     def modal_scrim(self):
         """Darken the retained framebuffer with 70%-opaque black."""
         return "--batch fill -p 0 0 -s %d %d -c B3000000" % (
@@ -779,19 +812,6 @@ class FeatherRenderer:
         return BinaryCommand(
             "--batch image -p %d %d --format fxi1" % (int(x), int(y)),
             blob)
-
-    def stroke(self, x, y, width, height, color=ThemeColor.PRIMARY, line_width=2):
-        return "--batch stroke -p %d %d -s %d %d -c %s -lw %d -sd inner" % (
-            x, y, width, height, self.color(color), line_width)
-
-    def panel(self, x, y, width, height, border=ThemeColor.PRIMARY,
-              background=ThemeColor.PANEL, line_width=2):
-        """Draw a reusable filled panel with an optional inner border."""
-        commands = [self.fill(x, y, width, height, background)]
-        if border is not None and line_width > 0:
-            commands.append(
-                self.stroke(x, y, width, height, border, line_width))
-        return commands
 
     def filled_circle(self, center_x, center_y, radius, color=ThemeColor.PRIMARY):
         """Draw a compact filled circle using horizontal one-pixel spans."""
@@ -973,12 +993,38 @@ class FeatherRenderer:
     def metric_row(self, x, y, width, label, value, unit="",
                    label_color=ThemeColor.PRIMARY, value_color=ThemeColor.TEXT,
                    label_font="JetBrainsMono 8pt", value_font="JetBrainsMono 8pt"):
-        """Draw a compact label/value/unit row for status cards."""
+        """Draw a compact label/value/unit row for status cards.
+
+        When the label and the value do not fit side by side, each gets a
+        share of the row and Typer truncates the text that exceeds it with an
+        ellipsis: the longer text is shortened first, both when neither fits
+        in half the row.
+        """
+        value_right = width - (34 if unit else 0)
+        label, value = str(label), str(value)
+        metrics = get_font_metrics()
+        label_width = metrics.text_width(label, label_font)
+        value_width = metrics.text_width(value, value_font)
+        available = max(2, value_right - 4)  # 4 px apart
+        label_limit = value_limit = None
+        if label_width + value_width > available:
+            half = available // 2
+            if label_width <= half:
+                value_limit = available - label_width
+            elif value_width <= half:
+                label_limit = available - value_width
+            else:
+                label_limit, value_limit = half, available - half
+
+        def row_text(text_x, text, color, font, align, limit):
+            if limit is None:
+                return self.text(text_x, y, text, color, font, align, "middle")
+            return self.text(text_x, y, text, color, font, align, "middle",
+                             max_width=limit, truncate=True)
+
         commands = [
-            self.text(x, y, label, label_color, label_font,
-                      "left", "middle"),
-            self.text(x + width - (34 if unit else 0), y, value, value_color,
-                      value_font, "right", "middle"),
+            row_text(x, label, label_color, label_font, "left", label_limit),
+            row_text(x + value_right, value, value_color, value_font, "right", value_limit),
         ]
         if unit:
             commands.append(self.text(
@@ -1072,47 +1118,11 @@ class FeatherRenderer:
             ]
         return commands
 
-    def text(self, x, y, value, color=ThemeColor.PRIMARY,
-             font="JetBrainsMono 12pt", h_align="left", v_align="middle",
-             max_width=None, max_height=None, wrap=False, truncate=False,
-             proportional=False):
-        value = str(value)
-        font = self.normalize_font_for_text(font, value)
-        if (wrap or truncate) and (max_width is None or int(max_width) <= 0):
-            raise ValueError("wrap and truncate require max_width")
-        if wrap and (max_height is None or int(max_height) <= 0):
-            raise ValueError("wrap requires max_height")
-        # argparse treats a text value beginning with '-' as another option.
-        # Keep the protective space out of the visible alignment calculation,
-        # otherwise centered labels such as -Y appear half a glyph off-center.
-        if value.startswith("-"):
-            value = " " + value
-            advance = get_font_metrics().metric(font).character_advance(" ")
-            if h_align == "center":
-                x -= advance // 2
-            elif h_align == "left":
-                x -= advance
-        command = "--batch text -p %d %d -c %s -f %s -ha %s -va %s" % (
-            x, y, self.color(color), self.quote(font), h_align, v_align)
-        if max_width is not None:
-            command += " --max-width %d" % int(max_width)
-        if max_height is not None:
-            command += " --max-height %d" % int(max_height)
-        if wrap:
-            command += " --wrap"
-        if truncate:
-            command += " --truncate"
-        return command + " -t %s" % self.quote(value)
-
-    @classmethod
-    def normalize_font(cls, font, allow_proportional=False):
-        """Map UI font requests to sizes actually compiled into typer."""
-        return get_font_metrics().normalize_font(font, allow_proportional)
-
-    @classmethod
-    def normalize_font_for_text(cls, font, value):
-        """Use the requested face when it covers the rendered text."""
-        return get_font_metrics().normalize_for_text(font, value)
+    # normalize_font(font, allow_proportional=False) maps UI font requests to sizes compiled into typer;
+    # normalize_font_for_text(font, value) uses the requested face when it covers the rendered text. Both
+    # measure on the engine catalog of _font_metrics().
+    normalize_font = classmethod(renderer_normalize_font)
+    normalize_font_for_text = classmethod(renderer_normalize_font_for_text)
 
     @classmethod
     def font_advance(cls, font):
@@ -1121,29 +1131,8 @@ class FeatherRenderer:
             raise ValueError("font is not monospaced: %s" % metric.name)
         return metric.advance_x
 
-    @classmethod
-    def text_width(cls, value, font):
-        """Return the exact monospaced advance used by typer for ASCII UI text."""
-        return get_font_metrics().text_width(value, font)
-
-    @staticmethod
-    def _hitbox(action, x, y, width, height, continuous=False, layer="base"):
-        layer = str(layer).lower()
-        if layer not in ("base", "overlay"):
-            raise ValueError("unknown hitbox layer: %s" % layer)
-        command = "--batch hitbox --id %s -p %d %d -s %d %d" % (
-            action, x, y, width, height)
-        if continuous:
-            command += " --continuous"
-        command += " --layer %s" % layer
-        return command
-
-    @staticmethod
-    def clear_hitboxes(layer="base"):
-        layer = str(layer).lower()
-        if layer not in ("base", "overlay"):
-            raise ValueError("unknown hitbox layer: %s" % layer)
-        return "--batch clear-hitboxes --layer " + layer
+    # text_width(value, font): the advance typer draws value with.
+    text_width = classmethod(renderer_text_width)
 
     @property
     def hitboxes(self):
@@ -1153,48 +1142,15 @@ class FeatherRenderer:
                                             ("overlay", self._overlay_hitboxes))
                      for action, spec in entries)
 
-    @staticmethod
-    def _register_hitbox(entries, action, spec):
-        # Repainting the same region updates it; distinct regions stay ordered.
-        for index, (previous_action, previous_spec) in enumerate(entries):
-            if previous_action == action and previous_spec[:4] == spec[:4]:
-                entries[index] = (action, spec)
-                return
-        entries.append((action, spec))
-
-    @staticmethod
-    def _unregister_hitbox(entries, action, bounds):
-        entries[:] = [entry for entry in entries
-                      if entry[0] != action or entry[1][:4] != bounds]
-
     @property
     def needs_redraw(self):
         return self._batch_queue.needs_redraw
-
-    def action_hitbox(self, action, x, y, width, height, continuous=False):
-        if not self._prepare_surface():
-            return ""
-        logical_action = (
-            action_wire_id(action) if isinstance(action, Action) else str(action))
-        self._register_hitbox(self._hitboxes, logical_action,
-                              (x, y, width, height, bool(continuous)))
-        return self._hitbox(self._wire_action(action), x, y, width, height,
-                           continuous)
-
-    def button_hitbox(self, action, x, y, width, height, active=True):
-        logical_action = action_wire_id(action) if isinstance(action, Action) else str(action)
-        if (not active or
-                (logical_action == "nav.menu" and
-                 (self._busy_label is not None or self._header_action is not None))):
-            return ()
-        return self.action_hitbox(action, x, y, width, height)
 
     def overlay_hitbox(self, action, x, y, width, height, continuous=False):
         if not self._prepare_surface():
             return ""
         logical = action_wire_id(action) if isinstance(action, Action) else str(action)
-        self._register_hitbox(self._overlay_hitboxes, logical,
-                              (x, y, width, height, bool(continuous)))
+        self._register_region(logical, x, y, width, height, continuous, overlay=True)
         return self._hitbox(
             self._wire_action(action), x, y, width, height,
             continuous, layer="overlay")
@@ -1228,7 +1184,7 @@ class FeatherRenderer:
         if enabled:
             commands.append(self.action_hitbox(action, x, y, width, height))
         else:
-            self._unregister_hitbox(self._hitboxes, logical_action, (x, y, width, height))
+            self._unregister_region(logical_action, x, y, width, height)
         return commands
 
     def animate_toggle(self, action, active, scheduler, duration=0.12):
@@ -1278,159 +1234,6 @@ class FeatherRenderer:
         self._overlay_hitboxes = []
         self._pressed_buttons = set()
 
-    def _wake_hitbox(self):
-        # Typer gives later overlapping hitboxes precedence.  Register the
-        # background first so an otherwise empty-area tap is observable while
-        # every real button added afterwards keeps its normal action.
-        return self.action_hitbox(
-            "global.wake", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
-
-    def _button_colors(self, state, accent=None):
-        colors = list(self.BUTTON_COLORS[state])
-        if accent is not None and state not in (
-                "disabled", "danger", "busy", "pressed"):
-            colors[1] = accent
-            colors[2] = accent
-        return tuple(colors)
-
-    def composite_button(self, action, x, y, width, height, label, state, font,
-                         include_hitbox=True, accent=None):
-        background, border, text_color = (
-            self.color(color) for color in self._button_colors(state, accent))
-        display_label = str(label)
-        if display_label.startswith("-"):
-            display_label = " " + display_label
-        max_width = max(1, width - 2 * self.BUTTON_TEXT_PADDING)
-        command = ("--batch button -p %d %d -s %d %d --background %s "
-                   "--border %s --text-color %s -lw 2 -f %s "
-                   "--max-width %d --truncate -t %s" %
-                   (x, y, width, height, background, border, text_color,
-                    self.quote(self.normalize_font_for_text(
-                        font, display_label)),
-                    max_width, self.quote(display_label)))
-        if include_hitbox and state not in ("disabled", "busy"):
-            command += " --id %s --layer base" % action
-        return [command]
-
-    def _button_commands(self, action, x, y, width, height, label, state,
-                         font, subtitle=None, include_hitbox=True,
-                         layout="center", subtitle_font="JetBrainsMono 8pt",
-                         subtitle_color=ThemeColor.DIM, accent=None):
-        if isinstance(subtitle, (tuple, list)):
-            subtitle_lines = tuple(
-                str(line) for line in subtitle if str(line).strip())[:2]
-        elif subtitle is None or not str(subtitle).strip():
-            subtitle_lines = ()
-        else:
-            subtitle_lines = (str(subtitle),)
-        subtitle = subtitle_lines or None
-        background, border, text_color = self._button_colors(state, accent)
-        if layout == "center" and subtitle is None:
-            return self.composite_button(
-                action, x, y, width, height, label, state, font,
-                include_hitbox, accent)
-        commands = [
-            self.fill(x, y, width, height, background),
-            self.stroke(x, y, width, height, border, 2),
-        ]
-        if layout == "row":
-            commands.append(self.text(x + 24, y + height // 2, label,
-                                      text_color, font, "left", "middle"))
-            if subtitle is not None:
-                lines = subtitle if isinstance(subtitle, (tuple, list)) else (subtitle,)
-                start_y = y + height // 2 - (13 if len(lines) > 1 else 0)
-                subtitle_x = x + min(285, max(24, width // 2 - 15))
-                subtitle_width = max(1, x + width - 58 - subtitle_x)
-                for index, line in enumerate(lines[:2]):
-                    commands.append(self.text(
-                        subtitle_x, start_y + index * 26, line,
-                        subtitle_color, subtitle_font, "left", "middle",
-                        max_width=subtitle_width, truncate=True))
-            commands.append(self.text(x + width - 24, y + height // 2, ">",
-                                      text_color, "JetBrainsMono 16pt",
-                                      "right", "middle"))
-        else:
-            label_y = y + height // 2 if subtitle is None else y + height // 2 - 14
-            commands.append(self.text(x + width // 2, label_y, label,
-                                      text_color, font, "center", "middle",
-                                      max_width=width - 2 * self.BUTTON_TEXT_PADDING,
-                                      truncate=True))
-            if subtitle is not None:
-                start_y = y + height // 2 + (18 if len(subtitle) > 1 else 24)
-                for index, line in enumerate(subtitle):
-                    commands.append(self.text(
-                        x + width // 2, start_y + index * 18, line,
-                        subtitle_color, subtitle_font, "center", "middle"))
-        if include_hitbox and state not in ("disabled", "busy"):
-            commands.append(self._hitbox(action, x, y, width, height))
-        return commands
-
-    def _arrow_button_commands(self, action, x, y, width, height, direction,
-                               state, include_hitbox=True):
-        """Draw a full geometric arrow without relying on font glyphs."""
-        background, border, arrow_color = self._button_colors(state)
-        commands = [
-            self.fill(x, y, width, height, background),
-            self.stroke(x, y, width, height, border, 2),
-        ]
-        center_x = x + width // 2
-        center_y = y + height // 2
-        if direction == "up":
-            commands.append(self.fill(
-                center_x - 3, center_y - 1, 7, 12, arrow_color))
-            widths = (3, 7, 11, 15, 19)
-            head_y = center_y - 11
-        elif direction == "down":
-            commands.append(self.fill(
-                center_x - 3, center_y - 11, 7, 12, arrow_color))
-            widths = (19, 15, 11, 7, 3)
-            head_y = center_y + 1
-        else:
-            raise ValueError("Arrow direction must be 'up' or 'down'")
-        for index, arrow_width in enumerate(widths):
-            commands.append(self.fill(
-                center_x - arrow_width // 2, head_y + index * 2,
-                arrow_width, 2, arrow_color))
-        if include_hitbox and state not in ("disabled", "busy"):
-            commands.append(self._hitbox(action, x, y, width, height))
-        return commands
-
-    def button(self, action, x, y, width, height, label, active=None,
-               state="enabled", font="JetBrainsMono 12pt", subtitle=None,
-               layout="center", subtitle_font="JetBrainsMono 8pt",
-               subtitle_color=ThemeColor.DIM, accent=None):
-        if not self._prepare_surface():
-            return []
-        logical_action = action_wire_id(action) if isinstance(action, Action) else str(action)
-        self._pressed_buttons.discard(logical_action)
-        # active is retained for compatibility with the first Feather release.
-        if active is not None:
-            state = "enabled" if active else "disabled"
-        if state not in self.BUTTON_COLORS:
-            state = "enabled"
-        if layout == "center":
-            font = self.normalize_font_for_text(font, label)
-        if state not in ("disabled", "busy"):
-            self._buttons[logical_action] = _ButtonSpec(
-                x, y, width, height, label, state, font, subtitle, layout,
-                subtitle_font, subtitle_color, accent, None)
-        if (logical_action == "nav.menu"
-                and (self._busy_label is not None
-                     or self._header_action is not None)):
-            self._menu_suppressed = True
-            return []
-        if logical_action == "nav.menu":
-            self._menu_suppressed = False
-        if state not in ("disabled", "busy"):
-            self._register_hitbox(self._hitboxes, logical_action, (x, y, width, height, False))
-        else:
-            self._buttons.pop(logical_action, None)
-            self._unregister_hitbox(self._hitboxes, logical_action, (x, y, width, height))
-        return self._button_commands(self._wire_action(action), x, y, width,
-                                     height, label, state, font, subtitle,
-                                     True, layout, subtitle_font,
-                                     subtitle_color, accent)
-
     def button_surface(self, action, x, y, width, height,
                        normal_commands, pressed_commands):
         """Register complete normal and pressed surfaces for a rich button."""
@@ -1440,39 +1243,12 @@ class FeatherRenderer:
             action_wire_id(action) if isinstance(action, Action) else str(action))
         normal = tuple(normal_commands)
         pressed = tuple(pressed_commands)
-        self._buttons[logical_action] = _ButtonSpec(
+        self._set_button(logical_action, _ButtonSpec(
             x, y, width, height, "", "enabled", None,
-            None, "surface", None, None, None, (normal, pressed))
+            None, "surface", None, None, None, (normal, pressed)))
         surface = pressed if logical_action in self._pressed_buttons else normal
         return list(surface) + [
             self.action_hitbox(action, x, y, width, height)]
-
-    def arrow_button(self, action, x, y, width, height, direction,
-                     active=None, state="enabled"):
-        """Build an up/down button with a geometric, theme-aware arrow."""
-        if not self._prepare_surface():
-            return []
-        logical_action = (action_wire_id(action)
-                          if isinstance(action, Action) else str(action))
-        self._pressed_buttons.discard(logical_action)
-        if active is not None:
-            state = "enabled" if active else "disabled"
-        if state not in self.BUTTON_COLORS:
-            state = "enabled"
-        direction = str(direction).lower()
-        if direction not in ("up", "down"):
-            raise ValueError("Arrow direction must be 'up' or 'down'")
-        if state not in ("disabled", "busy"):
-            self._buttons[logical_action] = _ButtonSpec(
-                x, y, width, height, direction, state, None, None,
-                "arrow-" + direction, None, None, None, None)
-        if state not in ("disabled", "busy"):
-            self._register_hitbox(self._hitboxes, logical_action, (x, y, width, height, False))
-        else:
-            self._buttons.pop(logical_action, None)
-            self._unregister_hitbox(self._hitboxes, logical_action, (x, y, width, height))
-        return self._arrow_button_commands(
-            self._wire_action(action), x, y, width, height, direction, state)
 
     def _begin_dialog(self, bounds, modal):
         self._dialog_bounds = bounds if modal else self._dialog_bounds + bounds
@@ -1522,45 +1298,13 @@ class FeatherRenderer:
             "info": ThemeColor.PRIMARY,
         }
         border = tones.get(tone, ThemeColor.PRIMARY)
-        lines = tuple(lines)
-        button_specs = tuple(buttons)
         button_groups = tuple(tuple(group) for group in button_groups if group)
-        if modal and not custom_body:
-            height = max(height, DIALOG_MIN_HEIGHT)
-            x, width = dialog_horizontal_bounds(
-                width, title, (item[1] for item in button_specs + tuple(
-                    button for group in button_groups for button in group)),
-                measure_text=self.text_width, body_lines=lines,
-                text_padding=self.DIALOG_TEXT_PADDING,
-                button_groups=button_groups,
-                group_button_padding=self.BUTTON_TEXT_PADDING)
-            y = (SCREEN_HEIGHT - height) // 2
-        footer_rows = dialog_button_rows(
-            button_specs, width, measure_text=self.text_width,
-            normalize_font=self.normalize_font, padding=self.BUTTON_TEXT_PADDING)
-        footer_height = (len(footer_rows) * DIALOG_BUTTON_HEIGHT
-                         + max(0, len(footer_rows) - 1) * DIALOG_BUTTON_GAP)
-        # More than two persistent rows leave too little room for the body and
-        # its page controls. Keep these actions reachable in the paged body.
-        if len(footer_rows) > 2:
-            button_groups += footer_rows
-            footer_rows, footer_height = (), 0
-        y, height, visible_lines, visible_groups, page, page_count = layout_dialog_body(
-            lines, button_groups, y, width, height, bool(footer_rows), page=page,
-            text_padding=self.DIALOG_TEXT_PADDING, screen_height=SCREEN_HEIGHT,
-            footer_height=footer_height, measure_text=self.text_width,
-            normalize_font=self.normalize_font, button_padding=self.BUTTON_TEXT_PADDING)
-        title_only = (not custom_body and not button_groups
-                      and not any(str(line).strip() for line in visible_lines))
-        if title_only:
-            y, height, title_rows = layout_title_only_dialog(
-                title, y, width, height, bool(footer_rows),
-                text_padding=self.DIALOG_TEXT_PADDING,
-                screen_height=SCREEN_HEIGHT, footer_height=footer_height)
-        else:
-            title_rows = ((str(title).upper(), y + DIALOG_TITLE_TOP
-                           + get_font_metrics().metric(
-                               DIALOG_TITLE_FONT).glyph_height // 2),)
+        x, y, width, height, title_rows, visible_lines, page, page_count, has_footer, footer_height, rows = (
+            dialog_layout(
+                self, _DIALOG_POLICY + (self.DIALOG_TEXT_PADDING, self.BUTTON_TEXT_PADDING, SCREEN_WIDTH,
+                                        SCREEN_HEIGHT),
+                title, tuple(lines), tuple(buttons), button_groups, x, y, width, height, modal and not custom_body,
+                custom_body, page))
         if page_count > 1 and (page_actions is None or len(page_actions) != 2):
             raise ValueError("Overflowing dialog requires previous and next actions")
         outer_x = max(0, x - 8)
@@ -1593,21 +1337,8 @@ class FeatherRenderer:
         if page_count > 1:
             commands += self.dialog_pager(
                 page, page_count, page_actions, x, y, width, height,
-                has_buttons=bool(footer_rows), footer_height=footer_height)
-        button_y = y + height - DIALOG_BUTTON_BOTTOM - footer_height
-        if title_only:
-            button_y = y + height - (DIALOG_COMPACT_BUTTON_BOTTOM
-                                     if len(title_rows) == 1 else 22)
-            button_y -= footer_height
-        rows = tuple((group, y + offset, width - pager_reserve)
-                     for group, offset in visible_groups)
-        rows += tuple((row, button_y + index * (
-            DIALOG_BUTTON_HEIGHT + DIALOG_BUTTON_GAP), width)
-            for index, row in enumerate(footer_rows))
-        for specs, row_y, row_width in rows:
-            font, bounds = dialog_button_layout(
-                specs, x, row_y, row_width, measure_text=self.text_width,
-                normalize_font=self.normalize_font, padding=self.BUTTON_TEXT_PADDING)
+                has_buttons=has_footer, footer_height=footer_height)
+        for specs, font, bounds in rows:
             for (action, label, state), target in zip(specs, bounds):
                 commands += self.button(
                     action, *target, label, state=state, font=font)
@@ -1720,10 +1451,10 @@ class FeatherRenderer:
         return commands
 
     def flash_button(self, action):
-        spec = self._visible_value("_buttons").get(action)
+        spec = self._visible_input("_buttons").get(action)
         if spec is None:
             return False
-        self._visible_value("_pressed_buttons").add(action)
+        self._press(action, visible=True)
         self.prioritize_next_batch("animation", "button:%s" % action)
         if spec.layout == "surface":
             self.send(spec.surfaces[1], button_feedback=True)
@@ -1740,11 +1471,10 @@ class FeatherRenderer:
         return True
 
     def restore_button(self, action):
-        spec = self._visible_value("_buttons").get(action)
+        spec = self._visible_input("_buttons").get(action)
+        self._press(action, False, visible=True)
         if spec is None:
-            self._visible_value("_pressed_buttons").discard(action)
             return False
-        self._visible_value("_pressed_buttons").discard(action)
         self.prioritize_next_batch("state", "button:%s" % action)
         if spec.layout == "surface":
             self.send(spec.surfaces[0], button_feedback=True)
@@ -1775,8 +1505,8 @@ class FeatherRenderer:
             old_wire_id = (action_wire_id(old_action)
                            if isinstance(old_action, Action)
                            else str(old_action))
-            self._buttons.pop(old_wire_id, None)
-            self._pressed_buttons.discard(old_wire_id)
+            self._pop_button(old_wire_id)
+            self._press(old_wire_id, False)
         return True
 
     def _header_action_commands(self):
@@ -1784,25 +1514,11 @@ class FeatherRenderer:
             return []
         action, label, state, font = self._header_action
         return self.button(
-            action, 648, 7, 132, 46, label, state=state, font=font)
+            action, *self._header_action_bounds, label, state=state, font=font)
 
     def redraw_page(self):
         """Rebuild interactions and pixels through the normal page lifecycle."""
         return self.begin_page(self._page_title, back=self._page_back)
-
-    def redraw_page_hitboxes(self):
-        """Rebuild base input after isolated layout changes without painting pixels."""
-        if not self._prepare_surface():
-            return []
-        self._hitboxes = []
-        commands = [self.clear_hitboxes("base"), self._wake_hitbox()]
-        if self._page_back:
-            commands.append(self.action_hitbox("nav.back", 14, 7, 146, 46))
-        if self._header_action is not None:
-            action, _label, state, _font = self._header_action
-            if state not in ("disabled", "busy"):
-                commands.append(self.action_hitbox(action, 648, 7, 132, 46))
-        return commands
 
     @contextmanager
     def rebuild_page_input(self):
@@ -1811,10 +1527,8 @@ class FeatherRenderer:
         self.redraw_page_hitboxes()
         commands = []
         yield commands
-        active = {action for action, _spec in self._hitboxes + self._overlay_hitboxes}
-        self._buttons = {action: spec for action, spec in self._buttons.items() if action in active}
+        active = self._keep_input()
         self._toggles = {action: spec for action, spec in self._toggles.items() if action in active}
-        self._pressed_buttons.intersection_update(active)
         # Paint commands may contain old IDs. Final replay replaces all of
         # them, including retained overlay regions, with this generation.
         commands.extend(self._input_commands())
@@ -1849,7 +1563,7 @@ class FeatherRenderer:
             self.fill(10, 6, 780, HEADER_BOTTOM - 6, ThemeRole.HEADER_BACKGROUND),
         ]
         if back:
-            commands += self.button("nav.back", 14, 7, 146, 46, "< BACK",
+            commands += self.button("nav.back", *self._back_bounds, "< BACK",
                                     font="JetBrainsMono Bold 8pt")
         title = str(title).upper()
         title_width = 440 if back or show_header_action or self._busy_label is not None else 740

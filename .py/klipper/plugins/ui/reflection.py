@@ -7,7 +7,7 @@ from .bindings import (
     Binding, StateStore, binding_metadata, resolve, resolve_deep,
 )
 from .identity import FrameworkKey, serialize_key
-from .layout import Grid, LAYOUT_SCHEMA, List, ListView, Overlay, When, WrapPanel
+from .layout import Grid, LAYOUT_SCHEMA, List, ListView, Overlay, When, WrapPanel, _attributes
 from .components import Frame
 from .properties import property_names
 from .source import (
@@ -175,7 +175,9 @@ def _list_view_metadata(node, state):
         "items_binding": binding_metadata(node.items_binding, state)
                          if isinstance(node.items_binding, Binding) else None,
         "item_key_binding": binding_metadata(node.item_key_binding, state),
-        "template_key_binding": binding_metadata(node.template_key_binding, state),
+        "template_key_binding": (
+            None if node.template_key_binding is None
+            else binding_metadata(node.template_key_binding, state)),
         "direction": node.direction,
         "gap": node.gap,
         "fallback_template": node.fallback_template,
@@ -290,11 +292,11 @@ def _node(node, page, state, path, inherited_visible=True):
         "property_sources": property_sources,
         "layout_sources": layout_provenance(node),
         "actions": dict((name, action_metadata(value))
-                        for name, value in node.__dict__.items()
+                        for name, value in _attributes(node)
                         if isinstance(value, Action)),
         "action_sources": dict((
             name, property_provenance(node, name, value=value))
-            for name, value in node.__dict__.items()
+            for name, value in _attributes(node)
             if isinstance(value, Action)),
         "container": isinstance(node, (Grid, List, Overlay, WrapPanel, Frame)),
         "style": None if node._style_id is None else _value(node._style_id),

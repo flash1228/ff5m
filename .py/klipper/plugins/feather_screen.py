@@ -28,7 +28,6 @@ if not sys.path or sys.path[0] != _PLUGIN_ROOT:
         pass
     sys.path.insert(0, _PLUGIN_ROOT)
 
-import feather_native
 from timelapse_state import TimelapsePhase
 
 from ui import (
@@ -253,9 +252,6 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
             self.debug, blending=self.blending,
             raster_acceleration=self.raster_acceleration,
             ram_composition=self.ram_composition)
-        # Optional native acceleration, before the first page is built. Any
-        # failure is logged and leaves the Python UI in place.
-        feather_native.enable()
         # Construct the print page during configuration, before a print can
         # need reactor time for its first preview geometry lookup.
         printing_ui.get_page()

@@ -11,6 +11,7 @@ from dataclasses import dataclass, fields, is_dataclass
 from enum import Enum
 
 from .bindings import Binding, ItemBinding, StateStore, resolve_deep, state_spec
+from .engine import collect_actions as _collect_actions
 from .identity import CommandKey, PageKey, StateKey, serialize_key
 
 
@@ -460,32 +461,14 @@ def action_metadata(action):
 
 
 def collect_actions(root):
-    """Collect the semantic actions reachable from one component tree."""
-    result = {}
+    """Collect the semantic actions reachable from one component tree.
 
-    def add(value):
-        if value is None:
-            return
-        if isinstance(value, Action):
-            validate_action(value)
-            wire = value.wire_id
-            existing = result.get(wire)
-            if existing is not None and existing != value:
-                raise ValueError("Semantic action wire collision: %s" % wire)
-            result[wire] = value
-            return
-        if isinstance(value, (tuple, list)):
-            for item in value:
-                if isinstance(item, (tuple, list)) and item:
-                    add(item[0])
-                else:
-                    add(item)
-
-    for node in root.walk():
-        add(getattr(node, "action", None))
-        add(getattr(node, "active_action", None))
-        add(getattr(node, "buttons", None))
-    return result
+    The engine walks the render tree and returns {wire_id: action} for each
+    node's action, active_action and buttons (sequences add their items, or
+    the items' first elements). Unequal actions under one wire id raise
+    ValueError.
+    """
+    return _collect_actions(root, Action, validate_action, _ACTION_VALIDATED)
 
 
 def _apply_state_action(store, action):

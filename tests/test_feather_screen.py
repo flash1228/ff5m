@@ -281,13 +281,14 @@ class FeatherUtilitiesTest(unittest.TestCase):
                 },
             ],
         })
-        with mock.patch("ui.renderer.get_font_metrics",
-                        return_value=synthetic):
-            normalize = FEATHER.FeatherRenderer.normalize_font
-            self.assertEqual(normalize("Display 9pt"), "Display 8pt")
-            self.assertEqual(normalize("Display 11pt"), "Display 12pt")
-            command = FEATHER.FeatherRenderer().text(
-                10, 10, "Visible", font="Display 10pt")
+        self.addCleanup(font_metrics.set_font_metrics,
+                        font_metrics.get_font_metrics())
+        font_metrics.set_font_metrics(synthetic)
+        normalize = FEATHER.FeatherRenderer.normalize_font
+        self.assertEqual(normalize("Display 9pt"), "Display 8pt")
+        self.assertEqual(normalize("Display 11pt"), "Display 12pt")
+        command = FEATHER.FeatherRenderer().text(
+            10, 10, "Visible", font="Display 10pt")
 
         self.assertIn('-f "Display 8pt"', command)
         self.assertNotIn("10pt", command)
@@ -2154,7 +2155,7 @@ class RendererStateTest(unittest.TestCase):
             renderer.text(
                 100, 120, 'file "one" \\ Привет', UI.ThemeColor.BRIGHT, "Roboto 12pt",
                 "center", "middle"),
-            FEATHER.FeatherRenderer._hitbox("print.pause", 20, 315, 175, 100),
+            renderer._hitbox("print.pause", 20, 315, 175, 100),
             "--batch flush",
             "--end",
         ]

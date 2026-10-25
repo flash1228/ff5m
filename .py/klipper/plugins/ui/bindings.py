@@ -8,6 +8,7 @@ import copy
 import inspect
 from enum import Enum
 
+from .engine import BindingResolver, StateStoreBase, portable
 from .identity import StateKey, serialize_key
 from .theme import ThemeColor, ThemeRole
 
@@ -140,16 +141,6 @@ def _json_value(value):
     return value
 
 
-def _is_portable(value):
-    if value is None or isinstance(value, (bool, int, float, str)):
-        return True
-    if isinstance(value, (list, tuple)):
-        return all(_is_portable(item) for item in value)
-    if isinstance(value, dict):
-        return all(isinstance(key, str) and _is_portable(item) for key, item in value.items())
-    return False
-
-
 _NOT_PLAIN = object()
 
 
@@ -193,7 +184,7 @@ def _copy_value(value):
 
 def _validate_portable_collection(value, path="state"):
     # Valid data is checked without building element paths for diagnostics.
-    if _is_portable(value):
+    if portable(value):
         return
     if value is None or isinstance(value, (bool, int, float, str)):
         return
@@ -321,63 +312,41 @@ def state_spec(key):
     return spec
 
 
-class StateStore:
-    """Validated state values addressed only by typed ``StateKey`` members."""
+class StateStore(StateStoreBase):
+    """Validated state values addressed only by typed ``StateKey`` members.
 
-    __slots__ = ("_schema", "_values", "_changed_keys")
+    The engine keeps the values, the changed keys and iteration order;
+    reading, membership and ``update`` run there. This class adds the
+    framework's error for undeclared keys, value copies and the cold views.
+    """
+
+    __slots__ = ()
 
     def __init__(self, keys=(), values=None):
-        self._schema = _unique_keys(keys)
-        self._values = {}
-        self._changed_keys = frozenset()
-        for key, spec in zip(self._schema, self._schema.specs):
-            if spec.available:
-                self._values[key] = spec.default_value()
+        schema = _unique_keys(keys)
+        # None: the engine stores a copy of each available default.
+        self._open(schema, schema.specs, None, _UNAVAILABLE)
         if values is not None:
             self.update(values)
 
-    @property
-    def schema(self):
-        return self._schema
-
-    @property
-    def changed_keys(self):
-        """Keys changed since the owning page last completed a render."""
-        return self._changed_keys
-
-    def clear_changes(self):
-        self._changed_keys = frozenset()
-
-    def copy(self):
-        return StateStore(self._schema, self._values)
-
-    def __deepcopy__(self, memo):
-        copied = StateStore(self._schema)
-        copied._values = copy.deepcopy(self._values, memo)
-        copied._changed_keys = self._changed_keys
-        return copied
-
-    def __getitem__(self, key):
+    @staticmethod
+    def _unknown_key(key):
         if not isinstance(key, StateKey):
             raise TypeError("State values must be addressed by StateKey members")
-        if key not in self._schema:
-            raise KeyError("State key is not declared by this page: %s" % key)
-        if key not in self._values:
-            raise KeyError("State value is unavailable: %s" % key)
-        value = self._values[key]
-        return _copy_value(value) if isinstance(value, (list, dict)) else value
+        raise KeyError("State key is not declared by this page: %s" % key)
 
-    def __contains__(self, key):
-        return key in self._values
+    _copy_value = staticmethod(_copy_value)
 
-    def __iter__(self):
-        return iter(self._values)
+    def copy(self):
+        return StateStore(self.schema, self._entries())
 
-    def __len__(self):
-        return len(self._values)
+    def __deepcopy__(self, memo):
+        copied = StateStore(self.schema)
+        copied._restore(copy.deepcopy(self._entries(), memo), self.changed_keys)
+        return copied
 
     def keys(self):
-        return self._values.keys()
+        return dict.fromkeys(self).keys()
 
     def values(self):
         return self.as_dict().values()
@@ -385,51 +354,21 @@ class StateStore:
     def items(self):
         return self.as_dict().items()
 
-    def get(self, key, default=None):
-        try:
-            return self[key]
-        except KeyError:
-            return default
-
-    def update(self, values):
-        if isinstance(values, StateStore):
-            values = tuple(values.items())
-        elif hasattr(values, "items"):
-            values = tuple(values.items())
-        else:
-            values = tuple(values)
-        staged = {}
-        for key, value in values:
-            if not isinstance(key, StateKey):
-                raise TypeError(
-                    "Page state updates must use StateKey members, not %r" % key)
-            if key not in self._schema:
-                raise KeyError("State key is not declared by this page: %s" % key)
-            validated = state_spec(key).validate(value)
-            staged[key] = (_copy_value(validated)
-                           if isinstance(validated, (list, dict)) else validated)
-        changed = frozenset(
-            key for key, value in staged.items()
-            if key not in self._values or self._values[key] != value)
-        self._values.update(staged)
-        self._changed_keys = self._changed_keys.union(changed)
-        return self
-
     def as_dict(self, serialized=False):
         if serialized:
             return dict((serialize_key(key), _json_value(value))
-                        for key, value in self._values.items())
-        return copy.deepcopy(self._values)
+                        for key, value in self._entries())
+        return copy.deepcopy(dict(self._entries()))
 
     def metadata(self):
         result = []
-        for key in self._schema:
+        for key in self.schema:
             item = state_spec(key).as_dict()
             item.update({
                 "key": serialize_key(key),
                 "name": key.name,
-                "value_available": key in self._values,
-                "value": _json_value(self._values.get(key)),
+                "value_available": key in self,
+                "value": _json_value(self._owned(key)) if key in self else None,
             })
             result.append(item)
         return result
@@ -545,10 +484,7 @@ class ItemScope:
     @classmethod
     def _from_snapshot(cls, state, current):
         """Adopt the already isolated collection item owned by ListView."""
-        cls._validate_scope(state, current)
-        scope = object.__new__(cls)
-        scope.state, scope.item = state, current
-        return scope
+        return _RESOLVER.item_scope(state, current)
 
     def __getitem__(self, key):
         return self.state[key]
@@ -565,15 +501,6 @@ class ItemScope:
     @property
     def schema(self):
         return self.state.schema
-
-
-# Input types whose equal values cannot change behind the cache's back.
-_CACHED_INPUT_TYPES = (type(None), str, int, float, bool)
-
-
-def _same_inputs(previous, current):
-    return all(old is new or (type(old) is type(new) and old == new)
-               for old, new in zip(previous, current))
 
 
 class DerivedBinding(Binding):
@@ -606,17 +533,9 @@ class DerivedBinding(Binding):
         return tuple(result)
 
     def resolve(self, store):
-        values = tuple(item.resolve(store) for item in self.inputs)
-        cache = self._cache
-        if cache is not None and cache[0] is self.function and _same_inputs(cache[1], values):
-            return cache[2]
-        result = self.function(*values)
-        # Mutable inputs could change in place while comparing equal to
-        # themselves, so only plain scalar and enum inputs are remembered.
-        self._cache = ((self.function, values, result) if all(
-            type(value) in _CACHED_INPUT_TYPES or isinstance(value, Enum)
-            for value in values) else None)
-        return result
+        # The engine evaluates the function again only when an input changed;
+        # plain scalar and enum inputs are remembered in _cache.
+        return _RESOLVER.derived_value(self, store)
 
     def as_dict(self):
         return {
@@ -671,17 +590,15 @@ def derived(function, *inputs):
     return binding
 
 
-def resolve(value, store):
-    if value is None or type(value) in (str, int, float, bool):
-        return value
-    if isinstance(value, Binding):
-        value = value.resolve(store)
-    elif callable(value):
-        raise TypeError(
-            "State callables must use derived(function, bind(...), ...) instead")
-    if isinstance(value, Enum):
-        return value if isinstance(value, (ThemeColor, ThemeRole)) else value.value
-    return value
+# The engine resolves values: literals as they are, bindings resolved (the
+# framework's binding types without calling their methods), theme tokens as
+# themselves and other enum members as their values. signature_value freezes a
+# resolved value for Component's state signature, and item_scope makes
+# ListView's item scopes.
+_RESOLVER = BindingResolver(Binding, DirectBinding, ItemBinding, DerivedBinding,
+                            StateStore, ItemScope, (ThemeColor, ThemeRole), serialize_key)
+resolve = _RESOLVER.resolve
+signature_value = _RESOLVER.signature_value
 
 
 def resolve_deep(value, store):
@@ -830,7 +747,8 @@ def page_state_keys(root, explicit=()):
     result = list(_unique_keys(explicit))
     seen = set(result)
     for node in root.walk_declarations():
-        for name, value in node.__dict__.items():
+        # Declared fields live in the node's engine record, the rest in __dict__.
+        for name, value in node._fields() + tuple(node.__dict__.items()):
             if name.startswith("_") or name in ("parent", "layout_options"):
                 continue
             for key in binding_keys(value):

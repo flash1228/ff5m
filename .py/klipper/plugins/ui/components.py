@@ -6,16 +6,18 @@
 
 import copy
 from enum import Enum
+from operator import methodcaller
 
 from .theme import ThemeColor, ThemeRole
 
 from .actions import Action, action_wire_id, validate_action
-from .bindings import resolve, resolve_deep
+from .bindings import DirectBinding, resolve, resolve_deep
+from .bindings import signature_value as _signature_value
+from .engine import NATIVE_METHODS as _NATIVE
 from .font_metrics import get_font_metrics
-from .identity import serialize_key
 from .layout import (
-    CreationContract, CreationIdentityContract, CreationSourceContract, Dirty,
-    Insets, Node, Rect, _command_list, _SINGLE_CHILD_STRUCTURE, subdivision_positions,
+    CreationContract, CreationIdentityContract, CreationSourceContract,
+    Insets, Node, Rect, _command_list, _SINGLE_CHILD_STRUCTURE, _UNSET, _storage_name, subdivision_positions,
 )
 from .numeric_input import NumericInputSpec
 from .properties import (
@@ -83,31 +85,12 @@ def _frozen(value):
     return value
 
 
-def _signature_value(value, state):
-    # Most properties are literals. Resolve and freeze containers in one pass,
-    # without allocating an intermediate dict/list for every frame.
-    if value is None or type(value) in (str, int, float, bool):
-        return value
-    if type(value) in (dict, list, tuple) and not value:
-        return ()
-    value = resolve(value, state)
-    if isinstance(value, Enum):
-        return serialize_key(value)
-    if isinstance(value, dict):
-        return tuple(sorted((key, _signature_value(item, state))
-                            for key, item in value.items()))
-    if isinstance(value, (tuple, list)):
-        return tuple(_signature_value(item, state) for item in value)
-    return value
-
-
 def _signature_fields(component):
     """Declared storage whose values form the automatic state signature."""
     names = []
     for spec in component.property_schema:
-        name = ("kwargs" if spec.source.storage == "kwargs"
-                else spec.source.runtime_name or spec.name)
-        if name not in names:
+        name = _storage_name(spec)
+        if name is not None and name not in names:
             names.append(name)
     names.extend(name for name in component.render_fields if name not in names)
     return tuple(names)
@@ -131,46 +114,38 @@ class Component(Node):
     # property storage they are the declared render data of the class.
     render_fields = ()
     signature_fields = ()
+    # Action accessors store their validated values in the node record.
+    record_fields = ("action", "active_action")
+    # What the engine's native draws resolve without calling Node's _resolve:
+    # theme tokens stay as they are, direct bindings read the state and
+    # actions are read by their wire ids.
+    _direct_binding = DirectBinding
+    _literal_types = (ThemeColor, ThemeRole)
+    _action_type = Action
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         cls.signature_fields = _signature_fields(cls)
 
-    def interaction_signature(self, state):
-        return None
-
-    def update(self, state, initialize=False):
-        previous = getattr(self, "_last_interaction_signature", None)
-        current = self.interaction_signature(state)
-        super().update(state, initialize)
-        self._last_interaction_signature = current
-        if not initialize and previous != current:
-            self.invalidate_actions()
+    # None: controls replace it with what decides their input.
+    interaction_signature = _NATIVE["component"]["interaction_signature"]
+    # The node's update; a changed interaction signature invalidates the actions.
+    update = _NATIVE["component"]["update"]
 
     def _replace_actions(self, name, value):
-        previous = self.__dict__.get(name)
-        if name in self.__dict__ and previous == value:
+        previous = self._get_field(name, _UNSET)
+        if previous is not _UNSET and previous == value:
             return
-        self.__dict__[name] = value
+        self._set_field(name, value)
         self.invalidate_actions()
 
-    @property
-    def action(self):
-        return self.__dict__.get("action")
-
-    @action.setter
-    def action(self, value):
+    def _set_action(self, value):
         if not isinstance(value, Action):
             raise TypeError("%s action must be a semantic Action" % type(self).__name__)
         validate_action(value)
         self._replace_actions("action", value)
 
-    @property
-    def active_action(self):
-        return self.__dict__.get("active_action")
-
-    @active_action.setter
-    def active_action(self, value):
+    def _set_active_action(self, value):
         if value is not None and not isinstance(value, Action):
             raise TypeError("active_action must be a semantic Action or None")
         if value is not None:
@@ -180,24 +155,17 @@ class Component(Node):
         # every cursor sample and again when painting the same sample.
         self._active_action_wire_id = None if value is None else action_wire_id(value)
 
-    def state_signature(self, state):
-        # Only declared render data feeds the signature. Literal pairs are
-        # reused while a field holds the same object; bindings, containers
-        # and replaced fields are read every time.
-        values = self.__dict__
-        fields = values.get("_signature_cache")
-        if fields is None:
-            records = []
-            for name in type(self).signature_fields:
-                value = values.get(name)
-                literal = (value is None or type(value) in (str, int, float, bool)
-                           or isinstance(value, (ThemeColor, ThemeRole)))
-                pair = (name, _signature_value(value, state)) if literal else None
-                records.append((name, value if literal else None, pair))
-            fields = self._signature_cache = tuple(records)
-        return tuple(pair if pair is not None and values.get(name) is original
-                     else (name, _signature_value(values.get(name), state))
-                     for name, original, pair in fields)
+    # The getters read the engine's slot (None when unset) without running Python code, so the engine's
+    # walks over the page read actions natively.
+    action = property(methodcaller("_get_field", "action", None), _set_action)
+    active_action = property(methodcaller("_get_field", "active_action", None), _set_active_action)
+
+    # Only declared render data feeds the signature: a (name, frozen value)
+    # pair for each of signature_fields. An update compares it in the engine,
+    # which freezes plain values, theme tokens, actions and direct bindings
+    # itself and asks _signature_value for the rest.
+    state_signature = _NATIVE["component"]["state_signature"]
+    _signature_value = staticmethod(_signature_value)
 
 
 class Fill(Component):
@@ -208,13 +176,9 @@ class Fill(Component):
         super().__init__(key=key)
         self.color = color
 
-    def draw(self, renderer, state, bounds):
-        return renderer.fill(*bounds, color=resolve(self.color, state))
-
-    def opaque_background(self, state, bounds, target):
-        del bounds
-        del target
-        return resolve(self.color, state)
+    draw = _NATIVE["fill"]["draw"]
+    # The resolved color, which covers the bounds.
+    opaque_background = _NATIVE["fill"]["opaque_background"]
 
 
 class Stroke(Component):
@@ -227,10 +191,7 @@ class Stroke(Component):
         self.color = color
         self.line_width = line_width
 
-    def draw(self, renderer, state, bounds):
-        return renderer.stroke(
-            *bounds, color=resolve(self.color, state),
-            line_width=resolve(self.line_width, state))
+    draw = _NATIVE["stroke"]["draw"]
 
 
 class Panel(Component):
@@ -247,24 +208,11 @@ class Panel(Component):
         self.background = background
         self.line_width = line_width
 
-    def draw(self, renderer, state, bounds):
-        return renderer.panel(
-            *bounds, border=resolve(self.border, state),
-            background=resolve(self.background, state),
-            line_width=resolve(self.line_width, state))
+    draw = _NATIVE["panel"]["draw"]
 
-    def opaque_background(self, state, bounds, target):
-        border = resolve(self.border, state)
-        line_width = int(resolve(self.line_width, state))
-        if (border is not None and line_width > 0
-                and (bounds.width < line_width * 2
-                     or bounds.height < line_width * 2)):
-            return None
-        interior = (bounds if border is None or line_width <= 0 else
-                    bounds.inset(line_width))
-        if interior.contains(target):
-            return resolve(self.background, state)
-        return None
+    # The resolved background when the target lies within the border's
+    # interior; None when the border fills the bounds.
+    opaque_background = _NATIVE["panel"]["opaque_background"]
 
 
 class Frame(Component):
@@ -276,6 +224,7 @@ class Frame(Component):
         source=CreationSourceContract(
             "core.keyword_call", identity=CreationIdentityContract()))
     structure_contract = _SINGLE_CHILD_STRUCTURE
+    record_fields = ("child",)
     property_schema = property_schema(
         _color("border", ThemeColor.PRIMARY, styleable=True),
         _color("background", ThemeColor.PANEL, styleable=True),
@@ -292,12 +241,9 @@ class Frame(Component):
         self.line_width = line_width
         self._adopt(child)
 
-    def _arrange(self, bounds, result):
-        if self.child is not None:
-            self.child.arrange(bounds, result)
-
-    def render_children(self):
-        return () if self.child is None else (self.child,)
+    # The child takes the whole content bounds.
+    _arrange = _NATIVE["single_child"]["_arrange"]
+    render_children = _NATIVE["single_child"]["render_children"]
 
     def replace_preview_children(self, children, placements=None):
         del placements
@@ -307,24 +253,11 @@ class Frame(Component):
         self.child = children[0] if children else None
         self._adopt(self.child)
 
-    def draw(self, renderer, state, bounds):
-        return renderer.panel(
-            *bounds, border=resolve(self.border, state),
-            background=resolve(self.background, state),
-            line_width=resolve(self.line_width, state))
+    draw = _NATIVE["panel"]["draw"]
 
-    def opaque_background(self, state, bounds, target):
-        border = resolve(self.border, state)
-        line_width = int(resolve(self.line_width, state))
-        if (border is not None and line_width > 0
-                and (bounds.width < line_width * 2
-                     or bounds.height < line_width * 2)):
-            return None
-        interior = (bounds if border is None or line_width <= 0 else
-                    bounds.inset(line_width))
-        if interior.contains(target):
-            return resolve(self.background, state)
-        return None
+    # The resolved background when the target lies within the border's
+    # interior; None when the border fills the bounds.
+    opaque_background = _NATIVE["panel"]["opaque_background"]
 
 
 class Popup(Frame):
@@ -342,8 +275,7 @@ class Popup(Frame):
         self.action = action
         self.preserve_header_action = preserve_header_action
 
-    def blocks_input(self, state):
-        return True
+    blocks_input = _NATIVE["modal"]["blocks_input"]
 
     def interaction_signature(self, state):
         return resolve(self.preserve_header_action, state)
@@ -415,46 +347,19 @@ class Button(Component):
         if name == "button_style" and isinstance(value, ButtonStyle):
             if self.font is None and value.font is not None:
                 self.font = value.font
+            # A new dict: the engine reads a field's containers as of their last assignment.
             if value.layout is not None and "layout" not in self.kwargs:
-                self.kwargs["layout"] = value.layout
+                self.kwargs = dict(self.kwargs, layout=value.layout)
 
-    def preferred_extent(self, direction, cross_extent=None):
-        if direction == "vertical":
-            return 48 + self.layout_options.padding.vertical
-        return None
+    # Vertically 48 px with padding; no size horizontally, and no content size.
+    preferred_extent = _NATIVE["button"]["preferred_extent"]
+    content_extent = _NATIVE["button"]["content_extent"]
 
-    def content_extent(self, direction, cross_extent=None):
-        return None
-
-    def interaction_signature(self, state):
-        active = resolve(self.kwargs.get("active"), state)
-        if active is not None:
-            return bool(active)
-        return resolve(self.state, state) not in ("disabled", "busy")
-
-    def draw(self, renderer, state, bounds):
-        if type(self.kwargs) is dict and not self.kwargs:
-            button_state = resolve(self.state, state)
-            if self.font is None:
-                return renderer.button(resolve(self.action, state), *bounds,
-                                       resolve(self.label, state), state=button_state)
-            font = resolve(self.font, state)
-            return renderer.button(resolve(self.action, state), *bounds,
-                                   resolve(self.label, state), state=button_state, font=font)
-        kwargs = dict(
-            (name, resolve(value, state))
-            for name, value in self.kwargs.items())
-        kwargs["state"] = resolve(self.state, state)
-        if self.font is not None:
-            kwargs["font"] = resolve(self.font, state)
-        return renderer.button(
-            resolve(self.action, state), *bounds,
-            resolve(self.label, state), **kwargs)
-
-    def interaction_commands(self, renderer, state, bounds):
-        return renderer.button_hitbox(
-            resolve(self.action, state), *bounds,
-            active=self.interaction_signature(state))
+    # Active by the resolved active keyword when given, else unless the state
+    # is disabled or busy; the replay is renderer.button_hitbox.
+    interaction_signature = _NATIVE["button"]["interaction_signature"]
+    draw = _NATIVE["button"]["draw"]
+    interaction_commands = _NATIVE["button"]["interaction_commands"]
 
 
 class ArrowButton(Component):
@@ -478,19 +383,16 @@ class ArrowButton(Component):
         self.direction = direction
         self.state = state
 
-    def interaction_signature(self, state):
-        return resolve(self.state, state) not in ("disabled", "busy")
+    # Active unless the state is disabled or busy; the replay is
+    # renderer.action_hitbox while active.
+    interaction_signature = _NATIVE["arrow_button"]["interaction_signature"]
+    interaction_commands = _NATIVE["arrow_button"]["interaction_commands"]
 
     def draw(self, renderer, state, bounds):
         return renderer.arrow_button(
             resolve(self.action, state), *bounds,
             direction=resolve(self.direction, state),
             state=resolve(self.state, state))
-
-    def interaction_commands(self, renderer, state, bounds):
-        if not self.interaction_signature(state):
-            return ()
-        return renderer.action_hitbox(resolve(self.action, state), *bounds)
 
 
 class ToggleSwitch(Component):
@@ -510,19 +412,15 @@ class ToggleSwitch(Component):
         self.active = active
         self.enabled = enabled
 
-    def interaction_signature(self, state):
-        return bool(resolve(self.enabled, state))
+    # Active while enabled; the replay is renderer.action_hitbox while active.
+    interaction_signature = _NATIVE["toggle_switch"]["interaction_signature"]
+    interaction_commands = _NATIVE["toggle_switch"]["interaction_commands"]
 
     def draw(self, renderer, state, bounds):
         return renderer.toggle(
             resolve(self.action, state), *bounds,
             active=resolve(self.active, state),
             enabled=resolve(self.enabled, state))
-
-    def interaction_commands(self, renderer, state, bounds):
-        if not self.interaction_signature(state):
-            return ()
-        return renderer.action_hitbox(resolve(self.action, state), *bounds)
 
 
 class Hitbox(Component):
@@ -540,17 +438,17 @@ class Hitbox(Component):
         self.action = action
         self.continuous = continuous
 
-    def draw(self, renderer, state, bounds):
-        return renderer.action_hitbox(
-            resolve(self.action, state), *bounds,
-            continuous=resolve(self.continuous, state))
-
-    def interaction_commands(self, renderer, state, bounds):
-        return self.draw(renderer, state, bounds)
+    # The engine's: renderer.action_hitbox(action, *bounds,
+    # continuous=continuous), both resolved; the replay is the draw.
+    draw = _NATIVE["hitbox"]["draw"]
+    interaction_commands = _NATIVE["hitbox"]["interaction_commands"]
 
 
 class Text(Component):
     owns_relayout = True
+    # The measurement the engine's Text hooks read; the engine keeps their
+    # caches and the arranged width.
+    record_fields = ("_measurement", "_measurement_state")
     property_schema = property_schema(
         _property(
             "value", (str, int, float), "", kind="textarea",
@@ -609,186 +507,47 @@ class Text(Component):
         elif name == "text_color" and self.color is None:
             self.color = value
 
-    def _resolve_measurement(self, state=None):
-        value = self.value
-        font = self.font
-        maximum_width = self.kwargs.get("max_width")
-        maximum_height = self.kwargs.get("max_height")
-        wrap = self.kwargs.get("wrap", False)
-        if state is not None:
-            value = resolve(value, state)
-            font = resolve(font, state) if font is not None else None
-            maximum_width = resolve(maximum_width, state)
-            maximum_height = resolve(maximum_height, state)
-            wrap = resolve(wrap, state)
-        if not isinstance(value, (str, int, float)):
-            value = None
-        font = font if isinstance(font, str) else "JetBrainsMono 8pt"
-        if not isinstance(maximum_width, (int, float)):
-            maximum_width = None
-        if not isinstance(maximum_height, (int, float)):
-            maximum_height = None
-        return value, font, maximum_width, maximum_height, bool(wrap)
+    # (value, font, max_width, max_height, wrap), resolved with the state when
+    # given; the engine's measurement hooks read it.
+    _resolve_measurement = _NATIVE["text"]["_resolve_measurement"]
 
-    def _content_width(self):
-        if self._measurement is None:
-            self._measurement = self._resolve_measurement(self._measurement_state)
-        metrics = get_font_metrics()
-        key = (self._measurement, self.layout_options.padding.horizontal,
-               metrics.cache_key)
-        cached = getattr(self, "_width_measurement", None)
-        if cached is not None and cached[0] == key:
-            return cached[1]
-        value, font, maximum, _maximum_height, _wrap = self._measurement
-        if value is None:
-            return None
-        width = metrics.text_width(value, font)
-        if maximum is not None:
-            width = min(width, int(maximum))
-        result = max(1, width + self.layout_options.padding.horizontal)
-        self._width_measurement = (key, result)
-        return result
+    # The measurement hooks and their caches live in the engine; update() asks
+    # them too.
+    _font_metrics = staticmethod(get_font_metrics)
+    _content_width = _NATIVE["text"]["_content_width"]
+    _content_height = _NATIVE["text"]["_content_height"]
+    preferred_extent = _NATIVE["text"]["preferred_extent"]
+    content_extent = _NATIVE["text"]["content_extent"]
+    auto_gap_extent = _NATIVE["text"]["auto_gap_extent"]
 
-    def _content_height(self, cross_extent=None, dynamic_minimum=False):
-        metrics = get_font_metrics()
-        if self._measurement is None:
-            self._measurement = self._resolve_measurement(self._measurement_state)
-        # Layout asks the same leaf for its natural size through several
-        # ancestors. Keep only the latest query, keyed by all size inputs.
-        wrapped = self._measurement[4]
-        key = (self._measurement, cross_extent if wrapped else None,
-               dynamic_minimum if wrapped or self._measurement[0] is None else False,
-               self.layout_options.width if wrapped else None, self.layout_options.padding.horizontal,
-               self.layout_options.padding.vertical, metrics.cache_key)
-        cached = getattr(self, "_height_measurement", None)
-        if cached is not None and cached[0] == key:
-            return cached[1]
-        value, font, maximum_width, maximum, wrap = self._measurement
-        metric = metrics.metric(font)
-        width = None
-        if wrap:
-            width = maximum_width
-            if width is None:
-                width = (self.layout_options.width
-                         if isinstance(self.layout_options.width, int)
-                         and not isinstance(self.layout_options.width, bool)
-                         else cross_extent)
-            if width is None and not dynamic_minimum:
-                return None
-            if width is not None:
-                width = max(1, int(width) - self.layout_options.padding.horizontal)
-        if value is not None:
-            text_height = metrics.text_height(
-                value, font, max_width=width, wrap=wrap and width is not None)
-        elif dynamic_minimum:
-            text_height = metric.glyph_height
-        else:
-            return None
-        height = text_height + self.layout_options.padding.vertical
-        if maximum is not None:
-            height = min(height, int(maximum))
-        result = max(metric.glyph_height, height)
-        self._height_measurement = (key, result)
-        return result
+    # Records the assigned width with padding: wrapping depends on it, including after prepare_layout.
+    _arrange = _NATIVE["text"]["_arrange"]
+    # The width last arranged at, with padding; None before the first arrange.
+    _arranged_width = property(_NATIVE["text"]["_arranged_width"])
+    # Whether the height was measured since the node was created.
+    _height_measured = property(_NATIVE["text"]["_height_measured"])
 
-    def preferred_extent(self, direction, cross_extent=None):
-        if direction == "horizontal":
-            return self._content_width()
-        if direction == "vertical":
-            return self._content_height(cross_extent, dynamic_minimum=True)
-        return None
+    # Resolves the measurement again when the size depends on it, runs the
+    # component's update and invalidates the layout when the content size moved.
+    update = _NATIVE["text"]["update"]
 
-    def content_extent(self, direction, cross_extent=None):
-        if direction == "horizontal":
-            return self._content_width()
-        if direction == "vertical":
-            return self._content_height(
-                cross_extent, dynamic_minimum=True)
-        return None
+    # _display_value(state, bounds, font) formats the painted text within its
+    # bounds without changing source state; subclasses may override it.
+    _display_value = _NATIVE["text"]["_display_value"]
+    draw = _NATIVE["text"]["draw"]
 
-    def auto_gap_extent(self, direction, cross_extent=None):
-        if direction != "vertical" or not self.kwargs.get("wrap", False):
-            return None
-        return self._content_height(cross_extent)
-
-    def _arrange(self, bounds, result):
-        # Wrapping depends on the assigned width, including after prepare_layout.
-        self._arranged_width = bounds.width + self.layout_options.padding.horizontal
-
-    def update(self, state, initialize=False):
-        previous = self._measurement
-        content_width = self.layout_options.width == "content"
-        content_height = self.layout_options.height == "content"
-        # Intrinsic containers may request a fill-sized leaf's natural height.
-        intrinsic_height = (self.layout_options.height is None
-                            and getattr(self, "_height_measurement", None) is not None)
-        measure = (initialize or content_width or content_height or intrinsic_height
-                   or self.kwargs.get("wrap", False)
-                   or (previous is not None and previous[4]))
-        current = self._resolve_measurement(state) if measure else None
-        size_changed = False
-        if not initialize and measure and previous != current:
-            cross_extent = getattr(self, "_arranged_width", None)
-            previous_size = (
-                self._content_width() if content_width else None,
-                self._content_height(cross_extent, dynamic_minimum=True)
-                if content_height or intrinsic_height else None)
-            self._measurement = current
-            current_size = (
-                self._content_width() if content_width else None,
-                self._content_height(cross_extent, dynamic_minimum=True)
-                if content_height or intrinsic_height else None)
-            size_changed = previous_size != current_size
-
-        self._measurement_state = state
-        self._measurement = current
-        super().update(state, initialize)
-        if size_changed:
-            self.invalidate(Dirty.LAYOUT)
-
-    def _display_value(self, state, bounds, font):
-        """Format painted text within its bounds without changing source state."""
-        return resolve(self.value, state)
-
-    def draw(self, renderer, state, bounds):
-        horizontal = resolve(self.horizontal, state)
-        vertical = resolve(self.vertical, state)
-        if horizontal == "left":
-            x = bounds.x
-        elif horizontal == "right":
-            x = bounds.right
-        else:
-            x = bounds.center_x
-        if vertical == "top":
-            y = bounds.y
-        elif vertical == "bottom":
-            y = bounds.bottom
-        else:
-            y = bounds.center_y
-        renderer_vertical = "middle" if vertical == "center" else vertical
-        kwargs = dict(
-            (name, resolve(value, state))
-            for name, value in self.kwargs.items())
-        if kwargs.get("wrap"):
-            kwargs.setdefault("max_width", max(1, bounds.width))
-            kwargs.setdefault("max_height", max(1, bounds.height))
-        elif kwargs.get("truncate"):
-            kwargs.setdefault("max_width", max(1, bounds.width))
-        font = (resolve(self.font, state) if self.font is not None
-                else "JetBrainsMono 8pt")
-        value = self._display_value(state, bounds, font)
-        if kwargs.pop("fit", False):
-            font = get_font_metrics().fitting_font(
-                value, font, min(bounds.width, kwargs.get("max_width") or bounds.width),
-                min(bounds.height, kwargs.get("max_height") or bounds.height),
-                wrap=bool(kwargs.get("wrap")))
-        return renderer.text(
-            x, y, value, resolve(self.color, state),
-            font, horizontal, renderer_vertical, **kwargs)
+    def _fitting_font(self, value, font, bounds, options):
+        """The font of the family that fits value within the bounds and the text limits."""
+        return get_font_metrics().fitting_font(
+            value, font, min(bounds.width, options.get("max_width") or bounds.width),
+            min(bounds.height, options.get("max_height") or bounds.height),
+            wrap=bool(options.get("wrap")))
 
 
 class Metric(Component):
     owns_relayout = True
+    # The content the engine's extent reads, as _content() returns it.
+    record_fields = ("_measurement",)
     property_schema = property_schema(
         _text("label", group="Content", live=True),
         _text("value", group="Content", live=True),
@@ -810,7 +569,7 @@ class Metric(Component):
         self.value = value
         self.unit = unit
         self.kwargs = kwargs
-        self._measurement_state = None
+        self._measurement = self._content()
 
     def _content(self, state=None):
         values = (self.label, self.value, self.unit,
@@ -829,24 +588,33 @@ class Metric(Component):
         gap = gap if isinstance(gap, (int, float)) else 0
         return label, value + (" " + unit if unit else ""), orientation, label_font, value_font, gap
 
-    def preferred_extent(self, direction, cross_extent=None):
-        label, value, orientation, label_font, value_font, gap = self._content(self._measurement_state)
-        if orientation != "vertical":
-            return None
-        metrics = get_font_metrics()
-        if direction == "horizontal":
-            return max(metrics.text_width(label, label_font), metrics.text_width(value, value_font)) + \
-                self.layout_options.padding.horizontal
-        if direction == "vertical":
-            return (metrics.metric(label_font).glyph_height + metrics.metric(value_font).glyph_height
-                    + gap + self.layout_options.padding.vertical)
-        return None
+    def _resolve_measurement(self, state=None):
+        return self._content(state)
+
+    # A vertical metric: the wider line horizontally, both lines and the gap
+    # vertically, with padding; None for a horizontal metric.
+    _font_metrics = staticmethod(get_font_metrics)
+    preferred_extent = _NATIVE["metric"]["preferred_extent"]
+
+    def _extents(self):
+        # The value sets the width only when the width follows the content; the
+        # height follows the fonts and the gap.
+        content_width = self.layout_options.width == "content"
+        return (self.preferred_extent("horizontal") if content_width else None,
+                self.preferred_extent("vertical"))
 
     def update(self, state, initialize=False):
-        before = self._content(self._measurement_state)
-        self._measurement_state = state
+        # A new value relayouts the metric only when it changes its size.
+        previous = self._measurement
+        current = self._content(state)
+        size_changed = False
+        if not initialize and previous != current:
+            previous_size = self._extents()
+            self._measurement = current
+            size_changed = self._extents() != previous_size
+        self._measurement = current
         super().update(state, initialize)
-        if before != self._content(state) and self._content(state)[2] == "vertical":
+        if size_changed:
             self.invalidate_layout()
 
     def draw(self, renderer, state, bounds):
@@ -879,7 +647,7 @@ class NumericKeypad(Component):
 
     @property
     def actions(self):
-        return dict(self.__dict__["actions"])
+        return dict(self._get_field("actions"))
 
     @actions.setter
     def actions(self, value):
@@ -895,7 +663,7 @@ class NumericKeypad(Component):
     @property
     def buttons(self):
         return tuple((action, name, "enabled")
-                     for name, action in self.__dict__["actions"].items())
+                     for name, action in self._get_field("actions").items())
 
     property_schema = property_schema(
         _text("title", group="Content", live=True),
@@ -1633,7 +1401,7 @@ class Dialog(Component):
 
     @property
     def page_actions(self):
-        return copy.deepcopy(self.__dict__["page_actions"])
+        return copy.deepcopy(self._get_field("page_actions"))
 
     @page_actions.setter
     def page_actions(self, value):
@@ -1647,7 +1415,7 @@ class Dialog(Component):
 
     @property
     def buttons(self):
-        return copy.deepcopy(self.__dict__["buttons"])
+        return copy.deepcopy(self._get_field("buttons"))
 
     @buttons.setter
     def buttons(self, value):
@@ -1663,7 +1431,7 @@ class Dialog(Component):
 
     @property
     def button_groups(self):
-        return copy.deepcopy(self.__dict__["button_groups"])
+        return copy.deepcopy(self._get_field("button_groups"))
 
     @button_groups.setter
     def button_groups(self, value):

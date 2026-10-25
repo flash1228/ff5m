@@ -228,7 +228,7 @@ cmd --batch stroke -p 20 72 -s 280 348 -c f2c94c -lw 2 -sd inner
 cmd --batch text -p 40 101 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle -t "NOZZLE"
 cmd --batch text -p 160 145 -c f2c94c -f "Roboto Bold 16pt" -ha center -va middle --max-width 240 --truncate -t "0 / 0C"
 cmd --batch text -p 40 195 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle -t "MATERIAL"
-cmd --batch text -p 280 195 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 280 195 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle --max-width 148 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
 cmd --batch fill -p 40 212 -s 240 1 -c 295c66
 cmd --batch text -p 40 297 -c f2c94c -f "JetBrainsMono Bold 12pt" -ha left -va middle -t "HEATING"
 cmd --batch text -p 40 360 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle -t "HEATING TO TARGET"
@@ -254,7 +254,7 @@ cmd --batch stroke -p 20 72 -s 280 348 -c 35d9e6 -lw 2 -sd inner
 cmd --batch text -p 40 101 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle -t "NOZZLE"
 cmd --batch text -p 160 145 -c 35d9e6 -f "Roboto Bold 16pt" -ha center -va middle --max-width 240 --truncate -t "37 / 37C"
 cmd --batch text -p 40 195 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle -t "MATERIAL"
-cmd --batch text -p 280 195 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 280 195 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle --max-width 148 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
 cmd --batch fill -p 40 212 -s 240 1 -c 295c66
 cmd --batch text -p 40 297 -c 35d9e6 -f "JetBrainsMono Bold 12pt" -ha left -va middle -t "READY"
 cmd --batch text -p 40 360 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle -t "TEMPERATURE STABLE"
@@ -295,7 +295,7 @@ cmd --batch stroke -p 20 72 -s 280 348 -c 35d9e6 -lw 2 -sd inner
 cmd --batch text -p 40 101 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle -t "NOZZLE"
 cmd --batch text -p 160 145 -c 35d9e6 -f "Roboto Bold 16pt" -ha center -va middle --max-width 240 --truncate -t "37 / 37C"
 cmd --batch text -p 40 195 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle -t "MATERIAL"
-cmd --batch text -p 280 195 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle -t "Golden text long enough to wrap or truncate in narrow areas 123"
+cmd --batch text -p 280 195 -c d9e4e8 -f "JetBrainsMono 8pt" -ha right -va middle --max-width 148 --truncate -t "Golden text long enough to wrap or truncate in narrow areas 123"
 cmd --batch fill -p 40 212 -s 240 1 -c 295c66
 cmd --batch text -p 40 297 -c 35d9e6 -f "JetBrainsMono Bold 12pt" -ha left -va middle -t "READY"
 cmd --batch text -p 40 360 -c 56656c -f "JetBrainsMono 8pt" -ha left -va middle -t "TEMPERATURE STABLE"
