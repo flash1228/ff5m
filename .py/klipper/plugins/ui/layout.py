@@ -17,8 +17,8 @@ from .engine import (
     LAYOUT_FIELDS, NODE_FIELDS, ActionTable, CommandList, DependencyIndex, EqualTracks, Field, Flex, FrameBuilder,
     GridCell, Insets, LayoutResult, NodeBase, Rect,
     NATIVE_METHODS as _NATIVE, background_repair, behavior_epoch, dirty_roots, normalize_tracks as _normalize_tracks,
-    page_structure, paint_state, portable, render_updates, split, update_nodes,
-    update_refs as _update_refs,
+    page_structure, paint_state, portable, refresh_stale_dependencies, render_updates, split, update_hosted,
+    update_nodes, update_refs as _update_refs,
 )
 from .bindings import (
     _RESOLVER, Binding, DirectBinding, ItemScope, StateStore, binding_reads, derived, page_state_keys, resolve,
@@ -811,8 +811,9 @@ class Node(NodeBase):
     (``_dirty``, ``invalidate``, ``_mark_dirty``, ``clear_dirty``,
     ``is_clean``), the layout revision, ``_repaint_boundary``, input blocking
     (``_blocks_input``, ``input_blocked``, ``_update_input_blocking``), the
-    last state signature (``_update_signature``) and the page structure flag
-    (``_actions_dirty``, ``invalidate_actions``). It also runs the layout and
+    last state signature (``_update_signature``), the page structure flag
+    (``_actions_dirty``, ``invalidate_actions``) and the page input flag
+    (``_input_dirty``, ``invalidate_input``). It also runs the layout and
     paint walk: ``arrange``, ``_box``, ``render`` and the default hooks
     (``draw``, ``render_children``, the extents, ...), calling the methods a
     Python class overrides.
@@ -1104,25 +1105,20 @@ class Node(NodeBase):
     # state signature, calls _update_layout_inputs when it is new or changed
     # and the class has relayout fields, updates the render children and sets
     # input blocking. Only the page's own update (update_nodes) trusts its
-    # state; there it refreshes stale dependencies and skips clean subtrees.
+    # state; there it skips clean subtrees. The page's commit refreshes stale
+    # dependencies before it.
 
     def _refresh_dependencies(self, index):
         """Index the state keys the node's declared render data reads and
         the derived bindings it holds."""
         index.refresh(self, *binding_reads(_attributes(self)))
 
-    # _update_layout_inputs(state, baseline) is NodeBase's: the relayout
-    # fields resolved and kept as _layout_inputs, a change invalidating the
-    # layout unless baseline.
+    # _update_layout_inputs(state, baseline) and layout_input(name) are
+    # NodeBase's: the engine resolves the relayout fields and keeps them on
+    # the node as plain data, a change invalidating the layout unless
+    # baseline; layout_input reads the value the last update kept, else the
+    # field's default.
     _resolve = staticmethod(resolve)
-
-    def layout_input(self, name):
-        """Resolved value of a relayout field as of the last update."""
-        inputs = self.__dict__.get("_layout_inputs")
-        if inputs is not None and name in inputs:
-            return inputs[name]
-        spec = next(spec for spec in self.relayout_fields if spec.name == name)
-        return spec.default if spec.has_default else None
 
     # walk() and walk_declarations() are the engine's: the node and its render
     # subtree as a list. A class whose declarations are not all render
@@ -2147,11 +2143,11 @@ class When(SingleChild):
     # a branch the update hid calls _branch_hidden.
     update = _NATIVE["when"]["update"]
 
-    def _branch_hidden(self, previous):
-        # Showing a branch registers its controls normally. Hiding must remove
-        # old regions, which Typer only supports per whole layer.
-        if previous is not _UNSET and collect_actions(self.child):
-            self.invalidate_actions()
+    # _branch_hidden(previous) is the engine's: showing a branch registers its
+    # controls normally; hiding one whose subtree carried actions when the page
+    # last collected them invalidates the page's input, since Typer removes
+    # old regions only per whole layer.
+    _branch_hidden = _NATIVE["when"]["_branch_hidden"]
 
     # render and paint_children are the engine's: the child (its commands)
     # while the predicate holds, else nothing.
@@ -2454,6 +2450,9 @@ class DeclarativePage(Tree):
     # (behavior_epoch(), _structure) when a build last needed Python; the page
     # draws on the live path while both hold.
     _build_refused = None
+    # The framework's binding and state types; the commit evaluates derived
+    # values with it (update_refs' too).
+    _resolver = _RESOLVER
 
     def __init__(self, content, bounds, state=None, page_id=None,
                  state_schema=(), actions=(), styles=None,
@@ -2507,7 +2506,8 @@ class DeclarativePage(Tree):
         return state
 
     def _refresh_actions(self):
-        # The table refuses a wire id shared by two different actions.
+        # The table refuses a wire id shared by two different actions. A new
+        # structure has its input regions rebuilt by the next frame.
         actions = ActionTable()
         for action in self._declared_actions:
             actions.add(action_wire_id(validate_action(action)), action)
@@ -2517,6 +2517,7 @@ class DeclarativePage(Tree):
         self._structure = _PageStructure(self.root)
         self._dependencies = _dependency_index(self._structure, self._dependencies)
         self.root._actions_dirty = False
+        self.root._input_dirty = True
 
     def initial_state(self):
         return StateStore(self.state_schema)
@@ -2570,16 +2571,23 @@ class DeclarativePage(Tree):
             and self._layout_metrics_key == get_font_metrics().cache_key)
         reuse_cached = reuse_layout and clean
         self.state = self._fresh_state(state)
+        restyle = self.styles is not None and not (reuse_cached and reuse_styles)
         if reuse_cached and refs is not None:
             for ref in refs:
                 node = self.node(ref)
                 node.update(self._paint_state(node))
+            if restyle and not self._styles_current():
+                self._apply_styles(self.root)
         else:
-            self.commit(everything=True)
-            self.root.update(self.state, initialize=not reuse_layout)
-        if (self.styles is not None and not (reuse_cached and reuse_styles)
-                and not self._styles_current()):
-            self._apply_styles(self.root)
+            # As update(): the Python work at commit, styles over the items
+            # ListViews materialized there, then the engine's pass.
+            initialize = not reuse_layout
+            self.commit(everything=True, initialize=initialize)
+            self._commit_hosted(False, initialize)
+            if restyle and not self._styles_current():
+                self._apply_styles(self.root)
+                refresh_stale_dependencies(self)
+            self._update_nodes((self.root,), False, initialize)
         # The structure (actions, render order, dependency index) is rebuilt
         # only when it changed: membership, actions and refs raise the root's
         # _actions_dirty, and stale dependencies refresh in the next update.
@@ -2614,6 +2622,7 @@ class DeclarativePage(Tree):
             self._layout_bounds = self.bounds
             self._layout_metrics_key = get_font_metrics().cache_key
         self.root.clear_dirty()
+        self.root._input_dirty = False
         self.initialized = True
         self.state.clear_changes()
         return commands
@@ -2687,24 +2696,46 @@ class DeclarativePage(Tree):
         if not metrics_current:
             self.root.invalidate_layout()
         self.commit()
-        self._update_nodes((self.root,), metrics_current)
+        self._commit_hosted(metrics_current)
+        # Styles follow the items ListViews materialized at commit; the nodes
+        # they restyle have their dependencies refreshed before the pass.
         if self.styles is not None and not self._styles_current():
             self._apply_styles(self.root)
+            refresh_stale_dependencies(self)
+        self._update_nodes((self.root,), metrics_current)
         return self._render_updates(renderer)
 
-    def commit(self, everything=False):
+    def commit(self, everything=False, initialize=False):
         """Run the Python work of the state's changes before the update pass.
 
-        Evaluates the derived bindings of the nodes reading a changed key
+        Rebuilds the page structure (actions, render order, dependency index)
+        after a structure write, and refreshes the stale dependencies of the
+        nodes the pass will reach. Evaluates the derived bindings of the nodes reading a changed key
         (with everything, of every indexed node) that the state keeps no
         result of; a node under a branch that stays hidden is left alone, as
-        the pass leaves it. The state keeps the plain results, so the
+        the pass leaves it, unless the pass initializes, which updates hidden
+        branches too. The state keeps the plain results, so the
         engine's update pass and paint read them without calling Python.
-        Nodes the index does not cover (ListView items, nodes whose
-        dependencies are stale) and content a branch shows in this update
-        still evaluate theirs in the pass.
+        Nodes the index does not cover (ListView items) and content a branch
+        shows in this update still evaluate theirs in the pass.
         """
-        self._dependencies.commit(self.state, _RESOLVER, everything)
+        if self.root._actions_dirty:
+            self._refresh_actions()
+        refresh_stale_dependencies(self)
+        self._dependencies.commit(self.state, self._resolver, everything, initialize)
+
+    def _commit_hosted(self, prune, initialize=False):
+        """Run the Python update of the hosted nodes the pass will reach.
+
+        A hosted node's class does its update or one of its hooks in Python
+        (ListView, product signatures); it updates here with its subtree and
+        the pass skips it. A structure it changed (ListView items) is rebuilt
+        here too, so the pass and the frame need no Python for it. initialize
+        updates them as the page's first draw does.
+        """
+        update_hosted(self, prune, initialize)
+        if self.root._actions_dirty:
+            self._refresh_actions()
 
     def _apply_styles(self, root):
         """Run the complete style pass and remember the rules it applied."""
@@ -2731,35 +2762,36 @@ class DeclarativePage(Tree):
         The caller must name every node affected by the supplied state values.
         Dynamic styles and structural changes use the regular update path.
         Dependents outside the named subtrees catch up at the next update. The
-        engine runs the whole frame.
+        engine runs the whole frame; its commit evaluates derived values and
+        updates the named hosted nodes before the pass, as update() does.
         """
         return _update_refs(self, renderer, state, refs, get_font_metrics().cache_key)
 
-    def _update_nodes(self, nodes, prune):
+    def _update_nodes(self, nodes, prune, initialize=False):
         """Update nodes, skipping clean subtrees no changed key requested."""
-        update_nodes(self, nodes, prune)
+        update_nodes(self, nodes, prune, initialize)
 
     def _render_updates(self, renderer):
         """Render the updated nodes: a relayout through the engine's partial
         path when it can serve, else a full draw; otherwise a repaint of the
         dirty roots. The frame builder renders them while it builds the
-        page's frames. Changed actions take _refresh_input_updates."""
+        page's frames. Changed input or actions take _refresh_input_updates."""
         return render_updates(self, renderer, get_font_metrics().cache_key)
 
     def _refresh_input_updates(self, renderer):
-        """Render an update whose actions changed: replay the input over a
+        """Render an update whose input changed: replay the input over a
         repaint of the dirty roots when the renderer can and every control
         replays its own, else draw the page in full. The frame builder
         builds the repaint and the replay while it builds the page's
         frames."""
-        refreshed = self.root._dirty < Dirty.LAYOUT and hasattr(renderer, "rebuild_page_input")
-        if refreshed:
-            # The new structure knows whether every node holding actions
-            # replays them (replayable).
+        if self.root._actions_dirty:
+            # Raised within the update pass (ListView items, a Python hook):
+            # the structure the replay walks is rebuilt first.
             self._refresh_actions()
-        if not refreshed or not self._structure.replayable:
+        replays = self.root._dirty < Dirty.LAYOUT and hasattr(renderer, "rebuild_page_input")
+        if not replays or not self._structure.replayable:
             commands = CommandList(renderer.redraw_page())
-            commands.extend(self._render_full(renderer, arrange=True, refresh_actions=not refreshed))
+            commands.extend(self._render_full(renderer, arrange=True, refresh_actions=False))
             return commands
         commands = CommandList()
         try:
@@ -2783,6 +2815,7 @@ class DeclarativePage(Tree):
             self.root.invalidate_layout()
             raise
         self.root.clear_dirty()
+        self.root._input_dirty = False
         self.state.clear_changes()
         return commands
 

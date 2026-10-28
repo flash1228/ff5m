@@ -7,6 +7,10 @@
 from contextlib import contextmanager
 from dataclasses import dataclass
 import shlex
+from unittest import mock
+
+from ui.engine import FrameLoop
+from ui.renderer import MAX_ATOMIC_DRAW, MAX_BATCH_BYTES
 
 
 @dataclass(frozen=True)
@@ -160,28 +164,44 @@ class RenderFrame:
 
 
 class RenderCapture:
-    """Accept every batch at the Typer worker hand-off and record it.
+    """Accept every batch at the frame loop hand-off and record it.
 
-    Everything before the queue runs for real: composition, frame-owner
-    routing, surface acceptance, and visible-layer bookkeeping. ``submitted``
-    keeps each accepted ``RenderBatch`` with its kind, key, and receipt;
-    ``batches`` keeps just their command tuples; ``frames`` keeps the same
-    submissions as semantic UI frames with the controls registered at
-    submission time.
+    Everything before the hand-off runs for real: composition, frame-owner
+    routing, surface acceptance, and visible-layer bookkeeping. Each batch is
+    checked by an unstarted frame loop, which refuses what the running one
+    refuses. ``submitted`` keeps each accepted ``RenderSubmission`` with its
+    receipt and criticality; ``batches`` keeps just their command tuples;
+    ``frames`` keeps the same submissions as semantic UI frames with the
+    controls registered at submission time.
     """
 
     def __init__(self, renderer):
         self.submitted = []
         self.batches = []
         self.frames = []
+        self._taken = 0
         self._renderer = renderer
-        renderer._batch_queue.put_nowait = self._submit
+        self._loop = FrameLoop(
+            "/nonexistent/typer", "/nonexistent/events", "feather-test-no-such-process",
+            max_frame=MAX_ATOMIC_DRAW, max_batch=MAX_BATCH_BYTES)
+        renderer._submit = self._submit
 
-    def _submit(self, batch):
-        self.submitted.append(batch)
-        self.batches.append(batch.commands)
-        self.frames.append(RenderFrame(batch.commands, self._renderer))
+    def _submit(self, submission):
+        self._loop.submit(
+            submission.commands, receipt=submission.receipt,
+            phase=submission.receipt_phase, critical=submission.critical)
+        self._loop.discard()
+        self.submitted.append(submission)
+        self.batches.append(submission.commands)
+        self.frames.append(RenderFrame(submission.commands, self._renderer))
         return True
+
+    def get(self):
+        """The oldest submission not taken yet, or None."""
+        if self._taken == len(self.submitted):
+            return None
+        self._taken += 1
+        return self.submitted[self._taken - 1]
 
     @property
     def latest(self):
@@ -191,12 +211,7 @@ class RenderCapture:
 
 
 @contextmanager
-def full_render_queue(renderer):
-    """Simulate a saturated Typer queue that refuses every submitted batch."""
-    queue = renderer._batch_queue
-    submit = queue.put_nowait
-    queue.put_nowait = lambda batch: False
-    try:
+def refused_render(renderer):
+    """Refuse every batch at the frame loop hand-off, as a stopped loop does."""
+    with mock.patch.object(renderer, "_submit", lambda submission: False):
         yield
-    finally:
-        queue.put_nowait = submit

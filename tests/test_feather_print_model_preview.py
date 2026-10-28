@@ -22,11 +22,8 @@ from ff5m_ui.printing import runtime as PRINTING
 from ff5m_ui.print_state import PrintState
 from ff5m_ui.screen import ScreenPage
 from timelapse_state import TimelapsePhase
-from ui import Rect, RenderBatchQueue, ScreenRoot
 from ui.render_receipts import RenderReceipt
-from tests.feather_render_test_helper import full_render_queue
-from feather.screen.composition import PaintSurface
-from ff5m_ui.keys import AppPage
+from tests.feather_render_test_helper import refused_render
 
 
 class LiveController(Controller, PrintingPagesMixin):
@@ -118,15 +115,9 @@ class PrintModelPreviewTest(unittest.TestCase):
                 self.controller._model_preview_render_receipt(RenderReceipt(batch.receipt, True, 10, 5, 5))
                 return
 
-    def test_drag_does_not_flood_display_queue_or_cancel_the_active_gesture(self):
-        root = ScreenRoot(self.controller.renderer,
-                          PaintSurface(self.controller._render_model_preview, accepts_deltas=lambda: True),
-                          Rect(0, 0, 800, 480), AppPage.SCREEN_ROOT, chrome=False)
-        self.assertTrue(root.paint())
-        queue = self.controller.renderer._batch_queue = RenderBatchQueue(max_batches=2)
-        redraw = mock.Mock(side_effect=lambda: root.paint(force=True))
-        self.controller.renderer.configure_worker(None, None, redraw_handler=redraw)
+    def test_drag_does_not_flood_the_display_or_cancel_the_active_gesture(self):
         self.tick(self.initial_tick, finish=False)
+        submitted = len(self.controller.renderer.capture.submitted)
         track = self.track(PreviewRoute.YAW_JOYSTICK)
         self.touch(PreviewRoute.YAW_JOYSTICK, "begin", (track.x, track.center_y), acknowledge=False)
         for index in range(1, 61):
@@ -134,8 +125,9 @@ class PrintModelPreviewTest(unittest.TestCase):
                        (track.x + round(track.width * index / 60), track.center_y), acknowledge=False)
         self.assertEqual(self.state["yaw"], 150)
         self.assertEqual(self.state["touch_action"], "model.yaw_joystick")
-        self.assertEqual(queue.snapshot()["queue_depth"], 1)
-        redraw.assert_not_called()
+        # One cursor frame waits for its receipt; the moves behind it only
+        # update the position the next frame shows.
+        self.assertEqual(len(self.controller.renderer.capture.submitted) - submitted, 1)
         self.controller.file_worker.finish(0)
         self.tick(self.controller.reactor.now)
         self.assertEqual(self.state["session"].frames[-1][0], 150)
@@ -189,7 +181,7 @@ class PrintModelPreviewTest(unittest.TestCase):
 
     def test_rejected_cursor_and_recovery_retry_after_queue_accepts_output(self):
         track = self.track(PreviewRoute.YAW_JOYSTICK)
-        with full_render_queue(self.controller.renderer):
+        with refused_render(self.controller.renderer):
             self.touch(PreviewRoute.YAW_JOYSTICK, "begin", (track.right, track.center_y), acknowledge=False)
         self.assertEqual(self.state["touch_action"], "model.yaw_joystick")
         self.controller._loaded_model_preview()._model_preview_monitor_tick(self.controller.reactor.now)
@@ -405,7 +397,7 @@ class PrintModelPreviewTest(unittest.TestCase):
         self.controller._render_model_preview()
         self.assertEqual(self.knobs(), previous)
 
-    def test_queued_camera_moves_leave_the_same_pixels_as_a_full_redraw(self):
+    def test_camera_moves_leave_the_same_pixels_as_a_full_redraw(self):
         def paint(pixels, commands, area):
             for command in commands:
                 tokens = shlex.split(command)
@@ -421,37 +413,35 @@ class PrintModelPreviewTest(unittest.TestCase):
                         if line is None or min(px - x, x + width - 1 - px, py - y, y + height - 1 - py) < line:
                             pixels[(px, py)] = color
 
-        for capacity in (16, 2):
-            with self.subTest(queue_capacity=capacity):
-                self.controller = LazyLiveController()
-                self.controller._open_print_model_preview()
-                self.state = self.controller.model_preview
-                refs = PAGE.common_ui.PreviewRef
-                areas = [self.state["page_tree"].rect(ref) for ref in (refs.YAW_PAD, refs.TILT_PAD)]
-                pixels = [{}, {}]
+            self.controller = LazyLiveController()
+            self.controller._open_print_model_preview()
+            self.state = self.controller.model_preview
+            refs = PAGE.common_ui.PreviewRef
+            areas = [self.state["page_tree"].rect(ref) for ref in (refs.YAW_PAD, refs.TILT_PAD)]
+            pixels = [{}, {}]
+            for canvas, area in zip(pixels, areas):
+                paint(canvas, self.controller.renderer.capture.batches[-1], area)
+            queue = self.controller.renderer._batch_queue = RenderBatchQueue(max_batches=capacity)
+            self.controller.renderer.configure_worker(
+                None, None, redraw_handler=self.controller._render_model_preview)
+            for route in (PreviewRoute.YAW_JOYSTICK, PreviewRoute.PITCH_JOYSTICK):
+                track = self.track(route)
+                positions = ((track.x, track.center_y), (track.right, track.center_y), track.center) if (
+                    route == PreviewRoute.YAW_JOYSTICK) else (
+                    (track.center_x, track.y), (track.center_x, track.bottom), track.center)
+                for phase, position in zip(("begin", "move", "end"), positions):
+                    self.touch(route, phase, position, acknowledge=False)
+            while (batch := capture.get()) is not None:
                 for canvas, area in zip(pixels, areas):
-                    paint(canvas, self.controller.renderer.capture.batches[-1], area)
-                queue = self.controller.renderer._batch_queue = RenderBatchQueue(max_batches=capacity)
-                self.controller.renderer.configure_worker(
-                    None, None, redraw_handler=self.controller._render_model_preview)
-                for route in (PreviewRoute.YAW_JOYSTICK, PreviewRoute.PITCH_JOYSTICK):
-                    track = self.track(route)
-                    positions = ((track.x, track.center_y), (track.right, track.center_y), track.center) if (
-                        route == PreviewRoute.YAW_JOYSTICK) else (
-                        (track.center_x, track.y), (track.center_x, track.bottom), track.center)
-                    for phase, position in zip(("begin", "move", "end"), positions):
-                        self.touch(route, phase, position, acknowledge=False)
-                while (batch := queue.get(timeout=0)) is not None:
-                    for canvas, area in zip(pixels, areas):
-                        paint(canvas, batch.commands, area)
-                    if batch.receipt:
-                        self.controller._model_preview_render_receipt(RenderReceipt(batch.receipt, True, 10, 5, 5))
-                page = self.state["page_tree"]
-                expected_commands = page.draw(self.controller.renderer, page.state)
-                for canvas, area in zip(pixels, areas):
-                    expected = {}
-                    paint(expected, expected_commands, area)
-                    self.assertTrue(canvas == expected, "Queued slider pixels differ from a full redraw")
+                    paint(canvas, batch.commands, area)
+                if batch.receipt:
+                    self.controller._model_preview_render_receipt(RenderReceipt(batch.receipt, True, 10, 5, 5))
+            page = self.state["page_tree"]
+            expected_commands = page.draw(self.controller.renderer, page.state)
+            for canvas, area in zip(pixels, areas):
+                expected = {}
+                paint(expected, expected_commands, area)
+                self.assertTrue(canvas == expected, "Slider pixels differ from a full redraw")
 
     def test_default_camera_open_reset_and_reopen_restore_original_view(self):
         initial = self.knobs()
@@ -541,10 +531,8 @@ class PrintModelPreviewTest(unittest.TestCase):
         self.tick(now)
         self.assertEqual([yaw for yaw, _layers in self.state["session"].frames], [0, 150])
 
-    def read_touch_events(self, payload):
-        self.controller.renderer.event_fd = 7
-        self.controller.event_partial = getattr(self.controller, "event_partial", "")
-        with mock.patch("os.read", return_value=payload.encode("ascii")):
+    def read_touch_events(self, lines):
+        with mock.patch.object(self.controller.renderer, "process_events", return_value=list(lines)):
             self.controller._process_touch_events(self.controller.reactor.now)
 
     def test_fast_slider_burst_paints_only_latest_move_and_keeps_release(self):
@@ -556,7 +544,7 @@ class PrintModelPreviewTest(unittest.TestCase):
                   for index in range(60)]
         lines.append("touch %s end %d %d" % (wire, box.right, box.center_y))
         paints = len(self.controller.renderer.capture.submitted)
-        self.read_touch_events("\n".join(lines) + "\n")
+        self.read_touch_events(lines)
         self.assertEqual(len(self.controller.renderer.capture.submitted) - paints, 1)
         self.acknowledge_cursor()
         self.assertEqual(self.knobs()[0].right, box.right)
@@ -584,7 +572,7 @@ class PrintModelPreviewTest(unittest.TestCase):
         events = []
         self.controller._handle_continuous_touch = events.append
         self.controller._model_preview_render_receipt = lambda receipt: events.append(receipt.token)
-        self.read_touch_events("\n".join(lines) + "\n")
+        self.read_touch_events(lines)
         self.assertEqual(events, [lines[0], lines[2], "diagnostic", lines[5], lines[6],
                                   lines[7], lines[9], lines[10]])
 
@@ -600,21 +588,20 @@ class PrintModelPreviewTest(unittest.TestCase):
         with mock.patch.object(self.controller, "_handle_continuous_touch",
                                wraps=self.controller._handle_continuous_touch) as handle, \
                 self.assertLogs(level="WARNING"):
-            self.read_touch_events("\n".join(lines) + "\n")
+            self.read_touch_events(lines)
         self.assertEqual([call.args[0] for call in handle.call_args_list], lines)
         self.assertIsNone(self.state["touch_action"])
 
-    def test_slider_coalescing_preserves_fragmented_final_position(self):
+    def test_slider_coalescing_keeps_the_release_of_a_later_batch(self):
         wire = self.controller.renderer._wire_action(PreviewAction(PreviewRoute.YAW_JOYSTICK))
         box = self.track(PreviewRoute.YAW_JOYSTICK)
-        self.read_touch_events("touch %s begin %d %d\ntouch %s move %d %d\ntouch %s end " % (
-            wire, box.x, box.center_y, wire, box.center_x, box.center_y, wire))
+        self.read_touch_events(["touch %s begin %d %d" % (wire, box.x, box.center_y),
+                                "touch %s move %d %d" % (wire, box.center_x, box.center_y)])
         self.assertEqual(self.state["yaw"], 0)
         self.assertIsNotNone(self.state["touch_action"])
-        self.read_touch_events("%d %d\n" % (box.right, box.center_y))
+        self.read_touch_events(["touch %s end %d %d" % (wire, box.right, box.center_y)])
         self.assertEqual(self.state["yaw"], 150)
         self.assertIsNone(self.state["touch_action"])
-        self.assertEqual(self.controller.event_partial, "")
 
     def test_each_completed_render_requests_latest_drag_position_without_waiting(self):
         self.controller._setting = lambda name, default=None: 1 if name == "feather_preview_fps" else default

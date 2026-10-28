@@ -13,6 +13,7 @@ import shlex
 import tempfile
 import threading
 import unittest
+from types import SimpleNamespace
 from unittest import mock
 from tests.feather_timelapse_test_helper import make_timelapse_state
 
@@ -206,7 +207,6 @@ def base_controller(state="idle"):
     controller.renderer = mock.MagicMock()
     controller.renderer.output_frozen = False
     controller.renderer.header_action_changed = False
-    controller.renderer.needs_redraw = False
     controller.renderer.compose.return_value.__enter__.return_value = {
         "accepted": True, "background_changed": False, "input_changed": False,
     }
@@ -525,9 +525,8 @@ class ScreenCompositionWorkflowTest(unittest.TestCase):
         frames = len(rendering.frames)
 
         controller._renderer_restarted()
-        controller._redraw_after_dropped_frame()
 
-        self.assertEqual(len(rendering.frames), frames + 2)
+        self.assertEqual(len(rendering.frames), frames + 1)
         self.assertTrue(rendering.latest.has_text("Foreground"))
         self.assertEqual(set(controller.renderer._buttons), {"message.ok"})
 
@@ -2859,10 +2858,11 @@ class PrintWorkflowTest(unittest.TestCase):
         controller.page = FEATHER.ScreenPage.OPERATION_CANCEL
         controller.cancel_mode = "not_cancelable"
         controller.renderer = FEATHER.FeatherRenderer()
+        capture = RenderCapture(controller.renderer)
 
         FEATHER.FeatherScreen._render_cancel_confirm(controller)
 
-        frame = controller.renderer._batch_queue.get(timeout=0)
+        frame = capture.get()
         self.assertNotIn(controller.renderer.modal_scrim(), frame.commands)
         self.assertTrue(any('"CANNOT CANCEL SAFELY"' in command
                             for command in frame.commands))
@@ -6026,37 +6026,9 @@ class TouchEventBridgeTest(unittest.TestCase):
         self.assertEqual(controller.safety.lease_count, 0)
         self.assertTrue(controller._safety_decision().visible)
 
-    def test_fragmented_cpp_tap_events_are_reassembled(self):
-        controller = base_controller()
-        controller.renderer = type("Renderer", (), {"event_fd": 7})()
-        controller.event_partial = ""
-        controller.last_touch_time = 0
-        controller.dimmed = False
-        controller._wake_if_dimmed = lambda: False
-        actions = []
-        controller._dispatch_action = actions.append
-        with mock.patch("os.read", side_effect=[
-                b"tap nav.fi", b"les\ntap nav.control\nignored\n"]):
-            controller._process_touch_events(1)
-            self.assertEqual(actions, [])
-            controller._process_touch_events(2)
-        self.assertEqual(actions, ["nav.files", "nav.control"])
-        self.assertEqual(controller.event_partial, "")
-
-    def test_partial_touch_event_memory_is_bounded(self):
-        controller = base_controller()
-        controller.renderer = type("Renderer", (), {"event_fd": 7})()
-        controller.event_partial = ""
-        with self.assertLogs(level="WARNING") as logs, mock.patch(
-                "os.read", return_value=b"x" * (FEATHER.MAX_TOUCH_EVENT + 1)):
-            controller._process_touch_events(1)
-        self.assertEqual(controller.event_partial, "")
-        self.assertIn("oversized partial touch event", "\n".join(logs.output))
-
     def test_first_cpp_tap_after_dim_wakes_and_dispatches(self):
         controller = base_controller()
-        controller.renderer = type("Renderer", (), {"event_fd": 7})()
-        controller.event_partial = ""
+        controller.renderer = SimpleNamespace(process_events=lambda eventtime: ["tap nav.files"])
         controller.last_touch_time = 0
         controller.dimmed = True
         controller.params = type("Params", (), {"variables": {"backlight": 65}})()
@@ -6064,8 +6036,7 @@ class TouchEventBridgeTest(unittest.TestCase):
         controller._set_backlight = backlight.append
         actions = []
         controller._dispatch_action = actions.append
-        with mock.patch("os.read", return_value=b"tap nav.files\n"):
-            controller._process_touch_events(1)
+        controller._process_touch_events(1)
         self.assertEqual(backlight, [65])
         self.assertEqual(actions, ["nav.files"])
 
@@ -6075,8 +6046,9 @@ class TouchEventBridgeTest(unittest.TestCase):
         controller.reactor.register_callback = (
             lambda callback, waketime=None: callbacks.append(callback))
         rendered = []
+        lines = [["button nav.control down"], ["button nav.control up", "tap nav.control"]]
         controller.renderer = type("Renderer", (), {
-            "event_fd": 7,
+            "process_events": lambda self, eventtime: lines.pop(0),
             "decode_action": lambda self, action: action,
             "flash_button": lambda self, action: rendered.append(("down", action)) or True,
             "restore_button": lambda self, action: rendered.append(("up", action)) or True,
@@ -6085,14 +6057,11 @@ class TouchEventBridgeTest(unittest.TestCase):
         def dispatch(action):
             actions.append(action)
         controller._dispatch_action = dispatch
-        controller.event_partial = ""
         controller.dimmed = False
-        with mock.patch("os.read", return_value=b"button nav.control down\n"):
-            controller._process_touch_events(1)
+        controller._process_touch_events(1)
         self.assertEqual(rendered, [("down", "nav.control")])
         self.assertEqual(actions, [])
-        with mock.patch("os.read", return_value=b"button nav.control up\ntap nav.control\n"):
-            controller._process_touch_events(2)
+        controller._process_touch_events(2)
         self.assertEqual(rendered, [("down", "nav.control"),
                                     ("up", "nav.control")])
         self.assertEqual(actions, ["nav.control"])
@@ -6433,8 +6402,9 @@ class ActionPromptProtocolTest(unittest.TestCase):
     def test_prompt_dims_existing_page_then_reveals_latest_page_on_close(self):
         controller, _ = self.controller_with_navigation()
         renderer = controller.renderer
+        capture = RenderCapture(renderer)
         renderer.footer("NOZZLE 25C", "IDLE")
-        renderer._batch_queue.get(timeout=0)
+        capture.get()
         controller._render_main_menu = lambda: renderer.send(
             renderer.begin_page("Menu"))
         controller._render_dialog = (
@@ -6443,16 +6413,16 @@ class ActionPromptProtocolTest(unittest.TestCase):
             renderer.dialog("Wait", (), (
                 ("prompt.button.0", "OK", "enabled"),)))
         controller._show_page(FEATHER.ScreenPage.MAIN_MENU)
-        renderer._batch_queue.get(timeout=0)
+        capture.get()
         controller._handle_gcode_output("\n".join((
             "// action:prompt_begin Wait",
             "// action:prompt_show")))
 
-        frame = renderer._batch_queue.get(timeout=0)
+        frame = capture.get()
         self.assertIn(renderer.modal_scrim(), frame.commands)
         self.assertTrue(any('"WAIT"' in command for command in frame.commands))
         self.assertFalse(renderer._footer_drawn)
-        self.assertIsNone(renderer._batch_queue.get(timeout=0))
+        self.assertIsNone(capture.get())
         self.assertEqual(controller.page, FEATHER.ScreenPage.MAIN_MENU)
         self.assertEqual(controller._current_dialog(),
                          FEATHER.ScreenDialog.ACTION_PROMPT)
@@ -6462,14 +6432,14 @@ class ActionPromptProtocolTest(unittest.TestCase):
                 "nav.move", 20, 80, 200, 60, "MOVE"))
         controller._show_page(FEATHER.ScreenPage.CONTROL_HOME)
 
-        covered = renderer._batch_queue.get(timeout=0)
+        covered = capture.get()
         self.assertTrue(any('"CONTROL MENU"' in command for command in covered.commands))
         self.assertTrue(any('"WAIT"' in command for command in covered.commands))
         self.assertEqual(set(renderer._buttons), {"prompt.button.0"})
 
         controller._handle_gcode_output("// action:prompt_end")
 
-        frame = renderer._batch_queue.get(timeout=0)
+        frame = capture.get()
         self.assertTrue(any('"CONTROL MENU"' in command
                             for command in frame.commands))
         self.assertFalse(any('"WAIT"' in command
@@ -6483,6 +6453,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
     def test_message_remains_over_new_page_then_reveals_its_actions(self):
         controller, _ = self.controller_with_navigation()
         renderer = controller.renderer
+        capture = RenderCapture(renderer)
         controller._render_dialog = (
             lambda: FEATHER.FeatherScreen._render_dialog(controller))
         controller._render_main_menu = lambda: renderer.send(
@@ -6492,24 +6463,24 @@ class ActionPromptProtocolTest(unittest.TestCase):
                 "nav.move", 20, 80, 200, 60, "MOVE"))
 
         controller._show_page(FEATHER.ScreenPage.MAIN_MENU)
-        first = renderer._batch_queue.get(timeout=0)
+        first = capture.get()
         self.assertTrue(any('"MAIN MENU"' in command
                             for command in first.commands))
         controller._show_message(
             "Page transition check", FEATHER.ScreenPage.MAIN_MENU)
-        covered = renderer._batch_queue.get(timeout=0)
+        covered = capture.get()
         self.assertIn(renderer.modal_scrim(), covered.commands)
         self.assertEqual(controller._current_dialog(),
                          FEATHER.ScreenDialog.MESSAGE)
 
         controller._show_page(FEATHER.ScreenPage.CONTROL_HOME)
-        updated = renderer._batch_queue.get(timeout=0)
+        updated = capture.get()
         self.assertTrue(any('"CONTROL MENU"' in command for command in updated.commands))
         self.assertTrue(any('"Page transition check"' in command for command in updated.commands))
         self.assertEqual(set(renderer._buttons), {"message.ok"})
 
         controller._close_dialog(FEATHER.ScreenDialog.MESSAGE)
-        revealed = renderer._batch_queue.get(timeout=0)
+        revealed = capture.get()
         self.assertTrue(any('"CONTROL MENU"' in command
                             for command in revealed.commands))
         self.assertFalse(any('"Page transition check"' in command
@@ -6565,6 +6536,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
     def test_replacing_prompt_repaints_one_message_over_the_page(self):
         controller, _ = self.controller_with_navigation()
         renderer = controller.renderer
+        capture = RenderCapture(renderer)
         paint_home(controller, lambda: renderer.send(
             renderer.begin_page("Home")))
         controller._render_dialog = (
@@ -6573,17 +6545,17 @@ class ActionPromptProtocolTest(unittest.TestCase):
             renderer.dialog("First prompt", (), (
                 ("prompt.button.0", "OK", "enabled"),)))
         controller._show_page(FEATHER.ScreenPage.IDLE_HOME)
-        renderer._batch_queue.get(timeout=0)
+        capture.get()
         controller._handle_gcode_output("\n".join((
             "// action:prompt_begin Prompt",
             "// action:prompt_show")))
-        renderer._batch_queue.get(timeout=0)
+        capture.get()
 
         controller._show_message(
             "Second message", FEATHER.ScreenPage.IDLE_HOME,
             title="Replacement")
 
-        frame = renderer._batch_queue.get(timeout=0)
+        frame = capture.get()
         self.assertEqual([layer.kind for layer in controller._ensure_screen_root().layers], [
             FEATHER.ScreenDialog.ACTION_PROMPT, FEATHER.ScreenDialog.MESSAGE])
         self.assertTrue(any('"HOME"' in command for command in frame.commands))
@@ -6591,24 +6563,25 @@ class ActionPromptProtocolTest(unittest.TestCase):
                             for command in frame.commands))
         self.assertFalse(any('"FIRST PROMPT"' in command
                              for command in frame.commands))
-        self.assertIsNone(renderer._batch_queue.get(timeout=0))
+        self.assertIsNone(capture.get())
 
     def test_replacing_large_message_with_small_message_clears_old_panel(self):
         controller, _ = self.controller_with_navigation()
         renderer = controller.renderer
+        capture = RenderCapture(renderer)
         paint_home(controller, lambda: renderer.send(
             renderer.begin_page("Home")))
         controller._render_dialog = (
             lambda: FEATHER.FeatherScreen._render_dialog(controller))
         controller._show_page(FEATHER.ScreenPage.IDLE_HOME)
-        renderer._batch_queue.get(timeout=0)
+        capture.get()
 
         controller._show_message("OLD MESSAGE " * 12, controller.page)
-        renderer._batch_queue.get(timeout=0)
+        capture.get()
         previous_generation = renderer.generation
         controller._show_message("New", controller.page)
 
-        frame = renderer._batch_queue.get(timeout=0)
+        frame = capture.get()
         self.assertGreater(renderer.generation, previous_generation)
         self.assertTrue(any('"HOME"' in command for command in frame.commands))
         self.assertTrue(any('"New"' in command for command in frame.commands))
@@ -6742,7 +6715,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
         self.assertIsNone(renderer.decode_action(tap))
         self.assertNotIn("coldpull.cancel", renderer._buttons)
 
-    def test_cold_pull_unchanged_display_skips_output_but_still_recovers(self):
+    def test_cold_pull_unchanged_display_skips_output(self):
         controller, _ = self.controller_with_navigation()
         rendering = RenderCapture(controller.renderer)
         controller.extruder = StatusObject({"temperature": 190.01, "target": 100.01})
@@ -6766,11 +6739,6 @@ class ActionPromptProtocolTest(unittest.TestCase):
         controller.operation_context.status["cancel_available"] = False
         FEATHER.FeatherScreen._render_dialog(controller)
         self.assertFalse(rendering.latest.has_action("coldpull.cancel"))
-        lost = rendering.submitted[-1]
-        controller.renderer._batch_queue.drop_render(lost)
-        FEATHER.FeatherScreen._render_dialog(controller)
-        self.assertEqual(rendering.submitted[-1].kind, "surface")
-        self.assertIn(controller.renderer.modal_scrim(), rendering.batches[-1])
         controller.operation_context.status["cancel_available"] = True
         FEATHER.FeatherScreen._render_dialog(controller)
         fresh = controller.renderer._wire_action("coldpull.cancel")

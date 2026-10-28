@@ -27,6 +27,8 @@ from ui import (
 )
 from ui.layout import PageTree
 
+from ..feather_render_test_helper import RenderCapture
+
 
 class Pages(PageKey):
     COMPOSITION = "test.composition"
@@ -169,6 +171,7 @@ def _background(layout, renderer, data):
 def run_sequence(layout, theme="DEFAULT"):
     """Keep one native renderer, root and framebuffer history for all steps."""
     renderer = FeatherRenderer()
+    capture = RenderCapture(renderer)
     renderer.set_theme(theme)
     renderer.footer("STATUS: OLD DATA", "READY", paint=False)
     screen = FeatherScreen.__new__(FeatherScreen)
@@ -230,11 +233,8 @@ def run_sequence(layout, theme="DEFAULT"):
         action()
         elapsed = (time.perf_counter() - started) * 1000
         batches = []
-        while True:
-            batch = renderer._batch_queue.get(timeout=0)
-            if batch is None:
-                break
-            batches.append(dict(kind=batch.kind, generation=batch.generation, commands=list(batch.commands)))
+        while (batch := capture.get()) is not None:
+            batches.append(dict(critical=batch.critical, commands=list(batch.commands)))
         commands = [command for batch in batches for command in batch["commands"]]
         operations = drawing_operations(commands)
         history.extend(operations)

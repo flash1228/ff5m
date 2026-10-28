@@ -56,7 +56,7 @@ class SelectionControlsTest(unittest.TestCase):
         self.assertTrue(self.bounds.contains(Rect(x, y, image["width"], image["height"])))
         caption = next(text for text in self.capture.latest.texts if text.value == "BALANCED DETAIL")
         self.assertGreaterEqual(caption.x - caption.max_width // 2, x + image["width"])
-        self.assertTrue(any(command.payload in frame for frame in self.renderer._encode_frames([command])))
+        self.assertTrue(self.renderer.send([command]))
 
     def test_press_and_restore_keep_the_caption_and_icon_in_the_same_surface(self):
         normal = self.image(self.draw()).payload

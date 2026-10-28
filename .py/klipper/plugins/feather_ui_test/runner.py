@@ -138,7 +138,6 @@ class UITestRun:
         self._last_stage_signature = None
         self.calibration_stages = []
         self.test_results = {}
-        self.renderer_dropped = 0
         self.renderer_baseline = None
         self.gcode_errors = []
         self.ui_fingerprint = None
@@ -509,7 +508,6 @@ class UITestRun:
         self.capture_receipts = {}
         self.gcode_errors = []
         self.renderer_baseline = self.host.renderer.get_status()
-        self.renderer_dropped = self.renderer_baseline["dropped_batches"]
         self._capture_original_state()
         self._recover_stale_marker()
         # Recovery may have restored a profile or runtime offset belonging to
@@ -943,21 +941,8 @@ class UITestRun:
     def _capture(self, step):
         if self.step_runtime.get("capture_pending"):
             return
-        renderer_status = self.host.renderer.get_status()
-        target = self.step_runtime.setdefault(
-            "render_target", renderer_status["submitted_batches"])
-        settled = (renderer_status["rendered_batches"]
-                   + renderer_status["coalesced_batches"]
-                   + renderer_status["dropped_batches"])
-        if renderer_status["dropped_batches"] > self.renderer_dropped:
-            raise RuntimeError("Render batch dropped before capture")
-        if settled < target:
-            deadline = self.step_runtime.setdefault(
-                "render_deadline", self.reactor.monotonic() + 6.0)
-            if self.reactor.monotonic() >= deadline:
-                raise RuntimeError("Renderer did not settle before capture")
-            self._schedule(0.02)
-            return
+        # Typer applies transactions in order and drops none, so the frame
+        # that presents this receipt shows every batch submitted before it.
         token = self.step_runtime.get("capture_receipt")
         if token is None:
             token = "ui-test:%s:%d:%d" % (
@@ -981,7 +966,6 @@ class UITestRun:
         if not bool(getattr(receipt, "success", False)):
             raise RuntimeError("Typer failed to present frame before capture")
         self.step_runtime["capture_pending"] = True
-        self.renderer_dropped = renderer_status["dropped_batches"]
         self.capture_number += 1
         metadata = self._screen_metadata()
         if step.get("case_id"):

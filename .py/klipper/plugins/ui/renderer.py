@@ -14,7 +14,7 @@ from contextlib import contextmanager
 
 from .actions import Action, DismissToast, action_wire_id
 from .engine import (
-    NATIVE_METHODS, CommandBatch, CommandList, RendererBase, dialog_layout, quote, renderer_normalize_font,
+    NATIVE_METHODS, CommandBatch, CommandList, FrameLoop, RendererBase, dialog_layout, quote, renderer_normalize_font,
     renderer_normalize_font_for_text, renderer_text_width,
 )
 from .font_metrics import (
@@ -39,13 +39,11 @@ from .theme_catalog import (
     DEFAULT_THEME, FALLBACK_THEME, THEME_DIRECTORY, USER_THEME_DIRECTORY,
     ThemeCatalog, normalize_theme_name,
 )
-from .render_worker import (
-    MAX_BATCH_BYTES, MAX_BATCHES, RenderBatch, RenderBatchQueue,
-    TyperRenderWorker,
-)
 
 
 Hitbox = namedtuple("Hitbox", "action x y width height continuous layer")
+# One batch for the frame loop; a critical batch is written again to a restarted Typer.
+RenderSubmission = namedtuple("RenderSubmission", "commands receipt receipt_phase critical")
 
 # The fonts and constants of the engine's dialog layout, in dialog_layout's order; the renderer's paddings and
 # the screen size follow them.
@@ -114,12 +112,14 @@ BUSY_NOTICE_X = 622
 BUSY_NOTICE_Y = 9
 BUSY_NOTICE_WIDTH = 160
 BUSY_NOTICE_HEIGHT = 38
+MAX_BATCH_BYTES = 64 * 1024
 MAX_PENDING_DRAW = MAX_BATCH_BYTES
 # Historical public name retained for compatibility.  This is a bounded
 # logical transport-frame size, not a Linux FIFO atomic-write guarantee:
-# 8 KiB may exceed PIPE_BUF.  Correctness depends on TyperRenderWorker being
-# the sole draw-FIFO writer and completing partial writes in _write_frame().
+# 8 KiB may exceed PIPE_BUF.  Correctness depends on the frame loop being the
+# sole draw-FIFO writer and completing partial writes.
 MAX_ATOMIC_DRAW = 8 * 1024
+PRESENT_GUARD_US = 3000
 
 _ButtonSpec = namedtuple(
     "ButtonSpec",
@@ -248,21 +248,13 @@ class FeatherRenderer(RendererBase):
         self._last_footer = None
         self._footer_values = None
         self._footer_drawn = False
-        # Footer commands painted by the prepared surface. Its batch carries
-        # them so a superseding surface cannot drop the persistent footer.
-        self._footer_paint = None
         self._reset_interactions()
         self._generation = 0
-        self._batch_queue = RenderBatchQueue(MAX_BATCHES, MAX_BATCH_BYTES)
-        self._worker = None
-        self._timing_sink = None
+        # The native frame loop that owns Typer; made by the first start().
+        self._loop = None
         self._sent_handler = None
-        self._async_scheduler = None
         self._event_fd_handler = None
         self._restart_handler = None
-        self._redraw_handler = None
-        self._recovering_output = False
-        self._last_submitted_generation = -1
         self._next_batch_kind = None
         self._next_batch_key = None
         self._composite_commands = None
@@ -312,7 +304,6 @@ class FeatherRenderer(RendererBase):
     def _finish_surface(self, accepted):
         previous = self._prepared_surface
         self._prepared_surface = None
-        self._footer_paint = None
         if previous is None:
             return
         if accepted:
@@ -331,17 +322,19 @@ class FeatherRenderer(RendererBase):
             return self._prepared_surface[name]
         return getattr(self, name)
 
-    def configure_worker(self, async_scheduler, event_fd_handler,
-                         restart_handler=None, redraw_handler=None):
-        """Connect worker callbacks before its deferred reactor start."""
-        self._async_scheduler = async_scheduler
+    def configure_worker(self, event_fd_handler, restart_handler=None):
+        """Connect the reactor before start().
+
+        event_fd_handler(old_fd, new_fd) registers the descriptor that is
+        readable while process_events() has work (new_fd None: unregister
+        old_fd); restart_handler() repaints after Typer started again.
+        """
         self._event_fd_handler = event_fd_handler
         self._restart_handler = restart_handler
-        self._redraw_handler = redraw_handler
 
     @property
     def active(self):
-        return self._worker is not None and self._worker.active
+        return self._loop is not None and self._loop.running
 
     @property
     def output_frozen(self):
@@ -356,8 +349,9 @@ class FeatherRenderer(RendererBase):
         return not self._visible_value("_loader_active") and bool(actions)
 
     def discard_pending_output(self):
-        """Drop every untouched batch before a final lifecycle screen."""
-        self._batch_queue.discard_all()
+        """Drop every unwritten batch before a final lifecycle screen."""
+        if self._loop is not None:
+            self._loop.discard()
 
     def freeze_output(self):
         """Keep the last submitted safety screen as the sole display owner."""
@@ -388,28 +382,22 @@ class FeatherRenderer(RendererBase):
     quote = staticmethod(quote)
 
     def start(self):
-        """Start only the daemon worker; Typer is launched in that thread."""
+        """Start the frame loop, which launches Typer on its own thread."""
         self._output_frozen = False
-        if self._worker is not None:
-            return self._worker.start()
-        if self._async_scheduler is None or self._event_fd_handler is None:
-            raise RuntimeError("Typer worker callbacks are not configured")
-
-        def load_fonts():
-            if not self._font_manifest_loaded:
-                set_font_metrics(load_runtime_metrics(TYPER_BINARY))
-                self._font_manifest_loaded = True
-
-        self._worker = TyperRenderWorker(
-            self._batch_queue, self._encode_frames, self.debug,
-            (TYPER_BINARY, DRAW_PIPE, EVENT_PIPE, TOUCH_DEVICE),
-            self._async_scheduler, self._worker_event_fd_changed,
-            self._worker_restarted, load_fonts, blending=self.blending,
-            raster_acceleration=self.raster_acceleration,
-            ram_composition=self.ram_composition,
-            sent_handler=self._worker_sent if self._sent_handler is not None else None)
-        self._worker.timing_sink = self._timing_sink
-        started = self._worker.start()
+        if self._event_fd_handler is None:
+            raise RuntimeError("frame loop callbacks are not configured")
+        if self.active:
+            return False
+        if not self._font_manifest_loaded:
+            set_font_metrics(load_runtime_metrics(TYPER_BINARY))
+            self._font_manifest_loaded = True
+        if self._loop is None:
+            self._loop = FrameLoop(
+                DRAW_PIPE, EVENT_PIPE, "typer", max_frame=MAX_ATOMIC_DRAW,
+                max_batch=MAX_BATCH_BYTES)
+        started = self._loop.start(self._typer_arguments())
+        self.event_fd = self._loop.fileno()
+        self._event_fd_handler(None, self.event_fd)
         self._busy_label = None
         self._last_footer = None
         self._footer_drawn = False
@@ -420,27 +408,37 @@ class FeatherRenderer(RendererBase):
         self.clear_display("worker-clear")
         return started
 
-    def _worker_event_fd_changed(self, old_fd, new_fd):
-        self.event_fd = new_fd
-        self._event_fd_handler(old_fd, new_fd)
-
-    def _worker_restarted(self):
-        if self._restart_handler is not None:
-            self._restart_handler()
+    def _typer_arguments(self):
+        arguments = [TYPER_BINARY]
+        if self.debug:
+            arguments.append("--debug")
+        arguments += ["--deferred-page-publish", "auto",
+                      "--present-guard-us", str(PRESENT_GUARD_US)]
+        if self.blending:
+            arguments.append("--blending")
+        if self.raster_acceleration != "scalar":
+            arguments += ["--raster-acceleration", self.raster_acceleration]
+        if self.ram_composition:
+            # Opt-in: Typer composes in an extra 1.5 MB RAM image, trading
+            # scarce printer memory for fewer uncached framebuffer reads.
+            arguments.append("--ram-composition")
+        arguments += ["--double-buffered", "--touch-device", TOUCH_DEVICE,
+                      "--event-pipe", EVENT_PIPE, "batch", "--pipe", DRAW_PIPE]
+        return arguments
 
     def stop(self):
-        """Signal shutdown without waiting for worker or Typer."""
-        if self._worker is not None:
-            self._worker.request_stop()
+        """Write what is pending, stop the frame loop and leave Typer showing the last screen."""
+        if self.active:
+            self._loop.stop()
+            self._event_fd_handler(self.event_fd, None)
+            self.event_fd = None
         self._busy_label = None
         self._last_footer = None
         self._footer_drawn = False
         self._output_frozen = False
 
     def restart(self):
-        if self._worker is not None:
-            return self._worker.request_restart()
-        return False
+        return self._loop is not None and self._loop.restart()
 
     def set_sent_handler(self, callback):
         """Notify on the reactor after a receipt-bearing batch is fully written.
@@ -449,18 +447,23 @@ class FeatherRenderer(RendererBase):
         Consumers must ignore tokens from cancelled or superseded operations.
         """
         self._sent_handler = callback
-        if self._worker is not None:
-            self._worker.sent_handler = self._worker_sent if callback is not None else None
 
-    def _worker_sent(self, token, eventtime):
-        if self._sent_handler is not None:
-            self._sent_handler(token, eventtime)
-
-    def set_timing_sink(self, sink):
-        """Send worker render timings to an optional diagnostic consumer."""
-        self._timing_sink = sink
-        if self._worker is not None:
-            self._worker.timing_sink = sink
+    def process_events(self, eventtime):
+        """On the reactor, once event_fd is readable: deliver the frame loop's
+        sent and restart notices and return Typer's lines in order."""
+        lines = []
+        for event in self._loop.take():
+            if event[0] == "line":
+                lines.append(event[1])
+            elif event[0] == "sent":
+                if self._sent_handler is not None:
+                    self._sent_handler(event[1], eventtime)
+            else:
+                logging.warning("[feather_screen] typer restarted (last error: %s)",
+                                self._loop.status()["last_error"] or "none")
+                if self._restart_handler is not None:
+                    self._restart_handler()
+        return lines
 
     @contextmanager
     def compose(self, preserve_input=False, retain_background=False):
@@ -569,8 +572,6 @@ class FeatherRenderer(RendererBase):
         if receipt_phase != "presented" and (receipt_phase != "staged" or receipt is None):
             raise ValueError("staged receipts require a token; unknown receipt phase")
         immutable = _immutable_commands(commands)
-        batch_generation = ((self.generation if button_feedback else self._generation)
-                            if generation is None else int(generation))
         if kind is None and self._next_batch_kind is not None:
             kind, key = self._next_batch_kind, self._next_batch_key
         self._next_batch_kind = None
@@ -600,49 +601,36 @@ class FeatherRenderer(RendererBase):
             return owner.submit(
                 immutable, kind=kind, key=key, generation=generation,
                 receipt=receipt)
-        if kind is None:
-            kind = ("surface" if batch_generation !=
-                    self._last_submitted_generation else "state")
-        if kind not in ("critical", "surface", "state", "animation"):
+        if kind not in (None, "critical", "surface", "state", "animation"):
             self._finish_surface(False)
             raise ValueError("unknown render batch kind: %s" % kind)
         try:
             receipt = (None if receipt is None else
                        validate_render_receipt_token(receipt))
-            serialized_size = self._serialized_size(immutable, receipt)
-            if receipt_phase != "presented":
-                serialized_size += len(" --receipt-phase staged")
+            accepted = self._submit(RenderSubmission(
+                immutable, receipt, receipt_phase, kind == "critical"))
         except ValueError as exc:
             logging.warning("[feather_screen] rejected render batch: %s", exc)
-            self._batch_queue.reject_submission()
-            self._finish_surface(False)
-            return False
-        batch = RenderBatch(
-            immutable, kind, key, batch_generation, serialized_size, None,
-            receipt, None if button_feedback else self._footer_paint, receipt_phase)
-        try:
-            accepted = self._batch_queue.put_nowait(batch)
+            accepted = False
         except BaseException:
             if not button_feedback:
                 self._finish_surface(False)
             raise
         if not button_feedback:
             self._finish_surface(accepted)
-        if accepted:
-            self._last_submitted_generation = max(
-                self._last_submitted_generation, batch_generation)
-        if (self._batch_queue.needs_redraw and self._redraw_handler is not None
-                and not self._recovering_output):
-            # A discarded delta breaks later damage restoration. Rebuild from
-            # current product state, even when this was the gesture's final frame.
-            self._recovering_output = True
-            self._last_submitted_generation = -1
-            self.invalidate_footer()
-            try:
-                self._redraw_handler()
-            finally:
-                self._recovering_output = False
         return accepted
+
+    def _submit(self, submission):
+        """Hand a batch to the frame loop. Before the first start() Typer does
+        not run and start() clears the whole panel, so the batch is admitted
+        without being written; after stop() it is refused."""
+        if self._loop is None:
+            return True
+        if not self._loop.running:
+            return False
+        return self._loop.submit(
+            submission.commands, receipt=submission.receipt,
+            phase=submission.receipt_phase, critical=submission.critical)
 
     def prioritize_next_batch(self, kind, key=None):
         """Classify the following legacy one-argument send() call."""
@@ -658,53 +646,28 @@ class FeatherRenderer(RendererBase):
         if not self.render_allowed:
             return False
         token = validate_render_receipt_token(token)
-        # A protocol-only barrier can pass the modal frame owner safely.
-        return self.send(
-            ("--batch flush --receipt %s --receipt-phase presented" % token,),
-            kind="state", key="presented-receipt", button_feedback=True)
+        # A flush alone: a protocol-only barrier passes the modal frame owner.
+        return self._submit(RenderSubmission(
+            _immutable_commands(()), token, "presented", False))
 
     def get_status(self):
-        if self._worker is None:
-            status = self._batch_queue.snapshot()
-            status.update({
-                "worker_state": "stopped", "typer_restarts": 0,
-                "worker_last_error": "",
-            })
-        else:
-            status = self._worker.snapshot()
-        status["semantic_page_id"] = self._semantic_page_id
-        return status
+        loop = (self._loop.status() if self._loop is not None else
+                {"state": "stopped", "last_error": "", "restarts": 0,
+                 "submissions": 0, "transactions": 0, "pending": 0,
+                 "in_flight": 0, "dropped_events": 0})
+        return {
+            "worker_state": loop["state"],
+            "worker_last_error": loop["last_error"],
+            "typer_restarts": loop["restarts"],
+            "submitted_batches": loop["submissions"],
+            "transactions": loop["transactions"],
+            "pending_batches": loop["pending"],
+            "in_flight": loop["in_flight"],
+            "dropped_events": loop["dropped_events"],
+            "semantic_page_id": self._semantic_page_id,
+        }
 
     set_semantic_page = _NATIVE["set_semantic_page"]
-
-    @staticmethod
-    def _serialized_size(commands, receipt=None):
-        """Return a conservative queue weight without building frames."""
-        receipt = (None if receipt is None else
-                   validate_render_receipt_token(receipt))
-        if not commands:
-            return 0
-        # Each command's bytes, a binary one's payload and characters.
-        return 32 + len(receipt or "") + _immutable_commands(commands).size(64)
-
-    @staticmethod
-    def _encode_frames(commands, receipt=None, receipt_phase="presented"):
-        receipt = (None if receipt is None else
-                   validate_render_receipt_token(receipt))
-        final_command = "--batch flush"
-        if receipt is not None:
-            final_command += " --receipt " + receipt
-            if receipt_phase != "presented":
-                if receipt_phase != "staged":
-                    raise ValueError("unknown receipt phase")
-                final_command += " --receipt-phase staged"
-        elif receipt_phase != "presented":
-            raise ValueError("staged receipts require a token")
-        final_suffix = (final_command + "\n--end\n").encode("utf-8")
-        # Text commands are packed as lines up to MAX_ATOMIC_DRAW; a binary
-        # command is a frame of its own, its header followed by the payload.
-        return _immutable_commands(commands).frames(
-            final_suffix, b"--end\n", MAX_ATOMIC_DRAW)
 
     # decode_action(action) is the engine's: the logical action of a tap when
     # its generation is the visible surface's, so taps emitted for a page that
@@ -1122,10 +1085,6 @@ class FeatherRenderer(RendererBase):
                                             ("overlay", self._overlay_hitboxes))
                      for action, spec in entries)
 
-    @property
-    def needs_redraw(self):
-        return self._batch_queue.needs_redraw
-
     def overlay_hitbox(self, action, x, y, width, height, continuous=False):
         if not self._prepare_surface():
             return ""
@@ -1519,9 +1478,7 @@ class FeatherRenderer(RendererBase):
         self._page_back = back
         self._loader_active = False
         self._semantic_page_id = None
-        # Pressure recovery keeps the same page and its active touch gesture.
-        if not self._recovering_output:
-            self.invalidate_input_generation()
+        self.invalidate_input_generation()
         self._reset_interactions()
         self._menu_suppressed = False
         show_header_action = self._header_action is not None
@@ -1577,7 +1534,6 @@ class FeatherRenderer(RendererBase):
         commands = self._footer_commands(values)
         self._last_footer = values
         self._footer_drawn = True
-        self._footer_paint = _immutable_commands(commands)
         return commands
 
     def _footer_commands(self, values):

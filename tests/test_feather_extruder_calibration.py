@@ -33,7 +33,7 @@ HEATERS = importlib.util.module_from_spec(HEATER_SPEC)
 HEATER_SPEC.loader.exec_module(HEATERS)
 
 from tests.test_feather_screen import FEATHER, Reactor  # noqa: E402
-from tests.feather_render_test_helper import RenderCapture, full_render_queue  # noqa: E402
+from tests.feather_render_test_helper import RenderCapture, refused_render  # noqa: E402
 
 
 class ScenarioController(EXTRUDER_CAL.FeatherExtruderCalibrationMixin,

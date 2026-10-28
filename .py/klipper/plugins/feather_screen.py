@@ -262,8 +262,7 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
                 "feather_screen requires reactor.register_async_callback")
         self.file_worker_schedule_async = register_async
         self.renderer.configure_worker(
-            register_async, self._renderer_event_fd_changed,
-            self._renderer_restarted, self._redraw_after_dropped_frame)
+            self._renderer_event_fd_changed, self._renderer_restarted)
         self.renderer.set_sent_handler(self._renderer_sent)
         self.boot_screen_held = os.path.exists(FORGE_X_SCREEN_BUSY_PATH)
         if self.boot_screen_held:
@@ -282,7 +281,6 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         self.startup_timer = None
         self.startup_phase = 0
         self.event_handle = None
-        self.event_partial = ""
         self.touch_available = None
         self.last_touch_time = self.reactor.monotonic()
         self.last_action_time = -1.0
@@ -459,7 +457,6 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
                     "[feather_screen] unable to unregister old touch FIFO")
                 raise
             self.event_handle = None
-        self.event_partial = ""
         if new_fd is not None:
             self.event_handle = self.reactor.register_fd(
                 new_fd, self._process_touch_events)
@@ -486,18 +483,8 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
             logging.exception(
                 "[feather_screen] unable to redraw after typer restart")
 
-    def _redraw_after_dropped_frame(self):
-        if self.renderer.output_frozen:
-            return
-        if self.print_state == PrintState.INACTIVE:
-            self._render_startup_modal()
-        else:
-            self._render_screen(force=True)
-
     def _ensure_renderer_started(self):
         if self.renderer.active:
-            return False
-        if getattr(self.renderer, "_worker", None) is not None:
             return False
         if not hasattr(self.renderer, "start"):
             return False
@@ -675,14 +662,15 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
             self._show_terminal_error(message, "shutdown", "firmware_restart")
 
     def _disconnect(self):
-        if (self.shutdown_active
+        if not (self.shutdown_active
                 or getattr(self, "system_shutdown_active", False)):
-            return
-        self._deactivate_components()
-        if self.restart_pending:
-            return
-        if self.renderer.active:
-            self._show_terminal_error("Klipper disconnected", "disconnect", None)
+            self._deactivate_components()
+            if not self.restart_pending and self.renderer.active:
+                self._show_terminal_error("Klipper disconnected", "disconnect", None)
+        # A Klipper restart builds the next screen in this process, and its
+        # frame loop takes Typer over. This one writes its final screen and
+        # ends, leaving Typer to show it until then.
+        self.renderer.stop()
 
     def _show_terminal_error(self, message, category, recovery):
         """Leave one final screen for a stopped Klipper until it restarts."""
@@ -833,20 +821,7 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         gcmd.respond_info("Feather theme refreshed: %s" % name)
 
     def _process_touch_events(self, eventtime):
-        try:
-            data = os.read(self.renderer.event_fd, 4096).decode("ascii")
-        except OSError as exc:
-            logging.warning("[feather_screen] touch read failed: %s", exc)
-            return
-        except UnicodeDecodeError as exc:
-            logging.warning("[feather_screen] invalid touch event data: %s", exc)
-            return
-        lines = data.split("\n")
-        lines[0] = self.event_partial + lines[0]
-        self.event_partial = lines.pop()
-        if len(self.event_partial) > MAX_TOUCH_EVENT:
-            logging.warning("[feather_screen] oversized partial touch event discarded")
-            self.event_partial = ""
+        lines = self.renderer.process_events(eventtime)
         for line in self._coalesce_model_preview_moves(lines):
             receipt = parse_render_receipt(line)
             if receipt is not None:

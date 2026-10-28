@@ -718,52 +718,12 @@ class RunnerContractTest(unittest.TestCase):
         steps[3]["callback"]()
         self.assertTrue(steps[4]["predicate"]())
 
-    def test_capture_waits_for_worker_and_fails_on_dropped_batch(self):
-        status = {
-            "submitted_batches": 5, "rendered_batches": 4,
-            "coalesced_batches": 0, "dropped_batches": 0,
-        }
-        renderer = type("Renderer", (), {
-            "get_status": lambda self: dict(status),
-            "send": lambda self, *args, **kwargs: True,
-        })()
-        reactor = type("Reactor", (), {"monotonic": lambda self: 10.0})()
-        feature = UI_TEST.UITestRun(type("Host", (), {
-            "renderer": renderer, "reactor": reactor,
-        })())
-        scheduled = []
-        feature._schedule = scheduled.append
-        feature._screen_metadata = lambda: {"page": "IDLE_HOME"}
-        captures = []
-        feature.worker = type("Worker", (), {
-            "capture": lambda self, *args: captures.append(args),
-            "log": lambda self, message: None,
-        })()
-        step = {"kind": "capture", "label": "settled"}
-
-        feature._capture(step)
-        self.assertEqual(scheduled, [0.02])
-        self.assertEqual(captures, [])
-
-        status["dropped_batches"] = 1
-        with self.assertRaisesRegex(RuntimeError, "batch dropped"):
-            feature._capture(step)
-
     def test_capture_waits_for_presented_receipt_before_reading_frame(self):
-        status = {
-            "submitted_batches": 5, "rendered_batches": 5,
-            "coalesced_batches": 0, "dropped_batches": 0,
-        }
         submissions = []
 
         class Renderer:
-            def get_status(self):
-                return dict(status)
-
             def request_presented_receipt(self, token):
                 submissions.append(token)
-                status["submitted_batches"] += 1
-                status["rendered_batches"] += 1
                 return True
 
         reactor = type("Reactor", (), {"monotonic": lambda self: 10.0})()
@@ -801,17 +761,13 @@ class RunnerContractTest(unittest.TestCase):
         from ui import Dialog, Rect, ScreenLayer, ScreenRoot, Text
 
         renderer = FEATHER.FeatherRenderer()
+        capture = RenderCapture(renderer)
         root = ScreenRoot(renderer, Text("Background"),
                           Rect(0, 0, 800, 480), FEATHER.AppPage.SCREEN_ROOT,
                           chrome=False)
         root.paint()
-        renderer._batch_queue.get(timeout=0)
         root.open(ScreenLayer(Dialog("Foreground", (), (), modal=True)))
-        renderer._batch_queue.get(timeout=0)
-        renderer.get_status = lambda: {
-            "submitted_batches": 2, "rendered_batches": 2,
-            "coalesced_batches": 0, "dropped_batches": 0,
-        }
+        capture.submitted.clear()
         reactor = type("Reactor", (), {"monotonic": lambda self: 10.0})()
         feature = UI_TEST.UITestRun(type("Host", (), {
             "renderer": renderer, "reactor": reactor,
@@ -820,10 +776,10 @@ class RunnerContractTest(unittest.TestCase):
 
         feature._capture({"kind": "capture", "label": "modal"})
 
-        batch = renderer._batch_queue.get(timeout=0)
-        self.assertEqual(batch.commands, (
-            "--batch flush --receipt %s --receipt-phase presented" %
-            feature.step_runtime["capture_receipt"],))
+        # A flush alone: the barrier draws nothing over the modal frame.
+        batch, = capture.submitted
+        self.assertEqual((tuple(batch.commands), batch.receipt, batch.receipt_phase),
+                         ((), feature.step_runtime["capture_receipt"], "presented"))
         self.assertTrue(root.visible_layers)
 
     def test_screen_metadata_observes_live_telemetry(self):

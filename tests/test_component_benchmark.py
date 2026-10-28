@@ -26,7 +26,7 @@ from ui.engine import update_refs as engine_update_refs  # noqa: E402
 from ui.font_metrics import get_font_metrics  # noqa: E402
 from ui.render_receipts import RenderReceipt  # noqa: E402
 from tests.feather_render_test_helper import (  # noqa: E402
-    RenderCapture, full_render_queue)
+    RenderCapture, refused_render)
 
 
 class Reactor:
@@ -218,7 +218,7 @@ class ComponentBenchmarkTest(unittest.TestCase):
         token = feature.tracker.pending.token
         host.reactor.now = 0.02
         feature.on_render_receipt(RenderReceipt(token, True, 12000, 8000, 1000), 0.02)
-        with full_render_queue(host.renderer):
+        with refused_render(host.renderer):
             feature._tick(0.02)
         self.assertIs(feature.prepared_frame, prepared)
         self.assertIsNone(feature.tracker.pending)
@@ -459,7 +459,6 @@ class ComponentBenchmarkTest(unittest.TestCase):
         self.assertFalse(any(
             "-s 800 442" in command
             for batch in rendering.batches[1:] for command in batch))
-        self.assertEqual(rendering.submitted[-1].key, "component-benchmark")
         feature.back(host.page)
         self.assertEqual(host.page, ScreenPage.MAIN_MENU)
         self.assertFalse(feature.active)
@@ -485,7 +484,9 @@ class ComponentBenchmarkTest(unittest.TestCase):
         self.assertIsNone(feature.tracker.pending)
         self.assertEqual(feature.display_status, "RECEIPT TIMEOUT")
         self.assertEqual(reactor.waketime, reactor.NEVER)
-        self.assertEqual(rendering.submitted[-1].key, "render-benchmark-error")
+        # The repair frame is a full frame from the current state.
+        self.assertTrue(any("RECEIPT TIMEOUT" in command for command in rendering.batches[-1]))
+        self.assertTrue(any("-s 800 442" in command for command in rendering.batches[-1]))
 
     def test_existing_render_benchmark_still_cycles_modes(self):
         reactor = Reactor()

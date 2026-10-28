@@ -70,13 +70,9 @@ _EXPORT_GROUPS = (
     )),
     ("renderer", (
         "CONTENT_BOTTOM", "FOOTER_HEIGHT", "FOOTER_Y",
-        "HEADER_BOTTOM", "MAX_ATOMIC_DRAW", "MAX_PENDING_DRAW",
+        "HEADER_BOTTOM", "MAX_ATOMIC_DRAW", "MAX_BATCH_BYTES", "MAX_PENDING_DRAW",
         "SCREEN_HEIGHT", "SCREEN_WIDTH", "PAGE_CHROME_CONTRACT",
-        "PageChromeContract", "FeatherRenderer", "rectangles_overlap",
-    )),
-    ("render_worker", (
-        "MAX_BATCHES", "MAX_BATCH_BYTES", "RenderBatch",
-        "RenderBatchQueue", "TyperRenderWorker",
+        "PageChromeContract", "FeatherRenderer", "RenderSubmission", "rectangles_overlap",
     )),
     ("render_receipts", (
         "PendingReceipt", "ReceiptMeasurement", "ReceiptTracker",
@@ -165,8 +161,7 @@ __all__ = (
     "CONTENT_BOTTOM", "FOOTER_HEIGHT", "FOOTER_Y",
     "HEADER_BOTTOM", "MAX_ATOMIC_DRAW", "MAX_PENDING_DRAW",
     "SCREEN_HEIGHT", "SCREEN_WIDTH", "PAGE_CHROME_CONTRACT", "PageChromeContract",
-    "MAX_BATCHES", "MAX_BATCH_BYTES", "RenderBatch", "RenderBatchQueue",
-    "TyperRenderWorker",
+    "MAX_BATCH_BYTES", "RenderSubmission",
     "PendingReceipt", "ReceiptMeasurement", "ReceiptTracker",
     "RenderReceipt", "parse_render_receipt",
     "validate_render_receipt_token",

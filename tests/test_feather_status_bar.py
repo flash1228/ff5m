@@ -176,9 +176,6 @@ class StatusBarTest(unittest.TestCase):
                         if command.startswith('--batch text ')]
             self.assertTrue(all(tokens[tokens.index('-c')+1] == renderer.color(ThemeColor.PRIMARY)
                                 for tokens in commands))
-        self.assertTrue(all((batch.kind, batch.key) == ('state', 'footer')
-                            and len(renderer._encode_frames(batch.commands)) == 1
-                            for batch in capture.submitted))
 
     def test_memory_rounds_to_whole_mib_with_exact_halves_down(self):
         for mib, expected in ((0, 0), (0.5, 0), (0.6, 1), (1.4, 1), (1.5, 1),
@@ -274,9 +271,6 @@ class StatusBarTest(unittest.TestCase):
         renderer.footer(*self.values())
         renderer.footer(*self.values())
         self.assertEqual(len(capture.submitted), 1)
-        batch = capture.submitted[0]
-        self.assertEqual((batch.kind, batch.key), ('state', 'footer'))
-        self.assertEqual(len(renderer._encode_frames(batch.commands)), 1)
         self.assertEqual([text.value for text in capture.latest.texts], [
             'N 300/300C', '·', 'B 120/120C', 'CPU 100%', '·',
             'FREE 128MB', '255.255.255.255', '·', 'CANCELLED'])
@@ -344,48 +338,46 @@ def footer_scrims(commands):
 class StatusBarUnderDialogTest(unittest.TestCase):
     def test_footer_is_dimmed_once_by_a_dialog_and_restored_by_pages(self):
         # Replays the UI suite's message -> page -> dialog layout -> print
-        # result sequence. A fast host queues the next page before the worker
-        # takes the one that restores the footer; a slow host does not.
-        for eager in (True, False):
-            with self.subTest(eager=eager):
-                renderer = PrinterRenderer()
-                renderer.footer(*StatusBarTest().values(status='standby'), paint=False)
-                screen = FeatherScreen.__new__(FeatherScreen)
-                screen.renderer = renderer
-                title = ['HOME']
-                rendered = []
+        # result sequence; Typer applies every batch in order.
+        renderer = PrinterRenderer()
+        renderer.footer(*StatusBarTest().values(status='standby'), paint=False)
+        screen = FeatherScreen.__new__(FeatherScreen)
+        screen.renderer = renderer
+        title = ['HOME']
+        capture = RenderCapture(renderer)
+        rendered = []
 
-                def drain(always=False):
-                    while (eager or always) and (item := renderer._batch_queue.get(timeout=0)):
-                        rendered.extend(item.commands)
+        def drain():
+            while item := capture.get():
+                rendered.extend(item.commands)
 
-                def paint_page():
-                    renderer.send(renderer.begin_page(title[0]))
+        def paint_page():
+            renderer.send(renderer.begin_page(title[0]))
 
-                def paint_message(instance):
-                    renderer.send(renderer.dialog('PRINT FINISHED', (), (('message.ok', 'OK', 'enabled'),)))
+        def paint_message(instance):
+            renderer.send(renderer.dialog('PRINT FINISHED', (), (('message.ok', 'OK', 'enabled'),)))
 
-                root = ScreenRoot(renderer, PaintSurface(paint_page, accepts_deltas=lambda: True),
-                                  Rect(0, 0, 800, 480), AppPage.SCREEN_ROOT, chrome=False)
-                message = DialogInstance(ScreenDialog.MESSAGE, {}, screen._paint_dialog,
-                                         paint_message, ('message.ok',), 0)
-                root.paint()
-                root.open(message)
-                drain(always=True)
-                self.assertEqual(footer_scrims(rendered), 1)
+        root = ScreenRoot(renderer, PaintSurface(paint_page, accepts_deltas=lambda: True),
+                          Rect(0, 0, 800, 480), AppPage.SCREEN_ROOT, chrome=False)
+        message = DialogInstance(ScreenDialog.MESSAGE, {}, screen._paint_dialog,
+                                 paint_message, ('message.ok',), 0)
+        root.paint()
+        root.open(message)
+        drain()
+        self.assertEqual(footer_scrims(rendered), 1)
 
-                root.close(message, paint=False)
-                title[0] = 'NETWORK'
-                root.paint(force=True)
-                drain()
-                renderer.send(renderer.begin_page('DIALOG LAYOUT') + renderer.dialog(
-                    'SHORT MESSAGE', ('READY TO CONTINUE.',), (('dialog.test.ok', 'OK', 'warning'),)))
-                drain(always=True)
-                self.assertEqual(footer_scrims(rendered), 0)
+        root.close(message, paint=False)
+        title[0] = 'NETWORK'
+        root.paint(force=True)
+        drain()
+        renderer.send(renderer.begin_page('DIALOG LAYOUT') + renderer.dialog(
+            'SHORT MESSAGE', ('READY TO CONTINUE.',), (('dialog.test.ok', 'OK', 'warning'),)))
+        drain()
+        self.assertEqual(footer_scrims(rendered), 0)
 
-                root.open(message)
-                drain(always=True)
-                self.assertEqual(footer_scrims(rendered), 1)
+        root.open(message)
+        drain()
+        self.assertEqual(footer_scrims(rendered), 1)
 
 
 if __name__ == '__main__':

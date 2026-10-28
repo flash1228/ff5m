@@ -80,9 +80,10 @@ class ControllerSafetyTest(unittest.TestCase):
         controller.feature_manager.notify.assert_called_once_with(
             "on_render_sent", "3:17", 12.5)
 
-    def test_pressure_redraw_keeps_active_joystick_and_current_cursor(self):
+    def test_restart_redraw_keeps_active_joystick_and_current_cursor(self):
         controller = ScenarioController.__new__(ScenarioController)
         controller.renderer = FEATHER.FeatherRenderer()
+        capture = RenderCapture(controller.renderer)
         controller.reactor = Reactor()
         controller.print_state = FEATHER.PrintState.IDLE
         controller.page = FEATHER.ScreenPage.CONTROL_MOVE
@@ -98,12 +99,11 @@ class ControllerSafetyTest(unittest.TestCase):
         controller._stop_joystick = mock.Mock()
         controller._show_page = mock.Mock()
         controller._render_move()
-        controller.renderer._batch_queue.get(timeout=0)
+        capture.submitted.clear()
 
-        controller._redraw_after_dropped_frame()
+        controller._renderer_restarted()
 
-        batch = controller.renderer._batch_queue.get(timeout=0)
-        self.assertIn(controller.renderer.joystick_knob(150, 200)[1], batch.commands)
+        self.assertIn(controller.renderer.joystick_knob(150, 200)[1], capture.batches[-1])
         self.assertEqual(MOVE_UI.JOYSTICK_PAGE.state[MOVE_UI.MoveState.CURSOR],
                          controller.joystick_cursor)
         self.assertTrue(controller.joystick_timer_active)
@@ -1671,17 +1671,18 @@ class ControllerSafetyTest(unittest.TestCase):
         controller.reactor = Reactor()
         controller.dimmed = False
         controller.renderer = FEATHER.FeatherRenderer()
+        capture = RenderCapture(controller.renderer)
         controller.renderer.send(controller.renderer.dialog(
             "MCU restart required", (),
             (("error.firmware_restart", "FIRMWARE RESTART", "danger"),)))
-        controller.renderer._batch_queue.get(timeout=0)
+        capture.get()
         controller.renderer.freeze_output()
 
         controller._handle_button_feedback(
             "button 0:error.firmware_restart down")
 
         self.assertTrue(controller.renderer.output_frozen)
-        pressed = controller.renderer._batch_queue.get(timeout=0)
+        pressed = capture.get()
         self.assertIsNotNone(pressed)
         self.assertIn(
             "--background " + controller.renderer.color(
@@ -1692,7 +1693,7 @@ class ControllerSafetyTest(unittest.TestCase):
             "button 0:error.firmware_restart up")
 
         self.assertTrue(controller.renderer.output_frozen)
-        restored = controller.renderer._batch_queue.get(timeout=0)
+        restored = capture.get()
         self.assertIsNotNone(restored)
         self.assertNotEqual(pressed.commands, restored.commands)
 
@@ -2962,8 +2963,7 @@ class ControllerSafetyTest(unittest.TestCase):
             controller._update_cycle(4.1)
             self.assertTrue(capture.latest.has_text("CPU --%"))
         self.assertEqual(reader.call_count, 2)
-        self.assertTrue(all((batch.kind, batch.key) == ("state", "footer")
-                            for batch in capture.submitted))
+        self.assertFalse(any(batch.critical for batch in capture.submitted))
 
     def test_first_observed_pause_starts_clean_progress(self):
         for restored, expected_start in (
@@ -3595,7 +3595,7 @@ class ControllerSafetyTest(unittest.TestCase):
         controller = ScenarioController.__new__(ScenarioController)
         controller.shutdown_active = False
         controller.renderer = FEATHER.FeatherRenderer()
-        controller.renderer._worker = mock.Mock(active=True)  # Typer is running.
+        controller.renderer._loop = mock.Mock(running=True)  # Typer is running.
         rendering = RenderCapture(controller.renderer)
         blank_page(controller, FEATHER.ScreenPage.CALIBRATION_PROGRESS)
         controller.printer = type("Printer", (), {
@@ -3616,11 +3616,41 @@ class ControllerSafetyTest(unittest.TestCase):
         self.assertTrue(error.content["terminal"])
         self.assertTrue(rendering.latest.has_action("error.firmware_restart"))
 
+    def test_disconnect_writes_the_final_screen_then_stops_the_frame_loop(self):
+        # A Klipper restart builds the next screen in this process; this
+        # screen's frame loop must not keep owning Typer.
+        for restart_pending in (False, True):
+            with self.subTest(restart_pending=restart_pending):
+                controller = ScenarioController.__new__(ScenarioController)
+                controller.shutdown_active = False
+                controller.restart_pending = restart_pending
+                controller.renderer = FEATHER.FeatherRenderer()
+                controller.renderer.configure_worker(lambda old, new: None)
+                controller.renderer._loop = mock.Mock(running=True)
+                rendering = RenderCapture(controller.renderer)
+                written_before_stop = []
+                controller.renderer._loop.stop.side_effect = (
+                    lambda: written_before_stop.append(len(rendering.submitted)))
+                blank_page(controller)
+                controller._deactivate_components = lambda: None
+                painted = len(rendering.submitted)
+
+                controller._disconnect()
+
+                self.assertEqual(written_before_stop, [len(rendering.submitted)])
+                error = controller._find_dialog(FEATHER.ScreenDialog.ERROR)
+                if restart_pending:
+                    self.assertIsNone(error)
+                    self.assertEqual(len(rendering.submitted), painted)
+                else:
+                    self.assertEqual(error.content["category"], "disconnect")
+                    self.assertGreater(len(rendering.submitted), painted)
+
     def test_shutdown_screen_replaces_a_prompt_even_if_deactivation_fails(self):
         controller = ScenarioController.__new__(ScenarioController)
         controller.shutdown_active = False
         controller.renderer = FEATHER.FeatherRenderer()
-        controller.renderer._worker = mock.Mock(active=True)
+        controller.renderer._loop = mock.Mock(running=True)
         rendering = RenderCapture(controller.renderer)
         blank_page(controller)
         controller._handle_gcode_output("\n".join((
@@ -3860,20 +3890,21 @@ class ControllerSafetyTest(unittest.TestCase):
 
         controller._handle_touch_device_status(False)
         controller._shutdown()
-        controller._disconnect()
+        controller._handle_gcode_output("// action:forge_x_redraw")
 
         self.assertFalse(controller.touch_available)
         self.assertIsNone(controller._find_dialog(FEATHER.ScreenDialog.TOUCH_UNAVAILABLE))
         self.assertEqual(len(batches), batch_count)
         self.assertTrue(controller.renderer.output_frozen)
 
-        controller._handle_gcode_output("// action:forge_x_redraw")
+        controller._disconnect()
 
         self.assertEqual(len(batches), batch_count)
 
-    def test_system_shutdown_replaces_queued_touch_warning(self):
+    def test_system_shutdown_screen_follows_touch_warning(self):
         controller = ScenarioController.__new__(ScenarioController)
         controller.renderer = FEATHER.FeatherRenderer()
+        capture = RenderCapture(controller.renderer)
         controller.page = FEATHER.ScreenPage.IDLE_HOME
         paint_home(controller, lambda: controller.renderer.send(
             controller.renderer.begin_page("Ready") + controller.renderer.button(
@@ -3893,11 +3924,11 @@ class ControllerSafetyTest(unittest.TestCase):
         controller._handle_gcode_output(
             "// action:forge_x_shutting_down")
 
-        self.assertEqual(
-            controller.renderer.get_status()["queue_depth"], 1)
-        shutdown = controller.renderer._batch_queue.get()
+        self.assertTrue(any("TOUCH INPUT UNAVAILABLE" in "\n".join(batch)
+                            for batch in capture.batches))
+        shutdown = capture.submitted[-1]
         drawing = "\n".join(shutdown.commands)
-        self.assertEqual(shutdown.key, "startup")
+        self.assertTrue(shutdown.critical)
         self.assertIn("FORGE-X", drawing)
         self.assertIn("SHUTTING DOWN", drawing)
         self.assertNotIn("TOUCH INPUT UNAVAILABLE", drawing)
@@ -3963,6 +3994,7 @@ class ControllerSafetyTest(unittest.TestCase):
     def test_touch_warning_waits_for_boot_screen_release(self):
         controller = ScenarioController.__new__(ScenarioController)
         controller.renderer = FEATHER.FeatherRenderer()
+        capture = RenderCapture(controller.renderer)
         controller.page = FEATHER.ScreenPage.IDLE_HOME
         controller._paint_page = lambda: controller.renderer.send(
             controller.renderer.begin_page("Ready") + controller.renderer.button(
@@ -3985,8 +4017,7 @@ class ControllerSafetyTest(unittest.TestCase):
         self.assertFalse(controller._show_touch_unavailable())
         self.assertIsNone(controller._find_dialog(FEATHER.ScreenDialog.TOUCH_UNAVAILABLE))
         self.assertFalse(controller.renderer.output_frozen)
-        self.assertEqual(
-            controller.renderer.get_status()["submitted_batches"], 0)
+        self.assertEqual(capture.submitted, [])
         self.assertEqual(
             controller.renderer.touch_unavailable_modal.call_count, 0)
 
@@ -4006,8 +4037,7 @@ class ControllerSafetyTest(unittest.TestCase):
         self.assertFalse(controller.boot_screen_held)
         self.assertIsNotNone(controller._find_dialog(FEATHER.ScreenDialog.TOUCH_UNAVAILABLE))
         self.assertTrue(controller.renderer.output_frozen)
-        self.assertGreater(
-            controller.renderer.get_status()["submitted_batches"], 0)
+        self.assertTrue(capture.submitted)
         self.assertEqual(
             controller.renderer.touch_unavailable_modal.call_count, 1)
 
@@ -4049,16 +4079,12 @@ class ControllerSafetyTest(unittest.TestCase):
 
     def test_touch_device_protocol_dispatches_availability_transitions(self):
         controller = ScenarioController.__new__(ScenarioController)
-        controller.renderer = type("Renderer", (), {"event_fd": 7})()
-        controller.event_partial = ""
+        controller.renderer = SimpleNamespace(process_events=lambda eventtime: [
+            "touch-device unavailable", "touch-device connected"])
         transitions = []
         controller._handle_touch_device_status = transitions.append
 
-        with mock.patch.object(
-                FEATHER.os, "read",
-                return_value=(b"touch-device unavailable\n"
-                              b"touch-device connected\n")):
-            controller._process_touch_events(100.0)
+        controller._process_touch_events(100.0)
 
         self.assertEqual(transitions, [False, True])
 
@@ -4117,6 +4143,7 @@ class ControllerSafetyTest(unittest.TestCase):
             with self.subTest(title=title):
                 controller = ScenarioController.__new__(ScenarioController)
                 controller.renderer = FEATHER.FeatherRenderer()
+                batches = RenderCapture(controller.renderer).batches
                 controller.page = FEATHER.ScreenPage.IDLE_HOME
                 controller._paint_page = lambda: controller.renderer.send(
                     controller.renderer.begin_page("Ready") + controller.renderer.button(
@@ -4126,8 +4153,7 @@ class ControllerSafetyTest(unittest.TestCase):
                 controller._show_message(
                     message, FEATHER.ScreenPage.IDLE_HOME, title=title)
 
-                drawing = "\n".join(
-                    controller.renderer._batch_queue.get(timeout=0).commands)
+                drawing = "\n".join(batches[-1])
                 self.assertIn(title.upper(), drawing)
                 self.assertNotIn('-t "MESSAGE"', drawing)
                 if message:

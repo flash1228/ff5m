@@ -158,7 +158,7 @@ class ScreenRoot:
         if self.painting or not self.renderer.render_allowed:
             self._repaint_pending = self._repaint_pending or force
             return False
-        force = force or self._repaint_pending or self.renderer.needs_redraw
+        force = force or self._repaint_pending
         self._repaint_pending = False
         self.painting = True
         try:

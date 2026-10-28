@@ -4,7 +4,6 @@ import pathlib
 import sys
 import unittest
 from types import SimpleNamespace
-from unittest import mock
 
 
 PLUGINS = pathlib.Path(__file__).parents[1] / ".py" / "klipper" / "plugins"
@@ -51,17 +50,14 @@ class ScreenReceiptRoutingTest(unittest.TestCase):
     def test_event_fifo_receipt_is_routed_without_touch_dispatch(self):
         screen = feather_screen.FeatherScreen.__new__(
             feather_screen.FeatherScreen)
-        screen.renderer = SimpleNamespace(event_fd=7)
-        screen.event_partial = ""
+        screen.renderer = SimpleNamespace(
+            process_events=lambda eventtime: ["render 3:5 ok 1200 900 100"])
         notifications = []
         screen.feature_manager = SimpleNamespace(
             peek=lambda name: None,
             notify=lambda *args: notifications.append(args))
 
-        with mock.patch(
-                "feather_screen.os.read",
-                return_value=b"render 3:5 ok 1200 900 100\n"):
-            screen._process_touch_events(42.0)
+        screen._process_touch_events(42.0)
 
         self.assertEqual(len(notifications), 1)
         hook, receipt, eventtime = notifications[0]

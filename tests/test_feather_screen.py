@@ -34,7 +34,7 @@ from ff5m_ui.move import runtime as MOVE_LAYOUT
 from ff5m_ui.z_offset import runtime as Z_OFFSET_LAYOUT
 from feather.features.z import ZCalibrationFeature
 from tests.feather_render_test_helper import (
-    RenderCapture, RenderFrame, full_render_queue)
+    RenderCapture, RenderFrame, refused_render)
 
 # Unit controllers created with __new__ do not receive klippy:ready. Give
 # those isolated fixtures the same catalog that config/material.cfg provides;
@@ -259,14 +259,8 @@ class FeatherUtilitiesTest(unittest.TestCase):
         value = "before\n--end\nafter"
 
         quoted = FEATHER.FeatherRenderer.quote(value)
-        frame = FEATHER.FeatherRenderer._encode_frames([
-            "--batch text -t %s" % quoted,
-        ])[0].decode("utf-8")
-        payload, separator, remainder = frame.rpartition("\n--end\n")
 
-        self.assertEqual(separator, "\n--end\n")
-        self.assertEqual(remainder, "")
-        self.assertNotIn("\n--end\n", payload)
+        self.assertNotIn("\n--end\n", "\n%s\n" % quoted)
         self.assertEqual(
             shlex.split(quoted), ["before\n --end\nafter"])
 
@@ -1647,7 +1641,7 @@ class RendererStateTest(unittest.TestCase):
         screen._append_action_prompt_button("CONFIRM|OLD_COMMAND")
         screen._show_action_prompt()
         old_tap = screen.renderer._wire_action("prompt.button.0")
-        with full_render_queue(screen.renderer):
+        with refused_render(screen.renderer):
             screen._start_action_prompt("New")
             screen._append_action_prompt_button("CONFIRM|NEW_COMMAND")
             render_prompt = screen._render_action_prompt
@@ -2436,41 +2430,14 @@ class RendererStateTest(unittest.TestCase):
         write.assert_not_called()
         popen.assert_not_called()
         sleep.assert_not_called()
-        self.assertEqual(renderer.get_status()["queue_depth"], 1)
-
-    def test_large_draw_is_split_into_bounded_complete_frames(self):
-        commands = [
-            "--batch text -p 10 %d -t %s" % (index, "x" * 90)
-            for index in range(100)
-        ]
-        frames = FEATHER.FeatherRenderer._encode_frames(commands)
-        self.assertGreater(len(frames), 1)
-        self.assertTrue(all(len(frame) <= UI.MAX_ATOMIC_DRAW
-                            for frame in frames))
-        self.assertTrue(all(frame.endswith(b"--end\n") for frame in frames))
-        self.assertTrue(all(b"--batch flush" not in frame
-                            for frame in frames[:-1]))
-        self.assertTrue(frames[-1].endswith(b"--batch flush\n--end\n"))
-        self.assertEqual(sum(frame.count(b"--batch flush")
-                             for frame in frames), 1)
-        joined = b"\n".join(frames)
-        for command in commands:
-            self.assertIn(command.encode("utf-8"), joined)
-
-    def test_small_draw_is_committed_once(self):
-        frames = FEATHER.FeatherRenderer._encode_frames([
-            "--batch fill -p 0 0 -s 10 10 -c 030607",
-        ])
-
-        self.assertEqual(len(frames), 1)
-        self.assertTrue(frames[0].endswith(b"--batch flush\n--end\n"))
-        self.assertEqual(frames[0].count(b"--batch flush"), 1)
 
     def test_frame_limit_counts_utf8_bytes(self):
-        command = "--batch text -t " + ("Я" * 4100)
+        renderer = FEATHER.FeatherRenderer()
+        sent = RenderCapture(renderer).batches
 
-        with self.assertRaisesRegex(ValueError, "single Typer command"):
-            FEATHER.FeatherRenderer._encode_frames([command])
+        with self.assertLogs(level="WARNING"):
+            self.assertFalse(renderer.send(["--batch text -t " + ("Я" * 4100)]))
+        self.assertEqual(sent, [])
 
     def test_toast_registers_dismiss_hitbox_in_overlay_layer(self):
         renderer = FEATHER.FeatherRenderer()
@@ -2524,46 +2491,12 @@ class RendererStateTest(unittest.TestCase):
         self.assertEqual(controller.toast_until, 0.0)
         self.assertEqual(controller.toast_message, "")
 
-    def test_keyed_animation_frames_are_latest_wins(self):
-        renderer = FEATHER.FeatherRenderer()
-        renderer.send_animation(["frame 1"], "loader")
-        renderer.send_animation(["frame 2"], "loader")
-        renderer.send_animation(["frame 3"], "loader")
-        status = renderer.get_status()
-        self.assertEqual(status["queue_depth"], 1)
-        self.assertEqual(status["coalesced_batches"], 2)
-        queued = renderer._batch_queue.get()
-        self.assertEqual(queued.commands, ("frame 3",))
-
     def test_render_batch_serialized_size_is_bounded(self):
         renderer = FEATHER.FeatherRenderer()
-        accepted = renderer.send(["x" * (UI.MAX_PENDING_DRAW + 1)])
-        self.assertFalse(accepted)
-        status = renderer.get_status()
-        self.assertEqual(status["queue_depth"], 0)
-        self.assertEqual(status["dropped_batches"], 1)
-
-    def test_renderer_hands_off_touch_fd_before_closing_it(self):
-        renderer = FEATHER.FeatherRenderer()
-        events = []
-        renderer.configure_worker(
-            lambda callback: callback(0.0),
-            lambda old, new: events.append(("handoff", old, new)))
-        # The actual close ordering is exercised on the transport object: its
-        # acknowledged reactor handoff precedes descriptor close.
-        from ui.render_worker import TyperRenderWorker, RenderBatchQueue
-        transport = TyperRenderWorker(
-            RenderBatchQueue(), renderer._encode_frames, False,
-            ("typer", "/tmp/draw", "/tmp/event", "/dev/input/touch"),
-            lambda callback: callback(0.0),
-            lambda old, new: events.append(("handoff", old, new)))
-        transport.event_fd = 10
-        transport.draw_fd = 11
-        with mock.patch("os.close",
-                        side_effect=lambda fd: events.append(("close", fd))):
-            transport._close_transport()
-        self.assertEqual(events, [
-            ("handoff", 10, None), ("close", 10), ("close", 11)])
+        sent = RenderCapture(renderer).batches
+        with self.assertLogs(level="WARNING"):
+            self.assertFalse(renderer.send(["x" * 80] * (UI.MAX_PENDING_DRAW // 80 + 1)))
+        self.assertEqual(sent, [])
 
     def test_button_press_feedback_redraws_without_duplicate_hitbox(self):
         renderer = FEATHER.FeatherRenderer()

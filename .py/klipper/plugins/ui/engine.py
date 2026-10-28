@@ -13,7 +13,7 @@ and writes Typer commands. The framework has no Python implementation of
 them, so it cannot start without a matching engine.
 """
 
-ENGINE_ABI = 58
+ENGINE_ABI = 66
 
 try:
     import feather_engine
@@ -97,12 +97,15 @@ RendererBase = feather_engine.RendererBase
 # "button"): method descriptors the framework's classes assign, which the
 # engine calls directly while it walks the tree.
 NATIVE_METHODS = feather_engine.NATIVE_METHODS
-# The page's update and its paint policy: the update walk, a frame of named
+# The page's update and its paint policy: the stale dependencies and hosted
+# nodes commit updates, the update walk, a frame of named
 # refs, the rendering of an update (the partial path that repaints only the
 # dirty repaint boundaries, a full draw or a repaint), whether only the repaint
 # boundaries changed, which nodes the dirty nodes repaint, the state a node
 # paints with, whether a subtree covers a rect, and the fill restoring the
 # pixels below a transparent dirty root.
+refresh_stale_dependencies = feather_engine.refresh_stale_dependencies
+update_hosted = feather_engine.update_hosted
 update_nodes = feather_engine.update_nodes
 update_refs = feather_engine.update_refs
 render_updates = feather_engine.render_updates
@@ -115,6 +118,7 @@ background_repair = feather_engine.background_repair
 # calling Python) and the number that changes when a node class's behaviour
 # does, which a page's remembered build refusal is keyed on.
 FrameBuilder = feather_engine.FrameBuilder
+FrameLoop = feather_engine.FrameLoop
 behavior_epoch = feather_engine.behavior_epoch
 page_structure = feather_engine.page_structure
 collect_actions = feather_engine.collect_actions

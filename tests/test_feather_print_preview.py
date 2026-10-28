@@ -30,7 +30,7 @@ from ui.font_metrics import get_font_metrics  # noqa: E402
 
 from tests.feather_timelapse_test_helper import make_timelapse_state
 from tests.test_feather_screen import Reactor, StatusObject  # noqa: E402
-from tests.feather_render_test_helper import RenderCapture, RenderFrame, full_render_queue  # noqa: E402
+from tests.feather_render_test_helper import RenderCapture, RenderFrame, refused_render  # noqa: E402
 
 
 class ScenarioController(FEATHER.FeatherScreen):
@@ -524,7 +524,7 @@ class PrintPreviewLayoutTest(unittest.TestCase):
         controller.reactor.flush_callbacks()
         generation = controller.renderer.generation
         controller.pending_action = "print.pause"
-        with full_render_queue(controller.renderer):
+        with refused_render(controller.renderer):
             controller._update_print_controls()
         self.assertEqual(controller.renderer.generation, generation)
         self.assertTrue(any(region.action == "print.pause" for region in controller.renderer.hitboxes))

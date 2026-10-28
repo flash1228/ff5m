@@ -19,6 +19,7 @@ from ff5m_ui.calibration_screws import runtime as screws
 from feather.previews import decode_fxi1
 from ui import ThemeColor
 from ui.renderer import BinaryCommand, FeatherRenderer
+from tests.feather_render_test_helper import RenderCapture
 
 
 def pixels(blob):
@@ -95,7 +96,6 @@ class CalibrationIconsTest(unittest.TestCase):
         self.assertEqual(sum(image.payload == nut_blob for image in images), 4)
         self.assertEqual(sum(image.payload == arrow_blob for image in images), 3)
         self.assertEqual(len(images), 7)
+        sent = RenderCapture(renderer).batches
         self.assertTrue(renderer.send(commands))
-        frames = renderer._encode_frames(commands)
-        for command in images:
-            self.assertTrue(any(command.payload in frame for frame in frames))
+        self.assertEqual(sent, [tuple(commands)])

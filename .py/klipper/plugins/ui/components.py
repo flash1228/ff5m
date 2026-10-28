@@ -132,7 +132,7 @@ class Component(Node):
 
     # None: controls replace it with what decides their input.
     interaction_signature = _NATIVE["component"]["interaction_signature"]
-    # The node's update; a changed interaction signature invalidates the actions.
+    # The node's update; a changed interaction signature invalidates the page's input.
     update = _NATIVE["component"]["update"]
 
     def _replace_actions(self, name, value):

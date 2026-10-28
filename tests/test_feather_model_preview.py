@@ -21,7 +21,7 @@ from ff5m_ui.screen import ScreenPage
 from feather.screen.controls import FeatherControlsMixin
 from ui.render_receipts import RenderReceipt
 from ui import FeatherRenderer
-from tests.feather_render_test_helper import RenderCapture, full_render_queue
+from tests.feather_render_test_helper import RenderCapture, refused_render
 from tests.test_feather_print_preview import DeferredPreviewWorker, PreviewReactor
 
 
@@ -347,9 +347,7 @@ class ModelPreviewPacingTest(unittest.TestCase):
         image = self.state["page_tree"].rect(PAGE.common_ui.PreviewRef.IMAGE)
         self.assertTrue(all(shape.bounds.x >= image.right for shape in frame.shapes))
         self.assertTrue(all(text.value.startswith("YAW ") for text in frame.texts))
-        submitted = renderer.capture.submitted[-1]
-        self.assertEqual(submitted.kind, "animation")
-        self.assertIsNotNone(submitted.receipt)
+        self.assertIsNotNone(renderer.capture.submitted[-1].receipt)
 
     def test_all_controls_fit_without_overlap_or_label_truncation(self):
         renderer = self.controller.renderer
@@ -371,7 +369,7 @@ class ModelPreviewPacingTest(unittest.TestCase):
                                      and bounds.y < other.bottom and other.y < bounds.bottom)
 
     def test_rejected_static_frame_is_retried(self):
-        with full_render_queue(self.controller.renderer):
+        with refused_render(self.controller.renderer):
             next_tick = self.tick(self.initial_tick)
         self.assertFalse(self.state["accepted"])
         self.tick(next_tick)

@@ -13,7 +13,7 @@ from tests.feather_exclude_test_helper import hit_at, make_screen, tap
 from feather.screen.pages.exclude_objects import bed_object_rect, object_action, polygon_bounds
 from ff5m_ui.exclude_model import PAGE
 from ff5m_ui.screen import ScreenDialog, ScreenPage
-from tests.feather_render_test_helper import full_render_queue
+from tests.feather_render_test_helper import refused_render
 from ui import ThemeColor
 from ui.font_metrics import get_font_metrics
 
@@ -69,7 +69,7 @@ class ExcludeObjectsTest(unittest.TestCase):
         self.assertIsNone(self.screen._current_dialog())
 
     def test_rejected_popup_frame_preserves_print_controls_until_retry(self):
-        with full_render_queue(self.screen.renderer):
+        with refused_render(self.screen.renderer):
             tap(self.screen, "print.more")
         self.assertIsNone(self.screen._current_dialog())
         self.assertTrue(any(r.action == "print.cancel" for r in self.screen.renderer.hitboxes))
