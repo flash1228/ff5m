@@ -13,7 +13,7 @@ and writes Typer commands. The framework has no Python implementation of
 them, so it cannot start without a matching engine.
 """
 
-ENGINE_ABI = 41
+ENGINE_ABI = 57
 
 try:
     import feather_engine
@@ -69,6 +69,8 @@ portable = feather_engine.portable
 plain_tree = feather_engine.plain_tree
 # resolve() and Component's signature freezing for the framework's bindings.
 BindingResolver = feather_engine.BindingResolver
+# StyleSheet.apply over a node tree for the framework's property sources and layout fields.
+StyleApplier = feather_engine.StyleApplier
 # The state keys each node of a page reads, and the nodes reading each key.
 DependencyIndex = feather_engine.DependencyIndex
 # Font faces and the word-v1 text measurement on them.
@@ -109,8 +111,14 @@ dirty_roots = feather_engine.dirty_roots
 paint_state = feather_engine.paint_state
 subtree_covers = feather_engine.subtree_covers
 background_repair = feather_engine.background_repair
+# The build side of a page's frames (a mirror of its tree, built without
+# calling Python) and the number that changes when a node class's behaviour
+# does, which a page's remembered build refusal is keyed on.
+FrameBuilder = feather_engine.FrameBuilder
+behavior_epoch = feather_engine.behavior_epoch
 page_structure = feather_engine.page_structure
 collect_actions = feather_engine.collect_actions
+style_rules_match = feather_engine.style_rules_match
 dialog_layout = feather_engine.dialog_layout
 renderer_text_width = feather_engine.renderer_text_width
 renderer_normalize_font = feather_engine.renderer_normalize_font

@@ -11,7 +11,7 @@ from operator import methodcaller
 from .theme import ThemeColor, ThemeRole
 
 from .actions import Action, action_wire_id, validate_action
-from .bindings import DirectBinding, resolve, resolve_deep
+from .bindings import DerivedBinding, DirectBinding, resolve, resolve_deep
 from .bindings import signature_value as _signature_value
 from .engine import NATIVE_METHODS as _NATIVE
 from .font_metrics import get_font_metrics
@@ -117,9 +117,12 @@ class Component(Node):
     # Action accessors store their validated values in the node record.
     record_fields = ("action", "active_action")
     # What the engine's native draws resolve without calling Node's _resolve:
-    # theme tokens stay as they are, direct bindings read the state and
-    # actions are read by their wire ids.
+    # theme tokens stay as they are, direct bindings read the state, derived
+    # bindings read the result the page's state keeps while their inputs are
+    # unchanged (as resolve() gives it; a class replacing _resolve sets
+    # _derived_binding to None), and actions are read by their wire ids.
     _direct_binding = DirectBinding
+    _derived_binding = DerivedBinding
     _literal_types = (ThemeColor, ThemeRole)
     _action_type = Action
 
@@ -536,12 +539,9 @@ class Text(Component):
     _display_value = _NATIVE["text"]["_display_value"]
     draw = _NATIVE["text"]["draw"]
 
-    def _fitting_font(self, value, font, bounds, options):
-        """The font of the family that fits value within the bounds and the text limits."""
-        return get_font_metrics().fitting_font(
-            value, font, min(bounds.width, options.get("max_width") or bounds.width),
-            min(bounds.height, options.get("max_height") or bounds.height),
-            wrap=bool(options.get("wrap")))
+    # _fitting_font(value, font, bounds, options): the font of the family that
+    # fits value within the bounds and the text limits.
+    _fitting_font = _NATIVE["text"]["_fitting_font"]
 
 
 class Metric(Component):

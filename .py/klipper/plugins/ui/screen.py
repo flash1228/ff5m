@@ -5,7 +5,7 @@
 ## This file may be distributed under the terms of the GNU GPLv3 license
 
 from .bindings import page_state_keys
-from .layout import Dirty, Node, Overlay, PageTree, Rect
+from .layout import DeclarativePage, Dirty, Node, Overlay, PageTree, Rect
 
 
 class ScreenLayer:
@@ -18,6 +18,30 @@ class ScreenLayer:
         # Opt in only for painters that restore their own foreground pixels.
         self.retain_background = bool(retain_background)
         self.suspended = False
+
+
+class _PageSlot(Node):
+    """The place of a declarative page in the screen tree.
+
+    The page draws with its own tree, which keeps its layout, styles and
+    action table between shows. Building one screen tree around the page's
+    root instead walks the whole page at every show and layer change (4-6
+    times the cost of drawing the kept page, measured on the host).
+    """
+
+    paints_pixels = True
+    covers_bounds = True
+
+    def __init__(self, page, title, back):
+        super().__init__()
+        self.page = page
+        self.title = title
+        self.back = back
+
+    def render(self, renderer, state, layout):
+        commands = [] if self.title is None else list(renderer.begin_page(self.title, back=self.back))
+        commands += self.page.draw(renderer, self.page.state)
+        return commands
 
 
 class ScreenRoot:
@@ -33,11 +57,24 @@ class ScreenRoot:
     no active layers; otherwise it requests a tree repaint subject to the
     same modal admission rule.
     This adapter lets products migrate their page bodies independently.
+
+    The content is a node or a declarative page. A page keeps its values in
+    its own state: the product writes them there and paints, and a delta
+    draws the page's changes while no layer is visible. Under a modal layer
+    the changes wait for the layer to close; under other layers the
+    composition repaints. update() writes the layers' values.
+
+    select_content, when given, returns (content, title, back) for the
+    product's current state; each paint shows what it returns.
     """
 
-    def __init__(self, renderer, content, bounds, page_id, title="", chrome=True):
+    def __init__(self, renderer, content, bounds, page_id, title="", chrome=True,
+                 select_content=None):
         self.renderer = renderer
-        self.content = content
+        self.content = None
+        self._content_node = None
+        self._content_chrome = None
+        self._page = None
         self.bounds = bounds if isinstance(bounds, Rect) else Rect(*bounds)
         self.page_id = page_id
         self.title = title
@@ -51,6 +88,8 @@ class ScreenRoot:
         self._rebuild = True
         self._tree = None
         self._values = {}
+        self._select_content = select_content
+        self.replace_content(content)
         renderer.configure_frame_owner(self)
 
     def open(self, layer, replace=None, paint=True, *, before=None):
@@ -84,10 +123,27 @@ class ScreenRoot:
             self.paint()
         return True
 
-    def replace_content(self, content):
-        if not isinstance(content, Node):
-            raise TypeError("screen content must be a Node")
+    def replace_content(self, content, title=None, back=False):
+        """Show content: a node, or a declarative page with its title and back.
+
+        Showing the same content with the same title and back keeps the surface.
+        """
+        if content is self.content and self._content_chrome == (title, bool(back)):
+            return
+        if isinstance(content, DeclarativePage):
+            if title is not None and self.chrome:
+                raise ValueError("a page title needs a screen root without chrome")
+            self._content_node = _PageSlot(content, title, bool(back))
+            self._page = content
+        elif isinstance(content, Node):
+            if title is not None:
+                raise ValueError("only page content has a title")
+            self._content_node = content
+            self._page = None
+        else:
+            raise TypeError("screen content must be a Node or a DeclarativePage")
         self.content = content
+        self._content_chrome = (title, bool(back))
         self._rebuild = True
 
     def update(self, values=None):
@@ -96,7 +152,7 @@ class ScreenRoot:
         return self.paint()
 
     def invalidate(self, node=None):
-        (self.content if node is None else node).invalidate(Dirty.PAINT)
+        (self._content_node if node is None else node).invalidate(Dirty.PAINT)
 
     def paint(self, receipt=None, force=False, receipt_phase="presented"):
         if self.painting or not self.renderer.render_allowed:
@@ -106,6 +162,9 @@ class ScreenRoot:
         self._repaint_pending = False
         self.painting = True
         try:
+            if self._select_content is not None:
+                content, title, back = self._select_content()
+                self.replace_content(content, title=title, back=back)
             result = self._paint_frame(receipt, force, receipt_phase)
         finally:
             self.painting = False
@@ -134,7 +193,7 @@ class ScreenRoot:
             if mode == "full":
                 previous_schema = () if self._tree is None else self._tree.state_schema
                 self._tree = PageTree(
-                    Overlay(self.content, *(layer.node for layer in layers)),
+                    Overlay(self._content_node, *(layer.node for layer in layers)),
                     self.bounds, page_id=self.page_id,
                     state_schema=tuple(key for layer in self.layers
                                        for key in page_state_keys(layer.node)))
@@ -154,11 +213,23 @@ class ScreenRoot:
                 if all(layer.retain_background for layer in layers[modal_index:]):
                     mode = "update_foreground"
                     foreground = tuple(layer.node for layer in layers[modal_index:])
+            elif mode == "delta" and layers and self._page_changed():
+                # Layers are drawn again over the page's changed pixels.
+                return self._paint_frame(receipt, True, receipt_phase)
             elif (mode == "full" and not restore
                   and self.content is self._visible_content and not self.visible_layers
                   and len(layers) == 1 and modal_index == 0 and layers[0].retain_background):
                 mode = "open_foreground"
                 foreground = (layers[0].node,)
+
+            if (mode == "delta" and not layers and self._page_changed()
+                    and self._content_node.is_clean):
+                # The page's own update frame replays its input itself.
+                commands = self._page.update(self.renderer)
+                accepted = bool(commands) and self.renderer.send(
+                    commands, receipt=receipt, receipt_phase=receipt_phase)
+                self._rebuild = bool(commands) and not accepted
+                return accepted or not commands
 
             with self.renderer.compose(preserve_input=same_surface,
                                        retain_background=mode == "update_foreground") as frame:
@@ -194,6 +265,9 @@ class ScreenRoot:
             self.renderer.discard_surface()
             self._rebuild = True
             raise
+
+    def _page_changed(self):
+        return self._page is not None and bool(self._page.state.changed_keys)
 
     def submit(self, commands, **metadata):
         """Admit a legacy page delta or repaint its surrounding composition."""

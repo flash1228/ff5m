@@ -30,8 +30,7 @@ from .layout_helpers import (
     DIALOG_PAGER_MIN_HEIGHT, DIALOG_PAGER_RESERVE, DIALOG_TITLE_FONT,
     DIALOG_TITLE_LINE_SPACING, DIALOG_TITLE_TOP, DIALOG_TOP, DIALOG_BOTTOM_INSET,
     DIALOG_STATUS_FONT, DIALOG_STATUS_GAP,
-    dialog_horizontal_bounds, dialog_vertical_bounds, dialog_pager_bounds,
-    dialog_button_rows,
+    dialog_vertical_bounds, dialog_pager_bounds,
 )
 from .numeric_input import NumericInputSpec
 from .render_receipts import validate_render_receipt_token
@@ -290,11 +289,12 @@ class FeatherRenderer(RendererBase):
         """Route every ordinary submission through the screen composition root."""
         self._frame_owner = owner
 
-    # The engine keeps the input (generation, buttons, regions and pressed
-    # buttons) with its own snapshot; these are the other surface fields.
+    # The engine keeps the input (generation, buttons, regions, pressed
+    # buttons and the menu button's suppression) with its own snapshot; these
+    # are the other surface fields.
     _SURFACE_FIELDS = (
         "_toggles", "_page_title", "_page_back", "_semantic_page_id",
-        "_loader_active", "_menu_suppressed", "_footer_drawn", "_last_footer",
+        "_loader_active", "_footer_drawn", "_last_footer",
         "_header_action", "_dialog_bounds",
     )
     # Surface fields mutated in place; the snapshot copies them. Every other
@@ -509,19 +509,16 @@ class FeatherRenderer(RendererBase):
             self._header_action = requested_header
             return
         if commands and preserve_input and previous is not None:
-            if self._input_changed():
-                # Replace only input IDs after building pixels once. These
-                # final resets remove IDs embedded in the earlier draw commands.
+            # Replace only input IDs after building pixels once. These final
+            # resets remove IDs embedded in the earlier draw commands.
+            replaced = self._finish_kept_input()
+            if replaced:
                 frame["input_changed"] = True
                 # Input replacement is a prerequisite for later pixel-only updates.
                 key = None
-                self._generation += 1
-                self._pressed_buttons = set()
-                commands.extend(self._input_commands())
+                commands.extend(replaced)
                 if kind is None:
                     kind = "state"
-            else:
-                self._restore_pressed()
         if commands:
             if receipt is None:
                 frame["accepted"] = self.send(commands, kind=kind, key=key)
@@ -541,16 +538,6 @@ class FeatherRenderer(RendererBase):
     def retaining_background(self):
         """The current foreground pass must leave retained backdrop pixels intact."""
         return self._retain_background
-
-    def _input_commands(self):
-        commands = [self.clear_hitboxes("base"), self.clear_hitboxes("overlay")]
-        for action, spec in self._hitboxes:
-            commands.append(self._hitbox(self._wire_action(action), *spec[:4],
-                                        continuous=spec[4]))
-        for action, spec in self._overlay_hitboxes:
-            commands.append(self._hitbox(self._wire_action(action), *spec[:4],
-                                        continuous=spec[4], layer="overlay"))
-        return commands
 
     @contextmanager
     def collect(self):
@@ -719,16 +706,9 @@ class FeatherRenderer(RendererBase):
         return _immutable_commands(commands).frames(
             final_suffix, b"--end\n", MAX_ATOMIC_DRAW)
 
-    def decode_action(self, action):
-        """Reject taps emitted for a page that has already been replaced."""
-        prefix, separator, logical = str(action).partition(":")
-        if not separator:
-            return action  # Compatibility with tests and older typer builds.
-        try:
-            generation = int(prefix)
-        except ValueError:
-            return None
-        return logical if generation == self._visible_input("_generation") else None
+    # decode_action(action) is the engine's: the logical action of a tap when
+    # its generation is the visible surface's, so taps emitted for a page that
+    # has already been replaced are refused (None).
 
     @property
     def generation(self):
@@ -1359,16 +1339,14 @@ class FeatherRenderer(RendererBase):
         buttons = tuple(buttons)
         screen_width = getattr(self, "screen_width", SCREEN_WIDTH)
         screen_height = getattr(self, "screen_height", SCREEN_HEIGHT)
-        x, width = dialog_horizontal_bounds(
-            width, title, (button[1] for button in buttons),
-            measure_text=self.text_width, screen_width=screen_width)
-        footer_rows = dialog_button_rows(
-            buttons, width, measure_text=self.text_width,
-            normalize_font=self.normalize_font, padding=self.BUTTON_TEXT_PADDING)
-        if len(footer_rows) > 2:
+        # The dialog layout fits the panel to the title and actions and wraps
+        # the actions into footer rows; more than two leave the footer.
+        x, _y, width, _height, _titles, _lines, _page, _count, has_footer, footer_height, _rows = dialog_layout(
+            self, _DIALOG_POLICY + (self.DIALOG_TEXT_PADDING, self.BUTTON_TEXT_PADDING, screen_width,
+                                    screen_height),
+            title, (), buttons, (), 0, 0, int(width), int(height), True, True, 0)
+        if buttons and not has_footer:
             raise ValueError("Status dialog needs a paginated dialog for more than two action rows")
-        footer_height = (len(footer_rows) * DIALOG_BUTTON_HEIGHT
-                         + max(0, len(footer_rows) - 1) * DIALOG_BUTTON_GAP)
 
         text_width = width - 2 * self.DIALOG_TEXT_PADDING
         metrics = get_font_metrics()
@@ -1386,7 +1364,7 @@ class FeatherRenderer(RendererBase):
 
         title_bottom = DIALOG_TITLE_TOP + metrics.metric(DIALOG_TITLE_FONT).glyph_height
         bottom_space = DIALOG_BUTTON_BOTTOM + footer_height
-        if footer_rows:
+        if has_footer:
             bottom_space += DIALOG_STATUS_GAP
         body_limit = (screen_height - DIALOG_TOP - DIALOG_BOTTOM_INSET
                       - title_bottom - DIALOG_STATUS_GAP - bottom_space)
@@ -1402,7 +1380,7 @@ class FeatherRenderer(RendererBase):
 
         height = max(DIALOG_MIN_HEIGHT, int(height))
         y, height = dialog_vertical_bounds(
-            (screen_height - height) // 2, height, 0, bool(footer_rows),
+            (screen_height - height) // 2, height, 0, has_footer,
             screen_height, minimum_height=title_bottom + DIALOG_STATUS_GAP + body_height + bottom_space,
             footer_height=footer_height)
         commands = self.dialog(

@@ -14,14 +14,14 @@ import functools
 from functools import lru_cache
 
 from .engine import (
-    LAYOUT_FIELDS, NODE_FIELDS, ActionTable, CommandList, DependencyIndex, EqualTracks, Field, Flex, GridCell,
-    Insets, LayoutResult, NodeBase, Rect,
-    NATIVE_METHODS as _NATIVE, background_repair, dirty_roots, normalize_tracks as _normalize_tracks,
+    LAYOUT_FIELDS, NODE_FIELDS, ActionTable, CommandList, DependencyIndex, EqualTracks, Field, Flex, FrameBuilder,
+    GridCell, Insets, LayoutResult, NodeBase, Rect,
+    NATIVE_METHODS as _NATIVE, background_repair, behavior_epoch, dirty_roots, normalize_tracks as _normalize_tracks,
     page_structure, paint_state, portable, render_updates, split, update_nodes,
     update_refs as _update_refs,
 )
 from .bindings import (
-    _RESOLVER, Binding, ItemScope, StateStore, binding_keys, derived, page_state_keys, resolve,
+    _RESOLVER, Binding, DirectBinding, ItemScope, StateStore, binding_keys, derived, page_state_keys, resolve,
 )
 from .actions import Command, ItemCommand, action_wire_id, collect_actions, validate_action
 from .font_metrics import get_font_metrics
@@ -295,14 +295,6 @@ def _dependency_index(structure, previous=None):
 def _attributes(node):
     """The node's declared fields, then its instance attributes, as (name, value) pairs."""
     return node._fields() + tuple(node.__dict__.items())
-
-
-_ACTION_FIELDS = ("action", "actions", "buttons")
-
-
-def _holds_actions(node):
-    """Whether the node stores actions that only a full input rebuild can register."""
-    return any(name in _ACTION_FIELDS for name, _ in _attributes(node))
 
 
 class CreationIdentityContract:
@@ -622,11 +614,18 @@ def _validate_template_item(value, path="ListView item"):
 
 @lru_cache(maxsize=128)
 def _constructor_signature(constructor):
+    """The signature without self, and the name of its **kwargs parameter or None.
+
+    Parameter.kind and .name are Python properties; reading them once per
+    constructor keeps them out of every node construction.
+    """
     signature = inspect.signature(constructor)
     parameters = tuple(signature.parameters.values())
     if parameters and parameters[0].name == "self":
         signature = signature.replace(parameters=parameters[1:])
-    return signature
+    var_keywords_name = next((parameter.name for parameter in signature.parameters.values()
+                              if parameter.kind == inspect.Parameter.VAR_KEYWORD), None)
+    return signature, var_keywords_name
 
 
 def _is_param_ref(value):
@@ -655,15 +654,10 @@ def _construction_arguments(cls, args, kwargs):
     explicit = set()
     deferred = {}
     try:
-        signature = _constructor_signature(cls.__init__)
+        signature, var_keywords_name = _constructor_signature(cls.__init__)
         bound = signature.bind_partial(*args, **kwargs)
         source_specs = None
 
-        var_keywords_name = None
-        for parameter in signature.parameters.values():
-            if parameter.kind == inspect.Parameter.VAR_KEYWORD:
-                var_keywords_name = parameter.name
-                break
         var_keywords = ({} if var_keywords_name is None else
                         dict(bound.arguments.get(var_keywords_name, {}) or {}))
 
@@ -673,8 +667,7 @@ def _construction_arguments(cls, args, kwargs):
                 explicit.add(spec.name)
 
         for name, value in tuple(bound.arguments.items()):
-            parameter = signature.parameters[name]
-            if parameter.kind == inspect.Parameter.VAR_KEYWORD:
+            if name == var_keywords_name:
                 values = dict(value or {})
                 changed = False
                 for key, item in tuple(values.items()):
@@ -695,7 +688,7 @@ def _construction_arguments(cls, args, kwargs):
                 continue
             if source_specs is None:
                 source_specs = _source_specs(cls)
-            placeholder = _param_placeholder(parameter, source_specs.get(name, ()))
+            placeholder = _param_placeholder(signature.parameters[name], source_specs.get(name, ()))
             if placeholder is inspect.Parameter.empty:
                 continue
             deferred[name] = value
@@ -847,6 +840,7 @@ class Node(NodeBase):
     owns_relayout = False
     relayout_fields = ()
     _relayout_sources = ()
+    _style_sources = ()
     # Read by the engine when it creates the node's layout_options.
     _layout_defaults = tuple(_LAYOUT_DEFAULTS[name] for name in LAYOUT_FIELDS)
     # Product hooks may read state that no property declares, so the page
@@ -874,6 +868,14 @@ class Node(NodeBase):
             (spec.name, spec.source.runtime_name or spec.name, spec.source.storage == "kwargs",
              spec.source.runtime_index, spec.default if spec.has_default else None)
             for spec in cls.relayout_fields)
+        # Where the engine's StyleApplier reads and writes each styleable
+        # property, as PropertySpec.value_from and set_on do, and whether a
+        # change relayouts.
+        cls._style_sources = tuple(
+            (spec.name, spec.source.runtime_name or spec.name, spec.source.storage == "kwargs",
+             spec.source.runtime_index, spec.default if spec.has_default else None, spec.nullable,
+             spec.inheritable, spec.invalidation != Invalidation.PAINT)
+            for spec in cls.property_schema if spec.styleable)
         init = cls.__dict__.get("__init__")
         if init is not None and not getattr(init, "_node_construction", False):
             cls.__init__ = _node_construction(init)
@@ -1085,15 +1087,9 @@ class Node(NodeBase):
     # interaction_commands(renderer, state, bounds) is the engine's: no input
     # to replay. Controls replace it to replay their input after a reflow.
 
-    def render_interactions(self, renderer, state, layout):
-        state = getattr(self, "_item_scope", state)
-        commands = []
-        if type(self).interaction_commands is not Node.interaction_commands:
-            commands.extend(_command_list(
-                self.interaction_commands(renderer, state, layout.rect(self))))
-        for child in self.paint_children(state):
-            commands.extend(child.render_interactions(renderer, state, layout))
-        return commands
+    # render_interactions(renderer, state, layout) is the engine's: the input
+    # replay of the painted subtree in paint order, each node's
+    # interaction_commands in its _item_scope when it has one.
 
     def replace_preview_children(self, children, placements=None):
         """Replace children on a cloned Designer tree through the framework.
@@ -1115,7 +1111,7 @@ class Node(NodeBase):
 
     def _refresh_dependencies(self, index):
         """Index the state keys the node's declared render data reads."""
-        index.refresh(self, binding_keys(tuple(value for _, value in _attributes(self))))
+        index.refresh(self, binding_keys(_attributes(self)))
 
     # _update_layout_inputs(state, baseline) is NodeBase's: the relayout
     # fields resolved and kept as _layout_inputs, a change invalidating the
@@ -1130,16 +1126,9 @@ class Node(NodeBase):
         spec = next(spec for spec in self.relayout_fields if spec.name == name)
         return spec.default if spec.has_default else None
 
-    def walk(self):
-        yield self
-        for child in self.render_children():
-            yield from child.walk()
-
-    def walk_declarations(self):
-        """Include template dependencies even before any items exist."""
-        yield self
-        for child in self.render_children():
-            yield from child.walk_declarations()
+    # walk() and walk_declarations() are the engine's: the node and its render
+    # subtree as a list. A class whose declarations are not all render
+    # children replaces walk_declarations.
 
     def apply_override(self, name, value):
         for child in self.render_children():
@@ -1414,6 +1403,10 @@ class Overlay(Node):
     creation_contract = _OVERLAY_CREATION
     structure_contract = _OVERLAY_STRUCTURE
     record_fields = ("children",)
+    # Later children paint over earlier ones: the engine's paint policy
+    # repaints an Overlay when a later child paints over a dirty one or the
+    # background below it is unknown.
+    _stacks_children = True
 
     def __init__(self, *children, **kwargs):
         super().__init__(key=kwargs.get("key"))
@@ -1839,11 +1832,13 @@ class ListView(List):
     paint_children = _NATIVE["list_view"]["paint_children"]
 
     def walk_declarations(self):
-        yield self
+        """Include template dependencies even before any items exist."""
+        nodes = [self]
         for template in self.templates:
-            yield from template.root.walk_declarations()
+            nodes.extend(template.root.walk_declarations())
         for child in self.render_children():
-            yield from child.walk_declarations()
+            nodes.extend(child.walk_declarations())
+        return nodes
 
     def replace_preview_children(self, children, placements=None):
         raise TypeError(
@@ -2136,6 +2131,10 @@ class When(SingleChild):
     """Render a child only when the state predicate is true."""
 
     owns_relayout = True
+    # The engine paints the branch from the predicate it stores; it resolves
+    # a direct binding there from the page's state.
+    record_fields = ("predicate",)
+    _direct_binding = DirectBinding
 
     def __init__(self, predicate, child, key=None):
         super().__init__(child, key=key)
@@ -2177,52 +2176,56 @@ class StateCase(When):
     def __init__(self, *children, **kwargs):
         if "selector" not in kwargs or "expected" not in kwargs:
             raise TypeError("StateCase requires selector and expected")
-        self._selector = kwargs.pop("selector")
-        self._expected = kwargs.pop("expected")
+        self._set_field("selector", kwargs.pop("selector"))
+        self._set_field("expected", kwargs.pop("expected"))
         if kwargs.keys() - {"key"}:
             raise TypeError("Unknown StateCase arguments: %s" %
                             ", ".join(sorted(kwargs)))
         super().__init__(self._predicate(), Overlay(*children),
                          key=kwargs.get("key"))
 
+    # selector and expected are stored in the engine, which compares them to
+    # paint the branch; assigning one rebuilds the predicate.
     @property
     def selector(self):
-        return self._selector
+        return self._get_field("selector")
 
     @selector.setter
     def selector(self, value):
-        self._selector = value
+        self._set_field("selector", value)
         self.predicate = self._predicate()
         self.invalidate_layout()
 
     @property
     def expected(self):
-        return self._expected
+        return self._get_field("expected")
 
     @expected.setter
     def expected(self, value):
-        self._expected = value
+        self._set_field("expected", value)
         self.predicate = self._predicate()
         self.invalidate_layout()
 
     def _predicate(self):
         # Parameter declarations are materialized before a template can render.
         # derived() deliberately accepts only concrete Binding inputs.
-        if isinstance(self._selector, ParamRef) or isinstance(self._expected, ParamRef):
+        if isinstance(self.selector, ParamRef) or isinstance(self.expected, ParamRef):
             return False
         return self._binding_predicate()
 
     def _binding_predicate(self):
         return derived(
-            lambda current, expected=self._expected: current == expected,
-            self._selector)
+            lambda current, expected=self.expected: current == expected,
+            self.selector)
 
     # The engine's: state_signature is resolve(selector, state) ==
     # resolve(expected, state); render draws the child while the signature
-    # holds; the render children are the overlay's.
+    # holds; the render children are the overlay's; paint_children is When's
+    # (the predicate), which the engine's core also answers.
     state_signature = _NATIVE["state_case"]["state_signature"]
     render = _NATIVE["state_case"]["render"]
     render_children = _NATIVE["state_case"]["render_children"]
+    paint_children = _NATIVE["state_case"]["paint_children"]
 
     def replace_preview_children(self, children, placements=None):
         self.child.replace_preview_children(children, placements)
@@ -2445,9 +2448,14 @@ class DeclarativePage(Tree):
     bounds_source_contract = PAGE_BOUNDS_SOURCE_CONTRACT
     declarations_source_contract = PAGE_DECLARATIONS_SOURCE_CONTRACT
     action_reference_contract = ACTION_REFERENCE_SOURCE_CONTRACT
-    # The engine's paint policy repaints an Overlay when a later child paints
-    # over a dirty one or the background below it is unknown.
-    _overlay_type = Overlay
+
+    # The frame builder while it builds the page's frames: it built the last
+    # one, and page.layout is the layout it published. The live path drops
+    # it whenever it arranges; a full draw enters it again.
+    _builder = None
+    # (behavior_epoch(), _structure) when a build last needed Python; the page
+    # draws on the live path while both hold.
+    _build_refused = None
 
     def __init__(self, content, bounds, state=None, page_id=None,
                  state_schema=(), actions=(), styles=None,
@@ -2493,6 +2501,13 @@ class DeclarativePage(Tree):
         if self.initialized:
             self.root.clear_dirty()
 
+    def __getstate__(self):
+        # A copy builds its own frames: the frame builder holds the frames this
+        # page built, and the copy's next full draw enters one of its own.
+        state = dict(self.__dict__)
+        state.pop("_builder", None)
+        return state
+
     def _refresh_actions(self):
         # The table refuses a wire id shared by two different actions.
         actions = ActionTable()
@@ -2530,6 +2545,7 @@ class DeclarativePage(Tree):
         if self.styles is not None:
             self._apply_styles(self.root)
         self.layout = LayoutResult()
+        self._builder = None
         self.root.arrange(self.bounds, self.layout)
         self.root.clear_dirty()
         self.state.clear_changes()
@@ -2576,28 +2592,91 @@ class DeclarativePage(Tree):
 
     def _render_full(self, renderer, arrange, refresh_actions, render_from=None,
                      prepared_layout=None):
-        if arrange:
-            self.layout = prepared_layout if prepared_layout is not None else LayoutResult()
-            if prepared_layout is None:
-                self.root.arrange(self.bounds, self.layout)
-            self._layout_bounds = self.bounds
-            self._layout_metrics_key = get_font_metrics().cache_key
         if refresh_actions:
             self._refresh_actions()
         set_page_identity = getattr(renderer, "set_semantic_page", None)
         if set_page_identity is not None:
             set_page_identity(self.page_id)
-        if render_from is None:
-            commands = self.root.render(renderer, self.state, self.layout)
-        else:
-            commands = CommandList()
-            for node in render_from:
-                commands.extend(node.render_dirty(
-                    renderer, self._paint_state(node), self.layout))
+        commands = self._build_full(renderer, arrange, render_from)
+        if commands is None:
+            if arrange:
+                self.layout = prepared_layout if prepared_layout is not None else LayoutResult()
+                self._builder = None
+                if prepared_layout is None:
+                    self.root.arrange(self.bounds, self.layout)
+            if render_from is None:
+                commands = self.root.render(renderer, self.state, self.layout)
+            else:
+                commands = CommandList()
+                for node in render_from:
+                    commands.extend(node.render_dirty(
+                        renderer, self._paint_state(node), self.layout))
+        if arrange:
+            self._layout_bounds = self.bounds
+            self._layout_metrics_key = get_font_metrics().cache_key
         self.root.clear_dirty()
         self.initialized = True
         self.state.clear_changes()
         return commands
+
+    def _build_full(self, renderer, arrange, render_from):
+        """Build a full draw on the page's frame builder.
+
+        Returns None when the live path draws it instead: the draw that
+        initializes the page (opening a page whose frames need Python then
+        costs no refused build; its next full draw enters the builder), a
+        build needed Python since the structure and class behaviours last
+        changed, the renderer may not draw, or this build needs Python. A
+        frame builder entering without arranging continues from the page's
+        layout.
+        """
+        if not self.initialized or self._build_refused == (behavior_epoch(), self._structure):
+            return None
+        builder = self._builder if self._builder is not None else FrameBuilder()
+        commands = self._build(renderer, builder, lambda: builder.draw(
+            self.root, renderer, self.state, self.bounds, arrange=arrange, render_from=render_from,
+            layout=self.layout))
+        if commands is not None:
+            self.layout = builder.layout
+        return commands
+
+    def _build_update(self, renderer, frame):
+        """Build an update frame, the frame builder's method of that name
+        (repaint or replay), on the page's frame builder. Returns None when
+        the live path renders it instead: the page is not building its
+        frames, the renderer may not draw, or the build needs Python."""
+        builder = self._builder
+        if builder is None:
+            return None
+        return self._build(renderer, builder, lambda: getattr(builder, frame)(self.root, renderer, self.state))
+
+    def _build(self, renderer, builder, build):
+        """Run build() on builder, which the page then builds its frames on.
+        Returns None, leaving the builder, when the renderer may not draw or
+        the build needs Python. The live paint prepares the renderer's
+        surface at its first button; a build prepares it before."""
+        prepare = getattr(renderer, "_prepare_surface", None)
+        if prepare is not None and not prepare():
+            self._builder = None
+            return None
+        try:
+            commands = build()
+        except RuntimeError:
+            self._refuse_build()
+            return None
+        except BaseException:
+            # A failed build kept no layout.
+            self._builder = None
+            raise
+        self._builder = builder
+        return commands
+
+    def _refuse_build(self):
+        """Remember that building the page's frames needs Python, until its
+        structure or a node class's behaviour changes, and leave them to the
+        live path, which continues from the layout the builder published."""
+        self._builder = None
+        self._build_refused = (behavior_epoch(), self._structure)
 
     def update(self, renderer, state=None):
         if state is not None:
@@ -2649,34 +2728,41 @@ class DeclarativePage(Tree):
     def _render_updates(self, renderer):
         """Render the updated nodes: a relayout through the engine's partial
         path when it can serve, else a full draw; otherwise a repaint of the
-        dirty roots. Changed actions take _refresh_input_updates."""
+        dirty roots. The frame builder renders them while it builds the
+        page's frames. Changed actions take _refresh_input_updates."""
         return render_updates(self, renderer, get_font_metrics().cache_key)
 
     def _refresh_input_updates(self, renderer):
         """Render an update whose actions changed: replay the input over a
         repaint of the dirty roots when the renderer can and every control
-        replays its own, else draw the page in full."""
-        replay_input = (hasattr(renderer, "rebuild_page_input")
-                        and all(type(node).interaction_commands is not Node.interaction_commands
-                                or not _holds_actions(node)
-                                for node in self.root.walk()))
-        if self.root._dirty >= Dirty.LAYOUT or not replay_input:
+        replays its own, else draw the page in full. The frame builder
+        builds the repaint and the replay while it builds the page's
+        frames."""
+        refreshed = self.root._dirty < Dirty.LAYOUT and hasattr(renderer, "rebuild_page_input")
+        if refreshed:
+            # The new structure knows whether every node holding actions
+            # replays them (replayable).
+            self._refresh_actions()
+        if not refreshed or not self._structure.replayable:
             commands = CommandList(renderer.redraw_page())
-            commands.extend(self._render_full(renderer, arrange=True, refresh_actions=True))
+            commands.extend(self._render_full(renderer, arrange=True, refresh_actions=not refreshed))
             return commands
-        self._refresh_actions()
-        roots = self._dirty_roots()
         commands = CommandList()
         try:
-            for root in roots:
-                commands.extend(self._background_repair(renderer, root))
-                commands.extend(
-                    root.render_dirty(
-                        renderer, self._paint_state(root), self.layout))
+            built = self._build_update(renderer, "repaint")
+            if built is not None:
+                commands.extend(built)
+            else:
+                for root in self._dirty_roots():
+                    commands.extend(self._background_repair(renderer, root))
+                    commands.extend(
+                        root.render_dirty(
+                            renderer, self._paint_state(root), self.layout))
             # Typer removes hitboxes per layer. Replay input in paint order
             # while keeping unchanged pixels and geometry intact.
             with renderer.rebuild_page_input() as input_commands:
-                self.root.render_interactions(renderer, self.state, self.layout)
+                if self._build_update(renderer, "replay") is None:
+                    self.root.render_interactions(renderer, self.state, self.layout)
             commands.extend(input_commands)
         except Exception:
             # A partially prepared input layer needs a complete retry.

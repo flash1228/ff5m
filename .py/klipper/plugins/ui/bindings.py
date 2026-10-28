@@ -599,6 +599,9 @@ _RESOLVER = BindingResolver(Binding, DirectBinding, ItemBinding, DerivedBinding,
                             StateStore, ItemScope, (ThemeColor, ThemeRole), serialize_key)
 resolve = _RESOLVER.resolve
 signature_value = _RESOLVER.signature_value
+# binding_keys(value): the state keys the bindings within value read (tuples,
+# lists and dict values searched), each once, in the order found.
+binding_keys = _RESOLVER.binding_keys
 
 
 def resolve_deep(value, store):
@@ -722,37 +725,7 @@ def binding_metadata(binding, store):
     return result
 
 
-def binding_keys(value):
-    result = []
-    seen = set()
-
-    def visit(item):
-        if isinstance(item, Binding):
-            for key in item.keys:
-                if key not in seen:
-                    result.append(key)
-                    seen.add(key)
-        elif isinstance(item, (tuple, list)):
-            for child in item:
-                visit(child)
-        elif isinstance(item, dict):
-            for child in item.values():
-                visit(child)
-
-    visit(value)
-    return tuple(result)
-
-
 def page_state_keys(root, explicit=()):
-    result = list(_unique_keys(explicit))
-    seen = set(result)
-    for node in root.walk_declarations():
-        # Declared fields live in the node's engine record, the rest in __dict__.
-        for name, value in node._fields() + tuple(node.__dict__.items()):
-            if name.startswith("_") or name in ("parent", "layout_options"):
-                continue
-            for key in binding_keys(value):
-                if key not in seen:
-                    result.append(key)
-                    seen.add(key)
-    return _unique_keys(result)
+    # The explicit keys, then those the bindings in the declarations' public
+    # fields read (declared fields in the engine record, the rest in __dict__).
+    return _unique_keys(tuple(_unique_keys(explicit)) + _RESOLVER.declared_keys(root.walk_declarations()))
