@@ -21,7 +21,7 @@ from .engine import (
     update_refs as _update_refs,
 )
 from .bindings import (
-    _RESOLVER, Binding, DirectBinding, ItemScope, StateStore, binding_keys, derived, page_state_keys, resolve,
+    _RESOLVER, Binding, DirectBinding, ItemScope, StateStore, binding_reads, derived, page_state_keys, resolve,
 )
 from .actions import Command, ItemCommand, action_wire_id, collect_actions, validate_action
 from .font_metrics import get_font_metrics
@@ -283,11 +283,8 @@ def _dependency_index(structure, previous=None):
             continue
         if type(node)._reads_unindexed_state:
             index.always(node)
-        keys = None if previous is None else previous.keys_of(node)
-        if keys is None or node._dependencies_stale:
+        if previous is None or node._dependencies_stale or not index.adopt(previous, node):
             node._refresh_dependencies(index)
-        else:
-            index.assign(node, keys)
         position += 1
     return index
 
@@ -1110,8 +1107,9 @@ class Node(NodeBase):
     # state; there it refreshes stale dependencies and skips clean subtrees.
 
     def _refresh_dependencies(self, index):
-        """Index the state keys the node's declared render data reads."""
-        index.refresh(self, binding_keys(_attributes(self)))
+        """Index the state keys the node's declared render data reads and
+        the derived bindings it holds."""
+        index.refresh(self, *binding_reads(_attributes(self)))
 
     # _update_layout_inputs(state, baseline) is NodeBase's: the relayout
     # fields resolved and kept as _layout_inputs, a change invalidating the
@@ -2577,6 +2575,7 @@ class DeclarativePage(Tree):
                 node = self.node(ref)
                 node.update(self._paint_state(node))
         else:
+            self.commit(everything=True)
             self.root.update(self.state, initialize=not reuse_layout)
         if (self.styles is not None and not (reuse_cached and reuse_styles)
                 and not self._styles_current()):
@@ -2687,10 +2686,25 @@ class DeclarativePage(Tree):
         metrics_current = self._layout_metrics_key == get_font_metrics().cache_key
         if not metrics_current:
             self.root.invalidate_layout()
+        self.commit()
         self._update_nodes((self.root,), metrics_current)
         if self.styles is not None and not self._styles_current():
             self._apply_styles(self.root)
         return self._render_updates(renderer)
+
+    def commit(self, everything=False):
+        """Run the Python work of the state's changes before the update pass.
+
+        Evaluates the derived bindings of the nodes reading a changed key
+        (with everything, of every indexed node) that the state keeps no
+        result of; a node under a branch that stays hidden is left alone, as
+        the pass leaves it. The state keeps the plain results, so the
+        engine's update pass and paint read them without calling Python.
+        Nodes the index does not cover (ListView items, nodes whose
+        dependencies are stale) and content a branch shows in this update
+        still evaluate theirs in the pass.
+        """
+        self._dependencies.commit(self.state, _RESOLVER, everything)
 
     def _apply_styles(self, root):
         """Run the complete style pass and remember the rules it applied."""

@@ -599,9 +599,10 @@ _RESOLVER = BindingResolver(Binding, DirectBinding, ItemBinding, DerivedBinding,
                             StateStore, ItemScope, (ThemeColor, ThemeRole), serialize_key)
 resolve = _RESOLVER.resolve
 signature_value = _RESOLVER.signature_value
-# binding_keys(value): the state keys the bindings within value read (tuples,
-# lists and dict values searched), each once, in the order found.
-binding_keys = _RESOLVER.binding_keys
+# binding_reads(value): (keys, derived), the state keys the bindings within
+# value read (tuples, lists and dict values searched), each once, in the order
+# found, and the derived bindings found outside other derived bindings.
+binding_reads = _RESOLVER.binding_reads
 
 
 def resolve_deep(value, store):
