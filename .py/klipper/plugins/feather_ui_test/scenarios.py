@@ -670,7 +670,7 @@ class ScenarioCatalog:
             "last_job_name", "print_state", "print_stats", "virtual_sdcard",
             "_current_material", "_print_progress", "_print_time_values",
             "_operation_context_status", "_operation_context_text",
-            "_last_dashboard",
+            "_last_dashboard", "page",
         )
         original = dict((name, getattr(host, name)) for name in names)
         try:
@@ -702,10 +702,13 @@ class ScenarioCatalog:
                 lambda eventtime=None, status=None:
                 "PRINT -> CALIBRATING AND PREPARING PRINT SURFACE")
             host._last_dashboard = None
-            host._render_home()
+            host.page = ScreenPage.IDLE_HOME
+            host._render_screen()
         finally:
             for name, value in original.items():
                 setattr(host, name, value)
+            # The page keeps the filled values; the next show writes the dashboard.
+            host._last_dashboard = None
 
     def _render_file_loading_snapshot(self):
         with _temporary_attributes(self.host, {

@@ -1348,10 +1348,41 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         if root is None:
             from ui import Rect, ScreenRoot
 
+            self._page_surface = self._new_page_surface()
             root = self._screen_root = ScreenRoot(
-                self.renderer, self._new_page_surface(),
-                Rect(0, 0, 800, 480), AppPage.SCREEN_ROOT, chrome=False)
+                self.renderer, self._page_surface,
+                Rect(0, 0, 800, 480), AppPage.SCREEN_ROOT, chrome=False,
+                select_content=self._screen_content)
         return root
+
+    def _screen_content(self):
+        """Return what the screen shows now, with its title and back button.
+
+        The screen root asks before every paint, as the page painter decided
+        at paint time. A declarative page is the content itself; the painter
+        surface draws the printer's state screens, feature pages and
+        imperative pages.
+        """
+        if not self._page_covered():
+            if self.page == ScreenPage.IDLE_HOME:
+                return self._home_content()
+            if self.page == ScreenPage.CONTROL_HEAT:
+                return self._heat_content()
+        return self._page_surface, None, False
+
+    def _page_covered(self):
+        manager = getattr(self, "feature_manager", None)
+        return (self._state_screen() is not None
+                or (manager is not None and manager.owner_name(self.page) is not None))
+
+    def _write_page_values(self):
+        """Write the current values of the declarative page the screen shows."""
+        if self._page_covered():
+            return
+        if self.page == ScreenPage.IDLE_HOME:
+            self._write_dashboard(self.reactor.monotonic())
+        elif self.page == ScreenPage.CONTROL_HEAT:
+            self._write_heat_values(self.reactor.monotonic())
 
     def _current_dialog_instance(self):
         root = getattr(self, "_screen_root", None)
@@ -1502,7 +1533,7 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         self.page = page
         root = getattr(self, "_screen_root", None)
         if root is not None and old_page != page:
-            root.replace_content(self._new_page_surface())
+            self._page_surface = self._new_page_surface()
         self._notify_features("on_page_changed", old_page, page)
         self._render_screen(feature=feature)
         update_notification = getattr(self, "update_notification", None)
@@ -1511,22 +1542,28 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
 
     def _render_screen(self, feature=None, force=False):
         root = self._ensure_screen_root()
+        self._write_page_values()
         self._sync_dialog_layers()
         root.invalidate()
         accepted = root.paint(force=force)
         self._show_touch_unavailable()
         return accepted
 
-    def _paint_page(self, feature=None):
+    def _state_screen(self):
+        """Return the painter of the screen that covers every page now, or None."""
         if getattr(self, "system_shutdown_active", False):
-            self.renderer.startup_modal("FORGE-X", "SHUTTING DOWN", critical=True)
-            return
+            return lambda: self.renderer.startup_modal("FORGE-X", "SHUTTING DOWN", critical=True)
         if getattr(self, "busy_message", None):
-            self.renderer.loader(self.busy_message, getattr(self, "busy_phase", 0))
-            return
+            return lambda: self.renderer.loader(self.busy_message, getattr(self, "busy_phase", 0))
         if (getattr(self, "print_state", None) == PrintState.INACTIVE
                 or getattr(self, "restart_pending", False)):
-            self._render_startup_modal()
+            return self._render_startup_modal
+        return None
+
+    def _paint_page(self, feature=None):
+        state_screen = self._state_screen()
+        if state_screen is not None:
+            state_screen()
             return
         page = self.page
         if feature is None:
@@ -1535,8 +1572,6 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
                 feature = manager.get_for_page(page)
         if feature is not None:
             feature.render(page)
-        elif page == ScreenPage.IDLE_HOME:
-            self._render_home()
         elif page == ScreenPage.MAIN_MENU:
             self._render_main_menu()
         elif page == ScreenPage.CONTROL_HOME:
@@ -1555,8 +1590,6 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
             self._render_timelapse_wait()
         elif page == ScreenPage.CONTROL_MOVE:
             self._render_move()
-        elif page == ScreenPage.CONTROL_HEAT:
-            self._render_heat()
         elif page == ScreenPage.NETWORK_HOME:
             self._render_network_home()
         elif page == ScreenPage.WIFI_SCAN:

@@ -751,14 +751,8 @@ class FeatherControlsMixin:
         else:
             raise KeyError("Unsupported Z-offset command: %s" % key)
 
-    def _render_heat(self):
-        now = self.reactor.monotonic()
-        values, signature = self._heat_ui_values(now)
-        commands = self.renderer.begin_page("Heat / fan", back=True)
-        commands += heat_ui.render(
-            self.renderer, self.heating_materials, values)
-        self.renderer.send(commands)
-        self._last_heat = signature
+    def _heat_content(self):
+        return heat_ui.get_page(self.heating_materials), "Heat / fan", True
 
     def _heat_ui_values(self, eventtime):
         extruder = self.extruder.get_status(eventtime)
@@ -781,15 +775,18 @@ class FeatherControlsMixin:
         )
         return values, signature
 
-    def _update_heat_status(self, eventtime):
+    def _write_heat_values(self, eventtime):
+        """Write the heaters and fan into the page when they changed; return whether it did."""
         values, signature = self._heat_ui_values(eventtime)
         if signature == self._last_heat:
-            return
+            return False
         self._last_heat = signature
-        commands = heat_ui.update(
-            self.renderer, self.heating_materials, values)
-        if commands:
-            self.renderer.send(commands)
+        heat_ui.get_page(self.heating_materials).state.update(values)
+        return True
+
+    def _update_heat_status(self, eventtime):
+        if self._write_heat_values(eventtime):
+            self._ensure_screen_root().paint()
 
     def _handle_heat_action(self, action):
         now = self.reactor.monotonic()
@@ -839,7 +836,8 @@ class FeatherControlsMixin:
                                       self.reactor.monotonic() + 0.1)
 
     def _refresh_heat_after_action(self, eventtime):
-        self._render_heat()
+        if self.page == ScreenPage.CONTROL_HEAT:
+            self._render_screen()
         if self.toast_until > eventtime:
             self.renderer.toast(self.toast_message)
 

@@ -191,26 +191,18 @@ def create_page():
 PAGE = create_page()
 
 
-def render(host):
-    eventtime = host.reactor.monotonic()
+def write(host, eventtime):
+    """Write the dashboard into the page when it changed; return whether it did."""
     current = collect_dashboard(host, eventtime)
-    commands = host.renderer.begin_page(PAGE_TITLE)
-    commands += PAGE.draw(host.renderer, dashboard_values(current))
-    host.renderer.send(commands)
+    if current == host._last_dashboard:
+        return False
     host._last_dashboard = current
+    PAGE.state.update(dashboard_values(current))
+    return True
 
 
 def update(host, eventtime):
     if host.page != ScreenPage.IDLE_HOME:
         return
-    current = collect_dashboard(host, eventtime)
-    if current == host._last_dashboard:
-        return
-    previous = host._last_dashboard
-    host._last_dashboard = current
-    if previous is None:
-        commands = PAGE.draw(host.renderer, dashboard_values(current))
-    else:
-        commands = PAGE.update(host.renderer, dashboard_values(current))
-    if commands:
-        host.renderer.send(commands)
+    if write(host, eventtime):
+        host._ensure_screen_root().paint()

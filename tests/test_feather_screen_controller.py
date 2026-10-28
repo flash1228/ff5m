@@ -17,6 +17,7 @@ from tests.feather_timelapse_test_helper import make_timelapse_state
 
 from tests.test_feather_screen import (
     blank_page,
+    paint_home,
     DeferredReactor,
     FEATHER,
     FailingGCode,
@@ -164,6 +165,7 @@ class ControllerSafetyTest(unittest.TestCase):
 
     def test_home_cards_register_navigation_without_icon_font(self):
         controller = ScenarioController.__new__(ScenarioController)
+        controller._last_dashboard = None
         controller.page = FEATHER.ScreenPage.IDLE_HOME
         controller.renderer = FEATHER.FeatherRenderer()
         controller.reactor = Reactor()
@@ -180,7 +182,7 @@ class ControllerSafetyTest(unittest.TestCase):
         controller._refresh_local_timezone = lambda: None
         batches = RenderCapture(controller.renderer).batches
 
-        controller._render_home()
+        controller._render_screen()
 
         drawing = "\n".join(batches[0])
         self.assertNotIn("Typicons", drawing)
@@ -254,7 +256,6 @@ class ControllerSafetyTest(unittest.TestCase):
         controller.renderer = FEATHER.FeatherRenderer()
         called = []
         routes = {
-            FEATHER.ScreenPage.IDLE_HOME: "_render_home",
             FEATHER.ScreenPage.MAIN_MENU: "_render_main_menu",
             FEATHER.ScreenPage.CONTROL_HOME: "_render_control_home",
             FEATHER.ScreenPage.FILE_BROWSER: "_render_file_browser",
@@ -262,7 +263,6 @@ class ControllerSafetyTest(unittest.TestCase):
             FEATHER.ScreenPage.PRINTING: "_render_print_page",
             FEATHER.ScreenPage.PAUSED: "_render_print_page",
             FEATHER.ScreenPage.CONTROL_MOVE: "_render_move",
-            FEATHER.ScreenPage.CONTROL_HEAT: "_render_heat",
             FEATHER.ScreenPage.CALIBRATION_HOME: "_render_calibration_home",
             FEATHER.ScreenPage.CALIBRATION_GUIDE: "_render_calibration_guide",
             FEATHER.ScreenPage.EXTRUDER_CALIBRATION:
@@ -307,6 +307,18 @@ class ControllerSafetyTest(unittest.TestCase):
         for method in set(routes.values()):
             setattr(controller, method,
                     lambda method=method: called.append(method))
+        # Declarative pages are the screen content themselves.
+        contents = {
+            FEATHER.ScreenPage.IDLE_HOME: "_home_content",
+            FEATHER.ScreenPage.CONTROL_HEAT: "_heat_content",
+        }
+        for method in contents.values():
+            setattr(controller, method, lambda method=method: (
+                called.append(method), (controller._page_surface, None, False))[1])
+        controller._write_dashboard = lambda eventtime: False
+        controller._write_heat_values = lambda eventtime: False
+        controller.reactor = Reactor()
+        routes.update(contents)
         for page, method in routes.items():
             called[:] = []
             controller._show_page(page)
@@ -325,7 +337,8 @@ class ControllerSafetyTest(unittest.TestCase):
                 "nav.menu", 648, 9, 132, 38, "MENU")
             drawing.extend(commands)
 
-        controller._render_home = render_home
+        paint_home(controller, render_home)
+        controller.reactor = Reactor()
 
         controller._show_page(FEATHER.ScreenPage.IDLE_HOME)
 
@@ -499,6 +512,7 @@ class ControllerSafetyTest(unittest.TestCase):
         controller = ScenarioController.__new__(ScenarioController)
         controller.page = FEATHER.ScreenPage.IDLE_HOME
         controller.renderer = FEATHER.FeatherRenderer()
+        controller.reactor = Reactor()
         batches = RenderCapture(controller.renderer).batches
         controller.extruder = StatusObject({"temperature": 20.0, "target": 0.0})
         controller.heater_bed = StatusObject({"temperature": 21.0, "target": 0.0})
@@ -512,7 +526,7 @@ class ControllerSafetyTest(unittest.TestCase):
 
         with mock.patch.object(
                 HOME_STATE.time, "strftime", return_value="20:00"):
-            controller._update_dashboard(100)
+            controller._render_screen()
             initial_state = controller._last_dashboard
             controller.extruder.status["temperature"] = 22.0
             controller._update_dashboard(101)
@@ -575,7 +589,7 @@ class ControllerSafetyTest(unittest.TestCase):
         controller._read_text = lambda path: ""
         controller._refresh_local_timezone = lambda: None
 
-        controller._render_home()
+        controller._render_screen()
 
         drawing = "\n".join("\n".join(batch) for batch in batches)
         for value in (
@@ -3749,7 +3763,7 @@ class ControllerSafetyTest(unittest.TestCase):
         controller = ScenarioController.__new__(ScenarioController)
         controller.renderer = FEATHER.FeatherRenderer()
         batches = RenderCapture(controller.renderer).batches
-        controller.page = FEATHER.ScreenPage.IDLE_HOME
+        controller.page = FEATHER.ScreenPage.MAIN_MENU
         controller._paint_page = lambda: controller.renderer.send(
             controller.renderer.begin_page("Ready") + controller.renderer.button(
                 "ready.confirm", 220, 300, 360, 100, "CONTINUE"))
@@ -3777,7 +3791,7 @@ class ControllerSafetyTest(unittest.TestCase):
         controller = ScenarioController.__new__(ScenarioController)
         controller.renderer = FEATHER.FeatherRenderer()
         rendering = RenderCapture(controller.renderer)
-        controller.page = FEATHER.ScreenPage.IDLE_HOME
+        controller.page = FEATHER.ScreenPage.MAIN_MENU
         controller._paint_page = lambda: controller.renderer.send(
             controller.renderer.begin_page("Ready") + controller.renderer.button(
                 "ready.confirm", 220, 300, 360, 100, "CONTINUE"))
@@ -3861,9 +3875,9 @@ class ControllerSafetyTest(unittest.TestCase):
         controller = ScenarioController.__new__(ScenarioController)
         controller.renderer = FEATHER.FeatherRenderer()
         controller.page = FEATHER.ScreenPage.IDLE_HOME
-        controller._render_home = lambda: controller.renderer.send(
+        paint_home(controller, lambda: controller.renderer.send(
             controller.renderer.begin_page("Ready") + controller.renderer.button(
-                "ready.confirm", 220, 300, 360, 100, "CONTINUE"))
+                "ready.confirm", 220, 300, 360, 100, "CONTINUE")))
         controller.shutdown_active = False
         controller.system_shutdown_active = False
         controller.boot_screen_held = False

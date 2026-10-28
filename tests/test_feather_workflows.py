@@ -18,11 +18,11 @@ from tests.feather_timelapse_test_helper import make_timelapse_state
 
 try:
     from tests.test_feather_screen import (
-        FEATHER, RESURRECTION, GCodeRecorder, Reactor, StatusObject)
+        FEATHER, RESURRECTION, GCodeRecorder, Reactor, StatusObject, paint_home)
     from tests.feather_render_test_helper import RenderCapture
 except ImportError:
     from test_feather_screen import (
-        FEATHER, RESURRECTION, GCodeRecorder, Reactor, StatusObject)
+        FEATHER, RESURRECTION, GCodeRecorder, Reactor, StatusObject, paint_home)
     from feather_render_test_helper import RenderCapture
 
 from ui import CONTENT_BOTTOM, Increment
@@ -213,6 +213,8 @@ def base_controller(state="idle"):
     controller.renderer.set_header_action.return_value = False
     controller._render_dialog = lambda: None
     controller._paint_page = lambda: None
+    # Home is declarative; these tests paint every page with _paint_page.
+    paint_home(controller, lambda: controller._paint_page())
     controller._render_screen = lambda feature=None: FEATHER.FeatherScreen._render_dialog(controller)
     controller._last_context_cancel_result = None
     controller._filament_request_token = 0
@@ -474,7 +476,7 @@ class ScreenCompositionWorkflowTest(unittest.TestCase):
         def paint():
             controller.renderer.send(controller.renderer.begin_page(controller.page.name) + [
                 controller.renderer.text(content["x"], 100, content["text"])])
-        controller._render_home = paint
+        paint_home(controller, paint)
         controller._render_print_page = paint
         controller._show_message("Foreground", controller.page)
         frames = len(rendering.frames)
@@ -3792,8 +3794,11 @@ class MotionHeatSettingsTest(unittest.TestCase):
         controller.extruder = StatusObject({"temperature": 21.5, "target": 220})
         controller.heater_bed = StatusObject({"temperature": 24.0, "target": 60})
         controller.fan = StatusObject({"speed": 0.25})
+        controller._last_heat = None
+        controller._render_screen = lambda feature=None: (
+            FEATHER.FeatherScreen._render_screen(controller, feature))
 
-        controller._render_heat()
+        controller._show_page(FEATHER.ScreenPage.CONTROL_HEAT)
 
         actions = tuple(
             action for action in HEAT_UI.get_page(
@@ -3815,8 +3820,9 @@ class MotionHeatSettingsTest(unittest.TestCase):
         controller.extruder = StatusObject({"temperature": 21.5, "target": 0})
         controller.heater_bed = StatusObject({"temperature": 24.0, "target": 0})
         controller.fan = StatusObject({"speed": 0.0})
+        controller._last_heat = None
 
-        controller._render_heat()
+        controller._show_page(FEATHER.ScreenPage.CONTROL_HEAT)
 
         actions = tuple(
             action.key for action in HEAT_UI.get_page(()).actions.values())
@@ -6215,7 +6221,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
                 shown.append(page)
             controller.renderer.send(controller.renderer.begin_page(page.name))
         controller._render_main_menu = lambda: paint_page(FEATHER.ScreenPage.MAIN_MENU)
-        controller._render_home = lambda: paint_page(FEATHER.ScreenPage.IDLE_HOME)
+        paint_home(controller, lambda: paint_page(FEATHER.ScreenPage.IDLE_HOME))
         controller._render_control_home = lambda: paint_page(FEATHER.ScreenPage.CONTROL_HOME)
         controller._render_print_page = lambda: paint_page(controller.page)
         return controller, shown
@@ -6559,8 +6565,8 @@ class ActionPromptProtocolTest(unittest.TestCase):
     def test_replacing_prompt_repaints_one_message_over_the_page(self):
         controller, _ = self.controller_with_navigation()
         renderer = controller.renderer
-        controller._render_home = lambda: renderer.send(
-            renderer.begin_page("Home"))
+        paint_home(controller, lambda: renderer.send(
+            renderer.begin_page("Home")))
         controller._render_dialog = (
             lambda: FEATHER.FeatherScreen._render_dialog(controller))
         controller._render_action_prompt = lambda instance: renderer.send(
@@ -6590,8 +6596,8 @@ class ActionPromptProtocolTest(unittest.TestCase):
     def test_replacing_large_message_with_small_message_clears_old_panel(self):
         controller, _ = self.controller_with_navigation()
         renderer = controller.renderer
-        controller._render_home = lambda: renderer.send(
-            renderer.begin_page("Home"))
+        paint_home(controller, lambda: renderer.send(
+            renderer.begin_page("Home")))
         controller._render_dialog = (
             lambda: FEATHER.FeatherScreen._render_dialog(controller))
         controller._show_page(FEATHER.ScreenPage.IDLE_HOME)
@@ -6702,15 +6708,19 @@ class ActionPromptProtocolTest(unittest.TestCase):
         controller, _ = self.controller_with_navigation()
         renderer = controller.renderer
         rendering = RenderCapture(renderer)
+        home_paints = []
+        paint_home(controller, lambda: (
+            home_paints.append(controller.page),
+            renderer.send(renderer.begin_page(controller.page.name))))
         controller._show_page(controller.page)
-        controller._render_home = mock.Mock(wraps=controller._render_home)
+        home_paints.clear()
         controller.extruder = StatusObject({"temperature": 190.0, "target": 100.0})
         controller.operation_context.status.update(
             context_types=("cold_pull",), current_state="COOLING NOZZLE",
             cancel_available=True, cancel_pending=False)
         controller._handle_gcode_output("\n".join((
             "// action:prompt_begin Cold Pull", "// action:prompt_feather_kind cold_pull", "// action:prompt_show")))
-        controller._render_home.assert_not_called()
+        self.assertEqual(home_paints, [])
         self.assertIn(renderer.modal_scrim(), rendering.batches[-1])
         tap = renderer._wire_action("coldpull.cancel")
         generation = renderer.generation
@@ -6718,7 +6728,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
         FEATHER.FeatherScreen._render_dialog(controller)
         controller.operation_context.status["current_state"] = "PULLING"
         FEATHER.FeatherScreen._render_dialog(controller)
-        controller._render_home.assert_not_called()
+        self.assertEqual(home_paints, [])
         self.assertNotIn(renderer.modal_scrim(), rendering.batches[-1])
         self.assertEqual(renderer.generation, generation)
         self.assertEqual(renderer.decode_action(tap), "coldpull.cancel")
@@ -6728,7 +6738,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
         submitted = len(rendering.frames)
         FEATHER.FeatherScreen._render_dialog(controller)
         self.assertEqual(len(rendering.frames), submitted + 1)
-        controller._render_home.assert_not_called()
+        self.assertEqual(home_paints, [])
         self.assertIsNone(renderer.decode_action(tap))
         self.assertNotIn("coldpull.cancel", renderer._buttons)
 

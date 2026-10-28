@@ -85,6 +85,16 @@ def blank_page(screen, page=FEATHER.ScreenPage.IDLE_HOME):
     """Put dialog tests over a page whose own content is irrelevant."""
     screen.page = page
     screen._paint_page = lambda feature=None: None
+    paint_home(screen, lambda: screen._paint_page())
+
+
+def paint_home(screen, painter):
+    """Show the home page through a painter instead of its declarative page."""
+    from feather.screen.composition import PaintSurface
+
+    surface = PaintSurface(painter)
+    screen._home_content = lambda: (surface, None, False)
+    screen._write_dashboard = lambda eventtime: False
 
 
 class StatusObject:
@@ -1600,8 +1610,8 @@ class RendererStateTest(unittest.TestCase):
         screen._clear_dialogs()
         screen.page = FEATHER.ScreenPage.IDLE_HOME
         screen._show_touch_unavailable = lambda: None
-        screen._render_home = lambda: screen.renderer.send(
-            screen.renderer.begin_page("Home"))
+        paint_home(screen, lambda: screen.renderer.send(
+            screen.renderer.begin_page("Home")))
         screen._run_script = mock.Mock()
         screen._start_action_prompt("Old")
         screen._append_action_prompt_button("CONFIRM|OLD_COMMAND")
@@ -1630,8 +1640,8 @@ class RendererStateTest(unittest.TestCase):
         screen.renderer = FEATHER.FeatherRenderer()
         screen.page = FEATHER.ScreenPage.IDLE_HOME
         screen._show_touch_unavailable = lambda: None
-        screen._render_home = lambda: screen.renderer.send(
-            screen.renderer.begin_page("Home"))
+        paint_home(screen, lambda: screen.renderer.send(
+            screen.renderer.begin_page("Home")))
         screen._run_script = mock.Mock()
         screen._start_action_prompt("Old")
         screen._append_action_prompt_button("CONFIRM|OLD_COMMAND")
@@ -1663,8 +1673,8 @@ class RendererStateTest(unittest.TestCase):
         screen = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)
         screen.renderer = FEATHER.FeatherRenderer()
         screen.page = FEATHER.ScreenPage.IDLE_HOME
-        screen._render_home = lambda: screen.renderer.send(
-            screen.renderer.begin_page("Home"))
+        paint_home(screen, lambda: screen.renderer.send(
+            screen.renderer.begin_page("Home")))
         screen._start_action_prompt("Old")
         screen._show_action_prompt()
         screen._start_action_prompt("New draft")
@@ -1703,8 +1713,8 @@ class RendererStateTest(unittest.TestCase):
         screen.page = FEATHER.ScreenPage.IDLE_HOME
         screen._clear_dialogs()
         screen._show_touch_unavailable = lambda: None
-        screen._render_home = lambda: screen.renderer.send(
-            screen.renderer.begin_page("Home"))
+        paint_home(screen, lambda: screen.renderer.send(
+            screen.renderer.begin_page("Home")))
         screen._start_action_prompt("Waiting")
         screen._append_action_prompt_button("CANCEL|CANCEL_COMMAND")
         screen._show_action_prompt()
