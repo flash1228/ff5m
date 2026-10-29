@@ -49,8 +49,9 @@ class ModelFrameBandsTest(unittest.TestCase):
                     commands.append(renderer.image(40, 118 + offset, band))
                 self.assertEqual(rows, height)
                 self.assertEqual(output, packed)
-                # A band is one binary command: each must fit a frame of its own.
-                self.assertTrue(all(renderer.send([command]) for command in commands))
+                # Each band fits a frame; the whole raster, up to the 512x512
+                # cap, is one transaction.
+                self.assertTrue(renderer.send(commands, receipt="bands"))
 
 
 class ModelPreviewProcessTest(unittest.TestCase):

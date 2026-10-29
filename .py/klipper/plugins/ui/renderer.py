@@ -112,7 +112,12 @@ BUSY_NOTICE_X = 622
 BUSY_NOTICE_Y = 9
 BUSY_NOTICE_WIDTH = 160
 BUSY_NOTICE_HEIGHT = 38
-MAX_BATCH_BYTES = 64 * 1024
+# What one send() may carry: one transaction must hold the largest frame the
+# screen shows, a full 800x480 picture at 4 bits per pixel (192,000 bytes, as
+# bands of at most MAX_ATOMIC_DRAW) with a page around it. It only checks a
+# batch: nothing is allocated for it, and the frame loop writes a transaction
+# one frame at a time.
+MAX_BATCH_BYTES = 256 * 1024
 MAX_PENDING_DRAW = MAX_BATCH_BYTES
 # Historical public name retained for compatibility.  This is a bounded
 # logical transport-frame size, not a Linux FIFO atomic-write guarantee:
