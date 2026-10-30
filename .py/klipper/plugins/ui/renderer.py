@@ -271,7 +271,6 @@ class FeatherRenderer(RendererBase):
         self._menu_suppressed = False
         self._loader_active = False
         self._output_frozen = False
-        self._output_held = False
         self._font_manifest_loaded = False
         self._semantic_page_id = None
         self._page_title = ""
@@ -300,7 +299,7 @@ class FeatherRenderer(RendererBase):
 
     @property
     def render_allowed(self):
-        return not (self._output_frozen or self._output_held)
+        return not self._output_frozen
 
     # Whether the renderer may draw; the first call of a surface keeps the
     # visible surface fields and snapshots the input.
@@ -365,21 +364,15 @@ class FeatherRenderer(RendererBase):
     def thaw_output(self):
         self._output_frozen = False
 
-    def hold_output(self):
-        """Suppress framebuffer writes without stopping renderer lifecycle."""
-        self._output_held = True
-
-    def release_output(self):
-        self._output_held = False
-
-    def clear_display(self, key="display-clear"):
-        """Replace every framebuffer pixel before a new display owner draws."""
+    def _clear_display(self):
+        """Replace every framebuffer pixel before this renderer draws. It
+        precedes whatever the frame owner composes, so it is not the owner's."""
         self._footer_drawn = False
-        return self.send([
+        return self._submit(RenderSubmission(_immutable_commands([
             self.clear_hitboxes("base"),
             self.clear_hitboxes("overlay"),
             "--batch clear -c %s" % self.color(ThemeColor.BACKGROUND),
-        ], kind="critical", key=key)
+        ]), None, "presented", True))
 
     # str(value) as one double-quoted Typer token: line breaks become "\n", a
     # line holding only the frame sentinel "--end" gets a leading space, and
@@ -387,7 +380,12 @@ class FeatherRenderer(RendererBase):
     quote = staticmethod(quote)
 
     def start(self):
-        """Start the frame loop, which launches Typer on its own thread."""
+        """Start the frame loop, which launches Typer on its own thread.
+
+        Until then batches are admitted without being written, so a screen
+        that another owner holds (a boot screen) is a renderer not started
+        yet: start() is its release.
+        """
         self._output_frozen = False
         if self._event_fd_handler is None:
             raise RuntimeError("frame loop callbacks are not configured")
@@ -409,8 +407,11 @@ class FeatherRenderer(RendererBase):
         # Typer's double buffer initially contains whatever was left in the
         # framebuffer. Clear the complete panel before the first partial page
         # render so neither the persistent footer nor the outer margins can
-        # expose pixels from the previous screen owner.
-        self.clear_display("worker-clear")
+        # expose pixels from the previous screen owner. Whatever the frame
+        # owner composed before is not on the panel, so it draws all of it.
+        self._clear_display()
+        if self._frame_owner is not None:
+            self._frame_owner.surface_cleared()
         return started
 
     def _typer_arguments(self):
@@ -562,11 +563,6 @@ class FeatherRenderer(RendererBase):
     def send(self, commands, kind=None, key=None, generation=None,
              receipt=None, button_feedback=False, receipt_phase="presented"):
         """Publish one immutable batch; registered buttons can respond while frozen."""
-        if self._output_held:
-            self._next_batch_kind = None
-            self._next_batch_key = None
-            self._finish_surface(False)
-            return False
         if self._output_frozen and not button_feedback:
             self._finish_surface(False)
             return False

@@ -467,11 +467,13 @@ lifecycle policy.
 
 Before starting Klipper in Feather mode, the boot script creates the common
 Forge-X screen marker `/tmp/forge_x_screen_busy`. Feather still initializes its
-renderer and runtime, but its renderer output gate discards frames while that
-file exists, leaving the splash and first-boot service logger as the sole
-framebuffer owner. After `S99root start` has closed its `logged` pipeline, it
-removes the file and publishes `action:forge_x_redraw`. Feather releases the
-output gate, clears the complete panel, and renders the current page. If the
+renderer and runtime, but does not start the renderer (Typer is not launched)
+while that file exists: frames are admitted without being written, leaving the
+splash and first-boot service logger as the sole framebuffer owner. After
+`S99root start` has closed its `logged` pipeline, it removes the file and
+publishes `action:forge_x_redraw`. Feather starts the renderer, whose start
+clears the complete panel, and renders the current page whole; a safety screen
+frozen during the hold is drawn and stays frozen. If the
 redraw signal is unavailable, the existing startup-animation callback before
 `klippy:ready`, or the normal one-second UI update afterward, observes the
 removed marker and performs the same release without a separate boot timer.

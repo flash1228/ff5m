@@ -3966,12 +3966,6 @@ class ControllerSafetyTest(unittest.TestCase):
         class Renderer:
             output_frozen = False
 
-            def release_output(self):
-                events.append("release")
-
-            def clear_display(self, key):
-                events.append(("clear-display", key))
-
         controller = ScenarioController.__new__(ScenarioController)
         controller.renderer = Renderer()
         controller.boot_screen_held = True
@@ -3986,10 +3980,56 @@ class ControllerSafetyTest(unittest.TestCase):
             controller._handle_gcode_output("// action:forge_x_redraw")
 
         self.assertFalse(controller.boot_screen_held)
+        # Starting the renderer clears the panel for the hand-off.
         self.assertEqual(events, [
-            "release", "ensure-renderer", ("clear-display", "boot-handoff"),
-            ("show", FEATHER.ScreenPage.CONTROL_HEAT),
+            "ensure-renderer", ("show", FEATHER.ScreenPage.CONTROL_HEAT),
         ])
+
+    def test_the_renderer_starts_when_the_boot_screen_is_released(self):
+        controller = ScenarioController.__new__(ScenarioController)
+        controller.renderer = mock.Mock(active=False, output_frozen=False)
+        controller.boot_screen_held = True
+        controller.print_state = FEATHER.PrintState.IDLE
+        controller.page = FEATHER.ScreenPage.IDLE_HOME
+        controller._show_page = mock.Mock()
+
+        # Typer is not launched while Forge-X's boot screen owns the panel.
+        self.assertFalse(controller._ensure_renderer_started())
+        controller.renderer.start.assert_not_called()
+
+        with mock.patch.object(FEATHER.os.path, "exists", return_value=False):
+            self.assertTrue(controller._release_boot_screen())
+
+        controller.renderer.start.assert_called_once_with()
+        controller._show_page.assert_called_once_with(FEATHER.ScreenPage.IDLE_HOME)
+
+    def test_a_screen_frozen_during_the_boot_hold_is_drawn_and_stays_frozen(self):
+        drawn = []
+
+        class Renderer:
+            active = False
+            output_frozen = True
+
+            def start(self):
+                # As the renderer's start: it thaws the output.
+                self.output_frozen = False
+
+            def freeze_output(self):
+                self.output_frozen = True
+
+        controller = ScenarioController.__new__(ScenarioController)
+        controller.renderer = Renderer()
+        controller.boot_screen_held = True
+        controller.print_state = FEATHER.PrintState.IDLE
+        controller.page = FEATHER.ScreenPage.IDLE_HOME
+        controller._show_page = lambda page: drawn.append(
+            (page, controller.renderer.output_frozen))
+
+        with mock.patch.object(FEATHER.os.path, "exists", return_value=False):
+            self.assertTrue(controller._release_boot_screen())
+
+        self.assertEqual(drawn, [(FEATHER.ScreenPage.IDLE_HOME, False)])
+        self.assertTrue(controller.renderer.output_frozen)
 
     def test_touch_warning_waits_for_boot_screen_release(self):
         controller = ScenarioController.__new__(ScenarioController)
@@ -3999,7 +4039,6 @@ class ControllerSafetyTest(unittest.TestCase):
         controller._paint_page = lambda: controller.renderer.send(
             controller.renderer.begin_page("Ready") + controller.renderer.button(
                 "ready.confirm", 220, 300, 360, 100, "CONTINUE"))
-        controller.renderer.hold_output()
         controller.boot_screen_held = True
         controller.print_state = FEATHER.PrintState.IDLE
         controller.page = FEATHER.ScreenPage.IDLE_HOME
@@ -4017,7 +4056,6 @@ class ControllerSafetyTest(unittest.TestCase):
         self.assertFalse(controller._show_touch_unavailable())
         self.assertIsNone(controller._find_dialog(FEATHER.ScreenDialog.TOUCH_UNAVAILABLE))
         self.assertFalse(controller.renderer.output_frozen)
-        self.assertEqual(capture.submitted, [])
         self.assertEqual(
             controller.renderer.touch_unavailable_modal.call_count, 0)
 
@@ -4052,7 +4090,6 @@ class ControllerSafetyTest(unittest.TestCase):
 
         self.assertFalse(released)
         self.assertTrue(controller.boot_screen_held)
-        controller.renderer.release_output.assert_not_called()
         controller._ensure_renderer_started.assert_not_called()
 
     def test_startup_timer_rechecks_busy_screen_without_drawing(self):

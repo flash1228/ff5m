@@ -264,9 +264,9 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         self.renderer.configure_worker(
             self._renderer_event_fd_changed, self._renderer_restarted)
         self.renderer.set_sent_handler(self._renderer_sent)
+        # While Forge-X's boot screen owns the panel the renderer is not
+        # started: its frames are admitted without being written.
         self.boot_screen_held = os.path.exists(FORGE_X_SCREEN_BUSY_PATH)
-        if self.boot_screen_held:
-            self.renderer.hold_output()
         self.file_worker = FileWorker(register_async)
         self.feature_manager = LazyFeatureManager(self, FEATURE_SPECS)
         self.safety = self._build_safety_registry()
@@ -412,16 +412,17 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
                 or os.path.exists(FORGE_X_SCREEN_BUSY_PATH)):
             return False
         self.boot_screen_held = False
-        self.renderer.release_output()
-        renderer_started = self._ensure_renderer_started()
-        if not renderer_started:
-            self.renderer.clear_display("boot-handoff")
-        if self.renderer.output_frozen:
-            return True
+        # Starting clears the whole panel and thaws the output, so the current
+        # screen is drawn whole; a safety screen frozen during the hold stays
+        # the display's only owner.
+        frozen = self.renderer.output_frozen
+        self._ensure_renderer_started()
         if self.print_state == PrintState.INACTIVE and self._find_dialog(ScreenDialog.ERROR) is None:
             self._render_startup_modal()
         else:
             self._show_page(self.page)
+        if frozen:
+            self.renderer.freeze_output()
         return True
 
     def _lookup_mod_params_before_ready(self):
@@ -484,7 +485,7 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
                 "[feather_screen] unable to redraw after typer restart")
 
     def _ensure_renderer_started(self):
-        if self.renderer.active:
+        if self.renderer.active or getattr(self, "boot_screen_held", False):
             return False
         if not hasattr(self.renderer, "start"):
             return False

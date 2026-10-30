@@ -154,6 +154,13 @@ class ScreenRoot:
     def invalidate(self, node=None):
         (self._content_node if node is None else node).invalidate(Dirty.PAINT)
 
+    def surface_cleared(self):
+        """The renderer cleared the panel (its start): nothing composed before
+        is visible, so the next paint draws the whole composition."""
+        self._rebuild = True
+        self.visible_layers = ()
+        self._visible_content = None
+
     def paint(self, receipt=None, force=False, receipt_phase="presented"):
         if self.painting or not self.renderer.render_allowed:
             self._repaint_pending = self._repaint_pending or force
