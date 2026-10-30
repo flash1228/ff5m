@@ -10,7 +10,7 @@ import os
 import threading
 import time
 
-from ui import ThemeColor
+from ui import ThemeColor, TouchEvent
 from ui.lazy import LazyModule
 from ui.render_receipts import ReceiptTracker
 from ff5m_ui.screen import ScreenPage
@@ -298,29 +298,23 @@ class ModelPreviewPagesMixin:
         if not self.renderer.send(commands, kind="state", receipt=token):
             self._render_model_preview()
 
-    def _coalesce_model_preview_moves(self, lines):
+    def _coalesce_model_preview_moves(self, events):
         # Repainting every queued sample can prevent frame completions and
         # timers from running. Keep gesture edges and other events in order.
         pending, pending_action = None, None
-        for line in lines:
+        for event in events:
             action = None
-            if line.startswith("touch ") and getattr(self, "page", None) == ScreenPage.PRINT_PREVIEW:
-                fields = line.split()
-                if len(fields) == 5 and fields[0] == "touch" and fields[2] == "move":
-                    try:
-                        int(fields[3]), int(fields[4])
-                    except ValueError:
-                        pass
-                    else:
-                        if self.renderer.decode_action(fields[1]) in ("model.yaw_joystick", "model.pitch_joystick"):
-                            action = fields[1]
+            if (isinstance(event, TouchEvent) and event.phase == "move"
+                    and getattr(self, "page", None) == ScreenPage.PRINT_PREVIEW
+                    and event.action in ("model.yaw_joystick", "model.pitch_joystick")):
+                action = event.wire
             if pending is not None and action != pending_action:
                 yield pending
                 pending = None
             if action is None:
-                yield line
+                yield event
             else:
-                pending, pending_action = line, action
+                pending, pending_action = event, action
         if pending is not None:
             yield pending
 

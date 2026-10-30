@@ -56,9 +56,9 @@ class ModelPreviewEntryMixin:
         if feature is not None:
             feature._model_preview_render_receipt(receipt)
 
-    def _coalesce_model_preview_moves(self, lines):
+    def _coalesce_model_preview_moves(self, events):
         feature = self._loaded_model_preview()
-        return lines if feature is None else feature._coalesce_model_preview_moves(lines)
+        return events if feature is None else feature._coalesce_model_preview_moves(events)
 
     def _handle_model_preview_touch(self, action, phase, x, y, now):
         feature = self._loaded_model_preview()

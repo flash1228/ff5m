@@ -9,8 +9,10 @@ from dataclasses import dataclass
 import shlex
 from unittest import mock
 
+from types import SimpleNamespace
+
 from ui.engine import FrameLoop
-from ui.renderer import MAX_ATOMIC_DRAW, MAX_BATCH_BYTES
+from ui.renderer import MAX_ATOMIC_DRAW, MAX_BATCH_BYTES, FeatherRenderer
 
 
 @dataclass(frozen=True)
@@ -215,3 +217,12 @@ def refused_render(renderer):
     """Refuse every batch at the frame loop hand-off, as a stopped loop does."""
     with mock.patch.object(renderer, "_submit", lambda submission: False):
         yield
+
+
+def typer_events(decode, *lines):
+    """Typer's event lines as FeatherRenderer.process_events() returns them:
+    parsed by the engine's frame loop parser, actions decoded by decode."""
+    taken = [FrameLoop.parse_event(line) for line in lines]
+    host = SimpleNamespace(_loop=SimpleNamespace(take=lambda: taken), decode_action=decode,
+                           _sent_handler=None, _restart_handler=None)
+    return FeatherRenderer.process_events(host, 0.0)

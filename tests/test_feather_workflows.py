@@ -20,11 +20,11 @@ from tests.feather_timelapse_test_helper import make_timelapse_state
 try:
     from tests.test_feather_screen import (
         FEATHER, RESURRECTION, GCodeRecorder, Reactor, StatusObject, paint_home)
-    from tests.feather_render_test_helper import RenderCapture
+    from tests.feather_render_test_helper import RenderCapture, typer_events
 except ImportError:
     from test_feather_screen import (
         FEATHER, RESURRECTION, GCodeRecorder, Reactor, StatusObject, paint_home)
-    from feather_render_test_helper import RenderCapture
+    from feather_render_test_helper import RenderCapture, typer_events
 
 from ui import CONTENT_BOTTOM, Increment
 from ui.font_metrics import get_font_metrics
@@ -3532,12 +3532,12 @@ class MotionHeatSettingsTest(unittest.TestCase):
                 self.events.append(("release",))
 
         controller.joystick = Planner()
-        controller._handle_continuous_touch(
-            "touch 7:%s begin 365 220" % MOVE_UI.JOYSTICK_XY.wire_id)
-        controller._handle_continuous_touch(
-            "touch 7:%s move 400 180" % MOVE_UI.JOYSTICK_XY.wire_id)
-        controller._handle_continuous_touch(
-            "touch 7:%s end 400 180" % MOVE_UI.JOYSTICK_XY.wire_id)
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 7:%s begin 365 220" % MOVE_UI.JOYSTICK_XY.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 7:%s move 400 180" % MOVE_UI.JOYSTICK_XY.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 7:%s end 400 180" % MOVE_UI.JOYSTICK_XY.wire_id))
 
         self.assertEqual(controller.joystick.events,
                          [("xy", 365, 220), ("xy", 400, 180), ("release",)])
@@ -3583,18 +3583,18 @@ class MotionHeatSettingsTest(unittest.TestCase):
         controller.joystick = Planner()
         controller._update_joystick_feedback = lambda *args, **kwargs: None
 
-        controller._handle_continuous_touch(
-            "touch 9:%s begin 240 229" % MOVE_UI.JOYSTICK_XY.wire_id)
-        controller._handle_continuous_touch(
-            "touch 9:%s move 300 229" % MOVE_UI.JOYSTICK_XY.wire_id)
-        controller._handle_continuous_touch(
-            "touch 9:%s end 300 229" % MOVE_UI.JOYSTICK_XY.wire_id)
-        controller._handle_continuous_touch(
-            "touch 9:%s begin 510 180" % MOVE_UI.JOYSTICK_Z.wire_id)
-        controller._handle_continuous_touch(
-            "touch 9:%s move 510 160" % MOVE_UI.JOYSTICK_Z.wire_id)
-        controller._handle_continuous_touch(
-            "touch 9:%s end 510 160" % MOVE_UI.JOYSTICK_Z.wire_id)
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 9:%s begin 240 229" % MOVE_UI.JOYSTICK_XY.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 9:%s move 300 229" % MOVE_UI.JOYSTICK_XY.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 9:%s end 300 229" % MOVE_UI.JOYSTICK_XY.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 9:%s begin 510 180" % MOVE_UI.JOYSTICK_Z.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 9:%s move 510 160" % MOVE_UI.JOYSTICK_Z.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 9:%s end 510 160" % MOVE_UI.JOYSTICK_Z.wire_id))
 
         self.assertEqual(
             controller.joystick.events,
@@ -3617,12 +3617,12 @@ class MotionHeatSettingsTest(unittest.TestCase):
         controller._wake_if_dimmed = lambda: True
         controller.joystick = mock.Mock()
 
-        controller._handle_continuous_touch(
-            "touch 8:%s begin 540 100" % MOVE_UI.JOYSTICK_Z.wire_id)
-        controller._handle_continuous_touch(
-            "touch 8:%s move 540 90" % MOVE_UI.JOYSTICK_Z.wire_id)
-        controller._handle_continuous_touch(
-            "touch 8:%s end 540 90" % MOVE_UI.JOYSTICK_Z.wire_id)
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 8:%s begin 540 100" % MOVE_UI.JOYSTICK_Z.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 8:%s move 540 90" % MOVE_UI.JOYSTICK_Z.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 8:%s end 540 90" % MOVE_UI.JOYSTICK_Z.wire_id))
 
         controller.joystick.assert_not_called()
         self.assertIsNone(controller.joystick_suppressed)
@@ -6028,7 +6028,8 @@ class TouchEventBridgeTest(unittest.TestCase):
 
     def test_first_cpp_tap_after_dim_wakes_and_dispatches(self):
         controller = base_controller()
-        controller.renderer = SimpleNamespace(process_events=lambda eventtime: ["tap nav.files"])
+        controller.renderer = SimpleNamespace(
+            process_events=lambda eventtime: typer_events(lambda wire: wire, "tap nav.files"))
         controller.last_touch_time = 0
         controller.dimmed = True
         controller.params = type("Params", (), {"variables": {"backlight": 65}})()
@@ -6048,7 +6049,7 @@ class TouchEventBridgeTest(unittest.TestCase):
         rendered = []
         lines = [["button nav.control down"], ["button nav.control up", "tap nav.control"]]
         controller.renderer = type("Renderer", (), {
-            "process_events": lambda self, eventtime: lines.pop(0),
+            "process_events": lambda self, eventtime: typer_events(self.decode_action, *lines.pop(0)),
             "decode_action": lambda self, action: action,
             "flash_button": lambda self, action: rendered.append(("down", action)) or True,
             "restore_button": lambda self, action: rendered.append(("up", action)) or True,

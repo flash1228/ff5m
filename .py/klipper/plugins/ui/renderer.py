@@ -33,7 +33,7 @@ from .layout_helpers import (
     dialog_vertical_bounds, dialog_pager_bounds,
 )
 from .numeric_input import NumericInputSpec
-from .render_receipts import validate_render_receipt_token
+from .render_receipts import RenderReceipt, validate_render_receipt_token
 from .theme import ThemeColor, ThemeRole, resolve_theme
 from .theme_catalog import (
     DEFAULT_THEME, FALLBACK_THEME, THEME_DIRECTORY, USER_THEME_DIRECTORY,
@@ -44,6 +44,13 @@ from .theme_catalog import (
 Hitbox = namedtuple("Hitbox", "action x y width height continuous layer")
 # One batch for the frame loop; a critical batch is written again to a restarted Typer.
 RenderSubmission = namedtuple("RenderSubmission", "commands receipt receipt_phase critical")
+# Typer's input events as process_events() returns them. action is the logical action when the wire action's
+# generation is the visible surface's, else None; wire is the action as Typer reported it.
+TapEvent = namedtuple("TapEvent", "action wire")
+# phase: "begin", "move" or "end"; x and y as Typer reported them.
+TouchEvent = namedtuple("TouchEvent", "action wire phase x y")
+ButtonEvent = namedtuple("ButtonEvent", "action wire pressed")
+TouchDeviceEvent = namedtuple("TouchDeviceEvent", "available")
 
 # The fonts and constants of the engine's dialog layout, in dialog_layout's order; the renderer's paddings and
 # the screen size follow them.
@@ -456,12 +463,24 @@ class FeatherRenderer(RendererBase):
 
     def process_events(self, eventtime):
         """On the reactor, once event_fd is readable: deliver the frame loop's
-        sent and restart notices and return Typer's lines in order."""
-        lines = []
+        sent and restart notices and return Typer's events in order: TapEvent,
+        TouchEvent, ButtonEvent, TouchDeviceEvent and RenderReceipt."""
+        events = []
         for event in self._loop.take():
-            if event[0] == "line":
-                lines.append(event[1])
-            elif event[0] == "sent":
+            kind = event[0]
+            if kind == "tap":
+                events.append(TapEvent(self.decode_action(event[1]), event[1]))
+            elif kind == "touch":
+                events.append(TouchEvent(self.decode_action(event[1]), *event[1:]))
+            elif kind == "button":
+                events.append(ButtonEvent(self.decode_action(event[1]), event[1], event[2]))
+            elif kind == "touch-device":
+                events.append(TouchDeviceEvent(event[1]))
+            elif kind == "receipt":
+                events.append(RenderReceipt(*event[1:]))
+            elif kind == "invalid":
+                logging.warning("[feather_screen] invalid Typer event discarded: %r", event[1][:256])
+            elif kind == "sent":
                 if self._sent_handler is not None:
                     self._sent_handler(event[1], eventtime)
             else:
@@ -469,7 +488,7 @@ class FeatherRenderer(RendererBase):
                                 self._loop.status()["last_error"] or "none")
                 if self._restart_handler is not None:
                     self._restart_handler()
-        return lines
+        return events
 
     @contextmanager
     def compose(self, preserve_input=False, retain_background=False):

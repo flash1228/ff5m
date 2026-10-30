@@ -31,8 +31,8 @@ if not sys.path or sys.path[0] != _PLUGIN_ROOT:
 from timelapse_state import TimelapsePhase
 
 from ui import (
-    Command, DismissToast, ThemeColor,
-    normalize_theme_name, parse_render_receipt,
+    ButtonEvent, Command, DismissToast, RenderReceipt, TapEvent, ThemeColor,
+    TouchDeviceEvent, TouchEvent, normalize_theme_name,
 )
 from ff5m_ui.screen import ScreenDialog, ScreenPage
 from ff5m_ui.keys import AppPage
@@ -67,7 +67,6 @@ REFRESH_TIME = 1.0
 ACTION_DEBOUNCE = 0.08
 STARTUP_ANIMATION_PERIOD = 0.16
 FORGE_X_SCREEN_BUSY_PATH = "/tmp/forge_x_screen_busy"
-MAX_TOUCH_EVENT = 256
 
 
 EXACT_ACTIONS = {
@@ -822,39 +821,25 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         gcmd.respond_info("Feather theme refreshed: %s" % name)
 
     def _process_touch_events(self, eventtime):
-        lines = self.renderer.process_events(eventtime)
-        for line in self._coalesce_model_preview_moves(lines):
-            receipt = parse_render_receipt(line)
-            if receipt is not None:
-                self._model_preview_render_receipt(receipt)
-                self._notify_features(
-                    "on_render_receipt", receipt, eventtime)
-            elif line.startswith("render "):
-                logging.warning(
-                    "[feather_screen] invalid render receipt discarded: %r",
-                    line[:MAX_TOUCH_EVENT])
-            elif line == "touch-device connected":
-                self._handle_touch_device_status(True)
-            elif line == "touch-device unavailable":
-                self._handle_touch_device_status(False)
-            elif line.startswith("touch-device "):
-                logging.warning(
-                    "[feather_screen] invalid touch device status: %r",
-                    line[:MAX_TOUCH_EVENT])
-            elif line.startswith("touch "):
-                self._handle_continuous_touch(line)
-            elif line.startswith("button "):
-                self._handle_button_feedback(line)
-            elif line.startswith("tap "):
+        events = self.renderer.process_events(eventtime)
+        for event in self._coalesce_model_preview_moves(events):
+            if isinstance(event, RenderReceipt):
+                self._model_preview_render_receipt(event)
+                self._notify_features("on_render_receipt", event, eventtime)
+            elif isinstance(event, TouchDeviceEvent):
+                self._handle_touch_device_status(event.available)
+            elif isinstance(event, TouchEvent):
+                self._handle_continuous_touch(event)
+            elif isinstance(event, ButtonEvent):
+                self._handle_button_feedback(event)
+            elif isinstance(event, TapEvent):
                 now = self.reactor.monotonic()
                 idle_for = max(0.0, now - self.last_touch_time)
-                raw_action = line[4:].strip()
-                decode = getattr(self.renderer, "decode_action", lambda value: value)
-                action = decode(raw_action)
+                action = event.action
                 logging.info(
                     "[feather_screen] touch action=%s page=%s dimmed=%s "
                     "idle=%.1fs command_depth=%d pending=%s",
-                    action if action is not None else raw_action,
+                    action if action is not None else event.wire,
                     self.page.name, self.dimmed, idle_for,
                     getattr(self, "command_depth", 0), self.pending_action)
                 self.last_touch_time = now
@@ -865,7 +850,7 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
                 if action is not None:
                     self._handle_touch_action(action)
                 else:
-                    logging.info("[feather_screen] stale touch ignored: %s", raw_action)
+                    logging.info("[feather_screen] stale touch ignored: %s", event.wire)
 
     def _show_touch_unavailable(self):
         if (self.boot_screen_held
@@ -907,19 +892,10 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         if error is not None and error.content["terminal"]:
             self.renderer.freeze_output()
 
-    def _handle_continuous_touch(self, line):
-        fields = line.split()
-        if len(fields) != 5 or fields[2] not in ("begin", "move", "end"):
-            logging.warning("[feather_screen] invalid continuous touch event: %r",
-                            line[:MAX_TOUCH_EVENT])
-            return
-        raw_action, phase = fields[1], fields[2]
-        try:
-            x = max(0, min(799, int(fields[3])))
-            y = max(0, min(479, int(fields[4])))
-        except ValueError:
-            logging.warning("[feather_screen] invalid continuous coordinates")
-            return
+    def _handle_continuous_touch(self, event):
+        raw_action, phase, action = event.wire, event.phase, event.action
+        x = max(0, min(799, event.x))
+        y = max(0, min(479, event.y))
         now = self.reactor.monotonic()
         self.last_touch_time = now
 
@@ -927,8 +903,6 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
             if phase == "end":
                 self.joystick_suppressed = None
             return
-        decode = getattr(self.renderer, "decode_action", lambda value: value)
-        action = decode(raw_action)
         semantic_action = (
             None if action is None else self._resolve_semantic_ui_action(action))
         if (self.page in (ScreenPage.MODEL_PREVIEW, ScreenPage.PRINT_PREVIEW)
@@ -989,15 +963,11 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         self._start_joystick_timer()
         self._update_joystick_feedback(now, force=phase in ("begin", "end"))
 
-    def _handle_button_feedback(self, line):
-        fields = line.split()
-        if len(fields) != 3 or fields[2] not in ("down", "up"):
-            logging.warning("[feather_screen] invalid button event: %r", line[:MAX_TOUCH_EVENT])
-            return
-        action = self.renderer.decode_action(fields[1])
+    def _handle_button_feedback(self, event):
+        action = event.action
         if action is None:
             return
-        if fields[2] == "down":
+        if event.pressed:
             self.last_touch_time = self.reactor.monotonic()
             self._wake_if_dimmed()
             self.renderer.flash_button(action)

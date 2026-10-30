@@ -23,7 +23,7 @@ from ff5m_ui.print_state import PrintState
 from ff5m_ui.screen import ScreenPage
 from timelapse_state import TimelapsePhase
 from ui.render_receipts import RenderReceipt
-from tests.feather_render_test_helper import refused_render
+from tests.feather_render_test_helper import refused_render, typer_events
 
 
 class LiveController(Controller, PrintingPagesMixin):
@@ -105,7 +105,8 @@ class PrintModelPreviewTest(unittest.TestCase):
         if now is not None:
             self.controller.reactor.now = now
         wire = self.controller.renderer._wire_action(PreviewAction(route))
-        self.controller._handle_continuous_touch("touch %s %s %d %d" % (wire, phase, x, y))
+        self.controller._handle_continuous_touch(
+            *typer_events(self.controller.renderer.decode_action, "touch %s %s %d %d" % (wire, phase, x, y)))
         if acknowledge:
             self.acknowledge_cursor()
 
@@ -532,7 +533,8 @@ class PrintModelPreviewTest(unittest.TestCase):
         self.assertEqual([yaw for yaw, _layers in self.state["session"].frames], [0, 150])
 
     def read_touch_events(self, lines):
-        with mock.patch.object(self.controller.renderer, "process_events", return_value=list(lines)):
+        events = typer_events(self.controller.renderer.decode_action, *lines)
+        with mock.patch.object(self.controller.renderer, "process_events", return_value=events):
             self.controller._process_touch_events(self.controller.reactor.now)
 
     def test_fast_slider_burst_paints_only_latest_move_and_keeps_release(self):
@@ -573,8 +575,8 @@ class PrintModelPreviewTest(unittest.TestCase):
         self.controller._handle_continuous_touch = events.append
         self.controller._model_preview_render_receipt = lambda receipt: events.append(receipt.token)
         self.read_touch_events(lines)
-        self.assertEqual(events, [lines[0], lines[2], "diagnostic", lines[5], lines[6],
-                                  lines[7], lines[9], lines[10]])
+        sent = typer_events(self.controller.renderer.decode_action, *lines)
+        self.assertEqual(events, [sent[0], sent[2], "diagnostic", sent[5], sent[6], sent[7], sent[9], sent[10]])
 
     def test_slider_burst_keeps_malformed_and_stale_events_separate(self):
         wire = self.controller.renderer._wire_action(PreviewAction(PreviewRoute.YAW_JOYSTICK))
@@ -589,7 +591,9 @@ class PrintModelPreviewTest(unittest.TestCase):
                                wraps=self.controller._handle_continuous_touch) as handle, \
                 self.assertLogs(level="WARNING"):
             self.read_touch_events(lines)
-        self.assertEqual([call.args[0] for call in handle.call_args_list], lines)
+        valid = [line for line in lines if "invalid" not in line]
+        self.assertEqual([call.args[0] for call in handle.call_args_list],
+                         typer_events(self.controller.renderer.decode_action, *valid))
         self.assertIsNone(self.state["touch_action"])
 
     def test_slider_coalescing_keeps_the_release_of_a_later_batch(self):
@@ -797,7 +801,8 @@ class SelectedFileModelPreviewTest(unittest.TestCase):
             x, y = (track.right, track.center_y) if endpoint == "right" else (track.center_x, track.y)
             wire = self.controller.renderer._wire_action(PreviewAction(route))
             for phase in ("begin", "end"):
-                self.controller._handle_continuous_touch("touch %s %s %d %d" % (wire, phase, x, y))
+                self.controller._handle_continuous_touch(*typer_events(
+                    self.controller.renderer.decode_action, "touch %s %s %d %d" % (wire, phase, x, y)))
             key = "yaw" if route == PreviewRoute.YAW_JOYSTICK else "pitch"
             self.assertEqual(state[key], expected)
         self.controller._run_script.assert_not_called()

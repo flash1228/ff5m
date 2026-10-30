@@ -15,6 +15,7 @@ from types import SimpleNamespace
 from unittest import mock
 from tests.feather_timelapse_test_helper import make_timelapse_state
 
+from tests.feather_render_test_helper import typer_events
 from tests.test_feather_screen import (
     blank_page,
     paint_home,
@@ -1660,10 +1661,12 @@ class ControllerSafetyTest(unittest.TestCase):
             "restore_button": lambda self, action: events.append(("up", action)),
         })()
         controller._dispatch_action = lambda action: self.fail("feedback dispatched an action")
-        controller._handle_button_feedback("button 1:nav.control down")
+        controller._handle_button_feedback(
+            *typer_events(controller.renderer.decode_action, "button 1:nav.control down"))
         self.assertEqual(events, [("down", "nav.control")])
         self.assertEqual(controller.last_touch_time, 10.0)
-        controller._handle_button_feedback("button 1:nav.control up")
+        controller._handle_button_feedback(
+            *typer_events(controller.renderer.decode_action, "button 1:nav.control up"))
         self.assertEqual(events, [("down", "nav.control"), ("up", "nav.control")])
 
     def test_frozen_error_button_shows_pressed_feedback(self):
@@ -1678,8 +1681,8 @@ class ControllerSafetyTest(unittest.TestCase):
         capture.get()
         controller.renderer.freeze_output()
 
-        controller._handle_button_feedback(
-            "button 0:error.firmware_restart down")
+        controller._handle_button_feedback(*typer_events(
+            controller.renderer.decode_action, "button 0:error.firmware_restart down"))
 
         self.assertTrue(controller.renderer.output_frozen)
         pressed = capture.get()
@@ -1689,19 +1692,22 @@ class ControllerSafetyTest(unittest.TestCase):
                 UI.ThemeColor.PRESSED_BACKGROUND), pressed.commands[0])
         self.assertFalse(any("--id " in command for command in pressed.commands))
 
-        controller._handle_button_feedback(
-            "button 0:error.firmware_restart up")
+        controller._handle_button_feedback(*typer_events(
+            controller.renderer.decode_action, "button 0:error.firmware_restart up"))
 
         self.assertTrue(controller.renderer.output_frozen)
         restored = capture.get()
         self.assertIsNotNone(restored)
         self.assertNotEqual(pressed.commands, restored.commands)
 
-    def test_stale_or_malformed_button_feedback_is_ignored(self):
+    def test_stale_button_feedback_is_ignored(self):
         controller = ScenarioController.__new__(ScenarioController)
-        controller.renderer = type("Renderer", (), {"decode_action": lambda self, action: None})()
-        for line in ("button stale down", "button stale up", "button", "button x invalid"):
-            controller._handle_button_feedback(line)
+        controller.renderer = type("Renderer", (), {
+            "flash_button": lambda renderer, action: self.fail("stale feedback drawn"),
+            "restore_button": lambda renderer, action: self.fail("stale feedback drawn"),
+        })()
+        for event in typer_events(lambda wire: None, "button stale down", "button stale up"):
+            controller._handle_button_feedback(event)
 
     def test_homing_progress_keeps_global_abort_registered(self):
         controller = ScenarioController.__new__(ScenarioController)
@@ -4116,8 +4122,8 @@ class ControllerSafetyTest(unittest.TestCase):
 
     def test_touch_device_protocol_dispatches_availability_transitions(self):
         controller = ScenarioController.__new__(ScenarioController)
-        controller.renderer = SimpleNamespace(process_events=lambda eventtime: [
-            "touch-device unavailable", "touch-device connected"])
+        controller.renderer = SimpleNamespace(process_events=lambda eventtime: typer_events(
+            lambda wire: wire, "touch-device unavailable", "touch-device connected"))
         transitions = []
         controller._handle_touch_device_status = transitions.append
 
