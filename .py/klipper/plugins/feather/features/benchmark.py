@@ -90,6 +90,9 @@ class BenchmarkFeature(FeatureHostProxy):
             self.page_tree = layout_page.create_page()
             self.workload_node = self.page_tree.node(layout_page.LayoutRef.CARD)
         self.active = True
+        # The benchmark measures how fast frames are built and committed, so
+        # they are not held back to the display's presentation rate.
+        self.renderer.synced = False
         now = self.reactor.monotonic()
         self._reset_measurements(now)
         self._submit_frame(now, full=True)
@@ -236,6 +239,7 @@ class BenchmarkFeature(FeatureHostProxy):
 
     def _stop_session(self):
         self.active = False
+        self.renderer.synced = True
         self.tracker.cancel()
         self.prepared_frame = None
         self.samples.clear()

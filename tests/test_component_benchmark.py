@@ -78,6 +78,18 @@ class ComponentBenchmarkTest(unittest.TestCase):
         self.assertFalse(feature.get_status()["active"])
         self.assertIsNone(feature.get_status()["completed_frames"])
 
+    def test_a_session_is_paced_by_typer_commits_not_the_display(self):
+        feature, host = self.feature()
+        self.assertFalse(host.renderer.synced)
+        feature.back(host.page)
+        self.assertTrue(host.renderer.synced)
+
+        feature, host = self.feature()
+        host.print_state = PrintState.PRINTING
+        host.page_for_print_state = lambda: ScreenPage.PRINTING
+        feature.update(1.0)
+        self.assertTrue(host.renderer.synced)
+
     def test_animation_speed_depends_on_elapsed_time_not_frame_count(self):
         snapshots = []
         for frame_count in (40, 120):

@@ -264,6 +264,8 @@ class FeatherRenderer(RendererBase):
         self._generation = 0
         # The native frame loop that owns Typer; made by the first start().
         self._loop = None
+        # Its pacing until it exists; see the synced property.
+        self._synced = True
         self._sent_handler = None
         self._event_fd_handler = None
         self._restart_handler = None
@@ -348,6 +350,22 @@ class FeatherRenderer(RendererBase):
         return self._loop is not None and self._loop.running
 
     @property
+    def synced(self):
+        """Whether frames follow the display's presentation (the default).
+
+        False (unthrottled) paces frames only by Typer's commits, so frames
+        the display never shows are still built: what a render benchmark
+        measures.
+        """
+        return self._synced
+
+    @synced.setter
+    def synced(self, value):
+        self._synced = bool(value)
+        if self._loop is not None:
+            self._loop.synced = self._synced
+
+    @property
     def output_frozen(self):
         return self._output_frozen
 
@@ -404,7 +422,7 @@ class FeatherRenderer(RendererBase):
         if self._loop is None:
             self._loop = FrameLoop(
                 DRAW_PIPE, EVENT_PIPE, "typer", max_frame=MAX_ATOMIC_DRAW,
-                max_batch=MAX_BATCH_BYTES)
+                max_batch=MAX_BATCH_BYTES, synced=self._synced)
         started = self._loop.start(self._typer_arguments())
         self.event_fd = self._loop.fileno()
         self._event_fd_handler(None, self.event_fd)
