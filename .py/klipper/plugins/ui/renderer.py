@@ -52,6 +52,13 @@ TouchEvent = namedtuple("TouchEvent", "action wire phase x y")
 ButtonEvent = namedtuple("ButtonEvent", "action wire pressed")
 TouchDeviceEvent = namedtuple("TouchDeviceEvent", "available")
 
+
+def screen_failed(message):
+    """A chrome frame that could not be built natively (a class overriding a
+    hook) is a bug: it is logged and nothing is drawn."""
+    logging.warning("[feather_screen] a screen frame was not drawn: %s", message)
+
+
 # The fonts and constants of the engine's dialog layout, in dialog_layout's order; the renderer's paddings and
 # the screen size follow them.
 _DIALOG_POLICY = (
@@ -239,6 +246,9 @@ class FeatherRenderer(RendererBase):
     DIALOG_TEXT_PADDING = 28
     def __init__(self, debug=False, theme_directories=None, blending=True,
                  raster_acceleration="scalar", ram_composition=False):
+        from .footer import Footer
+        # The persistent status strip; the frame loop draws it off the reactor.
+        self._footer = Footer(self._footer_content, self._footer_state, self, self._submit_footer)
         self.debug = debug
         self.ram_composition = bool(ram_composition)
         self.blending = bool(blending)
@@ -257,9 +267,8 @@ class FeatherRenderer(RendererBase):
         self._palette = resolve_theme(FALLBACK_THEME)
         self.reload_themes()
         self.event_fd = None
-        self._last_footer = None
-        self._footer_values = None
-        self._footer_drawn = False
+        # Whether the prepared surface begins a page, which shows the footer.
+        self._page_begun = False
         self._reset_interactions()
         self._generation = 0
         # The native frame loop that owns Typer; made by the first start().
@@ -299,8 +308,7 @@ class FeatherRenderer(RendererBase):
     # are the other surface fields.
     _SURFACE_FIELDS = (
         "_toggles", "_page_title", "_page_back", "_semantic_page_id",
-        "_loader_active", "_footer_drawn", "_last_footer",
-        "_header_action", "_dialog_bounds",
+        "_loader_active", "_header_action", "_dialog_bounds",
     )
     # Surface fields mutated in place; the snapshot copies them. Every other
     # field is replaced on change, so the snapshot shares its value.
@@ -317,10 +325,14 @@ class FeatherRenderer(RendererBase):
     def _finish_surface(self, accepted):
         previous = self._prepared_surface
         self._prepared_surface = None
+        page_begun, self._page_begun = self._page_begun, False
         if previous is None:
             return
         if accepted:
             self._drop_input_snapshot()
+            if page_begun:
+                # The page is on the panel: the footer around it is visible again.
+                self._footer.show()
             return
         for name, value in previous.items():
             setattr(self, name, value)
@@ -385,6 +397,7 @@ class FeatherRenderer(RendererBase):
     def freeze_output(self):
         """Keep the last submitted safety screen as the sole display owner."""
         self._output_frozen = True
+        self._cover_footer()
 
     def thaw_output(self):
         self._output_frozen = False
@@ -392,7 +405,6 @@ class FeatherRenderer(RendererBase):
     def _clear_display(self):
         """Replace every framebuffer pixel before this renderer draws. It
         precedes whatever the frame owner composes, so it is not the owner's."""
-        self._footer_drawn = False
         return self._submit(RenderSubmission(_immutable_commands([
             self.clear_hitboxes("base"),
             self.clear_hitboxes("overlay"),
@@ -427,14 +439,14 @@ class FeatherRenderer(RendererBase):
         self.event_fd = self._loop.fileno()
         self._event_fd_handler(None, self.event_fd)
         self._busy_label = None
-        self._last_footer = None
-        self._footer_drawn = False
         # Typer's double buffer initially contains whatever was left in the
         # framebuffer. Clear the complete panel before the first partial page
         # render so neither the persistent footer nor the outer margins can
         # expose pixels from the previous screen owner. Whatever the frame
         # owner composed before is not on the panel, so it draws all of it.
         self._clear_display()
+        # After the clear, so the loop draws the footer over it.
+        self._footer.attach(self._loop)
         if self._frame_owner is not None:
             self._frame_owner.surface_cleared()
         return started
@@ -463,9 +475,8 @@ class FeatherRenderer(RendererBase):
             self._loop.stop()
             self._event_fd_handler(self.event_fd, None)
             self.event_fd = None
+        self._footer.attach(None)
         self._busy_label = None
-        self._last_footer = None
-        self._footer_drawn = False
         self._output_frozen = False
 
     def restart(self):
@@ -501,6 +512,8 @@ class FeatherRenderer(RendererBase):
             elif kind == "sent":
                 if self._sent_handler is not None:
                     self._sent_handler(event[1], eventtime)
+            elif kind == "screen-error":
+                screen_failed(event[1])
             else:
                 logging.warning("[feather_screen] typer restarted (last error: %s)",
                                 self._loop.status()["last_error"] or "none")
@@ -734,9 +747,9 @@ class FeatherRenderer(RendererBase):
             self._theme_name = DEFAULT_THEME
         self._palette = self._themes[self._theme_name]
         if (self._theme_name != previous_name
-                or self._palette != previous_palette):
-            self._last_footer = None
-            self._footer_drawn = False
+                or self._palette != previous_palette) and self._footer.page is not None:
+            # The next page draws the footer again in the new colors.
+            self._cover_footer()
         return tuple(self._themes)
 
     def reload_themes(self):
@@ -774,12 +787,10 @@ class FeatherRenderer(RendererBase):
         changed = normalized != self._theme_name
         self._theme_name = normalized
         self._palette = self._themes[normalized]
-        if changed:
-            # The footer normally survives page redraws and is skipped while
-            # its values stay unchanged. A palette change is also a content
-            # change, so force begin_page() to repaint it in the new colors.
-            self._last_footer = None
-            self._footer_drawn = False
+        if changed and self._footer.page is not None:
+            # The footer survives page redraws; a palette change is a content
+            # change, so the next page draws it again in the new colors.
+            self._cover_footer()
         return changed
 
     def modal_scrim(self):
@@ -1514,6 +1525,7 @@ class FeatherRenderer(RendererBase):
             return []
         self._page_title = title
         self._page_back = back
+        self._page_begun = True
         self._loader_active = False
         self._semantic_page_id = None
         self.invalidate_input_generation()
@@ -1525,7 +1537,7 @@ class FeatherRenderer(RendererBase):
             self.clear_hitboxes("overlay"),
             self._wake_hitbox(),
             # Preserve the footer framebuffer. It is a persistent status area
-            # and is updated independently only when one of its values changes.
+            # that the frame loop draws on its own when one of its values changes.
             self.fill(0, 0, SCREEN_WIDTH, FOOTER_Y - 2, ThemeColor.BACKGROUND),
             # Keep the dirty rectangle above the persistent footer. A full
             # height outer stroke would make TextDrawer.flush() copy the whole
@@ -1564,51 +1576,40 @@ class FeatherRenderer(RendererBase):
             ]
         if show_header_action:
             commands += self._header_action_commands()
-        if self._footer_values is not None and not self._footer_drawn:
-            commands += self._paint_footer(self._footer_values)
         return commands
 
-    def _paint_footer(self, values):
-        commands = self._footer_commands(values)
-        self._last_footer = values
-        self._footer_drawn = True
-        return commands
+    def _footer_content(self):
+        """The footer's tree in footer.FOOTER_BOUNDS, reading the values
+        _footer_state gives. A product overrides both to draw its own strip;
+        the state always holds footer.FooterState's LEFT and RIGHT."""
+        from .footer import footer_content
+        return footer_content()
 
-    def _footer_commands(self, values):
-        left, right = values
-        return [
-            # The footer is a persistent framebuffer region. Clear its full
-            # extent before drawing the inner panel so startup overlays and
-            # previous themes cannot survive in the outer gutters or bottom
-            # rows. Space outside the framed panel follows the page background.
-            self.fill(
-                0, FOOTER_Y - 2, SCREEN_WIDTH,
-                SCREEN_HEIGHT - (FOOTER_Y - 2), ThemeColor.BACKGROUND),
-            self.fill(10, FOOTER_Y, 780, FOOTER_HEIGHT - 1, ThemeColor.PANEL),
-            self.stroke(FRAME_X, FOOTER_Y - 2, FRAME_WIDTH,
-                        SCREEN_HEIGHT - (FOOTER_Y - 2) - 4, ThemeColor.BORDER, 1),
-            self.text(20, FOOTER_Y + 16, left, ThemeColor.PRIMARY,
-                      "JetBrainsMono 8pt", max_width=380, truncate=True),
-            self.text(780, FOOTER_Y + 16, right, ThemeColor.PRIMARY,
-                      "JetBrainsMono 8pt", "right", max_width=340,
-                      truncate=True),
-        ]
+    def _footer_state(self, left, right):
+        from .footer import FooterState
+        return {FooterState.LEFT: left, FooterState.RIGHT: right}
 
     def footer(self, left, right, paint=True):
-        values = (str(left), str(right))
-        self._footer_values = values
-        if not paint:
-            return
-        if self._footer_drawn and values == self._last_footer:
-            return
-        if not self._prepare_surface():
-            return
-        self.prioritize_next_batch("state", "footer")
-        self.send(self._paint_footer(values))
+        """Show the status texts. paint=False: the footer is covered (a dialog)
+        and holds until the next page shows it with the latest texts."""
+        self._footer.write((str(left), str(right)), covered=not paint)
 
     def invalidate_footer(self):
-        """Require the next page frame to restore the persistent footer."""
-        self._footer_drawn = False
+        """Hold the footer until the next page restores it: its pixels are
+        covered (a dialog's scrim) or gone."""
+        self._cover_footer()
+
+    def _cover_footer(self):
+        # A cover drawn after the surface began a page (a dialog over it) keeps
+        # that page from showing the footer.
+        self._page_begun = False
+        self._footer.hold()
+
+    def _submit_footer(self, commands):
+        # Without a running frame loop the footer's frame is built on the
+        # reactor and submitted on its own; it bypasses the frame owner, which
+        # composes the page and its layers, not the footer.
+        self._submit(RenderSubmission(_immutable_commands(commands), None, "presented", False))
 
     def toast(self, message):
         height = 44
@@ -1725,6 +1726,7 @@ class FeatherRenderer(RendererBase):
         # Invalidate animations scheduled by the page underneath it so a late
         # toggle/button frame cannot be painted over the restart screen.
         self.invalidate_input_generation()
+        self._cover_footer()
         self._loader_active = True
         self._reset_interactions()
         commands = [
@@ -1763,7 +1765,7 @@ class FeatherRenderer(RendererBase):
         if not self._prepare_surface():
             return None
         self.invalidate_input_generation()
-        self._footer_drawn = False
+        self._cover_footer()
         commands = self.dialog(
             "Touch input unavailable", (), (),
             x=110, y=110, width=580, height=270, tone="warning",
@@ -1778,18 +1780,19 @@ class FeatherRenderer(RendererBase):
         self.send(commands)
 
     def applying_modal(self, message="APPLYING CHANGES"):
-        """Dim the page and draw a non-interactive modal progress panel."""
+        """Dim the screen and draw a non-interactive modal progress panel."""
         if not self._prepare_surface():
             return None
         self.invalidate_input_generation()
+        # The overlay covers the footer too, which holds until the next page.
+        self._cover_footer()
         self._loader_active = True
         self._reset_interactions()
         commands = [
             self.clear_hitboxes("base"),
             self.clear_hitboxes("overlay"),
             self._wake_hitbox(),
-            self.fill(0, HEADER_BOTTOM + 1, SCREEN_WIDTH,
-                      CONTENT_BOTTOM - HEADER_BOTTOM - 1, ThemeColor.OVERLAY),
+            self.fill(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, ThemeColor.OVERLAY),
         ]
         commands += self.panel(160, 145, 480, 180)
         commands += [

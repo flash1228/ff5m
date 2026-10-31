@@ -13,7 +13,7 @@ and writes Typer commands. The framework has no Python implementation of
 them, so it cannot start without a matching engine.
 """
 
-ENGINE_ABI = 69
+ENGINE_ABI = 70
 
 try:
     import feather_engine
@@ -119,6 +119,9 @@ background_repair = feather_engine.background_repair
 # does, which a page's remembered build refusal is keyed on.
 FrameBuilder = feather_engine.FrameBuilder
 FrameLoop = feather_engine.FrameLoop
+# A screen tree a FrameLoop draws on its own thread from a snapshot taken between
+# write transactions.
+ScreenFrames = feather_engine.ScreenFrames
 behavior_epoch = feather_engine.behavior_epoch
 page_structure = feather_engine.page_structure
 collect_actions = feather_engine.collect_actions

@@ -2705,6 +2705,23 @@ class DeclarativePage(Tree):
         self._update_nodes((self.root,), metrics_current)
         return self._render_updates(renderer)
 
+    def write(self, state=None):
+        """Write values into an initialized page and run its update pass without drawing.
+
+        The nodes the values change keep their dirt for a screen that draws the tree
+        (ScreenFrames takes it with its next snapshot); the changed keys are cleared,
+        as a drawn update clears them.
+        """
+        if state is not None:
+            self.state.update(state)
+        self.commit()
+        self._commit_hosted(True)
+        if self.styles is not None and not self._styles_current():
+            self._apply_styles(self.root)
+            refresh_stale_dependencies(self)
+        self._update_nodes((self.root,), True)
+        self.state.clear_changes()
+
     def commit(self, everything=False, initialize=False):
         """Run the Python work of the state's changes before the update pass.
 

@@ -150,12 +150,19 @@ class StatusBarTest(unittest.TestCase):
         return footer_values(dict(temperature=300, target=300), dict(temperature=120, target=120),
                              cpu, memory, network, status, style)
 
+    @staticmethod
+    def shown(renderer, values):
+        """The footer as the next page shows it after a theme change."""
+        renderer.invalidate_footer()
+        renderer.footer(*values)
+        renderer.send(renderer.begin_page('Home'))
+
     def test_colorful_retains_full_labels_and_vanilla_retains_original_presentation(self):
         renderer = PrinterRenderer()
         capture = RenderCapture(renderer)
         for theme in ('DEFAULT', 'CLASSIC'):
             renderer.set_theme(theme)
-            renderer.footer(*self.values(style='COLORFUL'))
+            self.shown(renderer, self.values(style='COLORFUL'))
             self.assertEqual([text.value for text in capture.latest.texts], [
                 'NOZZLE 300/300C', '·', 'BED 120/120C', '255.255.255.255', '·', 'CANCELLED'])
             colored = [shlex.split(command) for command in capture.batches[-1]
@@ -284,8 +291,7 @@ class StatusBarTest(unittest.TestCase):
         for theme in renderer.theme_names():
             with self.subTest(theme=theme):
                 renderer.set_theme(theme)
-                renderer.invalidate_footer()
-                renderer.footer(*self.values())
+                self.shown(renderer, self.values())
                 texts = capture.latest.texts
                 self.assertEqual(len(texts), 9)
                 previous_right = 19

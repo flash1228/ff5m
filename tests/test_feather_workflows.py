@@ -465,9 +465,10 @@ class ScreenCompositionWorkflowTest(unittest.TestCase):
         self.assertEqual(controller.renderer.decode_action(tap), "message.ok")
         self.assertEqual(set(controller.renderer._buttons), {"message.ok"})
         controller._close_dialog(FEATHER.ScreenDialog.MESSAGE)
-        self.assertTrue(rendering.latest.has_text("LATEST"))
-        self.assertTrue(rendering.latest.has_text("N 42/0C"))
-        self.assertTrue(rendering.latest.has_text("B 30/0C"))
+        page, footer = rendering.frames[-2:]
+        self.assertTrue(page.has_text("LATEST"))
+        self.assertTrue(footer.has_text("N 42/0C"))
+        self.assertTrue(footer.has_text("B 30/0C"))
 
     def test_same_page_layout_refresh_is_deferred_but_page_transition_paints(self):
         controller, _ = ActionPromptProtocolTest.controller_with_navigation()
@@ -6422,7 +6423,8 @@ class ActionPromptProtocolTest(unittest.TestCase):
         frame = capture.get()
         self.assertIn(renderer.modal_scrim(), frame.commands)
         self.assertTrue(any('"WAIT"' in command for command in frame.commands))
-        self.assertFalse(renderer._footer_drawn)
+        # The scrim covers the footer: it is not drawn over the prompt.
+        renderer.footer("NOZZLE 25C", "IDLE")
         self.assertIsNone(capture.get())
         self.assertEqual(controller.page, FEATHER.ScreenPage.MAIN_MENU)
         self.assertEqual(controller._current_dialog(),
@@ -6445,9 +6447,9 @@ class ActionPromptProtocolTest(unittest.TestCase):
                             for command in frame.commands))
         self.assertFalse(any('"WAIT"' in command
                              for command in frame.commands))
+        footer = capture.get()
         self.assertTrue(any('"NOZZLE 25C"' in command
-                            for command in frame.commands))
-        self.assertTrue(renderer._footer_drawn)
+                            for command in footer.commands))
         self.assertIsNone(controller._current_dialog())
         self.assertEqual(set(renderer._buttons), {"nav.move"})
 

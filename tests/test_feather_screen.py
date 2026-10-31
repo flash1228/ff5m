@@ -1439,14 +1439,16 @@ class RendererStateTest(unittest.TestCase):
         self.assertNotIn(renderer.modal_scrim(), batches[-1])
         self.assertGreaterEqual(body.y - body.max_height // 2 - title.y, 30)
         self.assertIn("--max-height 108 --wrap --truncate", warning)
-        self.assertFalse(renderer._footer_drawn)
 
+        # The warning covers the footer: updates wait for the next page.
+        drawn = len(batches)
         renderer.freeze_output()
         renderer.footer(
             "NOZZLE 22/220C | BED 24/60C", "192.168.2.4 | PRINTING")
-        self.assertFalse(renderer._footer_drawn)
+        self.assertEqual(len(batches), drawn)
         renderer.thaw_output()
-        restored = "\n".join(renderer.begin_page("Ready"))
+        renderer.send(renderer.begin_page("Ready"))
+        restored = "\n".join(batches[-1])
         footer_clear = renderer.fill(
             0, UI.FOOTER_Y - 2, UI.SCREEN_WIDTH,
             UI.SCREEN_HEIGHT - (UI.FOOTER_Y - 2),
@@ -2290,20 +2292,21 @@ class RendererStateTest(unittest.TestCase):
             "NOZZLE 21/220C | BED 24/60C", "192.168.2.4 | IDLE")
 
         first = renderer.begin_page("Control")
-        second = renderer.begin_page("Settings")
+        renderer.send(first)
+        renderer.send(renderer.begin_page("Settings"))
 
-        self.assertEqual(len(sent), 1)
-        self.assertEqual(renderer._last_footer, (
-            "NOZZLE 21/220C | BED 24/60C", "192.168.2.4 | IDLE"))
+        # Pages leave the footer's pixels alone; it was drawn once.
+        self.assertEqual(len(sent), 3)
+        self.assertNotIn("192.168.2.4 | IDLE", "\n".join(first))
         self.assertIn("-s 800 442", "\n".join(first))
         self.assertNotIn("-s 784 472", "\n".join(first))
         self.assertIn("-s 784 439", "\n".join(first))
 
     def test_footer_fits_full_network_and_standby_status(self):
         renderer = FEATHER.FeatherRenderer()
-        drawing = "\n".join(renderer._footer_commands(
-            ("NOZZLE 250/250C | BED 32/0C",
-             "192.168.2.124 | STANDBY")))
+        sent = RenderCapture(renderer).batches
+        renderer.footer("NOZZLE 250/250C | BED 32/0C", "192.168.2.124 | STANDBY")
+        drawing = "\n".join(sent[-1])
 
         self.assertIn('"192.168.2.124 | STANDBY"', drawing)
         self.assertIn("--max-width 340 --truncate", drawing)
@@ -2312,22 +2315,24 @@ class RendererStateTest(unittest.TestCase):
 
     def test_theme_change_repaints_cached_footer(self):
         renderer = FEATHER.FeatherRenderer()
-        RenderCapture(renderer)
+        sent = RenderCapture(renderer).batches
         renderer.footer(
             "NOZZLE 21/220C | BED 24/60C", "192.168.2.4 | IDLE")
 
         self.assertTrue(renderer.set_theme("SYNTH"))
         expected_primary = renderer.color(UI.ThemeColor.PRIMARY)
-        page = "\n".join(renderer.begin_page("Settings"))
-        self.assertIn("-c %s" % expected_primary, page)
+        renderer.send(renderer.begin_page("Settings"))
+        footer = "\n".join(sent[-1])
+        self.assertIn("-c %s" % expected_primary, footer)
         footer_clear = renderer.fill(
             0, UI.FOOTER_Y - 2, UI.SCREEN_WIDTH,
             UI.SCREEN_HEIGHT - (UI.FOOTER_Y - 2),
             UI.ThemeColor.BACKGROUND)
-        self.assertIn(footer_clear, page)
+        self.assertIn(footer_clear, footer)
 
-        unchanged = "\n".join(renderer.begin_page("Settings"))
-        self.assertNotIn(footer_clear, unchanged)
+        drawn = len(sent)
+        renderer.send(renderer.begin_page("Settings"))
+        self.assertEqual(len(sent), drawn + 1)
 
     def test_footer_repaint_removes_previous_fullscreen_overlay_pixels(self):
         renderer = FEATHER.FeatherRenderer()
@@ -2341,10 +2346,9 @@ class RendererStateTest(unittest.TestCase):
             "abcdef" if overlay != "abcdef" else "fedcba")
         renderer._palette = UI.resolve_theme(colors)
         background = renderer.color(UI.ThemeColor.BACKGROUND)
-        renderer._footer_values = (
-            "NOZZLE 21/220C | BED 24/60C", "192.168.2.4 | IDLE")
-        renderer._footer_drawn = False
-        page = renderer.begin_page("Settings")
+        renderer.footer("NOZZLE 21/220C | BED 24/60C", "192.168.2.4 | IDLE")
+        renderer.send(renderer.begin_page("Settings"))
+        page = [command for batch in sent[1:] for command in batch]
 
         fill_pattern = re.compile(
             r"^--batch fill -p (\d+) (\d+) -s (\d+) (\d+) "
