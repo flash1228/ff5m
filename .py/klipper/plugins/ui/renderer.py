@@ -492,8 +492,9 @@ class FeatherRenderer(RendererBase):
 
     def process_events(self, eventtime):
         """On the reactor, once event_fd is readable: deliver the frame loop's
-        sent and restart notices and return Typer's events in order: TapEvent,
-        TouchEvent, ButtonEvent, TouchDeviceEvent and RenderReceipt."""
+        sent and restart notices, apply the input of the screen frames it
+        built, and return Typer's events in order: TapEvent, TouchEvent,
+        ButtonEvent, TouchDeviceEvent and RenderReceipt."""
         events = []
         for event in self._loop.take():
             kind = event[0]
@@ -514,6 +515,10 @@ class FeatherRenderer(RendererBase):
                     self._sent_handler(event[1], eventtime)
             elif kind == "screen-error":
                 screen_failed(event[1])
+            elif kind == "input":
+                # The input of the screen's frame, before any tap Typer
+                # reports for it; a surface begun meanwhile keeps its own.
+                self._apply_screen_input(event[1])
             else:
                 logging.warning("[feather_screen] typer restarted (last error: %s)",
                                 self._loop.status()["last_error"] or "none")
