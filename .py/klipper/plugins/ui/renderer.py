@@ -511,8 +511,12 @@ class FeatherRenderer(RendererBase):
         return events
 
     @contextmanager
-    def compose(self, preserve_input=False, retain_background=False):
-        """Submit consecutive ordinary draws as one admitted frame."""
+    def compose(self, preserve_input=False, retain_background=False, finish_input=True):
+        """Submit consecutive ordinary draws as one admitted frame.
+
+        finish_input=False: a frame that preserves the visible surface's input
+        ends it itself (a screen that keeps it, ScreenFrames.keep_input), so
+        the kept-input finish does not run here."""
         if self._composite_commands is not None:
             raise RuntimeError("render composition is already active")
         self._composite_commands = CommandList()
@@ -556,7 +560,7 @@ class FeatherRenderer(RendererBase):
             self._prepare_surface()
             self._header_action = requested_header
             return
-        if commands and preserve_input and previous is not None:
+        if commands and preserve_input and finish_input and previous is not None:
             # Replace only input IDs after building pixels once. These final
             # resets remove IDs embedded in the earlier draw commands.
             replaced = self._finish_kept_input()

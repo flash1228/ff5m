@@ -459,8 +459,9 @@ class ScreenRoot:
         try:
             opening = mode == "foreground" and changed
             retained = mode == "foreground" and not changed
-            with self.renderer.compose(preserve_input=same_surface and not (replay or relayout or full_relayout),
-                                       retain_background=retained) as frame:
+            keep = same_surface and not (replay or relayout or full_relayout)
+            with self.renderer.compose(preserve_input=keep, retain_background=retained,
+                                       finish_input=False) as frame:
                 commands = []
                 if mode == "whole" or opening:
                     if self.chrome and mode == "whole":
@@ -488,20 +489,24 @@ class ScreenRoot:
                     # The painters may have shown or hidden the footer (a page begun, a state
                     # screen); after the plan only a frame that draws whole takes that.
                     self._place_footer()
+                if keep:
+                    # Its build ends the input as the composition's kept-input finish does.
+                    screen.keep_input()
                 built = screen.end(self.renderer) or ()
                 # A relayout that moved more than the page's boundaries drew nothing.
                 partial = not relayout or bool(built)
-                commands = commands + list(built) if partial else []
-                if replay:
-                    with self.renderer.rebuild_page_input() as input_commands:
-                        page.root.render_interactions(self.renderer, page.state, page.layout)
-                    commands += input_commands
+                tail = screen.input_tail
+                commands = commands + list(built) + self._input_tail(tail, page) if partial else []
+                kind = "surface" if mode == "whole" else (
+                    None if mode in ("repaint", "relayout") else "state")
+                # A frame that replaced the kept input is a prerequisite for later
+                # pixel-only updates, as the composition's kept-input finish sends it.
+                replaced = tail == "regions"
                 if commands:
                     self.renderer.send(
                         commands, receipt=receipt, receipt_phase=receipt_phase,
-                        kind="surface" if mode == "whole" else (
-                            None if mode in ("repaint", "relayout") else "state"),
-                        key="foreground" if retained else None)
+                        kind=kind or ("state" if replaced else None),
+                        key="foreground" if retained and not replaced else None)
         except BaseException:
             self._abandon_screen()
             raise
@@ -521,6 +526,19 @@ class ScreenRoot:
         self._rebuild = bool(commands) and not accepted
         self._screen_redraw = self._rebuild
         return accepted or not commands
+
+    def _input_tail(self, tail, page):
+        """The commands that end a screen frame's input after it (its
+        input_tail): every region replaced under the new generation of a kept
+        surface whose regions changed, or the page's changed input replayed
+        over the repaint, as its update replays it."""
+        if tail == "regions":
+            return self.renderer._input_commands()
+        if tail == "replay":
+            with self.renderer.rebuild_page_input() as commands:
+                page.root.render_interactions(self.renderer, page.state, page.layout)
+            return commands
+        return []
 
     def _place_footer(self):
         """Inside the screen's transaction: the content and layers with the
