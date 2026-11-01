@@ -14,7 +14,7 @@ from contextlib import contextmanager
 
 from .actions import Action, DismissToast, action_wire_id
 from .engine import (
-    NATIVE_METHODS, CommandBatch, CommandList, FrameLoop, RendererBase, dialog_layout, quote, renderer_normalize_font,
+    NATIVE_METHODS, BinaryCommand, CommandBatch, CommandList, FrameLoop, RendererBase, dialog_layout, quote, renderer_normalize_font,
     renderer_normalize_font_for_text, renderer_text_width,
 )
 from .font_metrics import (
@@ -148,17 +148,9 @@ _ButtonSpec = namedtuple(
 )
 
 
-class BinaryCommand(str):
-    """A Typer command whose payload follows its transport header."""
-
-    __slots__ = ("payload",)
-
-    def __new__(cls, command, payload):
-        if not isinstance(payload, bytes):
-            raise TypeError("binary command payload must be immutable bytes")
-        value = str.__new__(cls, command)
-        value.payload = payload
-        return value
+# BinaryCommand, a Typer command whose payload follows its transport header,
+# is the engine's type: the engine also makes the binary commands a recorded
+# output keeps.
 
 
 def _immutable_commands(commands):

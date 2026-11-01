@@ -13,7 +13,7 @@ and writes Typer commands. The framework has no Python implementation of
 them, so it cannot start without a matching engine.
 """
 
-ENGINE_ABI = 71
+ENGINE_ABI = 72
 
 try:
     import feather_engine
@@ -58,6 +58,7 @@ split_sizes = feather_engine.split_sizes
 LayoutResult = feather_engine.LayoutResult
 CommandList = feather_engine.CommandList
 CommandBatch = feather_engine.CommandBatch
+BinaryCommand = feather_engine.BinaryCommand
 # Each page's semantic actions by wire id, each with a stable index.
 ActionTable = feather_engine.ActionTable
 # Each page's state values by schema key, with the keys changed since a render.
