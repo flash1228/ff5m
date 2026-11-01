@@ -6,6 +6,7 @@
 
 from .bindings import StateStore, page_state_keys
 from .engine import NATIVE_METHODS, BinaryCommand, CommandBatch, ScreenFrames
+from .font_metrics import get_font_metrics
 from .identity import serialize_key
 from .layout import DeclarativePage, Dirty, Node, Overlay, PageTree, Rect
 
@@ -392,9 +393,13 @@ class ScreenRoot:
         sources += [(layer.node, node, layer) for layer, node in zip(layers, nodes[1:])]
         return sources, changed
 
-    def _paint_screen(self, receipt, force, receipt_phase="presented"):
+    def _paint_screen(self, receipt, force, receipt_phase="presented", full_relayout=False):
         """Draw the surfaces through the screen's frames: the modes of
-        _paint_frame, decided by the engine's layer rule (planned())."""
+        _paint_frame, decided by the engine's layer rule (planned()).
+
+        full_relayout: a relayout of the page that could not draw partially
+        draws whole, as the page's update draws a full relayout: its pass
+        already ran, and the frame replaces the page's input."""
         layers = tuple(layer for layer in self.layers if not layer.suspended)
         same_surface = self.content is self._visible_content and layers == self.visible_layers
         if self._screen is None:
@@ -414,10 +419,13 @@ class ScreenRoot:
             if page is not None:
                 if screen.state is not page.state:
                     screen.state = page.state
-                # A frame that draws the page anew prepares it as its draw does.
-                page.prepare_frame(redraw or shown != self._shown[:1])
+                if not full_relayout:
+                    # A frame that draws the page anew prepares it as its draw does.
+                    page.prepare_frame(redraw or shown != self._shown[:1])
                 if self._replays_page_input(page, layers, same_surface):
                     screen.replay_input()
+                elif self._relayouts_page(page, layers, same_surface):
+                    screen.relayout_page(page.root, page._structure)
             state = self._screen_state
             state.update(self._values)
             for source, node, layer in sources:
@@ -440,18 +448,26 @@ class ScreenRoot:
         mode, foreground = planned
         # The page's changed input replays over the repaint, as its update does.
         replay = mode == "repaint" and page is not None and page.root._input_dirty
+        relayout = mode == "relayout"
+        partial = True
         try:
             opening = mode == "foreground" and changed
             retained = mode == "foreground" and not changed
-            with self.renderer.compose(preserve_input=same_surface and not replay,
+            with self.renderer.compose(preserve_input=same_surface and not (replay or relayout or full_relayout),
                                        retain_background=retained) as frame:
                 commands = []
                 if mode == "whole" or opening:
                     if self.chrome and mode == "whole":
                         commands += self.renderer.begin_page(self.title)
-                    else:
+                    elif not full_relayout:
+                        # (A full relayout's page chrome takes the new generation itself.)
                         self.renderer.invalidate_input_generation()
-                if mode != "repaint":
+                if relayout:
+                    # The page's base input, which its controls then replay over, as its
+                    # update's partial relayout registers it.
+                    self.renderer.set_semantic_page(page.page_id)
+                    commands += self.renderer.redraw_page_hitboxes()
+                elif mode != "repaint":
                     # As the composition's draws named their page.
                     self.renderer.set_semantic_page(serialize_key(self.page_id))
                 for source, node, _layer in sources:
@@ -462,7 +478,10 @@ class ScreenRoot:
                             or (mode == "repaint" and not node.is_clean)):
                         node.commands = CommandBatch(
                             source.render(self.renderer, state, None), BinaryCommand)
-                commands += screen.end(self.renderer) or ()
+                built = screen.end(self.renderer) or ()
+                # A relayout that moved more than the page's boundaries drew nothing.
+                partial = not relayout or bool(built)
+                commands = commands + list(built) if partial else []
                 if replay:
                     with self.renderer.rebuild_page_input() as input_commands:
                         page.root.render_interactions(self.renderer, page.state, page.layout)
@@ -471,7 +490,7 @@ class ScreenRoot:
                     self.renderer.send(
                         commands, receipt=receipt, receipt_phase=receipt_phase,
                         kind="surface" if mode == "whole" else (
-                            None if mode == "repaint" else "state"),
+                            None if mode in ("repaint", "relayout") else "state"),
                         key="foreground" if retained else None)
         except BaseException:
             self._abandon_screen()
@@ -480,7 +499,10 @@ class ScreenRoot:
             # Unknown or changed panel bounds require restoring exposed pixels.
             self._screen_redraw = True
             return self._paint_screen(receipt, True, receipt_phase)
-        if page is not None and mode == "whole":
+        if not partial:
+            # It draws whole, with the page's chrome, as its update draws a full relayout.
+            return self._paint_screen(receipt, True, receipt_phase, full_relayout=True)
+        if page is not None and mode in ("whole", "relayout"):
             page.screen_drew(screen.layout)
         accepted = frame["accepted"]
         if accepted:
@@ -497,6 +519,17 @@ class ScreenRoot:
         return (not layers and same_surface and page.root._input_dirty
                 and page.root._dirty < Dirty.LAYOUT and page._structure.replayable
                 and hasattr(self.renderer, "rebuild_page_input"))
+
+    def _relayouts_page(self, page, layers, same_surface):
+        """Whether the page's relayout may draw partially, as its update draws
+        it: no layers, no changed input, the page's layout arranged for its
+        bounds and the current font metrics, and the renderer rebuilds the
+        page's base input."""
+        root = page.root
+        return (not layers and same_surface and root._dirty >= Dirty.LAYOUT and not root._input_dirty
+                and page._layout_bounds == page.bounds
+                and page._layout_metrics_key == get_font_metrics().cache_key
+                and hasattr(self.renderer, "redraw_page_hitboxes"))
 
     def _record_page_chrome(self, slot):
         """Before the page's nodes: its chrome, which resets the input the
