@@ -2487,6 +2487,8 @@ class DeclarativePage(Tree):
         if self.styles is not None:
             self._apply_styles(content)
         super().__init__(content, bounds)
+        # The page's tree flags stay on its root while a screen tree holds it.
+        self.root._owns_tree = True
         self._declared_actions = tuple(actions or ())
         self.actions = ActionTable()
         self._dependencies = None
@@ -2721,6 +2723,41 @@ class DeclarativePage(Tree):
             refresh_stale_dependencies(self)
         self._update_nodes((self.root,), True)
         self.state.clear_changes()
+
+    def prepare_frame(self, full):
+        """Run the page's Python work and update pass for a screen that draws its tree.
+
+        full prepares a new layout as draw() does, else the update as update() does. The
+        nodes keep their dirt for the screen's frame; the changed keys are cleared.
+        """
+        full = full or not self.initialized
+        metrics_current = self._layout_metrics_key == get_font_metrics().cache_key
+        if full:
+            self.commit(everything=True, initialize=True)
+            self._commit_hosted(False, True)
+        else:
+            # New font metrics re-measure text that no state key changed.
+            if not metrics_current:
+                self.root.invalidate_layout()
+            self.commit()
+            self._commit_hosted(metrics_current)
+        if self.styles is not None and not self._styles_current():
+            self._apply_styles(self.root)
+            refresh_stale_dependencies(self)
+        self._update_nodes((self.root,), not full and metrics_current, full)
+        if self.root._actions_dirty:
+            # Raised within the update pass (ListView items, a Python hook).
+            self._refresh_actions()
+        self.state.clear_changes()
+
+    def screen_drew(self, layout):
+        """A screen drew the page whole and published its layout on the page's nodes: the
+        page's own frame builder no longer holds what is on the panel."""
+        self.layout = layout
+        self._builder = None
+        self._layout_bounds = self.bounds
+        self._layout_metrics_key = get_font_metrics().cache_key
+        self.initialized = True
 
     def commit(self, everything=False, initialize=False):
         """Run the Python work of the state's changes before the update pass.
