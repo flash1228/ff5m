@@ -133,6 +133,17 @@ def _tree(node, layout):
     }
 
 
+def _screen_tree(root):
+    """The screen path's composition: the content and visible layers, each
+    drawn in the root's bounds."""
+    sources = [root._content_node] + [layer.node for layer in root.visible_layers]
+    return {
+        "node": "screen", "type": type(root).__name__, "bounds": list(root.bounds),
+        "children": [{"node": _name(node), "type": type(node).__name__,
+                      "bounds": list(root.bounds), "children": []} for node in sources],
+    }
+
+
 def _background(layout, renderer, data):
     if layout == "imperative":
         def paint():
@@ -205,9 +216,12 @@ def run_sequence(layout, theme="DEFAULT"):
 
     def traced_render(original):
         def render(node, target, values, geometry):
+            # The screen path records a surface's painter without a layout:
+            # surfaces take the root's bounds.
+            bounds = root.bounds if geometry is None else geometry.rect(node)
             event = dict(node=_name(node), type=type(node).__name__,
                          method=original.__qualname__,
-                         bounds=list(geometry.rect(node)), depth=len(stack), commands=0)
+                         bounds=list(bounds), depth=len(stack), commands=0)
             calls.append(event)
             stack.append(node)
             started = time.perf_counter()
@@ -270,7 +284,8 @@ def run_sequence(layout, theme="DEFAULT"):
             id=layout + "-" + name, label=layout + " / " + name,
             description=description, counts=counts, expected_counts=expected, failures=failures,
             milliseconds=round(elapsed, 3), render_calls=list(calls), passes=list(passes),
-            tree=_tree(root._tree.root, root._tree.layout), batches=batches,
+            tree=(_screen_tree(root) if root._screen_path
+                  else _tree(root._tree.root, root._tree.layout)), batches=batches,
             dirty_operations=operations,
             operation_types=dict(Counter(operation["type"] for operation in operations)),
             dialog_bounds=list(renderer._dialog_bounds),
@@ -288,14 +303,22 @@ def run_sequence(layout, theme="DEFAULT"):
     def value(text):
         data["value"] = text
         renderer.footer("STATUS: " + text, "READY", paint=False)
-        if Values.VALUE in root._tree.state_schema:
+        if root._tree is not None and Values.VALUE in root._tree.state_schema:
             root.update({Values.VALUE: text})
         else:
             root.invalidate()
             root.paint()
 
+    original_paint_frame = ScreenRoot._paint_frame
+
+    def composition_frame(screen_root, *args, **kwargs):
+        # Only the composition's PageTree renders nodes in Python; a patched
+        # Node.render would make the screen path's native frames refuse.
+        with mock.patch.object(Node, "render", traced_render(original_renders[0])):
+            return original_paint_frame(screen_root, *args, **kwargs)
+
     with ExitStack() as patches:
-        patches.enter_context(mock.patch.object(Node, "render", traced_render(Node.render)))
+        patches.enter_context(mock.patch.object(ScreenRoot, "_paint_frame", composition_frame))
         patches.enter_context(mock.patch.object(PaintSurface, "render", traced_render(PaintSurface.render)))
         patches.enter_context(mock.patch.object(PageTree, "_render_full", full))
         patches.enter_context(mock.patch.object(Footer, "_change", untraced(Footer._change)))

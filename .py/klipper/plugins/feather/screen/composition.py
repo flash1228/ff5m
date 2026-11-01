@@ -4,15 +4,11 @@
 ##
 ## This file may be distributed under the terms of the GNU GPLv3 license
 
-from ui import ScreenLayer
-from ui.layout import Node
+from ui import ImperativeSurface, ScreenLayer
 
 
-class PaintSurface(Node):
+class PaintSurface(ImperativeSurface):
     """Bridge existing page painters while the root owns their output."""
-
-    paints_pixels = True
-    covers_bounds = True
 
     def __init__(self, painter, modal=False, accepts_deltas=None, paint_key=None):
         super().__init__()

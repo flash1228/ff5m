@@ -4,7 +4,9 @@
 ##
 ## This file may be distributed under the terms of the GNU GPLv3 license
 
-from .bindings import page_state_keys
+from .bindings import StateStore, page_state_keys
+from .engine import NATIVE_METHODS, BinaryCommand, CommandBatch, ScreenFrames
+from .identity import serialize_key
 from .layout import DeclarativePage, Dirty, Node, Overlay, PageTree, Rect
 
 
@@ -20,7 +22,31 @@ class ScreenLayer:
         self.suspended = False
 
 
-class _PageSlot(Node):
+class ImperativeSurface(Node):
+    """A node an imperative painter draws: its render runs the painter and
+    ignores the layout. A screen root whose content and layers are all
+    imperative surfaces draws them through its ScreenFrames, recording each
+    painter's output when the frame places it."""
+
+    paints_pixels = True
+    covers_bounds = True
+
+
+class _Recorded(Node):
+    """An imperative surface's place in the screen's frames: the output its
+    painter last recorded, which the engine draws there."""
+
+    paints_pixels = True
+    covers_bounds = True
+    record_fields = ("commands",)
+    draw = NATIVE_METHODS["recorded"]["draw"]
+
+    def __init__(self):
+        super().__init__()
+        self.commands = None
+
+
+class _PageSlot(ImperativeSurface):
     """The place of a declarative page in the screen tree.
 
     The page draws with its own tree, which keeps its layout, styles and
@@ -28,9 +54,6 @@ class _PageSlot(Node):
     root instead walks the whole page at every show and layer change (4-6
     times the cost of drawing the kept page, measured on the host).
     """
-
-    paints_pixels = True
-    covers_bounds = True
 
     def __init__(self, page, title, back):
         super().__init__()
@@ -66,6 +89,15 @@ class ScreenRoot:
 
     select_content, when given, returns (content, title, back) for the
     product's current state; each paint shows what it returns.
+
+    While the content and every visible layer are imperative surfaces, the
+    root draws through its ScreenFrames (_paint_screen): the engine composes
+    them by its layer rule and says what the next frame draws, and the
+    surfaces it places record their painters' output. Anything else draws
+    through _paint_frame.
+    TODO(1P-5c): remove _paint_frame and its PageTree once the remaining
+    content and layers are native (the page with 1P-5d, Dialog with the
+    stage 1 dialog piece); only Designer scenes still reach it.
     """
 
     def __init__(self, renderer, content, bounds, page_id, title="", chrome=True,
@@ -89,6 +121,18 @@ class ScreenRoot:
         self._tree = None
         self._values = {}
         self._select_content = select_content
+        # The screen path: its frames, their tree, each surface's recorded
+        # node (content by (node, title, back), layers by layer), the nodes
+        # the tree holds, the layers' state, and whether its next frame
+        # must draw whole (the panel shows something it did not draw).
+        self._screen = None
+        self._screen_tree = None
+        self._recorded = {}
+        self._shown = ()
+        self._screen_state = None
+        self._screen_schema = ()
+        self._screen_redraw = True
+        self._screen_path = None
         self.replace_content(content)
         renderer.configure_frame_owner(self)
 
@@ -158,6 +202,7 @@ class ScreenRoot:
         """The renderer cleared the panel (its start): nothing composed before
         is visible, so the next paint draws the whole composition."""
         self._rebuild = True
+        self._screen_redraw = True
         self.visible_layers = ()
         self._visible_content = None
 
@@ -172,7 +217,15 @@ class ScreenRoot:
             if self._select_content is not None:
                 content, title, back = self._select_content()
                 self.replace_content(content, title=title, back=back)
-            result = self._paint_frame(receipt, force, receipt_phase)
+            screen = self._surfaces_only()
+            if screen != self._screen_path:
+                # The other path drew last: neither keeps what is on the panel.
+                self._screen_path = screen
+                self._rebuild = self._screen_redraw = True
+            if screen:
+                result = self._paint_screen(receipt, force, receipt_phase)
+            else:
+                result = self._paint_frame(receipt, force, receipt_phase)
         finally:
             self.painting = False
         return self._drain_repaint() or result
@@ -272,6 +325,136 @@ class ScreenRoot:
             self.renderer.discard_surface()
             self._rebuild = True
             raise
+
+    def _surfaces_only(self):
+        return (isinstance(self._content_node, ImperativeSurface)
+                and all(isinstance(layer.node, ImperativeSurface)
+                        for layer in self.layers if not layer.suspended))
+
+    def _screen_layers(self, layers):
+        """Set the screen tree's recorded nodes for the content and layers.
+        Returns them with their sources and whether they changed."""
+        keys = [(self._content_node,) + self._content_chrome] + list(layers)
+        nodes = tuple(self._recorded.get(key) or _Recorded() for key in keys)
+        changed = nodes != self._shown
+        if changed:
+            self._recorded = dict(zip(keys, nodes))
+            self._screen_tree.children = nodes
+            self._screen_tree._adopt(*nodes)
+            self._screen_tree.invalidate_layout()
+            self._shown = nodes
+            schema = tuple(key for layer in self.layers for key in page_state_keys(layer.node))
+            # Suspended instances retain their values; closed instances release them.
+            for key in self._screen_schema:
+                if key not in schema:
+                    self._values.pop(key, None)
+            self._screen_schema = schema
+            self._screen_state = StateStore(schema)
+        sources = [(self._content_node, nodes[0], None)]
+        sources += [(layer.node, node, layer) for layer, node in zip(layers, nodes[1:])]
+        return sources, changed
+
+    def _paint_screen(self, receipt, force, receipt_phase="presented"):
+        """Draw the surfaces through the screen's frames: the modes of
+        _paint_frame, decided by the engine's layer rule (planned())."""
+        layers = tuple(layer for layer in self.layers if not layer.suspended)
+        same_surface = self.content is self._visible_content and layers == self.visible_layers
+        if (not layers and same_surface and not (
+                force or self.renderer.header_action_changed or self._rebuild
+                or self._screen_redraw)
+                and self._content_node.is_clean and self._page_changed()):
+            # The page's own update frame replays its input itself. The screen's
+            # tree stays clean: its next frame that draws the content records it
+            # again.
+            commands = self._page.update(self.renderer)
+            accepted = bool(commands) and self.renderer.send(
+                commands, receipt=receipt, receipt_phase=receipt_phase)
+            self._rebuild = self._screen_redraw = bool(commands) and not accepted
+            return accepted or not commands
+        if self._screen is None:
+            self._screen_tree = Overlay()
+            self._screen = ScreenFrames(self._screen_tree, None, self.bounds)
+        screen = self._screen
+        screen.begin()
+        try:
+            sources, changed = self._screen_layers(layers)
+            if (force or self.renderer.header_action_changed or self._screen_redraw
+                    or (self._rebuild and not changed)):
+                screen.redraw()
+            self._screen_redraw = False
+            state = self._screen_state
+            state.update(self._values)
+            for source, node, layer in sources:
+                source.update(state)
+                node._blocks_input = source.input_blocked
+                node._retains_background = layer is not None and layer.retain_background
+                if not source.is_clean:
+                    node.invalidate()
+                    source.clear_dirty()
+            content = sources[0][1]
+            if content.is_clean and self._page_changed():
+                # The page's values changed under layers: draw it again.
+                content.invalidate()
+            planned = screen.planned()
+        except BaseException:
+            self._abandon_screen()
+            raise
+        if planned is None:
+            screen.end(self.renderer)
+            self.renderer.discard_surface()
+            return not any(node._blocks_input for _source, node, _layer in sources[1:])
+        mode, foreground = planned
+        try:
+            opening = mode == "foreground" and changed
+            retained = mode == "foreground" and not changed
+            with self.renderer.compose(preserve_input=same_surface,
+                                       retain_background=retained) as frame:
+                commands = []
+                if mode == "whole" or opening:
+                    if self.chrome and mode == "whole":
+                        commands += self.renderer.begin_page(self.title)
+                    else:
+                        self.renderer.invalidate_input_generation()
+                if mode != "repaint":
+                    # As the composition's draws named their page.
+                    self.renderer.set_semantic_page(serialize_key(self.page_id))
+                for source, node, _layer in sources:
+                    if (mode == "whole" or (mode == "foreground" and node in foreground)
+                            or (mode == "repaint" and not node.is_clean)):
+                        node.commands = CommandBatch(
+                            source.render(self.renderer, state, None), BinaryCommand)
+                commands += screen.end(self.renderer) or ()
+                if commands:
+                    self.renderer.send(
+                        commands, receipt=receipt, receipt_phase=receipt_phase,
+                        kind="surface" if mode == "whole" else (
+                            None if mode == "repaint" else "state"),
+                        key="foreground" if retained else None)
+        except BaseException:
+            self._abandon_screen()
+            raise
+        if frame["background_changed"]:
+            # Unknown or changed panel bounds require restoring exposed pixels.
+            self._screen_redraw = True
+            return self._paint_screen(receipt, True, receipt_phase)
+        accepted = frame["accepted"]
+        if accepted:
+            self.visible_layers = layers
+            self._visible_content = self.content
+        self._rebuild = bool(commands) and not accepted
+        self._screen_redraw = self._rebuild
+        return accepted or not commands
+
+    def _abandon_screen(self):
+        """A failed screen frame: whatever it drew is unknown, so the next
+        frame draws whole."""
+        self.renderer.discard_surface()
+        self._rebuild = self._screen_redraw = True
+        if self._screen is not None and self._screen.open:
+            try:
+                self._screen.end(self.renderer)
+            except RuntimeError:
+                pass
 
     def _page_changed(self):
         return self._page is not None and bool(self._page.state.changed_keys)
