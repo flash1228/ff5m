@@ -9,7 +9,7 @@
 from .bindings import bind, state
 from .engine import Rect, ScreenFrames
 from .identity import PageKey, StateKey
-from .renderer import FOOTER_HEIGHT, FOOTER_Y, FRAME_WIDTH, FRAME_X, SCREEN_HEIGHT, SCREEN_WIDTH, screen_failed
+from .layout_helpers import FOOTER_HEIGHT, FOOTER_Y, FRAME_WIDTH, FRAME_X, SCREEN_HEIGHT, SCREEN_WIDTH
 from .theme import ThemeColor
 
 # The footer's strip: the separator row above the panel down to the screen's bottom.
@@ -144,7 +144,9 @@ class Footer:
             try:
                 frame = screen.end(self._renderer)
             except RuntimeError as error:
-                # As an attached loop reports it; the tree is left clean.
+                # As an attached loop reports it; the tree is left clean. The renderer
+                # imports this module, so its report is imported here.
+                from .renderer import screen_failed
                 screen_failed(str(error))
                 frame = None
         if frame:

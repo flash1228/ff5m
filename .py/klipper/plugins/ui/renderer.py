@@ -20,7 +20,10 @@ from .engine import (
 from .font_metrics import (
     get_font_metrics, load_runtime_metrics, set_font_metrics,
 )
+from .footer import Footer, FooterState, footer_content
 from .layout_helpers import (
+    CONTENT_BOTTOM, FOOTER_HEIGHT, FOOTER_Y, FRAME_HEIGHT, FRAME_WIDTH, FRAME_X, FRAME_Y, HEADER_BOTTOM,
+    SCREEN_HEIGHT, SCREEN_WIDTH,
     DIALOG_BODY_FONT, DIALOG_BODY_HALF_HEIGHT, DIALOG_BODY_Y, DIALOG_BUTTON_BOTTOM,
     DIALOG_BUTTON_COMPACT_FONT, DIALOG_BUTTON_FONT, DIALOG_BUTTON_MEDIUM_FONT,
     DIALOG_MIN_HEIGHT, DIALOG_MIN_WIDTH,
@@ -75,16 +78,6 @@ DRAW_PIPE = "/tmp/typer"
 EVENT_PIPE = "/tmp/feather-events"
 TOUCH_DEVICE = "/dev/input/guppy"
 TYPER_BINARY = "/root/printer_data/bin/typer"
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 480
-FRAME_X = 8
-FRAME_Y = 4
-FRAME_WIDTH = 784
-FRAME_HEIGHT = 472
-HEADER_BOTTOM = 55
-FOOTER_Y = 444
-FOOTER_HEIGHT = 32
-CONTENT_BOTTOM = FOOTER_Y - 2
 
 
 class PageChromeContract:
@@ -238,7 +231,6 @@ class FeatherRenderer(RendererBase):
     DIALOG_TEXT_PADDING = 28
     def __init__(self, debug=False, theme_directories=None, blending=True,
                  raster_acceleration="scalar", ram_composition=False):
-        from .footer import Footer
         # The persistent status strip; the frame loop draws it off the reactor.
         self._footer = Footer(self._footer_content, self._footer_state, self, self._submit_footer)
         self.debug = debug
@@ -1579,11 +1571,9 @@ class FeatherRenderer(RendererBase):
         """The footer's tree in footer.FOOTER_BOUNDS, reading the values
         _footer_state gives. A product overrides both to draw its own strip;
         the state always holds footer.FooterState's LEFT and RIGHT."""
-        from .footer import footer_content
         return footer_content()
 
     def _footer_state(self, left, right):
-        from .footer import FooterState
         return {FooterState.LEFT: left, FooterState.RIGHT: right}
 
     def footer(self, left, right, paint=True):
