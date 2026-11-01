@@ -34,7 +34,7 @@ from ff5m_ui.move import runtime as MOVE_LAYOUT
 from ff5m_ui.z_offset import runtime as Z_OFFSET_LAYOUT
 from feather.features.z import ZCalibrationFeature
 from tests.feather_render_test_helper import (
-    RenderCapture, RenderFrame, refused_render)
+    RenderCapture, RenderFrame, page_screen, refused_render)
 
 # Unit controllers created with __new__ do not receive klippy:ready. Give
 # those isolated fixtures the same catalog that config/material.cfg provides;
@@ -1421,14 +1421,20 @@ class RendererStateTest(unittest.TestCase):
     def test_touch_warning_wraps_body_and_invalidates_cached_footer(self):
         renderer = FEATHER.FeatherRenderer()
         batches = RenderCapture(renderer).batches
+
+        def ready():
+            commands = renderer.begin_page("Ready")
+            commands += renderer.button(
+                "ready.confirm", 220, 300, 360, 100, "CONTINUE")
+            renderer.send(commands)
+        shown = [ready]
+        root = page_screen(renderer, lambda: shown[0]())
         renderer.footer(
             "NOZZLE 21/220C | BED 24/60C", "192.168.2.4 | IDLE")
-        commands = renderer.begin_page("Ready")
-        commands += renderer.button(
-            "ready.confirm", 220, 300, 360, 100, "CONTINUE")
-        renderer.send(commands)
+        root.paint()
 
-        renderer.touch_unavailable_modal()
+        shown[0] = renderer.touch_unavailable_modal
+        root.paint(force=True)
 
         warning = "\n".join(batches[-1])
         frame = RenderFrame(batches[-1], renderer)
@@ -1447,7 +1453,8 @@ class RendererStateTest(unittest.TestCase):
             "NOZZLE 22/220C | BED 24/60C", "192.168.2.4 | PRINTING")
         self.assertEqual(len(batches), drawn)
         renderer.thaw_output()
-        renderer.send(renderer.begin_page("Ready"))
+        shown[0] = ready
+        root.paint(force=True)
         restored = "\n".join(batches[-1])
         footer_clear = renderer.fill(
             0, UI.FOOTER_Y - 2, UI.SCREEN_WIDTH,
@@ -2288,23 +2295,27 @@ class RendererStateTest(unittest.TestCase):
     def test_footer_is_preserved_across_page_frames(self):
         renderer = FEATHER.FeatherRenderer()
         sent = RenderCapture(renderer).batches
+        title = ["Control"]
+        root = page_screen(renderer, lambda: renderer.send(renderer.begin_page(title[0])))
         renderer.footer(
             "NOZZLE 21/220C | BED 24/60C", "192.168.2.4 | IDLE")
-
-        first = renderer.begin_page("Control")
-        renderer.send(first)
-        renderer.send(renderer.begin_page("Settings"))
+        root.paint()
+        title[0] = "Settings"
+        root.paint(force=True)
 
         # Pages leave the footer's pixels alone; it was drawn once.
-        self.assertEqual(len(sent), 3)
-        self.assertNotIn("192.168.2.4 | IDLE", "\n".join(first))
-        self.assertIn("-s 800 442", "\n".join(first))
-        self.assertNotIn("-s 784 472", "\n".join(first))
-        self.assertIn("-s 784 439", "\n".join(first))
+        self.assertEqual(len(sent), 2)
+        self.assertIn("192.168.2.4 | IDLE", "\n".join(sent[0]))
+        page = "\n".join(sent[1])
+        self.assertNotIn("192.168.2.4 | IDLE", page)
+        self.assertIn("-s 800 442", page)
+        self.assertNotIn("-s 784 472", page)
+        self.assertIn("-s 784 439", page)
 
     def test_footer_fits_full_network_and_standby_status(self):
         renderer = FEATHER.FeatherRenderer()
         sent = RenderCapture(renderer).batches
+        page_screen(renderer).paint()
         renderer.footer("NOZZLE 250/250C | BED 32/0C", "192.168.2.124 | STANDBY")
         drawing = "\n".join(sent[-1])
 
@@ -2316,12 +2327,14 @@ class RendererStateTest(unittest.TestCase):
     def test_theme_change_repaints_cached_footer(self):
         renderer = FEATHER.FeatherRenderer()
         sent = RenderCapture(renderer).batches
+        root = page_screen(renderer, "Settings")
+        root.paint()
         renderer.footer(
             "NOZZLE 21/220C | BED 24/60C", "192.168.2.4 | IDLE")
 
         self.assertTrue(renderer.set_theme("SYNTH"))
         expected_primary = renderer.color(UI.ThemeColor.PRIMARY)
-        renderer.send(renderer.begin_page("Settings"))
+        root.paint(force=True)
         footer = "\n".join(sent[-1])
         self.assertIn("-c %s" % expected_primary, footer)
         footer_clear = renderer.fill(
@@ -2331,15 +2344,17 @@ class RendererStateTest(unittest.TestCase):
         self.assertIn(footer_clear, footer)
 
         drawn = len(sent)
-        renderer.send(renderer.begin_page("Settings"))
+        root.paint(force=True)
         self.assertEqual(len(sent), drawn + 1)
 
     def test_footer_repaint_removes_previous_fullscreen_overlay_pixels(self):
         renderer = FEATHER.FeatherRenderer()
         sent = RenderCapture(renderer).batches
         overlay = renderer.color(UI.ThemeColor.OVERLAY)
-        renderer.startup_modal(
-            "INITIALIZING KLIPPER", "INITIALIZING PRINTER SERVICES")
+        shown = [lambda: renderer.startup_modal(
+            "INITIALIZING KLIPPER", "INITIALIZING PRINTER SERVICES")]
+        root = page_screen(renderer, lambda: shown[0]())
+        root.paint()
 
         colors = dict(UI.FALLBACK_THEME)
         colors["background"] = (
@@ -2347,7 +2362,8 @@ class RendererStateTest(unittest.TestCase):
         renderer._palette = UI.resolve_theme(colors)
         background = renderer.color(UI.ThemeColor.BACKGROUND)
         renderer.footer("NOZZLE 21/220C | BED 24/60C", "192.168.2.4 | IDLE")
-        renderer.send(renderer.begin_page("Settings"))
+        shown[0] = lambda: renderer.send(renderer.begin_page("Settings"))
+        root.paint(force=True)
         page = [command for batch in sent[1:] for command in batch]
 
         fill_pattern = re.compile(
@@ -2540,10 +2556,12 @@ class RendererStateTest(unittest.TestCase):
     def test_footer_updates_only_when_values_change(self):
         renderer = FEATHER.FeatherRenderer()
         sent = RenderCapture(renderer).batches
+        page_screen(renderer).paint()
+        drawn = len(sent)
         renderer.footer("NOZZLE 20/0C | BED 25/0C", "Offline | IDLE")
         renderer.footer("NOZZLE 20/0C | BED 25/0C", "Offline | IDLE")
         renderer.footer("NOZZLE 21/0C | BED 25/0C", "Offline | IDLE")
-        self.assertEqual(len(sent), 2)
+        self.assertEqual(len(sent), drawn + 2)
 
     def test_dynamic_list_and_keyboard_hitboxes_stay_between_chrome(self):
         controller = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)

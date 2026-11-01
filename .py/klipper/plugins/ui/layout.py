@@ -2487,8 +2487,10 @@ class DeclarativePage(Tree):
         if self.styles is not None:
             self._apply_styles(content)
         super().__init__(content, bounds)
-        # The page's tree flags stay on its root while a screen tree holds it.
+        # The page's tree flags stay on its root while a screen tree holds it, and
+        # its nodes read the page's state there.
         self.root._owns_tree = True
+        self.root._tree_state = self.state
         self._declared_actions = tuple(actions or ())
         self.actions = ActionTable()
         self._dependencies = None
@@ -2572,7 +2574,7 @@ class DeclarativePage(Tree):
             and self._layout_bounds == self.bounds
             and self._layout_metrics_key == get_font_metrics().cache_key)
         reuse_cached = reuse_layout and clean
-        self.state = self._fresh_state(state)
+        self.state = self.root._tree_state = self._fresh_state(state)
         restyle = self.styles is not None and not (reuse_cached and reuse_styles)
         if reuse_cached and refs is not None:
             for ref in refs:

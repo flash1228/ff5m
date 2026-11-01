@@ -47,7 +47,7 @@ from feather.features.filament import FilamentFeature
 from feather.calibration.z import (
     FeatherZCalibrationMixin, ZCalibrationSession)
 from feather.calibration.extruder import FeatherExtruderCalibrationMixin
-from tests.feather_render_test_helper import Bounds, RenderCapture, RenderFrame
+from tests.feather_render_test_helper import Bounds, RenderCapture, RenderFrame, page_screen
 
 
 class ScenarioController(FeatherZCalibrationMixin,
@@ -2245,6 +2245,7 @@ class ControllerSafetyTest(unittest.TestCase):
         host.network_status = dict(ip='192.168.2.124')
         capture = RenderCapture(host.renderer)
         host.draw_batches = capture.batches
+        page_screen(host.renderer, lambda: feature.render(host.page), deltas=True).paint()
         host._refresh_status_bar()
         feature._handle_mod_action('mod.item.0')
         return feature, capture
@@ -2949,6 +2950,8 @@ class ControllerSafetyTest(unittest.TestCase):
         controller.print_state = FEATHER.PrintState.PRINTING
         controller.renderer = FEATHER.FeatherRenderer()
         capture = RenderCapture(controller.renderer)
+        page_screen(controller.renderer).paint()
+        drawn = len(capture.submitted)
         worker = SimpleNamespace(add_service=lambda service: True)
         reader = mock.Mock(side_effect=((100, 50), (200, 75)))
         controller.cpu_usage = FEATHER.CpuUsageSampler(worker, reader)
@@ -2959,7 +2962,7 @@ class ControllerSafetyTest(unittest.TestCase):
         with mock.patch("builtins.open", side_effect=AssertionError("Reactor performed file I/O")):
             controller._update_cycle(1.0)
             controller._update_cycle(1.1)
-            self.assertEqual(len(capture.submitted), 1)
+            self.assertEqual(len(capture.submitted), drawn + 1)
             self.assertTrue(capture.latest.has_text("CPU 75%"))
             self.assertTrue(capture.latest.has_text("FREE 1MB"))
             self.assertTrue(capture.latest.has_text("PRINTING"))
@@ -3774,6 +3777,7 @@ class ControllerSafetyTest(unittest.TestCase):
         controller.touch_available = True
         controller.renderer.footer(
             "NOZZLE 21/220C | BED 24/60C", "192.168.2.4 | IDLE")
+        controller._ensure_screen_root().paint()
         controller._show_terminal_error('MCU shutdown', '', 'firmware_restart')
         controller._show_page = lambda page: controller._render_dialog()
 
@@ -3944,15 +3948,17 @@ class ControllerSafetyTest(unittest.TestCase):
         controller.page = FEATHER.ScreenPage.CONTROL_HEAT
         controller.renderer = FEATHER.FeatherRenderer()
         batches = RenderCapture(controller.renderer).batches
+        controller._paint_page = lambda feature=None: controller.renderer.send(
+            controller.renderer.begin_page("Control heat"))
+        root = controller._ensure_screen_root()
         controller.renderer.footer(
             "NOZZLE 21/220C | BED 24/60C", "192.168.2.4 | IDLE")
-        controller.renderer.begin_page("Control heat")
+        root.paint()
         batches.clear()
 
         def show_page(page):
             self.assertEqual(page, FEATHER.ScreenPage.CONTROL_HEAT)
-            controller.renderer.send(
-                controller.renderer.begin_page("Control heat"))
+            root.paint()
 
         controller._show_page = show_page
 

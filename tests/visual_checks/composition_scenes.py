@@ -25,7 +25,6 @@ from ui import (
     Overlay, PageKey, Rect, Row, ScreenRoot, StateKey, Text, ThemeColor,
     bind, state,
 )
-from ui.footer import Footer
 from ui.layout import PageTree
 
 from ..feather_render_test_helper import RenderCapture
@@ -185,7 +184,6 @@ def run_sequence(layout, theme="DEFAULT"):
     renderer = FeatherRenderer()
     capture = RenderCapture(renderer)
     renderer.set_theme(theme)
-    renderer.footer("STATUS: OLD DATA", "READY", paint=False)
     screen = FeatherScreen.__new__(FeatherScreen)
     screen.renderer = renderer
     data = {"value": "OLD DATA"}
@@ -234,24 +232,8 @@ def run_sequence(layout, theme="DEFAULT"):
                 stack.pop()
         return render
 
-    footers = []
-    submit_footer = renderer._footer._submit
-
-    def footer_frame(commands):
-        footers.append(commands)
-        submit_footer(commands)
-    renderer._footer._submit = footer_frame
-
     original_full = PageTree._render_full
     original_renders = Node.render, PaintSurface.render
-
-    def untraced(change):
-        # The footer is its own tree drawn natively, which a Python render refuses.
-        def run(footer, *args, **kwargs):
-            with mock.patch.object(Node, "render", original_renders[0]), \
-                    mock.patch.object(PaintSurface, "render", original_renders[1]):
-                return change(footer, *args, **kwargs)
-        return run
 
     def full(tree, target, arrange, refresh_actions, render_from=None):
         passes.append(dict(arrange=arrange, refresh_actions=refresh_actions,
@@ -261,7 +243,6 @@ def run_sequence(layout, theme="DEFAULT"):
     def checkpoint(name, description, action, expected):
         calls.clear()
         passes.clear()
-        footers.clear()
         started = time.perf_counter()
         action()
         elapsed = (time.perf_counter() - started) * 1000
@@ -274,8 +255,7 @@ def run_sequence(layout, theme="DEFAULT"):
         counts = dict(background=sum(call["node"] == "background" for call in calls),
                       dialog=sum(call["node"] == "dialog" for call in calls),
                       scrim=sum(command == renderer.modal_scrim() for command in commands),
-                      # The footer is its own frame, after the page's batches.
-                      batches=len(batches) - len(footers), footer=len(footers), passes=len(passes),
+                      batches=len(batches), passes=len(passes),
                       layout_passes=sum(bool(value["arrange"]) for value in passes),
                       operations=len(operations))
         failures = ["%s: expected %s, got %s" % (key, value, counts[key])
@@ -302,7 +282,6 @@ def run_sequence(layout, theme="DEFAULT"):
 
     def value(text):
         data["value"] = text
-        renderer.footer("STATUS: " + text, "READY", paint=False)
         if root._tree is not None and Values.VALUE in root._tree.state_schema:
             root.update({Values.VALUE: text})
         else:
@@ -321,9 +300,8 @@ def run_sequence(layout, theme="DEFAULT"):
         patches.enter_context(mock.patch.object(ScreenRoot, "_paint_frame", composition_frame))
         patches.enter_context(mock.patch.object(PaintSurface, "render", traced_render(PaintSurface.render)))
         patches.enter_context(mock.patch.object(PageTree, "_render_full", full))
-        patches.enter_context(mock.patch.object(Footer, "_change", untraced(Footer._change)))
         checkpoint("background", "Initial layout; all cards/rows/tiles should be visible.", root.paint,
-                   dict(background=1, dialog=0, scrim=0, batches=1, footer=1))
+                   dict(background=1, dialog=0, scrim=0, batches=1))
         checkpoint("open", "Dialog over the existing background, darkened once.", lambda: root.open(layer),
                    dict(background=0, dialog=1, scrim=1, batches=1))
         checkpoint("text", "Update dialog text; the surrounding background must stay unchanged.",
@@ -350,7 +328,7 @@ def run_sequence(layout, theme="DEFAULT"):
         checkpoint("replace-background", "New background component appears immediately beneath the existing dialog.",
                    replace_background, dict(background=1, dialog=1, scrim=1, batches=1))
         checkpoint("suspend", "Suspend dialog: reveal current background with no scrim or panel remnants.",
-                   lambda: root.suspend(layer), dict(background=1, dialog=0, scrim=0, batches=1, footer=1))
+                   lambda: root.suspend(layer), dict(background=1, dialog=0, scrim=0, batches=1))
         checkpoint("resume", "Resume the same dialog over the retained backdrop; darken once.",
                    lambda: root.suspend(layer, False), dict(background=0, dialog=1, scrim=1, batches=1))
         checkpoint("force", "Output recovery redraws the complete composition with one scrim.",
@@ -365,11 +343,11 @@ def run_sequence(layout, theme="DEFAULT"):
         checkpoint("latest-held", "Change hidden data to LATEST DATA; visible background still says NEW DATA.",
                    lambda: value("LATEST DATA"), dict(background=0, dialog=0, scrim=0, batches=0))
         checkpoint("close", "Close dialog: expose LATEST DATA and restore the background controls.",
-                   lambda: root.close(layer), dict(background=1, dialog=0, scrim=0, batches=1, footer=1))
+                   lambda: root.close(layer), dict(background=1, dialog=0, scrim=0, batches=1))
         layer = dialog(dict(title="AFTER CLOSE", lines=("A separate dialog after the close",),
                             width=560, height=270, buttons=(("test.ok", "DONE", "enabled"),)))
         checkpoint("open-after-close", "Sequential close/open: only this new panel remains, scrim applied once.",
                    lambda: root.open(layer), dict(background=0, dialog=1, scrim=1, batches=1))
         checkpoint("final-close", "Final clean background with LATEST DATA; no dialog pixels or dimming.",
-                   lambda: root.close(layer), dict(background=1, dialog=0, scrim=0, batches=1, footer=1))
+                   lambda: root.close(layer), dict(background=1, dialog=0, scrim=0, batches=1))
     return steps

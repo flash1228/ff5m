@@ -1421,7 +1421,6 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
 
     def _paint_dialog(self, instance):
         if not self.renderer.retaining_background and instance.kind != ScreenDialog.PRINT_MORE:
-            self.renderer.invalidate_footer()
             self.renderer.send((self.renderer.modal_scrim(),))
         instance.painter(instance)
 
@@ -2413,8 +2412,7 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         system_stats = getattr(self, "system_stats", None)
         memory = (system_stats.get_status(eventtime).get("memavail")
                   if system_stats is not None else None)
-        self.renderer.footer(*footer_values(extruder, bed, cpu, memory, network, state, style),
-                             paint=self._current_dialog() is None)
+        self.renderer.footer(*footer_values(extruder, bed, cpu, memory, network, state, style))
 
     def _observed_print_state(self, eventtime, stats=None):
         if stats is None:

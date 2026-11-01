@@ -39,7 +39,6 @@ class CompositionVisualTest(unittest.TestCase):
         close = steps["close"]
         text = [op["value"] for op in close["dirty_operations"] if op["type"] == "text"]
         self.assertIn("LATEST DATA", text)
-        self.assertIn("STATUS: LATEST DATA", text)
         self.assertNotIn("NEXT DIALOG", text)
         self.assertEqual(steps["button-busy"]["controls"], ["global.wake"])
 

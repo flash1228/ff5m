@@ -7,6 +7,7 @@
 from .bindings import StateStore, page_state_keys
 from .engine import NATIVE_METHODS, BinaryCommand, CommandBatch, ScreenFrames
 from .font_metrics import get_font_metrics
+from .footer import FOOTER_BOUNDS
 from .identity import serialize_key
 from .layout import DeclarativePage, Dirty, Node, Overlay, PageTree, Rect
 
@@ -111,7 +112,9 @@ class ScreenRoot:
     ScreenFrames (_paint_screen): the engine composes them by its layer rule
     and says what the next frame draws, the surfaces it places record their
     painters' output, and a page's nodes are drawn from the screen's tree.
-    Anything else draws through _paint_frame.
+    The renderer's footer is a persisting layer of that tree, between the
+    content and the layers, while it shows and its strip lies in the screen;
+    the content is then sized above it. Anything else draws through _paint_frame, which draws no footer.
     TODO(1P-5c): remove _paint_frame and its PageTree once the remaining
     content and layers are native (the page with 1P-5d, Dialog with the
     stage 1 dialog piece); only Designer scenes still reach it.
@@ -150,6 +153,8 @@ class ScreenRoot:
         self._screen_schema = ()
         self._screen_redraw = True
         self._screen_path = None
+        # The footer's place in the screen tree: its root at the footer's bounds.
+        self._footer_slot = None
         # _paint_frame's node for a page's slot (TODO(1P-5c): goes with it).
         self._page_draw = None
         self.replace_content(content)
@@ -365,7 +370,8 @@ class ScreenRoot:
 
     def _screen_layers(self, layers):
         """Set the screen tree's nodes for the content and layers: a page's
-        slot, or a recorded node for each surface. Returns them with their
+        slot, or a recorded node for each surface, with the footer between
+        them while it shows. Returns the content's and layers' nodes with their
         sources and whether they changed."""
         keys = [(self._content_node,) + self._content_chrome] + list(layers)
         slot = self._content_node if isinstance(self._content_node, _PageSlot) else None
@@ -378,9 +384,6 @@ class ScreenRoot:
                     # Off the screen its dirt (a page written while hidden) reaches no frame.
                     node.parent = None
             self._recorded = dict(zip(keys, nodes))
-            self._screen_tree.children = nodes
-            self._screen_tree._adopt(*nodes)
-            self._screen_tree.invalidate_layout()
             self._shown = nodes
             schema = tuple(key for layer in self.layers for key in page_state_keys(layer.node))
             # Suspended instances retain their values; closed instances release them.
@@ -389,6 +392,7 @@ class ScreenRoot:
                     self._values.pop(key, None)
             self._screen_schema = schema
             self._screen_state = StateStore(schema)
+        self._place_footer()
         sources = [(self._content_node, nodes[0], None)]
         sources += [(layer.node, node, layer) for layer, node in zip(layers, nodes[1:])]
         return sources, changed
@@ -412,13 +416,15 @@ class ScreenRoot:
             sources, changed = self._screen_layers(layers)
             redraw = (force or self.renderer.header_action_changed or self._screen_redraw
                       or (self._rebuild and not changed))
-            if redraw:
+            if self._screen_redraw:
+                # The panel's pixels are gone: every layer is drawn, the footer too.
                 screen.redraw()
+            elif redraw:
+                # The composition draws whole; the footer's pixels survive it.
+                screen.draw_whole()
             self._screen_redraw = False
             page = sources[0][1].page if isinstance(sources[0][1], _PageSlot) else None
             if page is not None:
-                if screen.state is not page.state:
-                    screen.state = page.state
                 if not full_relayout:
                     # A frame that draws the page anew prepares it as its draw does.
                     page.prepare_frame(redraw or shown != self._shown[:1])
@@ -478,6 +484,10 @@ class ScreenRoot:
                             or (mode == "repaint" and not node.is_clean)):
                         node.commands = CommandBatch(
                             source.render(self.renderer, state, None), BinaryCommand)
+                if mode == "whole":
+                    # The painters may have shown or hidden the footer (a page begun, a state
+                    # screen); after the plan only a frame that draws whole takes that.
+                    self._place_footer()
                 built = screen.end(self.renderer) or ()
                 # A relayout that moved more than the page's boundaries drew nothing.
                 partial = not relayout or bool(built)
@@ -511,6 +521,79 @@ class ScreenRoot:
         self._rebuild = bool(commands) and not accepted
         self._screen_redraw = self._rebuild
         return accepted or not commands
+
+    def _place_footer(self):
+        """Inside the screen's transaction: the content and layers with the
+        footer the screen holds between them (_held_footer), with its latest
+        values unless a modal layer covers it, and the content sized above it."""
+        slot = self._held_footer()
+        if slot is not None and not self._footer_covered():
+            self.renderer.footer_chrome.apply()
+        nodes = self._shown[:1] + ((slot,) if slot is not None else ()) + self._shown[1:]
+        if nodes == tuple(self._screen_tree.children):
+            return
+        content = self._shown[0]
+        height = FOOTER_BOUNDS.y - self.bounds.y if slot is not None else None
+        if content.layout_options.height != height:
+            content.layout_options.height = height
+        for node in self._screen_tree.children:
+            if node not in nodes:
+                node.parent = None
+        self._screen_tree.children = nodes
+        self._screen_tree._adopt(*nodes)
+        self._screen_tree.invalidate_layout()
+
+    def _held_footer(self):
+        """The footer's slot the screen holds now, or None: the renderer's footer
+        while it shows with values and its strip lies in the screen. Under a modal
+        layer, whose scrim covers it, a footer that is not in the screen stays out
+        until the layer closes."""
+        footer = getattr(self.renderer, "footer_chrome", None)
+        node = None if footer is None else footer.node
+        bounds, strip = self.bounds, FOOTER_BOUNDS
+        holds = (bounds.x <= strip.x and strip.x + strip.width <= bounds.x + bounds.width
+                 and bounds.y <= strip.y and strip.y + strip.height <= bounds.y + bounds.height)
+        slot = self._footer_slot
+        placed = slot is not None and slot in self._screen_tree.children
+        if node is None or not holds or (self._footer_covered() and not placed):
+            return None
+        if slot is None or slot.children[0] is not node:
+            slot = self._footer_slot = Overlay(node).offset(
+                strip.x - bounds.x, strip.y - bounds.y).size(strip.width, strip.height)
+            slot._persists = True
+        return slot
+
+    def _footer_joins(self):
+        """Whether the footer the screen holds is not in its tree yet."""
+        slot = self._held_footer() if self._screen_tree is not None else None
+        return slot is not None and slot not in self._screen_tree.children
+
+    def _footer_covered(self):
+        """Whether a modal layer is over the footer (as its last update found it)."""
+        return any(node._blocks_input for node in self._shown[1:])
+
+    def chrome_changed(self):
+        """The footer's values changed: one transaction of the screen, whose frame
+        is submitted; the screen's paint when the footer joins it. Inside a paint,
+        or while the screen path draws nothing (before its first frame, on the
+        fallback path, frozen output), the next paint draws it; under a modal
+        layer, the paint that closes it."""
+        screen = self._screen
+        if (self.painting or screen is None or not self._screen_path or not self.renderer.render_allowed
+                or self._footer_covered()):
+            return False
+        if self._footer_joins():
+            # The screen's paint draws it whole.
+            return self.paint()
+        if self._held_footer() is None:
+            return False
+        screen.begin()
+        try:
+            self._place_footer()
+        finally:
+            # A footer that needs Python fails the frame as any node of the screen does.
+            frame = screen.end(self.renderer)
+        return bool(frame) and self.renderer.submit_frame(frame)
 
     def _replays_page_input(self, page, layers, same_surface):
         """Whether the page's changed input replays over a repaint, as its
@@ -554,10 +637,13 @@ class ScreenRoot:
         return self._page is not None and bool(self._page.state.changed_keys)
 
     def submit(self, commands, **metadata):
-        """Admit a legacy page delta or repaint its surrounding composition."""
+        """Admit a legacy page delta or repaint its surrounding composition (also
+        when the footer joins the screen or has values to draw: a delta draws
+        neither)."""
         if (self._rebuild or self.visible_layers
                 or any(not layer.suspended for layer in self.layers)
-                or not getattr(self.content, "accepts_deltas", False)):
+                or not getattr(self.content, "accepts_deltas", False) or self._footer_joins()
+                or (self._held_footer() is not None and self.renderer.footer_chrome.pending)):
             self.renderer.discard_surface()
             self.invalidate()
             return self.paint(receipt=metadata.get("receipt"),

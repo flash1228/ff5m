@@ -58,7 +58,7 @@ def make_screen():
         dispatch.run_script(command)
 
     screen.gcode.run_script = run
-    screen.renderer.footer("NOZZLE 220/220C | BED 60/60C", "LOCAL UX FIXTURE", paint=False)
+    screen.renderer.footer("NOZZLE 220/220C | BED 60/60C", "LOCAL UX FIXTURE")
     screen._apply_safety_visibility()
     screen._render_screen()
     return screen

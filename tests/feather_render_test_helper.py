@@ -212,6 +212,20 @@ class RenderCapture:
         return self.frames[-1]
 
 
+def page_screen(renderer, page="Home", deltas=False):
+    """A full-screen root over the renderer showing page (a page's title, or a
+    painter that sends what it shows), as the product's root shows its pages:
+    the renderer's footer is a layer of its screen. deltas: the page takes the
+    renderer's direct sends as its deltas. Not painted yet."""
+    from feather.screen.composition import PaintSurface
+    from ff5m_ui.keys import AppPage
+    from ui import Rect, ScreenRoot
+    from ui.renderer import SCREEN_HEIGHT, SCREEN_WIDTH
+    painter = page if callable(page) else (lambda: renderer.send(renderer.begin_page(page)))
+    surface = PaintSurface(painter, accepts_deltas=(lambda: True) if deltas else None)
+    return ScreenRoot(renderer, surface, Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT), AppPage.SCREEN_ROOT, chrome=False)
+
+
 @contextmanager
 def refused_render(renderer):
     """Refuse every batch at the frame loop hand-off, as a stopped loop does."""

@@ -207,6 +207,7 @@ def base_controller(state="idle"):
     controller.renderer = mock.MagicMock()
     controller.renderer.output_frozen = False
     controller.renderer.header_action_changed = False
+    controller.renderer.footer_chrome = None
     controller.renderer.compose.return_value.__enter__.return_value = {
         "accepted": True, "background_changed": False, "input_changed": False,
     }
@@ -465,10 +466,10 @@ class ScreenCompositionWorkflowTest(unittest.TestCase):
         self.assertEqual(controller.renderer.decode_action(tap), "message.ok")
         self.assertEqual(set(controller.renderer._buttons), {"message.ok"})
         controller._close_dialog(FEATHER.ScreenDialog.MESSAGE)
-        page, footer = rendering.frames[-2:]
-        self.assertTrue(page.has_text("LATEST"))
-        self.assertTrue(footer.has_text("N 42/0C"))
-        self.assertTrue(footer.has_text("B 30/0C"))
+        # The footer is a layer of the screen: the close frame shows it too.
+        self.assertTrue(rendering.latest.has_text("LATEST"))
+        self.assertTrue(rendering.latest.has_text("N 42/0C"))
+        self.assertTrue(rendering.latest.has_text("B 30/0C"))
 
     def test_same_page_layout_refresh_is_deferred_but_page_transition_paints(self):
         controller, _ = ActionPromptProtocolTest.controller_with_navigation()
@@ -6447,9 +6448,8 @@ class ActionPromptProtocolTest(unittest.TestCase):
                             for command in frame.commands))
         self.assertFalse(any('"WAIT"' in command
                              for command in frame.commands))
-        footer = capture.get()
         self.assertTrue(any('"NOZZLE 25C"' in command
-                            for command in footer.commands))
+                            for command in frame.commands))
         self.assertIsNone(controller._current_dialog())
         self.assertEqual(set(renderer._buttons), {"nav.move"})
 

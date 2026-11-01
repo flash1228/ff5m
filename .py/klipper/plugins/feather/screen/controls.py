@@ -1967,7 +1967,7 @@ class FeatherControlsMixin:
                for line in str(message).splitlines()):
             if self._release_boot_screen():
                 return
-            self.renderer.invalidate_footer()
+            self.renderer.redraw_display()
             self._show_page(self.page)
             return
         for line in self._prompt_response_lines(message):

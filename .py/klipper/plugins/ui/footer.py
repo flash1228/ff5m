@@ -1,4 +1,4 @@
-## The persistent footer: a chrome tree the frame loop draws off the reactor.
+## The persistent footer: a chrome tree in the frame owner's screen, beside the page.
 ##
 ## Copyright (C) 2026, Alexander K <https://github.com/drA1ex>
 ##
@@ -7,7 +7,7 @@
 # The tree's modules load with the first values: a product's startup builds no
 # declarative tree.
 from .bindings import bind, state
-from .engine import Rect, ScreenFrames
+from .engine import Rect
 from .identity import PageKey, StateKey
 from .layout_helpers import FOOTER_HEIGHT, FOOTER_Y, FRAME_WIDTH, FRAME_X, SCREEN_HEIGHT, SCREEN_WIDTH
 from .theme import ThemeColor
@@ -61,102 +61,69 @@ def footer_content():
 
 
 class Footer:
-    """The footer's tree, its values and whether it is held.
+    """The footer's tree, its values and whether it shows.
 
-    A held footer draws nothing: its pixels are covered (a dialog, a modal state screen,
-    frozen output) or stale (another theme) until the next page shows it, which draws it
-    in full with the current values. The tree is made with the first values, so nothing
-    is drawn before them; until then the footer keeps the hold itself.
+    The footer is a persisting layer of the frame owner's screen (ScreenRoot) beside the
+    page: the composition decides when it draws. Its changes wait under a modal layer, it
+    survives the frames that draw the page, and it is drawn again in full after a layer
+    covered it or the panel's pixels went. A hidden footer (under a state screen, while
+    output is frozen, with a new theme until the next page) is not in the screen and keeps
+    only its values; the next page shows it with the latest ones. The tree is made with the
+    first values, so nothing is drawn before them.
 
     content() makes the tree; state(left, right) gives the values it reads.
-
-    Each change is one transaction of the footer's ScreenFrames. A frame loop it is
-    attached to draws it on its own thread; without one the transaction's end builds the
-    frame here and the footer hands it to submit.
     """
 
-    def __init__(self, content, state, renderer, submit):
+    def __init__(self, content, state):
         self._content = content
         self._state = state
-        self._renderer = renderer
-        self._submit = submit
         self._page = None
-        self._screen = None
-        self._loop = None
-        self._held = False
+        self._values = None
+        self._written = None
+        self.shown = False
 
     @property
     def page(self):
         """The footer's tree with its state; None before the first values."""
         return self._page
 
-    def attach(self, loop):
-        """Let loop draw the footer; None: each transaction builds its own frame (no
-        loop runs). A loop draws it in full at its next frame: what it showed before
-        is gone (the panel was cleared)."""
-        previous, self._loop = self._loop, loop
-        if self._screen is None:
-            return
-        if previous is not None:
-            previous.attach(None)
-        if loop is not None:
-            loop.attach(self._screen)
-            self._change(redraw=True)
+    @property
+    def node(self):
+        """The footer's root while it shows with values; None otherwise."""
+        return self._page.root if self.shown and self._page is not None else None
 
-    def write(self, values, covered=False):
-        """Show values (left, right); covered: they wait under a cover, as hold()."""
-        if self._screen is None:
-            self._held = self._held or covered
+    def write(self, values, owner=None):
+        """Show values (left, right). owner is the frame owner whose screen holds the
+        footer: a shown footer's change is one transaction of its screen."""
+        changed = values != self._values
+        self._values = values
+        if self._page is None:
             self._create(values)
-            self._change(held=self._held)
-            return
-        state = self._page.state
-        changed = (state.get(FooterState.LEFT), state.get(FooterState.RIGHT)) != values
-        if changed or (covered and not self._screen.held):
-            self._change(values if changed else None, True if covered else None)
+        if self.shown and owner is not None and changed:
+            owner.chrome_changed()
 
-    def hold(self):
-        """The footer's pixels are covered: draw nothing until the next page shows it."""
-        if self._screen is None:
-            self._held = True
-        elif not self._screen.held:
-            self._change(held=True)
+    @property
+    def pending(self):
+        """Whether the tree has not taken the latest values yet."""
+        return self._page is not None and self._values != self._written
+
+    def apply(self):
+        """Write the latest values into the tree; the owner's open transaction draws them."""
+        if self._page is not None and self._values != self._written:
+            self._written = self._values
+            self._page.write(self._state(*self._values))
+
+    def hide(self):
+        """The footer's area belongs to something else: it leaves the screen."""
+        self.shown = False
 
     def show(self):
-        """A page is on the panel: the footer is visible, and drawn in full if it was
-        held."""
-        if self._screen is None:
-            self._held = False
-        else:
-            self._change(held=False)
-
-    def _change(self, values=None, held=None, redraw=False):
-        screen = self._screen
-        screen.begin()
-        try:
-            if held is not None:
-                screen.hold(held)
-            if redraw:
-                screen.redraw()
-            if values is not None:
-                self._page.write(self._state(*values))
-        finally:
-            try:
-                frame = screen.end(self._renderer)
-            except RuntimeError as error:
-                # As an attached loop reports it; the tree is left clean. The renderer
-                # imports this module, so its report is imported here.
-                from .renderer import screen_failed
-                screen_failed(str(error))
-                frame = None
-        if frame:
-            self._submit(frame)
+        """A page is on the panel: the footer shows beside it, with its latest values."""
+        self.shown = True
 
     def _create(self, values):
         from .layout import PageTree
+        self._written = values
         self._page = PageTree(
             self._content(), FOOTER_BOUNDS, page_id=ChromePage.FOOTER,
             state_schema=(FooterState.LEFT, FooterState.RIGHT), state=self._state(*values))
-        self._screen = ScreenFrames(self._page.root, self._page.state, FOOTER_BOUNDS)
-        if self._loop is not None:
-            self._loop.attach(self._screen)
