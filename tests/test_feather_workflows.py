@@ -3813,6 +3813,33 @@ class MotionHeatSettingsTest(unittest.TestCase):
         controller._update_heat_status(101)
         self.assertGreater(len(rendering.frames), 1)
 
+    def test_heat_values_are_written_inside_the_screen_transaction(self):
+        # A frame loop may take the screen's tree between transactions on its own thread.
+        controller = base_controller()
+        controller.renderer = FEATHER.FeatherRenderer()
+        RenderCapture(controller.renderer)
+        controller.extruder = StatusObject({"temperature": 21.5, "target": 220})
+        controller.heater_bed = StatusObject({"temperature": 24.0, "target": 60})
+        controller.fan = StatusObject({"speed": 0.25})
+        controller._last_heat = None
+        controller._render_screen = lambda feature=None: (
+            FEATHER.FeatherScreen._render_screen(controller, feature))
+        write = controller._write_heat_values
+        writes = []
+
+        def record(eventtime):
+            written = write(eventtime)
+            if written:
+                writes.append(controller._ensure_screen_root()._screen.open)
+            return written
+
+        controller._write_heat_values = record
+        controller._show_page(FEATHER.ScreenPage.CONTROL_HEAT)
+        controller.fan.status["speed"] = 0.5
+        controller._update_heat_status(101)
+
+        self.assertEqual(writes, [True, True])
+
     def test_empty_heating_keeps_manual_heat_controls_without_preset_hitboxes(self):
         controller = base_controller()
         controller.heating_materials = ()

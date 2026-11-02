@@ -372,6 +372,8 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         self._last_time = None
         self._last_filename = None
         self._last_heat = None
+        # A render or a page timer asked the next paint to write the page's values.
+        self._page_values_due = False
         self.heat_return_page = ScreenPage.CONTROL_HOME
         self.move_return_page = ScreenPage.CONTROL_HOME
         self.filament_return_page = ScreenPage.MAIN_MENU
@@ -1298,7 +1300,7 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
             root = self._screen_root = ScreenRoot(
                 self.renderer, self._page_surface,
                 Rect(0, 0, 800, 480), AppPage.SCREEN_ROOT, chrome=False,
-                select_content=self._screen_content)
+                select_content=self._screen_content, write_content=self._write_page_values)
         return root
 
     def _screen_content(self):
@@ -1322,7 +1324,13 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
                 or (manager is not None and manager.owner_name(self.page) is not None))
 
     def _write_page_values(self):
-        """Write the current values of the declarative page the screen shows."""
+        """Inside the screen root's paint (its write_content): write the current
+        values of the declarative page the screen shows, when a render or a page
+        timer asked for them. A frame loop may take the screen's tree between
+        transactions, so the page's state changes only inside one."""
+        if not getattr(self, "_page_values_due", False):
+            return
+        self._page_values_due = False
         if self._page_covered():
             return
         if self.page == ScreenPage.IDLE_HOME:
@@ -1487,7 +1495,7 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
 
     def _render_screen(self, feature=None, force=False):
         root = self._ensure_screen_root()
-        self._write_page_values()
+        self._page_values_due = True
         self._sync_dialog_layers()
         root.invalidate()
         accepted = root.paint(force=force)

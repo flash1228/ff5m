@@ -785,7 +785,9 @@ class FeatherControlsMixin:
         return True
 
     def _update_heat_status(self, eventtime):
-        if self._write_heat_values(eventtime):
+        if self._heat_ui_values(eventtime)[1] != self._last_heat:
+            # The paint writes them inside the screen's transaction.
+            self._page_values_due = True
             self._ensure_screen_root().paint()
 
     def _handle_heat_action(self, action):

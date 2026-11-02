@@ -106,6 +106,10 @@ class ScreenRoot:
 
     select_content, when given, returns (content, title, back) for the
     product's current state; each paint shows what it returns.
+    write_content, when given, writes the content's values; each paint runs
+    it inside its transaction, before the page's pass. A frame loop may take
+    the screen's tree between transactions on its own thread, so the tree and
+    its state change only there: invalidate() waits for the next paint too.
 
     While the content is an imperative surface or a declarative page and
     every visible layer is an imperative surface, the root draws through its
@@ -121,7 +125,7 @@ class ScreenRoot:
     """
 
     def __init__(self, renderer, content, bounds, page_id, title="", chrome=True,
-                 select_content=None):
+                 select_content=None, write_content=None):
         self.renderer = renderer
         self.content = None
         self._content_node = None
@@ -141,6 +145,9 @@ class ScreenRoot:
         self._tree = None
         self._values = {}
         self._select_content = select_content
+        self._write_content = write_content
+        # Nodes invalidate() asked to repaint (None: the content), applied inside the next paint.
+        self._invalidated = []
         # The screen path: its frames, their tree, each surface's recorded
         # node (content by (node, title, back), layers by layer), the nodes
         # the tree holds, the layers' state, and whether its next frame
@@ -201,7 +208,8 @@ class ScreenRoot:
         if isinstance(content, DeclarativePage):
             if title is not None and self.chrome:
                 raise ValueError("a page title needs a screen root without chrome")
-            self._content_node = _PageSlot(content, title, bool(back))
+            # Made inside the screen's transaction (_content): it adopts the page's root.
+            self._content_node = None
             self._page = content
         elif isinstance(content, Node):
             if title is not None:
@@ -220,7 +228,26 @@ class ScreenRoot:
         return self.paint()
 
     def invalidate(self, node=None):
-        (self._content_node if node is None else node).invalidate(Dirty.PAINT)
+        """Repaint node (the content when None) at the next paint, which
+        applies it inside its transaction."""
+        self._invalidated.append(node)
+
+    def _content(self):
+        """The content's node; a page's slot is made on first use, inside
+        the screen's transaction, since it adopts the page's root, which the
+        screen's tree may still hold."""
+        if self._content_node is None:
+            self._content_node = _PageSlot(self._page, *self._content_chrome)
+        return self._content_node
+
+    def _write_inside(self):
+        """Inside the paint (the screen's transaction on its path): the
+        content's values and the repaints invalidate() asked for."""
+        if self._write_content is not None:
+            self._write_content()
+        invalidated, self._invalidated = self._invalidated, []
+        for node in invalidated:
+            (self._content() if node is None else node).invalidate(Dirty.PAINT)
 
     def surface_cleared(self):
         """The renderer cleared the panel (its start): nothing composed before
@@ -268,6 +295,7 @@ class ScreenRoot:
             self._draining_repaint = False
 
     def _paint_frame(self, receipt, force, receipt_phase="presented"):
+        self._write_inside()
         layers = tuple(layer for layer in self.layers if not layer.suspended)
         same_surface = self.content is self._visible_content and layers == self.visible_layers
         restore = force or self.renderer.header_action_changed
@@ -353,7 +381,7 @@ class ScreenRoot:
     def _frame_content(self):
         """The content node _paint_frame draws: a page's slot is drawn by
         _PageDraw. TODO(1P-5c): remove with _paint_frame."""
-        content = self._content_node
+        content = self._content()
         if not isinstance(content, _PageSlot):
             return content
         if self._page_draw is None or self._page_draw.slot is not content:
@@ -364,7 +392,7 @@ class ScreenRoot:
         return self._page_draw
 
     def _surfaces_only(self):
-        return (isinstance(self._content_node, (ImperativeSurface, _PageSlot))
+        return ((self._page is not None or isinstance(self._content_node, ImperativeSurface))
                 and all(isinstance(layer.node, ImperativeSurface)
                         for layer in self.layers if not layer.suspended))
 
@@ -373,8 +401,9 @@ class ScreenRoot:
         slot, or a recorded node for each surface, with the footer between
         them while it shows. Returns the content's and layers' nodes with their
         sources and whether they changed."""
-        keys = [(self._content_node,) + self._content_chrome] + list(layers)
-        slot = self._content_node if isinstance(self._content_node, _PageSlot) else None
+        content = self._content()
+        keys = [(content,) + self._content_chrome] + list(layers)
+        slot = content if isinstance(content, _PageSlot) else None
         nodes = (slot or self._recorded.get(keys[0]) or _Recorded(),) + tuple(
             self._recorded.get(key) or _Recorded() for key in keys[1:])
         changed = nodes != self._shown
@@ -393,7 +422,7 @@ class ScreenRoot:
             self._screen_schema = schema
             self._screen_state = StateStore(schema)
         self._place_footer()
-        sources = [(self._content_node, nodes[0], None)]
+        sources = [(content, nodes[0], None)]
         sources += [(layer.node, node, layer) for layer, node in zip(layers, nodes[1:])]
         return sources, changed
 
@@ -412,6 +441,7 @@ class ScreenRoot:
         screen = self._screen
         screen.begin()
         try:
+            self._write_inside()
             shown = self._shown[:1]
             sources, changed = self._screen_layers(layers)
             redraw = (force or self.renderer.header_action_changed or self._screen_redraw
