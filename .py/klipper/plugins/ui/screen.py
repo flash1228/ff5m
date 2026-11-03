@@ -185,6 +185,9 @@ class ScreenRoot:
         self._dialog_bounds = ()
         # The footer's place in the screen tree: its root at the footer's bounds.
         self._footer_slot = None
+        # That slot while the last placement (_place_footer) left it in the tree and uncovered: until the next
+        # one, the footer's values alone change it (chrome_changed).
+        self._footer_shown = None
         self.replace_content(content)
         renderer.configure_frame_owner(self)
 
@@ -516,7 +519,8 @@ class ScreenRoot:
         footer the screen holds between them (_held_footer), with its latest
         values unless a modal layer covers it, and the content sized above it."""
         slot = self._held_footer()
-        if slot is not None and not self._footer_covered():
+        self._footer_shown = slot if slot is not None and not self._footer_covered() else None
+        if self._footer_shown is not None:
             self.renderer.footer_chrome.apply()
         nodes = self._shown[:1] + ((slot,) if slot is not None else ()) + self._shown[1:]
         if nodes == tuple(self._screen_tree.children):
@@ -583,16 +587,14 @@ class ScreenRoot:
         if self._grouped:
             self._chrome_again = True
             return True
-        if self.painting or not self.renderer.render_allowed or self._footer_covered():
+        if self.painting or not self.renderer.render_allowed:
             return False
-        if self._footer_joins():
-            # The screen's paint draws it whole.
-            return self.paint()
-        if self._held_footer() is None:
-            return False
+        if self._footer_shown is None:
+            # Covered, out of the screen, or about to join it (its paint draws it whole).
+            return not self._footer_covered() and self._held_footer() is not None and self.paint()
         screen.begin()
         try:
-            self._place_footer()
+            self.renderer.footer_chrome.apply()
         finally:
             # A footer that needs Python fails the frame as any node of the screen does.
             frame = screen.end(self.renderer)
