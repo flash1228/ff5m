@@ -88,6 +88,7 @@ class ScenarioCatalog:
         # The render suite restarts Typer on purpose; any other restart during
         # a run is a renderer failure.
         self.renderer_restarts_requested = 0
+        self.frozen_restart_before = None
 
     @property
     def host(self):
@@ -1505,6 +1506,19 @@ class ScenarioCatalog:
             lambda: self._renderer_recovered(before, before_error),
             15.0, 0.1)
         self._add_capture(steps, "render-recovered")
+        # A frozen safety screen is drawn again, with its buttons, by a restarted Typer. A capture
+        # needs a presentation barrier, which a frozen output refuses: the input Typer holds,
+        # written with the frame, is the check.
+        self._add_call(steps, "render-frozen-error", self._show_frozen_error)
+        self._add_call(steps, "render-frozen-restart-signal", self._request_frozen_restart)
+        self._add_wait(
+            steps, "render-frozen-recovered",
+            lambda: (self._renderer_recovered(self.frozen_restart_before, before_error)
+                     and self.host.renderer.output_frozen
+                     and "error.firmware_restart" in self.host.renderer.shown_actions()),
+            15.0, 0.1)
+        self._add_call(steps, "render-frozen-close", self._close_frozen_error)
+        self._add_capture(steps, "render-frozen-closed")
         self._add_call(steps, "render-resume-timer", self._resume_ui_timer)
 
     def _request_renderer_restart(self, before):
@@ -1517,6 +1531,20 @@ class ScenarioCatalog:
         return (status["worker_state"] == "running"
                 and status["typer_restarts"] > before
                 and status.get("worker_last_error", "") == before_error)
+
+    def _show_frozen_error(self):
+        """The final error screen of a stopped Klipper, shown without stopping it."""
+        self.host._show_terminal_error(
+            "UI test: frozen safety screen", "shutdown", "firmware_restart")
+
+    def _request_frozen_restart(self):
+        self.frozen_restart_before = self.host.renderer.get_status()["typer_restarts"]
+        self._request_renderer_restart(self.frozen_restart_before)
+
+    def _close_frozen_error(self):
+        self.host.renderer.thaw_output()
+        self.host._close_dialog(self.host._find_dialog(ScreenDialog.ERROR))
+        self.host._show_page(self.host.page)
 
     def _steps_heat(self, steps):
         self._add_call(steps, "heat-open", lambda: self._show(ScreenPage.CONTROL_HEAT))

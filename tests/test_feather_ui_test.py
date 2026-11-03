@@ -692,28 +692,43 @@ class RunnerContractTest(unittest.TestCase):
         self.assertIsNone(feature.scenarios._mesh_snapshot)
 
     def test_render_suite_is_nonphysical_and_waits_for_recovery(self):
-        statuses = [
-            {"worker_state": "running", "typer_restarts": 2},
-            {"worker_state": "running", "typer_restarts": 3},
-        ]
+        status = {"worker_state": "running", "typer_restarts": 2}
+        restarts = []
+
+        def restart(renderer):
+            restarts.append(True)
+            status["typer_restarts"] += 1
+            return True
+
         renderer = type("Renderer", (), {
-            "get_status": lambda self: statuses.pop(0) if len(statuses) > 1
-            else statuses[0],
-            "restart": lambda self: True,
+            "get_status": lambda self: dict(status),
+            "restart": restart,
+            "output_frozen": True,
+            "shown_actions": lambda self: {"error.firmware_restart"},
         })()
         feature = UI_TEST.UITestRun(type("Host", (), {
             "renderer": renderer,
+            "_show_terminal_error": lambda self, *args: None,
         })())
-        steps = feature.scenarios.build_steps("RENDER")
-        labels = [step["label"] for step in steps]
+        built = feature.scenarios.build_steps("RENDER")
+        steps = {step["label"]: step for step in built if step["kind"] != "capture"}
 
-        self.assertEqual(labels, [
+        self.assertEqual([step["label"] for step in built], [
             "baseline", "render-context-start", "render-pause-timer",
-            "render-restart-signal", "render-recovered",
-            "render-recovered", "render-resume-timer",
+            "render-restart-signal", "render-recovered", "render-recovered",
+            "render-frozen-error", "render-frozen-restart-signal", "render-frozen-recovered",
+            "render-frozen-close", "render-frozen-closed", "render-resume-timer",
             "render-context-verify"])
-        steps[3]["callback"]()
-        self.assertTrue(steps[4]["predicate"]())
+        self.assertFalse(steps["render-recovered"]["predicate"]())
+        steps["render-restart-signal"]["callback"]()
+        self.assertTrue(steps["render-recovered"]["predicate"]())
+        frozen = steps["render-frozen-recovered"]["predicate"]
+        steps["render-frozen-error"]["callback"]()
+        steps["render-frozen-restart-signal"]["callback"]()
+        self.assertTrue(frozen())
+        self.assertEqual(len(restarts), 2)
+        renderer.output_frozen = False
+        self.assertFalse(frozen())
 
     def test_capture_waits_for_presented_receipt_before_reading_frame(self):
         submissions = []
