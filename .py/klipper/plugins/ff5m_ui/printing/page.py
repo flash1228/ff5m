@@ -7,9 +7,8 @@
 from enum import Enum
 
 from ui import ThemeColor
-from ui.bindings import bind, derived, resolve
-from ui.components import Button, Component, Fill, Frame, Text
-from ui.font_metrics import get_font_metrics
+from ui.bindings import bind, derived
+from ui.components import Button, Fill, Frame, ProgressBar, Text
 from ui.layout import FLEX, Column, Equal, Flex, Grid, Overlay, PageTree, Rect, Spacer, StateCase
 
 from ..keys import AppPage
@@ -47,45 +46,6 @@ class PrintingRef(Enum):
     CANCEL = "printing.cancel"
 
 
-class PrintProgress(Component):
-    """The progress value and its inset track are one paint invariant."""
-
-    covers_bounds = True
-
-    def __init__(self, value, key=None):
-        super().__init__(key=key)
-        self.value = value
-
-    def state_signature(self, state):
-        return max(0, min(100, int(resolve(self.value, state))))
-
-    def draw(self, renderer, state, bounds):
-        inset = min(6, bounds.width // 2, bounds.height // 2)
-        inner = bounds.inset(inset)
-        progress = max(0, min(100, int(resolve(self.value, state))))
-        width = round(inner.width * progress / 100.0)
-        commands = [
-            renderer.stroke(*bounds, color=ThemeColor.BORDER, line_width=2),
-            renderer.fill(inner.x, inner.y, inner.width, inner.height, ThemeColor.BACKGROUND),
-        ]
-        if width:
-            commands.append(renderer.fill(inner.x, inner.y, width, inner.height, ThemeColor.PRIMARY))
-        return commands
-
-
-class PrintStatus(Text):
-    def _display_value(self, state, bounds, font):
-        value = super()._display_value(state, bounds, font)
-        metrics = get_font_metrics()
-        width = min(bounds.width, resolve(self.kwargs.get("max_width"), state) or bounds.width)
-        while metrics.text_width(value, font) > width:
-            _parent, separator, tail = value.partition(" -> ")
-            if not separator:
-                break
-            value = "-> " + tail
-        return value
-
-
 def _button_state(ready, pending, action):
     if not ready:
         return "disabled"
@@ -116,11 +76,13 @@ def _details(compact=False):
             vertical="top",
             truncate=True,
         ).height("content").ref(PrintingRef.FILENAME),
-        PrintStatus(
+        Text(
             bind(PrintingState.STATUS),
             horizontal="left",
             vertical="top",
             truncate=True,
+            # A long operation path keeps its innermost step.
+            tail_separator=" -> ",
         ).style(UiStyle.TEXT).height("content").ref(PrintingRef.STATUS),
         gap=8,
     ).padding(top=4).height("content")
@@ -137,7 +99,7 @@ def _details(compact=False):
             ),),
             columns=Equal(2), rows=Equal(1), gap=0,
         ).height("content"),
-        PrintProgress(progress_value).height(34).ref(PrintingRef.PROGRESS),
+        ProgressBar(progress_value).height(34).ref(PrintingRef.PROGRESS),
         gap=4,
     ).height("content")
 

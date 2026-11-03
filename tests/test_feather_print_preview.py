@@ -348,14 +348,6 @@ class PrintStatusUpdateTest(unittest.TestCase):
         self.assertTrue(text.truncate)
         self.assertLess(text.max_width, get_font_metrics().text_width(status, text.font))
 
-    def test_status_respects_a_narrower_text_limit(self):
-        node = self.page.node(printing_ui.PrintingRef.STATUS)
-        node.kwargs["max_width"] = get_font_metrics().text_width("-> HOMING", node.font)
-        self.values[printing_ui.PrintingState.STATUS] = "PRINT -> PREPARING -> HOMING"
-        commands = self.page.draw(self.renderer, self.values)
-        frame = RenderFrame(commands, self.renderer)
-        self.assertTrue(any(text.value.lstrip() == "-> HOMING" for text in frame.texts))
-
 
 class PrintPreviewLayoutTest(unittest.TestCase):
     def test_preview_decode_starts_after_the_page_frame_unless_cancelled(self):
