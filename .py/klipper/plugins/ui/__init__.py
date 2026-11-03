@@ -125,7 +125,7 @@ _EXPORT_GROUPS = (
     ("components", (
         "ArrowButton", "Button", "ButtonStyle", "CornerMarks", "Crosshair", "Dialog",
         "DotGrid", "Fill", "Frame", "Hitbox", "JoystickKnob", "Slider", "SliderKnob", "Metric", "Panel", "Popup",
-        "NumericKeypad", "ScrollIndicator", "Section", "Stroke", "Text", "ToggleSwitch", "VerticalGauge",
+        "NumericKeypad", "ProgressBar", "ScrollIndicator", "Section", "Stroke", "Text", "ToggleSwitch", "VerticalGauge",
         "VerticalScale",
     )),
 )
@@ -197,5 +197,5 @@ __all__ = (
     "subdivision_positions", "ArrowButton", "Button",
     "ButtonStyle", "CornerMarks", "Crosshair", "Dialog", "DotGrid",
     "Fill", "Frame", "Hitbox", "JoystickKnob", "Slider", "SliderKnob", "Metric", "NumericKeypad", "Panel", "Popup",
-    "ScrollIndicator", "Section", "Stroke", "Text", "ToggleSwitch", "VerticalGauge", "VerticalScale",
+    "ProgressBar", "ScrollIndicator", "Section", "Stroke", "Text", "ToggleSwitch", "VerticalGauge", "VerticalScale",
 )

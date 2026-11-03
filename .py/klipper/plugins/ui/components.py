@@ -197,6 +197,29 @@ class Stroke(Component):
     draw = _NATIVE["stroke"]["draw"]
 
 
+class ProgressBar(Component):
+    """A percentage, clamped to 0-100, as a fill inside an inset track."""
+
+    covers_bounds = True
+    property_schema = property_schema(
+        _number("value", 0, minimum=0, maximum=100, group="Content", live=True),
+        _color("color", group="Appearance", styleable=True),
+        _color("border", ThemeColor.BORDER, group="Appearance", styleable=True),
+        _color("background", ThemeColor.BACKGROUND, group="Appearance", styleable=True),
+        _number("line_width", 2, minimum=1, maximum=12, group="Appearance", styleable=True))
+
+    def __init__(self, value, color=ThemeColor.PRIMARY, border=ThemeColor.BORDER,
+                 background=ThemeColor.BACKGROUND, line_width=2, key=None):
+        super().__init__(key=key)
+        self.value = value
+        self.color = color
+        self.border = border
+        self.background = background
+        self.line_width = line_width
+
+    draw = _NATIVE["progress_bar"]["draw"]
+
+
 class Panel(Component):
     covers_bounds = True
     property_schema = property_schema(
@@ -495,6 +518,8 @@ class Text(Component):
         self.font = font
         self.horizontal = horizontal
         self.vertical = vertical
+        # Draw keywords besides the schema's: tail_separator, while the text is wider than its width, drops
+        # what lies before the next separator and keeps the separator's text, so a path keeps its tail.
         self.kwargs = kwargs
         if legacy_auto_width:
             self.layout_options.width = "content"

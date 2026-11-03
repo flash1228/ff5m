@@ -325,7 +325,8 @@ class ScreenRoot:
         layers' values, the invalidations, the painters of what the frame paints,
         then its frame. A paint asked for inside one (a painter, write_content, a
         header change) runs once that one ends. While output is frozen nothing is
-        drawn: the thaw clears the panel, and the paint after it draws it all."""
+        drawn: the frozen screen is the composition's, so the paint after the
+        thaw draws what changed."""
         if self.painting or (self._grouped and receipt is None):
             self._paint_again = True
             self._force_again = self._force_again or force
