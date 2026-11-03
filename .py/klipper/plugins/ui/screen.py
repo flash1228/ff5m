@@ -57,12 +57,15 @@ class _PageSlot(Overlay):
     the page's tree flags while the screen holds it, and the screen draws the
     page's nodes with the page's state. The header (header.Header) is a tree
     of its own with the page's title, back button and header button (the
-    page's header_button, if any).
+    page's header_button, if any); the screen keeps one for every page, so
+    the slot takes it from the slot that showed it before.
     """
 
-    def __init__(self, page, title, back):
+    def __init__(self, page, title, back, header):
         bounds = page.bounds
-        self.header = None if title is None else Header(title, back, getattr(page, "header_button", None))
+        self.header = header
+        if header is not None and header.node.parent is not None:
+            header.node.parent.release_header()
         self._frame = Overlay(page.root).offset(bounds.x, bounds.y).size(bounds.width, bounds.height)
         super().__init__(*self._nodes())
         self.page = page
@@ -71,6 +74,13 @@ class _PageSlot(Overlay):
 
     def _nodes(self):
         return (self.header.node, self._frame) if self.header is not None else (self._frame,)
+
+    def release_header(self):
+        """Another page's slot takes the header."""
+        self.header.node.parent = None
+        self.header = None
+        self.children = self._nodes()
+        self._adopt(*self.children)
 
     def apply_header(self, renderer):
         """Inside the screen's transaction: the header's values, and its new tree for a new header action."""
@@ -134,6 +144,7 @@ class ScreenRoot:
         self.content = None
         self._content_node = None
         self._content_chrome = None
+        self._header = None
         self._page = None
         self.bounds = bounds if isinstance(bounds, Rect) else Rect(*bounds)
         self.page_id = page_id
@@ -245,7 +256,16 @@ class ScreenRoot:
         the screen's transaction, since it adopts the page's root, which the
         screen's tree may still hold."""
         if self._content_node is None:
-            self._content_node = _PageSlot(self._page, *self._content_chrome)
+            title, back = self._content_chrome
+            button = getattr(self._page, "header_button", None)
+            if title is None:
+                header = None
+            elif self._header is None:
+                header = self._header = Header(title, back, button)
+            else:
+                header = self._header
+                header.show(title, back, button)
+            self._content_node = _PageSlot(self._page, title, back, header)
         return self._content_node
 
     def _write_inside(self):

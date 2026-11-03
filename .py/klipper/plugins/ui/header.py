@@ -35,13 +35,14 @@ class HeaderState(StateKey):
     __key_namespace__ = "feather.header"
     TITLE = state(str, default="")
     TITLE_WIDTH = state(int, default=TITLE_WIDTH)
+    SHOWS_BACK = state(bool, default=False)
     BUSY_LABEL = state(str, default="")
     SHOWS_ACTION = state(bool, default=False)
     SHOWS_BUSY = state(bool, default=False)
     SHOWS_BUTTON = state(bool, default=False)
 
 
-_SCHEMA = (HeaderState.TITLE, HeaderState.TITLE_WIDTH, HeaderState.BUSY_LABEL, HeaderState.SHOWS_ACTION,
+_SCHEMA = (HeaderState.TITLE, HeaderState.TITLE_WIDTH, HeaderState.SHOWS_BACK, HeaderState.BUSY_LABEL, HeaderState.SHOWS_ACTION,
            HeaderState.SHOWS_BUSY, HeaderState.SHOWS_BUTTON)
 
 
@@ -75,8 +76,9 @@ def _action_button(header_action):
     return _placed(Button(action, label, button_state, font=font), HEADER_ACTION)
 
 
-def header_content(back, header_action, button):
-    """The header's tree: the wake region, the panel above the footer, the back button, the title and the right
+def header_content(header_action, button):
+    """The header's tree: the wake region, the panel above the footer, the back button (while it shows), the
+    title and the right
     slot, which shows the header action, else the busy notice, else the page's header button (placed in the slot,
     RIGHT_SLOT)."""
     # The tree's modules load with the first page: a product's startup builds no declarative tree.
@@ -101,7 +103,8 @@ def header_content(back, header_action, button):
         Fill(ThemeColor.BACKGROUND).size(SCREEN_WIDTH, FOOTER_Y - 2),
         Stroke(ThemeRole.HEADER_BORDER, 1).offset(FRAME_X, FRAME_Y).size(FRAME_WIDTH, FOOTER_Y - FRAME_Y - 1),
         Fill(ThemeRole.HEADER_BACKGROUND).offset(10, 6).size(780, HEADER_BOTTOM - 6),
-        *((_placed(Button(Back(), "< BACK", font="JetBrainsMono Bold 8pt"), BACK_BUTTON),) if back else ()),
+        When(bind(HeaderState.SHOWS_BACK), _placed(Button(Back(), "< BACK", font="JetBrainsMono Bold 8pt"),
+                                                   BACK_BUTTON)),
         title.offset(0, BACK_BUTTON.y).size(SCREEN_WIDTH, 44).repaint_boundary(),
         Fill(ThemeRole.HEADER_BORDER).offset(18, HEADER_BOTTOM).size(764, 1),
         Fill(ThemeColor.BORDER).offset(18, FOOTER_Y - 2).size(764, 1),
@@ -114,8 +117,9 @@ class Header:
 
     Title, back and the page's header button belong to the page the slot shows. The header action and the busy
     label are the renderer's (set_header_action, busy_notice), which imperative pages draw through begin_page too;
-    the header reads them again in each transaction of its screen (apply). A changed header action is a new tree,
-    since it is new input; everything else is a value of the tree's state.
+    the header reads them again in each transaction of its screen (apply). A changed header action or header
+    button is a new tree, since it is new input; everything else is a value of the tree's state, so the screen
+    keeps one header for every page it shows (show).
     """
 
     def __init__(self, title, back, button=None):
@@ -124,6 +128,14 @@ class Header:
         self.button = button
         self._header_action = None
         self.page = self._create(None)
+
+    def show(self, title, back, button=None):
+        """Another page's title, back and header button."""
+        self.title = str(title).upper()
+        self.back = bool(back)
+        if button is not self.button:
+            self.button = button
+            self.page = self._create(self._header_action)
 
     @property
     def node(self):
@@ -144,6 +156,7 @@ class Header:
         self.page.write({
             HeaderState.TITLE: self.title,
             HeaderState.TITLE_WIDTH: NARROW_TITLE_WIDTH if narrow else TITLE_WIDTH,
+            HeaderState.SHOWS_BACK: self.back,
             HeaderState.BUSY_LABEL: "" if busy is None else str(busy),
             HeaderState.SHOWS_ACTION: shows_action,
             HeaderState.SHOWS_BUSY: shows_busy,
@@ -157,5 +170,5 @@ class Header:
             # The page's button moves into the new tree.
             self.button.parent = None
         self._header_action = header_action
-        return PageTree(header_content(self.back, header_action, self.button), HEADER_BOUNDS,
+        return PageTree(header_content(header_action, self.button), HEADER_BOUNDS,
                         page_id=HeaderPage.HEADER, state_schema=_SCHEMA)
