@@ -49,7 +49,6 @@ class CompositionVisualTest(unittest.TestCase):
             self.assertEqual(step["counts"]["dialog"], 2)
             self.assertEqual(step["counts"]["batches"], 1)
             self.assertEqual(step["counts"]["scrim"], 1)
-            self.assertFalse(step["batches"][0]["critical"])
 
     def test_repeated_scrim_is_recorded_and_reported_as_failure(self):
         original = FeatherScreen._paint_dialog

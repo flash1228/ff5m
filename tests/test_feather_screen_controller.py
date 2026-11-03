@@ -99,9 +99,12 @@ class ControllerSafetyTest(unittest.TestCase):
         controller.joystick_timer_active = True
         controller._stop_joystick = mock.Mock()
         controller._show_page = mock.Mock()
-        controller._render_move()
+        controller._render_screen()
         capture.submitted.clear()
+        capture.batches.clear()
 
+        # As the renderer handles Typer's restart notice.
+        controller._screen_root.restarted()
         controller._renderer_restarted()
 
         self.assertIn(controller.renderer.joystick_knob(150, 200)[1], capture.batches[-1])
@@ -2973,7 +2976,6 @@ class ControllerSafetyTest(unittest.TestCase):
             controller._update_cycle(4.1)
             self.assertTrue(capture.latest.has_text("CPU --%"))
         self.assertEqual(reader.call_count, 2)
-        self.assertFalse(any(batch.critical for batch in capture.submitted))
 
     def test_first_observed_pause_starts_clean_progress(self):
         for restored, expected_start in (
@@ -3939,7 +3941,6 @@ class ControllerSafetyTest(unittest.TestCase):
                             for batch in capture.batches))
         shutdown = capture.submitted[-1]
         drawing = "\n".join(shutdown.commands)
-        self.assertTrue(shutdown.critical)
         self.assertIn("FORGE-X", drawing)
         self.assertIn("SHUTTING DOWN", drawing)
         self.assertNotIn("TOUCH INPUT UNAVAILABLE", drawing)
@@ -4451,8 +4452,8 @@ class ControllerSafetyTest(unittest.TestCase):
                 events.append(("theme", name))
                 return True
 
-            def startup_modal(self, title, detail, phase, critical=False):
-                events.append(("modal", title, detail, phase, critical))
+            def startup_modal(self, title, detail, phase):
+                events.append(("modal", title, detail, phase))
 
         class TimerReactor:
             NOW = 0.0
@@ -4477,7 +4478,7 @@ class ControllerSafetyTest(unittest.TestCase):
         self.assertEqual(events, [
             ("theme", "USER_THEME"),
             ("modal", "INITIALIZING KLIPPER",
-             "RESTART IN PROGRESS - DISPLAY MAY PAUSE", 2, True),
+             "RESTART IN PROGRESS - DISPLAY MAY PAUSE", 2),
         ])
 
     def test_startup_tick_advances_pulse_until_klipper_is_ready(self):

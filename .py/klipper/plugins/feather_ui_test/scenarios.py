@@ -1446,16 +1446,13 @@ class ScenarioCatalog:
             self._show(ScreenPage.UPDATE_NOTIFICATION)
 
     def _render_lifecycle_snapshot(self, kind):
-        title, detail, critical = {
-            "startup": (
-                "INITIALIZING KLIPPER", "INITIALIZING PRINTER SERVICES", False),
+        title, detail = {
+            "startup": ("INITIALIZING KLIPPER", "INITIALIZING PRINTER SERVICES"),
             "restart": (
-                "INITIALIZING KLIPPER",
-                "RESTART IN PROGRESS - DISPLAY MAY PAUSE", True),
-            "shutdown": ("FORGE-X", "SHUTTING DOWN", True),
+                "INITIALIZING KLIPPER", "RESTART IN PROGRESS - DISPLAY MAY PAUSE"),
+            "shutdown": ("FORGE-X", "SHUTTING DOWN"),
         }[kind]
-        self.host.renderer.startup_modal(
-            title, detail, phase=2, critical=critical)
+        self.host.renderer.startup_modal(title, detail, phase=2)
 
     def _render_touch_unavailable(self):
         self._show(ScreenDialog.TOUCH_UNAVAILABLE, content={})

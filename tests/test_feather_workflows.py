@@ -526,6 +526,8 @@ class ScreenCompositionWorkflowTest(unittest.TestCase):
         controller._show_message("Foreground", controller.page)
         frames = len(rendering.frames)
 
+        # As the renderer handles Typer's restart notice.
+        controller._screen_root.restarted()
         controller._renderer_restarted()
 
         self.assertEqual(len(rendering.frames), frames + 1)

@@ -93,11 +93,11 @@ class ScreenLoopTest(unittest.TestCase):
         controller = home_controller()
         restarted = []
 
-        def repaint():
+        def handler():
             restarted.append(True)
-            controller._render_screen(force=True)
+            controller._renderer_restarted()
 
-        typer = TyperLoop(controller.renderer, {"exit_at": 1}, {}, restart_handler=repaint)
+        typer = TyperLoop(controller.renderer, {"exit_at": 1}, {}, restart_handler=handler)
         self.addCleanup(typer.close)
         typer.start()
         controller._render_screen()
@@ -106,6 +106,29 @@ class ScreenLoopTest(unittest.TestCase):
 
         self.assertTrue(typer.drew("192.168.2.124", launch=1))
         self.assertIn("nav.heat", shown_actions(controller._screen_root))
+
+    def test_a_restarted_typer_shows_a_frozen_terminal_error_with_its_buttons(self):
+        controller = home_controller()
+        controller.touch_available = True
+        restarted = []
+
+        def handler():
+            restarted.append(True)
+            controller._renderer_restarted()
+
+        typer = TyperLoop(controller.renderer, {}, {}, restart_handler=handler)
+        self.addCleanup(typer.close)
+        typer.start()
+        controller._render_screen()
+        controller._show_terminal_error("MCU shutdown", "shutdown", "firmware_restart")
+        self.assertTrue(typer.drew("MCU shutdown"))
+
+        controller.renderer.restart()
+        typer.take(lambda events: restarted)
+
+        self.assertTrue(typer.drew("MCU shutdown", launch=1))
+        self.assertIn("error.firmware_restart", shown_actions(controller._screen_root))
+        self.assertTrue(controller.renderer.output_frozen)
 
 
 if __name__ == "__main__":

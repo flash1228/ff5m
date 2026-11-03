@@ -473,17 +473,9 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         self._notify_features("on_render_sent", token, eventtime)
 
     def _renderer_restarted(self):
-        if self.renderer.output_frozen:
-            return
-        self._notify_features("on_renderer_restarted")
-        try:
-            if self.print_state == PrintState.INACTIVE:
-                self._render_startup_modal()
-            else:
-                self._render_screen(force=True)
-        except Exception:
-            logging.exception(
-                "[feather_screen] unable to redraw after typer restart")
+        # The framework has already drawn the whole screen from its tree.
+        if not self.renderer.output_frozen:
+            self._notify_features("on_renderer_restarted")
 
     def _ensure_renderer_started(self):
         if self.renderer.active or getattr(self, "boot_screen_held", False):
@@ -544,8 +536,7 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
                   if self.startup_restarting
                   else "INITIALIZING PRINTER SERVICES")
         self.renderer.startup_modal(
-            "INITIALIZING KLIPPER", detail, self.startup_phase,
-            critical=self.startup_restarting)
+            "INITIALIZING KLIPPER", detail, self.startup_phase)
 
     def _stop_startup_animation(self):
         if self.startup_timer is None:
@@ -1505,7 +1496,7 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
     def _state_screen(self):
         """Return the painter of the screen that covers every page now, or None."""
         if getattr(self, "system_shutdown_active", False):
-            return lambda: self.renderer.startup_modal("FORGE-X", "SHUTTING DOWN", critical=True)
+            return lambda: self.renderer.startup_modal("FORGE-X", "SHUTTING DOWN")
         if getattr(self, "busy_message", None):
             return lambda: self.renderer.loader(self.busy_message, getattr(self, "busy_phase", 0))
         if (getattr(self, "print_state", None) == PrintState.INACTIVE
@@ -2240,7 +2231,6 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
             x=160, y=130, width=dialog_width, height=220, tone="danger",
             page=instance.page,
             page_actions=("error.prev", "error.next"))
-        self.renderer.prioritize_next_batch("critical", "error-screen")
         self.renderer.send(commands)
 
     def _handle_error_action(self, action):

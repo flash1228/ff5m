@@ -296,9 +296,25 @@ class ScreenRoot:
         """The input Typer holds of the screen (ScreenFrames.shown_input)."""
         return self._screen.shown_input()
 
+    def restarted(self):
+        """Typer restarted and holds nothing of the screen: this transaction,
+        the framework's, draws all of it at once. A freeze ignores the product's
+        writes, not this one, so a frozen safety screen is drawn again with its
+        buttons."""
+        self.surface_cleared()
+        frozen = self.renderer.output_frozen
+        if frozen:
+            self.renderer.thaw_output()
+        try:
+            self.paint()
+        finally:
+            if frozen:
+                self.renderer.freeze_output()
+
     def surface_cleared(self):
-        """The renderer cleared the panel (its start): nothing composed before
-        is visible, so the next paint draws the whole composition."""
+        """The panel's pixels are not the composition's (the renderer's start,
+        a Typer restart, another owner's drawing): the next paint draws the whole
+        composition."""
         self._rebuild = True
         self._screen_redraw = True
         self.visible_layers = ()
@@ -440,7 +456,6 @@ class ScreenRoot:
         attached = screen.attached
         try:
             mode = self._paint_nodes(planned, changed, same_surface, sources, slot, state)
-            critical = self.renderer.painted_critical
             if attached and receipt is not None:
                 screen.receipt(receipt, phase=receipt_phase)
             commands = list(screen.end(self.renderer) or ())
@@ -448,7 +463,7 @@ class ScreenRoot:
             self._abandon_screen()
             raise
         accepted = attached or (bool(commands) and self.renderer.submit_frame(
-            commands, receipt=receipt, receipt_phase=receipt_phase, critical=critical))
+            commands, receipt=receipt, receipt_phase=receipt_phase))
         if slot is not None and mode in ("whole", "relayout"):
             # The loop arranges an attached screen on its own thread and publishes no layout here.
             slot.drew(LayoutResult() if attached else screen.layout)

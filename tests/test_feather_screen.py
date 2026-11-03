@@ -2055,7 +2055,7 @@ class RendererStateTest(unittest.TestCase):
 
         page_generation = renderer.generation
         renderer.startup_modal(
-            "INITIALIZING KLIPPER", "RESTARTING", 0, critical=True)
+            "INITIALIZING KLIPPER", "RESTARTING", 0)
         loader_batch_count = len(batches)
         for delay, callback in callbacks:
             callback(100.0 + delay)

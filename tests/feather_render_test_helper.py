@@ -172,7 +172,7 @@ class RenderCapture:
     routing, surface acceptance, and visible-layer bookkeeping. Each batch is
     checked by an unstarted frame loop, which refuses what the running one
     refuses. ``submitted`` keeps each accepted ``RenderSubmission`` with its
-    receipt and criticality; ``batches`` keeps just their command tuples;
+    receipt; ``batches`` keeps just their command tuples;
     ``frames`` keeps the same submissions as semantic UI frames with the
     controls registered at submission time.
     """
@@ -191,7 +191,7 @@ class RenderCapture:
     def _submit(self, submission):
         self._loop.submit(
             submission.commands, receipt=submission.receipt,
-            phase=submission.receipt_phase, critical=submission.critical)
+            phase=submission.receipt_phase)
         self._loop.discard()
         self.submitted.append(submission)
         self.batches.append(submission.commands)

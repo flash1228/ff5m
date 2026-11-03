@@ -45,8 +45,8 @@ from .theme_catalog import (
 
 
 Hitbox = namedtuple("Hitbox", "action x y width height continuous layer")
-# One batch for the frame loop; a critical batch is written again to a restarted Typer.
-RenderSubmission = namedtuple("RenderSubmission", "commands receipt receipt_phase critical")
+# One batch for the frame loop; a restarted Typer gets none of those it did not acknowledge.
+RenderSubmission = namedtuple("RenderSubmission", "commands receipt receipt_phase")
 # Typer's input events as process_events() returns them. action is the logical action when the wire action's
 # generation is the visible surface's, else None; wire is the action as Typer reported it.
 TapEvent = namedtuple("TapEvent", "action wire")
@@ -399,24 +399,14 @@ class FeatherRenderer(RendererBase):
         self._cover_footer()
 
     def thaw_output(self):
+        # The frozen safety screen is the composition's: the next paint draws what changed.
         self._output_frozen = False
-        # What the frozen screen showed is not the composition's.
-        self.redraw_display()
 
     def redraw_display(self):
         """Another owner drew on the panel (a frozen safety screen, Forge-X's redraw
         request): the frame owner draws all of it at its next paint."""
         if self._frame_owner is not None:
             self._frame_owner.surface_cleared()
-
-    def _clear_display(self):
-        """Replace every framebuffer pixel before this renderer draws. It
-        precedes whatever the frame owner composes, so it is not the owner's."""
-        return self._submit(RenderSubmission(_immutable_commands([
-            self.clear_hitboxes("base"),
-            self.clear_hitboxes("overlay"),
-            "--batch clear -c %s" % self.color(ThemeColor.BACKGROUND),
-        ]), None, "presented", True))
 
     # str(value) as one double-quoted Typer token: line breaks become "\n", a
     # line holding only the frame sentinel "--end" gets a leading space, and
@@ -446,14 +436,9 @@ class FeatherRenderer(RendererBase):
         self.event_fd = self._loop.fileno()
         self._event_fd_handler(None, self.event_fd)
         self._busy_label = None
-        # Typer's double buffer initially contains whatever was left in the
-        # framebuffer. Clear the complete panel before the first partial page
-        # render so neither the persistent footer nor the outer margins can
-        # expose pixels from the previous screen owner. Whatever the frame
-        # owner composed before is not on the panel, so it draws all of it.
-        self._clear_display()
         if self._frame_owner is not None:
-            # After the clear: the loop draws the screen from the owner's next paint, which draws all of it.
+            # Typer's double buffer initially holds whatever the framebuffer did: the owner's next paint draws all
+            # of its screen, whose first frame fills the screen's bounds first.
             self._loop.attach(self._frame_owner.frames)
             self._frame_owner.surface_cleared()
         return started
@@ -527,13 +512,8 @@ class FeatherRenderer(RendererBase):
             else:
                 logging.warning("[feather_screen] typer restarted (last error: %s)",
                                 self._loop.status()["last_error"] or "none")
-                # The new Typer shows nothing of the screen until its next paint
-                # draws all of it, the imperative painters run again: a short
-                # empty panel, never a picture without the deltas sent since.
-                if not self._output_frozen:
-                    self._clear_display()
                 if self._frame_owner is not None:
-                    self._frame_owner.surface_cleared()
+                    self._frame_owner.restarted()
                 if self._restart_handler is not None:
                     self._restart_handler()
         return events
@@ -579,12 +559,9 @@ class FeatherRenderer(RendererBase):
     def painters(self, retain_background=False):
         """One pass of the frame owner's painters over its screen's frame:
         retaining_background tells them whether the frame keeps the pixels
-        under them, dialog_bounds collects the dialogs they draw, and
-        painted_critical says whether one of them sent a critical batch (a
-        safety screen the frame loop replays after a Typer restart)."""
+        under them, and dialog_bounds collects the dialogs they draw."""
         self._retain_background = bool(retain_background)
         self._dialog_bounds = ()
-        self._composite_kind = None
         try:
             yield
         finally:
@@ -594,11 +571,6 @@ class FeatherRenderer(RendererBase):
     def dialog_bounds(self):
         """The bounds of the dialogs drawn since the painters' pass or the composition began."""
         return self._dialog_bounds
-
-    @property
-    def painted_critical(self):
-        """Whether the last painters' pass sent a critical batch."""
-        return self._composite_kind == "critical"
 
     @property
     def retaining_background(self):
@@ -643,9 +615,7 @@ class FeatherRenderer(RendererBase):
                     raise ValueError("a composed frame can have only one receipt and phase")
                 self._composite_receipt = request
             self._composite_commands.extend(immutable)
-            if (kind == "critical"
-                    or (kind == "surface" and self._composite_kind != "critical")
-                    or (kind == "state" and self._composite_kind is None)):
+            if kind == "surface" or (kind == "state" and self._composite_kind is None):
                 self._composite_kind = kind
                 self._composite_key = key
             return True
@@ -658,14 +628,13 @@ class FeatherRenderer(RendererBase):
             return owner.submit(
                 immutable, kind=kind, key=key, generation=generation,
                 receipt=receipt)
-        if kind not in (None, "critical", "surface", "state", "animation"):
+        if kind not in (None, "surface", "state", "animation"):
             self._finish_surface(False)
             raise ValueError("unknown render batch kind: %s" % kind)
         try:
             receipt = (None if receipt is None else
                        validate_render_receipt_token(receipt))
-            accepted = self._submit(RenderSubmission(
-                immutable, receipt, receipt_phase, kind == "critical"))
+            accepted = self._submit(RenderSubmission(immutable, receipt, receipt_phase))
         except ValueError as exc:
             logging.warning("[feather_screen] rejected render batch: %s", exc)
             accepted = False
@@ -685,9 +654,7 @@ class FeatherRenderer(RendererBase):
             return True
         if not self._loop.running:
             return False
-        return self._loop.submit(
-            submission.commands, receipt=submission.receipt,
-            phase=submission.receipt_phase, critical=submission.critical)
+        return self._loop.submit(submission.commands, receipt=submission.receipt, phase=submission.receipt_phase)
 
     def prioritize_next_batch(self, kind, key=None):
         """Classify the following legacy one-argument send() call."""
@@ -704,8 +671,7 @@ class FeatherRenderer(RendererBase):
             return False
         token = validate_render_receipt_token(token)
         # A flush alone: a protocol-only barrier passes the modal frame owner.
-        return self._submit(RenderSubmission(
-            _immutable_commands(()), token, "presented", False))
+        return self._submit(RenderSubmission(_immutable_commands(()), token, "presented"))
 
     def get_status(self):
         loop = (self._loop.status() if self._loop is not None else
@@ -1618,13 +1584,13 @@ class FeatherRenderer(RendererBase):
         # Its area belongs to something else until the next page shows it.
         self._footer.hide()
 
-    def submit_frame(self, commands, receipt=None, receipt_phase="presented", critical=False):
+    def submit_frame(self, commands, receipt=None, receipt_phase="presented"):
         """Submit a frame the frame owner's screen built; it is not composed again."""
         if receipt_phase != "presented" and (receipt_phase != "staged" or receipt is None):
             raise ValueError("staged receipts require a token; unknown receipt phase")
         receipt = None if receipt is None else validate_render_receipt_token(receipt)
         try:
-            return self._submit(RenderSubmission(_immutable_commands(commands), receipt, receipt_phase, critical))
+            return self._submit(RenderSubmission(_immutable_commands(commands), receipt, receipt_phase))
         except ValueError as exc:
             logging.warning("[feather_screen] rejected render batch: %s", exc)
             return False
@@ -1742,7 +1708,7 @@ class FeatherRenderer(RendererBase):
             "surface" if first_frame else "animation", "loader")
         self.send(commands)
 
-    def startup_modal(self, title, detail, phase=0, critical=False):
+    def startup_modal(self, title, detail, phase=0):
         """Draw a pre-ready loading modal and its pulse frame."""
         if not self._prepare_surface():
             return None
@@ -1773,8 +1739,7 @@ class FeatherRenderer(RendererBase):
             self.text(400, 335, str(detail), ThemeColor.DIM,
                       "JetBrainsMono 8pt", "center", "middle"),
         ]
-        self.prioritize_next_batch(
-            "critical" if critical else "surface", "startup")
+        self.prioritize_next_batch("surface", "startup")
         self.send(commands)
 
     def startup_pulse(self, phase=0):
@@ -1800,7 +1765,7 @@ class FeatherRenderer(RendererBase):
             "WAITING FOR AUTOMATIC RECONNECTION.",
             ThemeColor.TEXT, "JetBrainsMono 12pt", "center", "middle",
             max_width=524, max_height=108, wrap=True, truncate=True))
-        self.prioritize_next_batch("critical", "touch-unavailable")
+        self.prioritize_next_batch("surface", "touch-unavailable")
         self.send(commands)
 
     def applying_modal(self, message="APPLYING CHANGES"):

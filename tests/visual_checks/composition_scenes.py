@@ -241,7 +241,7 @@ def run_sequence(layout, theme="DEFAULT"):
         elapsed = (time.perf_counter() - started) * 1000
         batches = []
         while (batch := capture.get()) is not None:
-            batches.append(dict(critical=batch.critical, commands=list(batch.commands)))
+            batches.append(dict(commands=list(batch.commands)))
         commands = [command for batch in batches for command in batch["commands"]]
         operations = drawing_operations(commands)
         history.extend(operations)
