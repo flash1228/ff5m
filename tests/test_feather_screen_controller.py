@@ -2882,10 +2882,10 @@ class ControllerSafetyTest(unittest.TestCase):
         controller.print_state = FEATHER.PrintState.IDLE
         controller.page = FEATHER.ScreenPage.PRINTING
         controller.reactor = DeferredReactor(now=1.0)
-        controller.renderer = type("Renderer", (), {
-            "set_theme": lambda self, name: False,
-            "footer": lambda self, temperatures, status, paint=True: None,
-        })()
+        controller.renderer = FEATHER.FeatherRenderer()
+        RenderCapture(controller.renderer)
+        # The product's root exists from the screen's start; the tick groups its paints.
+        controller._screen_root = page_screen(controller.renderer)
         controller._setting = lambda name, default=None: default
         controller._service_network = mock.Mock()
         controller._update_eco_backlight = mock.Mock()
@@ -2950,7 +2950,8 @@ class ControllerSafetyTest(unittest.TestCase):
         controller.print_state = FEATHER.PrintState.PRINTING
         controller.renderer = FEATHER.FeatherRenderer()
         capture = RenderCapture(controller.renderer)
-        page_screen(controller.renderer).paint()
+        controller._screen_root = page_screen(controller.renderer)
+        controller._screen_root.paint()
         drawn = len(capture.submitted)
         worker = SimpleNamespace(add_service=lambda service: True)
         reader = mock.Mock(side_effect=((100, 50), (200, 75)))

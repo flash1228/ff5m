@@ -4,6 +4,8 @@
 ##
 ## This file may be distributed under the terms of the GNU GPLv3 license
 
+from contextlib import contextmanager
+
 from .bindings import StateStore, page_state_keys
 from .engine import NATIVE_METHODS, BinaryCommand, CommandBatch, ScreenFrames
 from .footer import FOOTER_BOUNDS
@@ -142,6 +144,9 @@ class ScreenRoot:
         self._paint_again = False
         self._force_again = False
         self.painting = False
+        # Open transaction() groups, and whether the footer changed inside them with no paint asked.
+        self._grouped = 0
+        self._chrome_again = False
         self._rebuild = True
         self._values = {}
         self._select_content = select_content
@@ -282,14 +287,33 @@ class ScreenRoot:
         then its frame. A paint asked for inside one (a painter, write_content, a
         header change) runs once that one ends. While output is frozen nothing is
         drawn: the thaw clears the panel, and the paint after it draws it all."""
-        if self.painting:
+        if self.painting or (self._grouped and receipt is None):
             self._paint_again = True
             self._force_again = self._force_again or force
-            return False
+            return not self.painting
         if not self.renderer.render_allowed:
             return False
         result = self._paint_once(receipt, force, receipt_phase)
         return self._paint_asked() or result
+
+    @contextmanager
+    def transaction(self):
+        """Group a reactor pass's writes into one transaction of the screen: the
+        paints (and footer changes) asked for inside run once, when the outermost
+        group ends, so the pass shows in one frame. A paint that asks a receipt
+        runs at once, since its receipt names its frame; it draws what was
+        written so far."""
+        self._grouped += 1
+        try:
+            yield self
+        finally:
+            self._grouped -= 1
+            if not self._grouped:
+                chrome, self._chrome_again = self._chrome_again, False
+                if self._paint_again:
+                    self._paint_asked()  # its frame takes the footer's values too
+                elif chrome:
+                    self.chrome_changed()
 
     def _paint_once(self, receipt, force, receipt_phase):
         self.painting = True
@@ -536,6 +560,9 @@ class ScreenRoot:
         output), the next paint draws it; under a modal layer, the paint that
         closes it."""
         screen = self._screen
+        if self._grouped:
+            self._chrome_again = True
+            return True
         if self.painting or not self.renderer.render_allowed or self._footer_covered():
             return False
         if self._footer_joins():
@@ -566,7 +593,7 @@ class ScreenRoot:
         """Admit a legacy page delta or repaint its surrounding composition (also
         when the footer joins the screen or has values to draw: a delta draws
         neither)."""
-        if (self._rebuild or self.visible_layers
+        if (self._rebuild or self._paint_again or self.visible_layers
                 or any(not layer.suspended for layer in self.layers)
                 or not getattr(self.content, "accepts_deltas", False) or self._footer_joins()
                 or (self._held_footer() is not None and self.renderer.footer_chrome.pending)):

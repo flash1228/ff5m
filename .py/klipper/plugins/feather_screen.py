@@ -2360,44 +2360,48 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         if self._current_dialog() == ScreenDialog.ACTION_PROMPT:
             if self._action_prompt_has_temperature_status() and not emergency_refreshed:
                 self._render_dialog()
-        # Keep polling printer state, but defer hidden page preparation.
-        if self._current_dialog() is None:
-            if self.page == ScreenPage.OPERATION_CANCEL:
-                if getattr(self, "cancel_mode", None) == "pending":
-                    self._update_cancel_progress()
-            elif self.page == ScreenPage.TIMELAPSE_WAIT:
-                self._update_timelapse_wait()
-            elif (getattr(self, "file_scan_loading", False)
-                    and self.page == ScreenPage.FILE_BROWSER):
-                self.file_scan_phase = (self.file_scan_phase + 1) % 5
-                self._paint_file_loading(self.file_scan_source)
-            elif self.busy_message is not None:
-                self.busy_phase = (self.busy_phase + 1) % 5
-                self.renderer.loader(self.busy_message, self.busy_phase)
-            elif self.page in (ScreenPage.PRINTING, ScreenPage.PAUSED):
-                self._update_print_progress(eventtime)
-            elif self.page == ScreenPage.PRINT_PREVIEW:
-                self._update_print_model_preview(eventtime)
-            elif self.page == ScreenPage.EXCLUDE_MODEL:
-                self._render_screen()
-            elif self.page == ScreenPage.IDLE_HOME:
-                self._update_dashboard(eventtime)
-            elif self.page == ScreenPage.CONTROL_MOVE:
-                self._update_move_status(eventtime)
-            elif self.page == ScreenPage.CONTROL_HEAT:
-                self._update_heat_status(eventtime)
-        if self.filament_sensor is not None:
-            sensor = self.filament_sensor.get_status(eventtime)
-            present = sensor.get("filament_detected")
-            if (self._filament_present is True and present is False and
-                    self.print_state == PrintState.PAUSED and
-                    self.page not in (ScreenPage.FILAMENT_MATERIAL, ScreenPage.FILAMENT_ACTION)):
-                self._open_filament(True)
-            self._filament_present = present
+        # The page's update, the status bar and the toast show in one frame:
+        # one transaction of the screen (none of them runs G-code, so nothing
+        # yields to the reactor while it is open).
+        with self._ensure_screen_root().transaction():
+            # Keep polling printer state, but defer hidden page preparation.
+            if self._current_dialog() is None:
+                if self.page == ScreenPage.OPERATION_CANCEL:
+                    if getattr(self, "cancel_mode", None) == "pending":
+                        self._update_cancel_progress()
+                elif self.page == ScreenPage.TIMELAPSE_WAIT:
+                    self._update_timelapse_wait()
+                elif (getattr(self, "file_scan_loading", False)
+                        and self.page == ScreenPage.FILE_BROWSER):
+                    self.file_scan_phase = (self.file_scan_phase + 1) % 5
+                    self._paint_file_loading(self.file_scan_source)
+                elif self.busy_message is not None:
+                    self.busy_phase = (self.busy_phase + 1) % 5
+                    self.renderer.loader(self.busy_message, self.busy_phase)
+                elif self.page in (ScreenPage.PRINTING, ScreenPage.PAUSED):
+                    self._update_print_progress(eventtime)
+                elif self.page == ScreenPage.PRINT_PREVIEW:
+                    self._update_print_model_preview(eventtime)
+                elif self.page == ScreenPage.EXCLUDE_MODEL:
+                    self._render_screen()
+                elif self.page == ScreenPage.IDLE_HOME:
+                    self._update_dashboard(eventtime)
+                elif self.page == ScreenPage.CONTROL_MOVE:
+                    self._update_move_status(eventtime)
+                elif self.page == ScreenPage.CONTROL_HEAT:
+                    self._update_heat_status(eventtime)
+            if self.filament_sensor is not None:
+                sensor = self.filament_sensor.get_status(eventtime)
+                present = sensor.get("filament_detected")
+                if (self._filament_present is True and present is False and
+                        self.print_state == PrintState.PAUSED and
+                        self.page not in (ScreenPage.FILAMENT_MATERIAL, ScreenPage.FILAMENT_ACTION)):
+                    self._open_filament(True)
+                self._filament_present = present
 
-        self._refresh_status_bar(eventtime, state=state)
-        if self.toast_until and eventtime >= self.toast_until:
-            self._hide_toast()
+            self._refresh_status_bar(eventtime, state=state)
+            if self.toast_until and eventtime >= self.toast_until:
+                self._hide_toast()
         return eventtime + REFRESH_TIME
 
     def _refresh_status_bar(self, eventtime=None, *, state=None, style=None):
