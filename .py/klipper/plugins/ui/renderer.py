@@ -772,12 +772,8 @@ class FeatherRenderer(RendererBase):
         return "--batch fill -p 0 0 -s %d %d -c B3000000" % (
             SCREEN_WIDTH, SCREEN_HEIGHT)
 
-    def image(self, x, y, blob, format="fxi1"):
-        if format != "fxi1":
-            raise ValueError("unsupported image format: %s" % format)
-        return BinaryCommand(
-            "--batch image -p %d %d --format fxi1" % (int(x), int(y)),
-            blob)
+    # image(x, y, blob, format="fxi1"): an FXI1 raster at (x, y), the blob as the command's payload.
+    image = _NATIVE["image"]
 
     def filled_circle(self, center_x, center_y, radius, color=ThemeColor.PRIMARY):
         """Draw a compact filled circle using horizontal one-pixel spans."""

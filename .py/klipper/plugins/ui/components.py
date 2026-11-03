@@ -220,6 +220,37 @@ class ProgressBar(Component):
     draw = _NATIVE["progress_bar"]["draw"]
 
 
+class Image(Component):
+    """FXI1 rasters, each band (x, y, blob) at its offset inside the bounds.
+
+    The bands are data a worker made; the engine draws them on the render
+    thread."""
+
+    property_schema = property_schema(
+        _property("bands", (tuple, list), (), kind="auto", group="Content", live=True))
+
+    def __init__(self, bands=(), key=None):
+        super().__init__(key=key)
+        self.bands = bands
+
+    draw = _NATIVE["image"]["draw"]
+
+
+class Disc(Component):
+    """A filled circle of radius (at least 1) centred in the bounds."""
+
+    property_schema = property_schema(
+        _number("radius", 8, minimum=1, maximum=240, group="Content", live=True),
+        _color("color", group="Appearance", styleable=True))
+
+    def __init__(self, radius, color=ThemeColor.PRIMARY, key=None):
+        super().__init__(key=key)
+        self.radius = radius
+        self.color = color
+
+    draw = _NATIVE["disc"]["draw"]
+
+
 class Panel(Component):
     covers_bounds = True
     property_schema = property_schema(
