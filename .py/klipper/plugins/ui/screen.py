@@ -9,7 +9,7 @@ from .engine import NATIVE_METHODS, BinaryCommand, CommandBatch, ScreenFrames
 from .footer import FOOTER_BOUNDS
 from .header import Header
 from .identity import serialize_key
-from .layout import DeclarativePage, Dirty, Node, Overlay, PageTree, Rect
+from .layout import DeclarativePage, Dirty, LayoutResult, Node, Overlay, PageTree, Rect
 
 
 class ScreenLayer:
@@ -153,8 +153,8 @@ class ScreenRoot:
         # state the recorded sources read, the trees that draw sources other
         # than imperative surfaces, and whether the next frame must draw whole
         # (the panel shows something it did not draw).
-        self._screen = None
-        self._screen_tree = None
+        self._screen_tree = Overlay()
+        self._screen = ScreenFrames(self._screen_tree, None, self.bounds)
         self._recorded = {}
         self._shown = ()
         self._screen_state = None
@@ -258,11 +258,14 @@ class ScreenRoot:
             else:
                 node.invalidate(Dirty.PAINT)
 
+    @property
+    def frames(self):
+        """The screen's ScreenFrames: the renderer attaches it to its frame loop,
+        which then draws every frame of it."""
+        return self._screen
+
     def shown_input(self):
-        """The input Typer holds of the screen (ScreenFrames.shown_input), or
-        None before its first frame."""
-        if self._screen is None:
-            return None
+        """The input Typer holds of the screen (ScreenFrames.shown_input)."""
         return self._screen.shown_input()
 
     def surface_cleared(self):
@@ -343,9 +346,6 @@ class ScreenRoot:
         mode the engine's layer rule decides (planned())."""
         layers = tuple(layer for layer in self.layers if not layer.suspended)
         same_surface = self.content is self._visible_content and layers == self.visible_layers
-        if self._screen is None:
-            self._screen_tree = Overlay()
-            self._screen = ScreenFrames(self._screen_tree, None, self.bounds)
         screen = self._screen
         screen.begin()
         try:
@@ -389,17 +389,22 @@ class ScreenRoot:
             screen.end(self.renderer)
             self.renderer.discard_surface()
             return not any(node._blocks_input for _source, node, _layer in sources[1:])
+        # A frame loop draws an attached screen: end() hands it the frame, and the loop reports the receipt.
+        attached = screen.attached
         try:
             mode = self._paint_nodes(planned, changed, same_surface, sources, slot, state)
             critical = self.renderer.painted_critical
+            if attached and receipt is not None:
+                screen.receipt(receipt, phase=receipt_phase)
             commands = list(screen.end(self.renderer) or ())
         except BaseException:
             self._abandon_screen()
             raise
-        accepted = bool(commands) and self.renderer.submit_frame(
-            commands, receipt=receipt, receipt_phase=receipt_phase, critical=critical)
+        accepted = attached or (bool(commands) and self.renderer.submit_frame(
+            commands, receipt=receipt, receipt_phase=receipt_phase, critical=critical))
         if slot is not None and mode in ("whole", "relayout"):
-            slot.drew(screen.layout)
+            # The loop arranges an attached screen on its own thread and publishes no layout here.
+            slot.drew(LayoutResult() if attached else screen.layout)
         if accepted or not commands:
             # A frame with nothing to draw leaves the panel as the composition shows it.
             self.renderer.keep_surface()
@@ -531,8 +536,7 @@ class ScreenRoot:
         output), the next paint draws it; under a modal layer, the paint that
         closes it."""
         screen = self._screen
-        if (self.painting or screen is None or not self.renderer.render_allowed
-                or self._footer_covered()):
+        if self.painting or not self.renderer.render_allowed or self._footer_covered():
             return False
         if self._footer_joins():
             # The screen's paint draws it whole.
@@ -545,14 +549,14 @@ class ScreenRoot:
         finally:
             # A footer that needs Python fails the frame as any node of the screen does.
             frame = screen.end(self.renderer)
-        return bool(frame) and self.renderer.submit_frame(frame)
+        return screen.attached or (bool(frame) and self.renderer.submit_frame(frame))
 
     def _abandon_screen(self):
         """A failed screen frame: whatever it drew is unknown, so the next
         frame draws whole."""
         self.renderer.discard_surface()
         self._rebuild = self._screen_redraw = True
-        if self._screen is not None and self._screen.open:
+        if self._screen.open:
             try:
                 self._screen.end(self.renderer)
             except RuntimeError:
@@ -573,8 +577,9 @@ class ScreenRoot:
         self.painting = True
         try:
             result = self.renderer.send(commands, **metadata)
-            if result and self._screen is not None:
-                # The delta's input is the content's until a frame paints the content.
+            if result and not self._screen.attached:
+                # The delta's input is the content's until a frame paints the content (an attached
+                # screen's loop notes what it writes itself).
                 self._screen.note_written(CommandBatch(commands, BinaryCommand))
         finally:
             self.painting = False

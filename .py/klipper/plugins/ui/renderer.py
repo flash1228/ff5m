@@ -283,8 +283,11 @@ class FeatherRenderer(RendererBase):
         self._dialog_bounds = ()
 
     def configure_frame_owner(self, owner):
-        """Route every ordinary submission through the screen composition root."""
+        """Route every ordinary submission through the screen composition root;
+        while the frame loop runs, it draws the owner's screen."""
         self._frame_owner = owner
+        if self.active:
+            self._loop.attach(owner.frames)
 
     # The engine keeps the input (generation, buttons, regions, pressed
     # buttons and the menu button's suppression) with its own snapshot; these
@@ -444,6 +447,8 @@ class FeatherRenderer(RendererBase):
         # owner composed before is not on the panel, so it draws all of it.
         self._clear_display()
         if self._frame_owner is not None:
+            # After the clear: the loop draws the screen from the owner's next paint, which draws all of it.
+            self._loop.attach(self._frame_owner.frames)
             self._frame_owner.surface_cleared()
         return started
 
@@ -469,6 +474,8 @@ class FeatherRenderer(RendererBase):
         """Write what is pending, stop the frame loop and leave Typer showing the last screen."""
         if self.active:
             self._loop.stop()
+            # A stopped loop draws nothing: the owner's frames are built where it paints again.
+            self._loop.attach(None)
             self._event_fd_handler(self.event_fd, None)
             self.event_fd = None
         self._busy_label = None
