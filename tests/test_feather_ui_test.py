@@ -2946,6 +2946,32 @@ class RunHealthTest(unittest.TestCase):
         self.assertEqual(completed, [("failed", "Probing failed")])
         self.assertEqual(run.step_index, 0)
 
+    def test_a_wait_on_its_own_error_screen_passes(self):
+        host = type("Host", (), {
+            "reactor": type("Reactor", (), {
+                "monotonic": lambda self: 1.0,
+                "register_callback": lambda self, callback, when: None})(),
+            "_current_dialog": lambda self: FEATHER.ScreenDialog.ERROR,
+            "_find_dialog": lambda self, kind: type("Dialog", (), {
+                "content": {"message": "UI test error"}})(),
+        })()
+        run = UI_TEST.UITestRun(host)
+        run.running = True
+        run.steps = [{
+            "kind": "wait", "label": "frozen-recovered", "phase": "render",
+            "predicate": lambda: True, "timeout": 15.0, "interval": 0.1,
+            "shows_error": True,
+        }]
+        completed = []
+        run._event = lambda message: None
+        run._complete = lambda outcome, reason: completed.append(
+            (outcome, reason))
+
+        run._advance(1.0)
+
+        self.assertEqual(completed, [])
+        self.assertEqual(run.step_index, 1)
+
 
 class TimelapseWaitScenarioTest(unittest.TestCase):
     def _run(self, returncode=1):

@@ -861,7 +861,8 @@ class UITestRun:
             elif kind == "wait":
                 # A failed operation reports through the error dialog while
                 # the page underneath may already satisfy the predicate.
-                self._raise_visible_error()
+                if not step.get("shows_error"):
+                    self._raise_visible_error()
                 if step["predicate"]():
                     self._step_passed(step, 0.05)
                 else:

@@ -89,6 +89,7 @@ class ScenarioCatalog:
         # a run is a renderer failure.
         self.renderer_restarts_requested = 0
         self.frozen_restart_before = None
+        self.frozen_error_shown = False
 
     @property
     def host(self):
@@ -202,10 +203,11 @@ class ScenarioCatalog:
                       "page": page, "label": button_label})
 
     @staticmethod
-    def _add_wait(steps, label, predicate, timeout, interval=0.5):
+    def _add_wait(steps, label, predicate, timeout, interval=0.5, shows_error=False):
+        """``shows_error``: the step waits on an error screen it showed itself."""
         steps.append({"kind": "wait", "label": label,
                       "predicate": predicate, "timeout": timeout,
-                      "interval": interval})
+                      "interval": interval, "shows_error": shows_error})
 
     @staticmethod
     def _add_capture(steps, label):
@@ -1516,7 +1518,7 @@ class ScenarioCatalog:
             lambda: (self._renderer_recovered(self.frozen_restart_before, before_error)
                      and self.host.renderer.output_frozen
                      and "error.firmware_restart" in self.host.renderer.shown_actions()),
-            15.0, 0.1)
+            15.0, 0.1, shows_error=True)
         self._add_call(steps, "render-frozen-close", self._close_frozen_error)
         self._add_capture(steps, "render-frozen-closed")
         self._add_call(steps, "render-resume-timer", self._resume_ui_timer)
@@ -1534,6 +1536,7 @@ class ScenarioCatalog:
 
     def _show_frozen_error(self):
         """The final error screen of a stopped Klipper, shown without stopping it."""
+        self.frozen_error_shown = True
         self.host._show_terminal_error(
             "UI test: frozen safety screen", "shutdown", "firmware_restart")
 
@@ -1542,6 +1545,7 @@ class ScenarioCatalog:
         self._request_renderer_restart(self.frozen_restart_before)
 
     def _close_frozen_error(self):
+        self.frozen_error_shown = False
         self.host.renderer.thaw_output()
         self.host._close_dialog(self.host._find_dialog(ScreenDialog.ERROR))
         self.host._show_page(self.host.page)
@@ -2057,6 +2061,8 @@ class ScenarioCatalog:
             self.host._update, self.reactor.NOW)
 
     def restore_synthetic_state(self):
+        if self.frozen_error_shown:
+            self._close_frozen_error()
         if self._ui_file_view_original is not None:
             self.host.file_view = self._ui_file_view_original
         self._ui_file_view_original = None
