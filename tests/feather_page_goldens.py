@@ -59,6 +59,10 @@ MODULE_PAGES = (
     "ff5m_ui.z_offset.summary.page",
 )
 
+# Pages the screen shows in its slot (PAGE = create_page()): a test that ends with one
+# shown leaves the shared PAGE holding its screen's tree, so these are made afresh.
+SCREEN_PAGES = ("ff5m_ui.heat.page", "ff5m_ui.home.page", "ff5m_ui.printing.page")
+
 LONG_TEXT = "Golden text long enough to wrap or truncate in narrow areas 123"
 
 # Structured state needs realistic shapes; scalar keys get generic variants.
@@ -243,6 +247,8 @@ class PageRecorder:
 
 def _module_page(name):
     module = importlib.import_module(name)
+    if name in SCREEN_PAGES:
+        return module.create_page
     return lambda: copy.deepcopy(module.PAGE)
 
 

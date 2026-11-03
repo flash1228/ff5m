@@ -19,11 +19,11 @@ from tests.feather_timelapse_test_helper import make_timelapse_state
 
 try:
     from tests.test_feather_screen import (
-        FEATHER, RESURRECTION, GCodeRecorder, Reactor, StatusObject, paint_home)
+        FEATHER, RESURRECTION, GCodeRecorder, Reactor, StatusObject, paint_home, paint_printing)
     from tests.feather_render_test_helper import RenderCapture, shown_actions, typer_events
 except ImportError:
     from test_feather_screen import (
-        FEATHER, RESURRECTION, GCodeRecorder, Reactor, StatusObject, paint_home)
+        FEATHER, RESURRECTION, GCodeRecorder, Reactor, StatusObject, paint_home, paint_printing)
     from feather_render_test_helper import RenderCapture, shown_actions, typer_events
 
 from ui import CONTENT_BOTTOM, Increment
@@ -31,6 +31,7 @@ from ui.font_metrics import get_font_metrics
 from ff5m_ui.move import runtime as MOVE_UI
 from ff5m_ui.move.step import page as MOVE_STEP_PAGE
 from ff5m_ui.heat import runtime as HEAT_UI
+from ff5m_ui.printing import runtime as printing_ui
 from ff5m_ui.filament import runtime as FILAMENT_UI
 from ff5m_ui.filament.actions import select as select_filament
 from ff5m_ui.z_offset import runtime as Z_OFFSET_UI
@@ -216,6 +217,7 @@ def base_controller(state="idle"):
     controller._paint_page = lambda: None
     # Home is declarative; these tests paint every page with _paint_page.
     paint_home(controller, lambda: controller._paint_page())
+    paint_printing(controller, lambda: controller._paint_page())
     controller._render_screen = lambda feature=None: FEATHER.FeatherScreen._render_dialog(controller)
     controller._last_context_cancel_result = None
     controller._filament_request_token = 0
@@ -251,7 +253,6 @@ def base_controller(state="idle"):
     controller.toast_until = 0
     controller.toast_message = ""
     controller._toast = lambda message: None
-    controller._render_print_page = lambda: None
     controller._update_print_controls = lambda: None
     controller._render_cancel_confirm = lambda: None
     controller.file_page = 0
@@ -479,7 +480,7 @@ class ScreenCompositionWorkflowTest(unittest.TestCase):
             controller.renderer.send(controller.renderer.begin_page(controller.page.name) + [
                 controller.renderer.text(content["x"], 100, content["text"])])
         paint_home(controller, paint)
-        controller._render_print_page = paint
+        controller._render_timelapse_wait = paint
         controller._show_message("Foreground", controller.page)
         frames = len(rendering.frames)
         content.update(text="LATEST", x=180)
@@ -489,9 +490,9 @@ class ScreenCompositionWorkflowTest(unittest.TestCase):
 
         self.assertEqual(len(rendering.frames), frames)
         self.assertTrue(rendering.latest.has_text("FIRST"))
-        controller._show_page(FEATHER.ScreenPage.PRINTING)
+        controller._show_page(FEATHER.ScreenPage.TIMELAPSE_WAIT)
         self.assertEqual(len(rendering.frames), frames + 1)
-        self.assertTrue(rendering.latest.has_text("PRINTING"))
+        self.assertTrue(rendering.latest.has_text("TIMELAPSE_WAIT"))
         self.assertTrue(rendering.latest.has_text("LATEST"))
         self.assertTrue(rendering.latest.has_text("Foreground"))
         self.assertEqual(set(controller.renderer._buttons), {"message.ok"})
@@ -2455,12 +2456,10 @@ class PrintWorkflowTest(unittest.TestCase):
                 controller._current_print_progress_values = (
                     lambda *args: (0, ("0s", "0s", "0 / 10", 0.0)))
                 controller._display_status_text = lambda eventtime: name
-                controller._render_print_page = lambda: (
-                    FEATHER.FeatherScreen._render_print_page(controller))
-                rendering = composed_controller_surface(
-                    controller, controller._render_print_page)
+                del controller._print_content, controller._write_print_values
+                rendering = composed_controller_surface(controller, None)
 
-                controller._render_print_page()
+                controller._render_screen()
 
                 for action in (primary, "print.more", "print.z"):
                     self.assertEqual(rendering.latest.has_action(action),
@@ -2522,8 +2521,8 @@ class PrintWorkflowTest(unittest.TestCase):
         controller._prepare_gcode_preview = lambda stats=None: None
         controller._current_print_progress_values = lambda *args: (0, ("0s", "0s", "0 / 10", 0.0))
         controller._display_status_text = lambda eventtime: "Paused"
-        controller._render_print_page = lambda: FEATHER.FeatherScreen._render_print_page(controller)
-        rendering = composed_controller_surface(controller, controller._render_print_page)
+        del controller._print_content, controller._write_print_values
+        rendering = composed_controller_surface(controller, None)
         controller._show_page = lambda page: (setattr(controller, "page", page), controller._render_screen())
 
         self.assertEqual(controller._reconcile_print_state(100), "paused")
@@ -3082,7 +3081,11 @@ class PrintWorkflowTest(unittest.TestCase):
                     capture = RenderCapture(controller.renderer)
                     operation = ScenarioCatalog._operation_context_snapshot(specification, state)
                     label = controller._display_status_text(status=operation)
-                    controller._draw_print_status(label)
+                    controller.page = FEATHER.ScreenPage.PRINTING
+                    del controller._print_content
+                    controller._write_print_values = lambda eventtime, due: printing_ui.get_page().state.update(
+                        {printing_ui.PrintingState.STATUS: label})
+                    FEATHER.FeatherScreen._render_screen(controller)
                     bounds = printing_ui.rect(printing_ui.PrintingRef.STATUS)
                     text = next(text for text in capture.latest.texts if text.y == bounds.y)
                     metrics = get_font_metrics()
@@ -3100,7 +3103,8 @@ class PrintWorkflowTest(unittest.TestCase):
             current_state="HOMING",
             revision=3)
         drawn = []
-        controller._draw_print_status = drawn.append
+        controller._request_print_values = lambda values: drawn.append(
+            values[printing_ui.PrintingState.STATUS])
 
         controller._update_operation_context(10.0)
         controller._update_operation_context(11.0)
@@ -6224,7 +6228,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
         controller._render_main_menu = lambda: paint_page(FEATHER.ScreenPage.MAIN_MENU)
         paint_home(controller, lambda: paint_page(FEATHER.ScreenPage.IDLE_HOME))
         controller._render_control_home = lambda: paint_page(FEATHER.ScreenPage.CONTROL_HOME)
-        controller._render_print_page = lambda: paint_page(controller.page)
+        paint_printing(controller, lambda: paint_page(controller.page))
         return controller, shown
 
     def test_prompt_responses_build_show_and_close_dialog(self):

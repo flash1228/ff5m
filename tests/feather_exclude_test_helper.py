@@ -6,7 +6,7 @@
 
 from types import SimpleNamespace
 
-from tests.feather_render_test_helper import RenderCapture
+from tests.feather_render_test_helper import RenderCapture, shown_hitboxes, tapped_action
 from tests.test_feather_print_preview import _controller
 from tests.test_feather_screen import StatusObject
 from feather_ui_test.resources import load_exclude_models
@@ -70,7 +70,4 @@ def tap(screen, action):
 
 
 def hit_at(screen, x, y):
-    # Typer uses the last registered overlapping hitbox.
-    return next((region.action for region in reversed(screen.renderer.hitboxes)
-                 if region.x <= x < region.x + region.width
-                 and region.y <= y < region.y + region.height), None)
+    return tapped_action(shown_hitboxes(screen.renderer), x, y)

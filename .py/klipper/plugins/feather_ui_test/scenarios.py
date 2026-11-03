@@ -1894,13 +1894,13 @@ class ScenarioCatalog:
 
     def _context_print_controls_ready(self):
         return (self._context_printing()
-                and "print.pause" in self.host.renderer._buttons)
+                and "print.pause" in self.host.renderer.shown_actions())
 
     def _context_paused(self):
         state = str(self.host.print_stats.get_status(
             self.reactor.monotonic()).get("state", "")).lower()
         return (state == "paused" and self.host.page == ScreenPage.PAUSED
-                and "print.resume" in self.host.renderer._buttons)
+                and "print.resume" in self.host.renderer.shown_actions())
 
     def _context_print_complete(self):
         state = str(self.host.print_stats.get_status(

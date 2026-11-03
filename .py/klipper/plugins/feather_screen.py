@@ -363,13 +363,11 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         self.restart_pending = False
         self.startup_restarting = False
 
-        self._last_progress = None
         self._progress_floor = 0.0
         self._progress_source = None
         self._progress_start = (0.0, 0.0)
         self._m73_start_expiry = 0.0
         self._m73_active = False
-        self._last_time = None
         self._last_filename = None
         self._last_heat = None
         # A render or a page timer asked the next paint to write the page's values.
@@ -1307,6 +1305,8 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
                 return self._home_content()
             if self.page == ScreenPage.CONTROL_HEAT:
                 return self._heat_content()
+            if self.page in (ScreenPage.PRINTING, ScreenPage.PAUSED):
+                return self._print_content()
         return self._page_surface, None, False
 
     def _page_covered(self):
@@ -1319,12 +1319,15 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         values of the declarative page the screen shows, when a render or a page
         timer asked for them. A frame loop may take the screen's tree between
         transactions, so the page's state changes only inside one."""
-        if not getattr(self, "_page_values_due", False):
-            return
-        self._page_values_due = False
+        due, self._page_values_due = getattr(self, "_page_values_due", False), False
         if self._page_covered():
             return
-        if self.page == ScreenPage.IDLE_HOME:
+        if self.page in (ScreenPage.PRINTING, ScreenPage.PAUSED):
+            # The printing page's loader turns between due writes.
+            self._write_print_values(self.reactor.monotonic(), due)
+        elif not due:
+            return
+        elif self.page == ScreenPage.IDLE_HOME:
             self._write_dashboard(self.reactor.monotonic())
         elif self.page == ScreenPage.CONTROL_HEAT:
             self._write_heat_values(self.reactor.monotonic())
@@ -1526,8 +1529,6 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
             self._render_model_preview()
         elif page == ScreenPage.FILE_CONFIRM:
             self._render_file_confirm()
-        elif page in (ScreenPage.PRINTING, ScreenPage.PAUSED):
-            self._render_print_page()
         elif page == ScreenPage.EXCLUDE_MODEL:
             self._render_exclude_model()
         elif page == ScreenPage.TIMELAPSE_WAIT:

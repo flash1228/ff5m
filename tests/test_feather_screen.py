@@ -97,6 +97,16 @@ def paint_home(screen, painter):
     screen._write_dashboard = lambda eventtime: False
 
 
+def paint_printing(screen, painter):
+    """Show the printing pages through a painter instead of their declarative page."""
+    from feather.screen.composition import PaintSurface
+
+    # PRINTING and PAUSED are one page under another title: each its own content.
+    surfaces = {}
+    screen._print_content = lambda: (surfaces.setdefault(screen.page, PaintSurface(painter)), None, False)
+    screen._write_print_values = lambda eventtime, due: None
+
+
 class StatusObject:
     def __init__(self, status):
         self.status = status

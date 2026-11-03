@@ -12,7 +12,7 @@ from unittest import mock
 from types import SimpleNamespace
 
 from ui.engine import FrameLoop
-from ui.renderer import MAX_ATOMIC_DRAW, MAX_BATCH_BYTES, FeatherRenderer
+from ui.renderer import MAX_ATOMIC_DRAW, MAX_BATCH_BYTES, FeatherRenderer, Hitbox
 
 
 @dataclass(frozen=True)
@@ -90,16 +90,45 @@ def _logical_action(value):
     return action if separator and prefix.isdigit() else str(value)
 
 
-class RenderFrame:
-    """One submitted Feather frame expressed as UI concepts, not CLI text."""
+def shown_hitboxes(renderer):
+    """The input regions Typer holds of the screen, in its order (a later one
+    wins): what the screen's frames wrote when a screen draws them, else what
+    the renderer's painters registered."""
+    owner = renderer._frame_owner
+    shown = owner.shown_input() if owner is not None else None
+    if shown is None:
+        return renderer.hitboxes
+    return [Hitbox(region[0], *region[1:5], bool(region[5]), layer)
+            for layer in ("base", "overlay") for region in shown[layer]]
 
-    def __init__(self, commands, renderer):
+
+def tapped_action(hitboxes, x, y):
+    """The action a tap at x, y reaches: Typer takes the last region holding it."""
+    return next((region.action for region in reversed(hitboxes)
+                 if region.x <= x < region.x + region.width and region.y <= y < region.y + region.height), None)
+
+
+def _button_state(renderer, colors):
+    """The button state whose colours a drawn button shows."""
+    for state in renderer.BUTTON_COLORS:
+        if tuple(renderer.color(color) for color in renderer._button_colors(state)) == colors:
+            return state
+    return None
+
+
+class RenderFrame:
+    """One submitted Feather frame expressed as UI concepts, not CLI text.
+
+    hitboxes: the input Typer holds with the frame; by default the input shown
+    now (shown_hitboxes), so a frame made after its paint ended reads its own.
+    """
+
+    def __init__(self, commands, renderer, hitboxes=None):
         self.texts = []
         self.shapes = []
-        self.buttons = {}
         self.toggles = {}
-        self.actions = set()
-        self.hitboxes = renderer.hitboxes
+        self._ids = set()
+        self._drawn = []
 
         for command in commands:
             tokens = shlex.split(command)
@@ -108,7 +137,7 @@ class RenderFrame:
             kind = tokens[1]
             action = _option(tokens, "--id")
             if action is not None:
-                self.actions.add(_logical_action(action))
+                self._ids.add(_logical_action(action))
             if kind == "text":
                 position = _option(tokens, "-p", 2)
                 value = _option(tokens, "-t")
@@ -126,17 +155,36 @@ class RenderFrame:
                 bounds = _bounds(tokens)
                 if bounds is not None:
                     self.shapes.append(RenderedShape(kind, bounds))
+            elif kind == "button" and action is not None:
+                # A button the engine drew from a page's tree; its state shows in its colours.
+                colors = (_option(tokens, "--background"), _option(tokens, "--border"),
+                          _option(tokens, "--text-color"))
+                self._drawn.append(RenderedButton(
+                    _logical_action(action), _bounds(tokens), _option(tokens, "-t"),
+                    str(_button_state(renderer, colors)), _option(tokens, "-f")))
 
-        for action, spec in dict(renderer._buttons).items():
-            self.buttons[action] = RenderedButton(
-                action, Bounds(*spec[:4]), str(spec[4]), str(spec[5]),
-                str(spec[6]))
+        # The painters' buttons, as the renderer holds them while the frame is submitted.
+        self._painted = {
+            action: RenderedButton(action, Bounds(*spec[:4]), str(spec[4]), str(spec[5]), str(spec[6]))
+            for action, spec in dict(renderer._buttons).items()}
         for action, spec in dict(renderer._toggles).items():
             self.toggles[action] = RenderedToggle(
                 action, Bounds(*spec[:4]), bool(spec[4]), bool(spec[5]))
+        self.shown(shown_hitboxes(renderer) if hitboxes is None else hitboxes)
+
+    def shown(self, hitboxes):
+        """The input Typer holds with this frame: the drawn buttons a tap
+        reaches (no modal layer covers them) count as the frame's buttons."""
+        self.hitboxes = hitboxes
+        self.buttons = {
+            button.action: button for button in self._drawn
+            if tapped_action(hitboxes, button.bounds.x + button.bounds.width // 2,
+                             button.bounds.y + button.bounds.height // 2) == button.action}
+        self.buttons.update(self._painted)
+        self.actions = set(self._ids)
         self.actions.update(self.buttons)
         self.actions.update(self.toggles)
-        self.actions.update(region.action for region in self.hitboxes)
+        self.actions.update(region.action for region in hitboxes)
 
     def has_action(self, action):
         return action in self.actions
@@ -174,13 +222,15 @@ class RenderCapture:
     refuses. ``submitted`` keeps each accepted ``RenderSubmission`` with its
     receipt; ``batches`` keeps just their command tuples;
     ``frames`` keeps the same submissions as semantic UI frames with the
-    controls registered at submission time.
+    painters' controls registered at submission time and the input shown with
+    each.
     """
 
     def __init__(self, renderer):
         self.submitted = []
         self.batches = []
-        self.frames = []
+        self._frames = []
+        self._unshown = None
         self._taken = 0
         self._renderer = renderer
         self._loop = FrameLoop(
@@ -193,10 +243,27 @@ class RenderCapture:
             submission.commands, receipt=submission.receipt,
             phase=submission.receipt_phase)
         self._loop.discard()
+        # A screen shows a frame's input once the frame is accepted: the previous
+        # frame's input is the one shown now. Without a screen the painters' input is the frame's.
+        self._show_input()
         self.submitted.append(submission)
         self.batches.append(submission.commands)
-        self.frames.append(RenderFrame(submission.commands, self._renderer))
+        screen = self._renderer._frame_owner is not None
+        frame = RenderFrame(submission.commands, self._renderer, hitboxes=() if screen else None)
+        self._frames.append(frame)
+        self._unshown = frame if screen else None
         return True
+
+    def _show_input(self):
+        if self._unshown is not None:
+            self._unshown.shown(shown_hitboxes(self._renderer))
+            self._unshown = None
+
+    @property
+    def frames(self):
+        """The submissions as semantic frames, each with the input shown with it."""
+        self._show_input()
+        return self._frames
 
     def get(self):
         """The oldest submission not taken yet, or None."""

@@ -206,7 +206,7 @@ class PrintModelPreviewTest(unittest.TestCase):
 
     def test_print_page_keeps_preview_panel_without_extra_header_button(self):
         self.controller._go_back()
-        self.controller.renderer.send(PRINTING.render(self.controller.renderer, {}))
+        self.controller.renderer.send(PRINTING.get_page().draw(self.controller.renderer, {}))
         self.assertFalse(self.controller.renderer.capture.latest.has_action("print.preview"))
         self.assertTrue(self.controller.renderer.capture.latest.has_action("print.more"))
 

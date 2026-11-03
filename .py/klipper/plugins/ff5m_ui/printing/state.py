@@ -25,4 +25,8 @@ class PrintingState(StateKey):
     PREVIEW_STATUS = state(
         str, default="none", choices=("none", "loading", "ready", "failed"),
         category="preview")
+    # The ready preview's FXI1 rasters, (x, y, blob) inside the preview box.
+    PREVIEW_BANDS = state(tuple, default=(), category="preview")
+    # The loading animation's current disc.
+    LOADER_RADIUS = state(int, default=7, category="preview")
 

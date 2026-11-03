@@ -35,7 +35,6 @@ from tests.test_feather_screen import (
 )
 from ff5m_ui.move import runtime as MOVE_UI
 from ff5m_ui.heat import actions as HEAT_ACTIONS
-from ff5m_ui.printing import runtime as PRINTING_UI
 from ff5m_ui.filament import actions as FILAMENT_ACTIONS
 from ff5m_ui.home import page as HOME_PAGE
 from ff5m_ui.home import state as HOME_STATE
@@ -264,8 +263,6 @@ class ControllerSafetyTest(unittest.TestCase):
             FEATHER.ScreenPage.CONTROL_HOME: "_render_control_home",
             FEATHER.ScreenPage.FILE_BROWSER: "_render_file_browser",
             FEATHER.ScreenPage.FILE_CONFIRM: "_render_file_confirm",
-            FEATHER.ScreenPage.PRINTING: "_render_print_page",
-            FEATHER.ScreenPage.PAUSED: "_render_print_page",
             FEATHER.ScreenPage.CONTROL_MOVE: "_render_move",
             FEATHER.ScreenPage.CALIBRATION_HOME: "_render_calibration_home",
             FEATHER.ScreenPage.CALIBRATION_GUIDE: "_render_calibration_guide",
@@ -315,12 +312,15 @@ class ControllerSafetyTest(unittest.TestCase):
         contents = {
             FEATHER.ScreenPage.IDLE_HOME: "_home_content",
             FEATHER.ScreenPage.CONTROL_HEAT: "_heat_content",
+            FEATHER.ScreenPage.PRINTING: "_print_content",
+            FEATHER.ScreenPage.PAUSED: "_print_content",
         }
         for method in contents.values():
             setattr(controller, method, lambda method=method: (
                 called.append(method), (controller._page_surface, None, False))[1])
         controller._write_dashboard = lambda eventtime: False
         controller._write_heat_values = lambda eventtime: False
+        controller._write_print_values = lambda eventtime, due: None
         controller.reactor = Reactor()
         routes.update(contents)
         for page, method in routes.items():
@@ -2632,7 +2632,7 @@ class ControllerSafetyTest(unittest.TestCase):
     def test_print_page_always_registers_cancel_action(self):
         controller = ScenarioController.__new__(ScenarioController)
         controller.renderer = FEATHER.FeatherRenderer()
-        RenderCapture(controller.renderer)
+        capture = RenderCapture(controller.renderer)
         controller.reactor = Reactor()
         controller.print_state = FEATHER.PrintState.PRINTING
         controller.pending_action = None
@@ -2644,24 +2644,26 @@ class ControllerSafetyTest(unittest.TestCase):
         controller.file_worker = None
         controller._live_z_adjust_allowed = lambda eventtime: False
         controller._current_print_progress_values = (
-            lambda eventtime: (0, ("--:--:--", "--:--:--", "? / ?", 0.0)))
+            lambda eventtime, stats=None: (0, ("--:--:--", "--:--:--", "? / ?", 0.0)))
         controller.renderer.set_header_action("global.abort", "ABORT")
+        controller.page = FEATHER.ScreenPage.PRINTING
 
-        controller._render_print_page()
+        controller._render_screen()
 
-        self.assertIn("global.abort", controller.renderer._buttons)
-        self.assertIn("print.cancel", controller.renderer._buttons)
-        self.assertEqual(
-            controller.renderer._buttons["print.cancel"][5], "danger")
-        self.assertNotIn("print.live_z", controller.renderer._buttons)
+        buttons = capture.latest.buttons
+        self.assertIn("global.abort", buttons)
+        self.assertIn("print.cancel", buttons)
+        self.assertEqual(buttons["print.cancel"].state, "danger")
+        self.assertNotIn("print.live_z", buttons)
+        abort, cancel = buttons["global.abort"].bounds, buttons["print.cancel"].bounds
         self.assertFalse(UI.rectangles_overlap(
-            controller.renderer._buttons["global.abort"][:4],
-            controller.renderer._buttons["print.cancel"][:4]))
+            (abort.x, abort.y, abort.width, abort.height),
+            (cancel.x, cancel.y, cancel.width, cancel.height)))
 
     def test_print_preparation_disables_pause_and_filament(self):
         controller = ScenarioController.__new__(ScenarioController)
         controller.renderer = FEATHER.FeatherRenderer()
-        RenderCapture(controller.renderer)
+        capture = RenderCapture(controller.renderer)
         controller.reactor = Reactor()
         controller.print_state = FEATHER.PrintState.PREPARING
         controller.pending_action = None
@@ -2677,15 +2679,17 @@ class ControllerSafetyTest(unittest.TestCase):
             "print_started": False}})()
         controller._live_z_adjust_allowed = lambda eventtime: False
         controller._current_print_progress_values = (
-            lambda eventtime: (0, ("--:--:--", "--:--:--", "? / ?", 0.0)))
+            lambda eventtime, stats=None: (0, ("--:--:--", "--:--:--", "? / ?", 0.0)))
         controller.renderer.set_header_action("global.abort", "ABORT")
+        controller.page = FEATHER.ScreenPage.PRINTING
 
-        controller._render_print_page()
+        controller._render_screen()
 
-        self.assertNotIn("print.pause", controller.renderer._buttons)
-        self.assertNotIn("print.filament", controller.renderer._buttons)
-        self.assertIn("print.cancel", controller.renderer._buttons)
-        self.assertIn("global.abort", controller.renderer._buttons)
+        buttons = capture.latest.buttons
+        self.assertNotIn("print.pause", buttons)
+        self.assertNotIn("print.filament", buttons)
+        self.assertIn("print.cancel", buttons)
+        self.assertIn("global.abort", buttons)
 
     def test_print_progress_prefers_live_height_and_falls_back(self):
         controller = ScenarioController.__new__(ScenarioController)
@@ -2695,24 +2699,25 @@ class ControllerSafetyTest(unittest.TestCase):
         controller.page = FEATHER.ScreenPage.PRINTING
         controller.pending_action = None
         controller._live_z_adjust_allowed = lambda eventtime: False
-        controller._last_progress = None
         controller._progress_floor = 0.0
-        controller._last_time = None
+        controller.print_state = FEATHER.PrintState.PRINTING
+        controller.operation_context = None
+        controller.selected_file = None
+        controller.preview_cache = PreviewCache(256 * 1024)
+        controller.file_worker = None
         controller.print_stats = StatusObject({
             "state": "printing", "print_duration": 100,
             "info": {"current_layer": None, "total_layer": None},
         })
         controller.virtual_sdcard = StatusObject({"progress": 0.25})
         controller.virtual_sdcard.estimate_print_time = 400.0
+        controller.virtual_sdcard.file_path = lambda: "/data/test.gcode"
         controller.toolhead = StatusObject({
             "position": (10.0, 20.0, 9.75, 0.0), "homed_axes": "xyz"})
         controller.motion_report = StatusObject({
             "live_position": (10.0, 20.0, 3.25, 0.0)})
 
-        PRINTING_UI.render(controller.renderer, {
-            PRINTING_UI.PrintingState.LAYER: "1 / 10",
-        })
-        controller._update_print_progress(100)
+        controller._render_screen()
 
         drawing = "\n".join(batches[0])
         self.assertIn("00:01:40", drawing)

@@ -2565,17 +2565,21 @@ class RunnerContractTest(unittest.TestCase):
         host.page = FEATHER.ScreenPage.PRINTING
         host.dialog = None
         host._current_dialog = lambda: host.dialog
-        host.renderer = type("Renderer", (), {"_buttons": {}})()
+        # The printing page's buttons are on the screen's frame; the message is a painter's.
+        shown = set()
+        host.renderer = type("Renderer", (), {"_buttons": {}, "shown_actions": lambda self: set(shown)})()
         feature = UI_TEST.UITestRun(host)
 
         self.assertTrue(feature.scenarios._context_printing())
         self.assertFalse(feature.scenarios._context_print_controls_ready())
-        host.renderer._buttons["print.pause"] = ()
+        shown.add("print.pause")
         self.assertTrue(feature.scenarios._context_print_controls_ready())
 
         status["state"] = "paused"
         host.page = FEATHER.ScreenPage.PAUSED
-        host.renderer._buttons = {"print.resume": ()}
+        self.assertFalse(feature.scenarios._context_paused())
+        shown.clear()
+        shown.add("print.resume")
         self.assertTrue(feature.scenarios._context_paused())
 
         status["state"] = "cancelled"

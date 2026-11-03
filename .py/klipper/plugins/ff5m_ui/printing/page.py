@@ -8,7 +8,7 @@ from enum import Enum
 
 from ui import ThemeColor
 from ui.bindings import bind, derived
-from ui.components import Button, Fill, Frame, ProgressBar, Text
+from ui.components import Button, Disc, Fill, Image, ProgressBar, Stroke, Text
 from ui.layout import FLEX, Column, Equal, Flex, Grid, Overlay, PageTree, Rect, Spacer, StateCase
 
 from ..keys import AppPage
@@ -114,7 +114,8 @@ def _details(compact=False):
         right_label="HEIGHT", right_value=bind(PrintingState.HEIGHT), right_ref=PrintingRef.HEIGHT,
     )
 
-    return Column(
+    # The details' own background lets a changed value repaint alone.
+    return Overlay(Fill(ThemeColor.BACKGROUND), Column(
         information,
         progress,
         Spacer(),
@@ -123,20 +124,27 @@ def _details(compact=False):
         Fill(ThemeColor.BORDER).height(1),
         position,
         gap=0 if compact else 2,
-    ).ref(PrintingRef.DETAILS)
+    )).ref(PrintingRef.DETAILS)
 
 
 def _preview():
+    status = bind(PrintingState.PREVIEW_STATUS)
     no_preview = Overlay(
-        StateCase(
-            Text("NO PREVIEW").style(UiStyle.DIM),
-            selector=bind(PrintingState.PREVIEW_STATUS), expected="none"),
-        StateCase(
-            Text("NO PREVIEW").style(UiStyle.DIM),
-            selector=bind(PrintingState.PREVIEW_STATUS), expected="failed"),
+        # Its own background lets the loader turn without repainting the panel.
+        Fill(ThemeColor.PANEL),
+        StateCase(Text("NO PREVIEW").style(UiStyle.DIM), selector=status, expected="none"),
+        StateCase(Text("NO PREVIEW").style(UiStyle.DIM), selector=status, expected="failed"),
+        StateCase(Image(bind(PrintingState.PREVIEW_BANDS)), selector=status, expected="ready"),
+        # Last, with its own bounds, so a turn of the loader repaints the disc alone.
+        StateCase(Disc(bind(PrintingState.LOADER_RADIUS)), selector=status, expected="loading")
+        .size(72, 72).align("center", "center"),
     ).margin(left=8, right=8, bottom=8).ref(PrintingRef.PREVIEW_BOX)
 
-    return Frame(
+    # The panel draws as a Frame with UiStyle.FRAME_PANEL; as an Overlay of its own pieces a change
+    # inside it repaints only what changed (a Frame repaints whole).
+    return Overlay(
+        Fill(ThemeColor.PANEL),
+        Stroke(ThemeColor.BORDER, 1),
         Column(
             Column(
                 Text("PREVIEW").style(UiStyle.PRIMARY_LEFT).height("content"),
@@ -144,13 +152,14 @@ def _preview():
             no_preview,
             gap=0,
         ),
-    ).style(UiStyle.FRAME_PANEL).ref(PrintingRef.PREVIEW)
+    ).ref(PrintingRef.PREVIEW)
 
 
 def _buttons():
     ready = bind(PrintingState.CONTROLS_READY)
     pending = bind(PrintingState.PENDING_ACTION)
     pause = Overlay(
+        Fill(ThemeColor.BACKGROUND),
         StateCase(
             Button(PAUSE, "PAUSE", state=derived(_pause_state, ready, pending)).style(UiStyle.BUTTON_BOLD_8),
             selector=bind(PrintingState.PAUSED), expected=False),

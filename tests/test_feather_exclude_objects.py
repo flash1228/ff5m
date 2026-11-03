@@ -72,7 +72,8 @@ class ExcludeObjectsTest(unittest.TestCase):
         with refused_render(self.screen.renderer):
             tap(self.screen, "print.more")
         self.assertIsNone(self.screen._current_dialog())
-        self.assertTrue(any(r.action == "print.cancel" for r in self.screen.renderer.hitboxes))
+        # The last frame the loop took still shows the print controls.
+        self.assertTrue(self.screen.capture.latest.has_action("print.cancel"))
         self.screen._render_screen()
         self.assertEqual(self.screen._current_dialog(), ScreenDialog.PRINT_MORE)
 

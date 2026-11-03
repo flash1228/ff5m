@@ -22,7 +22,6 @@ from feather.previews import (
 GCODE_PREVIEW_LOADER_PERIOD = 0.08
 GCODE_PREVIEW_REDRAW_PERIOD = 5.0
 GCODE_PREVIEW_LOADER_RADII = (7, 10, 13, 10)
-GCODE_PREVIEW_LOADER_DIAMETER = 72
 
 
 def _progress_state(progress, values):
@@ -33,6 +32,10 @@ def _progress_state(progress, values):
         printing_ui.PrintingState.LAYER: values[2],
         printing_ui.PrintingState.HEIGHT: "%.2f MM" % values[3],
     }
+
+
+def _loader_radius(preview):
+    return GCODE_PREVIEW_LOADER_RADII[int(preview.get("loading_phase", 0)) % len(GCODE_PREVIEW_LOADER_RADII)]
 
 
 def _gcode_preview_image_rect():
@@ -61,11 +64,20 @@ class PrintingPagesMixin:
         }
 
     def _update_print_controls(self):
-        if self._page_paint_allowed(ScreenPage.PRINTING, ScreenPage.PAUSED):
-            commands = printing_ui.update(
-                self.renderer, self._print_control_values(self.reactor.monotonic()))
-            if commands:
-                self.renderer.send(commands)
+        self._request_print_values(self._print_control_values(self.reactor.monotonic()))
+
+    def _request_print_values(self, values=None):
+        """Ask the screen's next transaction to write the printing page's values,
+        when the page shows and values (all of them when None) differ from what
+        the page holds."""
+        if not self._page_paint_allowed(ScreenPage.PRINTING, ScreenPage.PAUSED):
+            return
+        state = printing_ui.get_page().state
+        if values is not None and all(state.get(key) == value for key, value in values.items()):
+            return
+        # The paint writes them inside the screen's transaction.
+        self._page_values_due = True
+        self._ensure_screen_root().paint()
 
     def _timelapse_wait_text(self):
         if getattr(self, "pending_action", None) == "print.cancel.confirm":
@@ -137,51 +149,53 @@ class PrintingPagesMixin:
             if target != ScreenPage.TIMELAPSE_WAIT:
                 self._show_page(target)
 
-    def _render_print_page(self):
+    def _print_content(self):
         paused = self.page_for_print_state() == ScreenPage.PAUSED
-        eventtime = self.reactor.monotonic()
+        return printing_ui.get_page(), "PAUSED" if paused else "PRINTING", False
+
+    def _write_print_values(self, eventtime, due):
+        """Inside the screen's transaction: every value of the printing page when
+        due, else only the loader's disc, which its timer turns."""
+        page = printing_ui.get_page()
+        if not due:
+            preview = getattr(self, "_gcode_preview", None)
+            if preview is not None and preview.get("status") == "loading":
+                page.state.update({printing_ui.PrintingState.LOADER_RADIUS: _loader_radius(preview)})
+            return
+        paused = self.page_for_print_state() == ScreenPage.PAUSED
         print_stats = getattr(self, "print_stats", None)
         stats = (print_stats.get_status(eventtime)
                  if print_stats is not None else None)
-        commands = self.renderer.begin_page(
-            "PAUSED" if paused else "PRINTING")
         preview = self._prepare_gcode_preview()
+        if preview is None or preview["status"] != "loading":
+            self._stop_gcode_preview_loader()
         filename = self.virtual_sdcard.file_path() or "Unknown"
-        filename = os.path.basename(filename)
         values = {
-            printing_ui.PrintingState.FILENAME: filename,
+            printing_ui.PrintingState.FILENAME: os.path.basename(filename),
             printing_ui.PrintingState.STATUS:
                 self._display_status_text(eventtime),
             printing_ui.PrintingState.PAUSED: paused,
-            printing_ui.PrintingState.PREVIEW_STATUS:
-                "none" if preview is None else preview["status"],
         }
-        if stats is None:
-            progress, progress_values = self._current_print_progress_values(eventtime)
-        else:
-            progress, progress_values = self._current_print_progress_values(
-                eventtime, stats)
+        progress, progress_values = self._current_print_progress_values(eventtime, stats)
         values.update(self._print_control_values(eventtime))
         values.update(_progress_state(progress, progress_values))
-        commands += printing_ui.render(
-            self.renderer, values, reuse_layout=True)
-        if preview is not None and preview["status"] == "ready":
-            commands += self._gcode_preview_image_commands(preview)
-            self._stop_gcode_preview_loader()
-        elif preview is not None and preview["status"] == "loading":
-            commands += self._gcode_preview_loader_frame_commands(
-                preview.get("loading_phase", 0), clear_box=False)
-            self._start_gcode_preview_loader()
-        else:
-            self._stop_gcode_preview_loader()
-        accepted = self.renderer.send(commands)
-        if (accepted is not False and preview is not None
-                and preview["status"] == "ready"):
-            preview["painted_render_key"] = preview.get("render_key")
-            preview["redraw_after"] = (
-                eventtime + GCODE_PREVIEW_REDRAW_PERIOD)
-        self._last_progress = progress
-        self._last_time = progress_values
+        values.update(self._gcode_preview_values(preview))
+        page.state.update(values)
+
+    def _gcode_preview_values(self, preview):
+        """The preview's state as the page shows it: its status, the ready
+        rasters inside the preview box, and the loader's disc."""
+        if preview is None:
+            return {printing_ui.PrintingState.PREVIEW_STATUS: "none",
+                    printing_ui.PrintingState.PREVIEW_BANDS: ()}
+        bands = ()
+        if preview["status"] == "ready" and preview.get("image") is not None:
+            x, y, _width, _height = _gcode_preview_image_rect()
+            box = printing_ui.rect(printing_ui.PrintingRef.PREVIEW_BOX)
+            bands = tuple((x - box.x, y - box.y, blob) for blob in preview.get("render_blobs", ()))
+        return {printing_ui.PrintingState.PREVIEW_STATUS: preview["status"],
+                printing_ui.PrintingState.PREVIEW_BANDS: bands,
+                printing_ui.PrintingState.LOADER_RADIUS: _loader_radius(preview)}
 
     def _gcode_preview_render_spec(self, stats=None):
         layer_state = None
@@ -221,7 +235,6 @@ class PrintingPagesMixin:
             "cache_key": self._gcode_preview_cache_key(path),
             "status": "loading",
             "image": None,
-            "painted_render_key": None,
             "render_key": None,
             "render_blobs": (),
             "recolor_pending": False,
@@ -309,16 +322,6 @@ class PrintingPagesMixin:
             cache_key,
             {"image": cached_image, "color": color, "blob": blob})
 
-    def _gcode_preview_image_commands(self, preview):
-        if preview.get("image") is None:
-            return []
-
-        x, y, _width, _height = _gcode_preview_image_rect()
-        return [
-            self.renderer.image(x, y, blob, format="fxi1")
-            for blob in preview.get("render_blobs", ())
-        ]
-
     def _gcode_preview_key_for(self, path):
         if not path:
             return None
@@ -341,17 +344,13 @@ class PrintingPagesMixin:
             preview["image"] = image
             preview["render_key"] = render_key
             preview["render_blobs"] = render_blobs
+            # The next transaction shows these rasters; recolor them later.
+            preview["redraw_after"] = self.reactor.monotonic() + GCODE_PREVIEW_REDRAW_PERIOD
             self._cache_gcode_preview_image(
                 preview["cache_key"], image, color, cache_blob)
 
-        if (self._page_paint_allowed(ScreenPage.PRINTING, ScreenPage.PAUSED)
-                and self._gcode_preview_key_for(
-                    self.virtual_sdcard.file_path()) == key):
-            # Publish the completed preview as part of one complete page
-            # surface. A separate partial preview batch can flip onto the
-            # alternate framebuffer page while it still contains pixels from
-            # a previous dialog.
-            self._render_print_page()
+        if self._gcode_preview_key_for(self.virtual_sdcard.file_path()) == key:
+            self._request_print_values()
 
     def _request_gcode_preview_recolor(self, preview, stats, eventtime):
         render_spec = self._gcode_preview_render_spec(stats)
@@ -381,44 +380,16 @@ class PrintingPagesMixin:
                 return
             preview["render_key"] = render_key
             preview["render_blobs"] = value
-            if (not self._page_paint_allowed(
-                    ScreenPage.PRINTING, ScreenPage.PAUSED)
-                    or self._gcode_preview_key_for(
-                        self.virtual_sdcard.file_path()) != preview["key"]):
-                return
-            accepted = self.renderer.send(
-                self._gcode_preview_image_commands(preview), kind="state",
-                key="gcode-preview")
             preview["redraw_after"] = (
                 self.reactor.monotonic() + GCODE_PREVIEW_REDRAW_PERIOD)
-            if accepted is not False:
-                preview["painted_render_key"] = render_key
+            if self._gcode_preview_key_for(
+                    self.virtual_sdcard.file_path()) == preview["key"]:
+                self._request_print_values()
 
         if worker.submit(task, ready):
             return True
         preview["recolor_pending"] = False
         return False
-
-    def _gcode_preview_loader_frame_commands(self, phase=0, clear_box=True):
-        box = printing_ui.rect(printing_ui.PrintingRef.PREVIEW_BOX)
-        box_x, box_y, box_width, box_height = box.as_tuple()
-        center_x = box_x + box_width // 2
-        center_y = box_y + box_height // 2
-        radius = GCODE_PREVIEW_LOADER_RADII[int(phase) % len(
-            GCODE_PREVIEW_LOADER_RADII)]
-        diameter = GCODE_PREVIEW_LOADER_DIAMETER
-        dirty_x = center_x - diameter // 2
-        dirty_y = center_y - diameter // 2
-        commands = []
-        if clear_box:
-            commands.append(self.renderer.fill(
-                box_x, box_y, box_width, box_height, ThemeColor.PANEL))
-        else:
-            commands.append(self.renderer.fill(
-                dirty_x, dirty_y, diameter, diameter, ThemeColor.PANEL))
-        commands += self.renderer.filled_circle(
-            center_x, center_y, radius, ThemeColor.PRIMARY)
-        return commands
 
     def _gcode_preview_loading_active(self):
         preview = getattr(self, "_gcode_preview", None)
@@ -461,14 +432,8 @@ class PrintingPagesMixin:
         self._gcode_preview_loader_phase = phase
         if preview is not None:
             preview["loading_phase"] = phase
-        commands = self._gcode_preview_loader_frame_commands(
-            phase, clear_box=False)
-        sender = getattr(self.renderer, "send_animation", None)
-        if sender is not None:
-            sender(commands, "gcode-preview-loader")
-        else:
-            self.renderer.send(commands, kind="animation",
-                               key="gcode-preview-loader")
+        # Every transaction on the page writes the loader's disc.
+        self._ensure_screen_root().paint()
         return eventtime + GCODE_PREVIEW_LOADER_PERIOD
 
     def _print_controls_ready(self):
@@ -489,35 +454,14 @@ class PrintingPagesMixin:
         if self.page not in (ScreenPage.PRINTING, ScreenPage.PAUSED):
             return
         stats = self.print_stats.get_status(eventtime)
-        progress, values = self._current_print_progress_values(eventtime, stats)
-        commands = printing_ui.update(
-            self.renderer, self._print_control_values(eventtime))
-        if progress != self._last_progress or values != self._last_time:
-            commands += printing_ui.update_progress(
-                self.renderer, _progress_state(progress, values))
-
         preview = getattr(self, "_gcode_preview", None)
-        preview_redraw = False
-        if preview is not None and preview.get("status") == "ready":
-            render_key = self._gcode_preview_render_spec(stats)[0]
-            if eventtime >= preview.get("redraw_after", 0.0):
-                if preview.get("render_key") != render_key:
-                    self._request_gcode_preview_recolor(
-                        preview, stats, eventtime)
-                elif preview.get("painted_render_key") != render_key:
-                    image_commands = self._gcode_preview_image_commands(
-                        preview)
-                    commands += image_commands
-                    preview_redraw = bool(image_commands)
-                    preview["redraw_after"] = (
-                        eventtime + GCODE_PREVIEW_REDRAW_PERIOD)
-
-        if not commands:
-            return
-        self._last_progress, self._last_time = progress, values
-        accepted = self.renderer.send(commands)
-        if accepted is not False and preview_redraw:
-            preview["painted_render_key"] = preview.get("render_key")
+        if (preview is not None and preview.get("status") == "ready"
+                and eventtime >= preview.get("redraw_after", 0.0)):
+            self._request_gcode_preview_recolor(preview, stats, eventtime)
+        progress, values = self._current_print_progress_values(eventtime, stats)
+        changed = self._print_control_values(eventtime)
+        changed.update(_progress_state(progress, values))
+        self._request_print_values(changed)
 
     def _current_print_progress_values(self, eventtime, stats=None):
         stats = stats or self.print_stats.get_status(eventtime)
@@ -612,11 +556,6 @@ class PrintingPagesMixin:
         remaining = None if estimate is None else max(0.0, estimate - duration)
         return duration, remaining
 
-    def _draw_print_status(self, status):
-        self.renderer.send(printing_ui.update(self.renderer, {
-            printing_ui.PrintingState.STATUS: status,
-        }))
-
     def _update_operation_context(self, eventtime):
         operation = self._operation_context_status(eventtime)
         revision = operation["revision"]
@@ -624,9 +563,8 @@ class PrintingPagesMixin:
             return
         self._last_operation_revision = revision
         self._reconcile_external_operation(operation)
-        if self._page_paint_allowed(ScreenPage.PRINTING, ScreenPage.PAUSED):
-            self._draw_print_status(
-                self._display_status_text(status=operation))
+        self._request_print_values({
+            printing_ui.PrintingState.STATUS: self._display_status_text(status=operation)})
 
     def _request_operation_cancel(self):
         manager = getattr(self, "operation_context", None)
