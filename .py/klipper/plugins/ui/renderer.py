@@ -278,7 +278,7 @@ class FeatherRenderer(RendererBase):
         self._page_title = ""
         self._page_back = False
         self._prepared_surface = None
-        self._preserve_input = False
+        # Set while the frame owner's painters run (painters()).
         self._retain_background = False
         self._dialog_bounds = ()
 
@@ -291,7 +291,7 @@ class FeatherRenderer(RendererBase):
     # are the other surface fields.
     _SURFACE_FIELDS = (
         "_toggles", "_page_title", "_page_back", "_semantic_page_id",
-        "_loader_active", "_header_action", "_dialog_bounds",
+        "_loader_active", "_header_action",
     )
     # Surface fields mutated in place; the snapshot copies them. Every other
     # field is replaced on change, so the snapshot shares its value.
@@ -320,6 +320,10 @@ class FeatherRenderer(RendererBase):
     def discard_surface(self):
         """Roll back a prepared surface that was not submitted."""
         self._finish_surface(False)
+
+    def keep_surface(self):
+        """Keep a prepared surface: the frame owner's frame that drew it was accepted."""
+        self._finish_surface(True)
 
     def _visible_value(self, name):
         if self._prepared_surface is not None:
@@ -362,10 +366,17 @@ class FeatherRenderer(RendererBase):
 
     @property
     def touch_warning_allowed(self):
-        """Whether the visible surface has controls worth protecting."""
-        actions = set(self._visible_input("_buttons"))
-        actions.update(action for action, _spec in self._visible_input("_hitboxes")
-                       if action != "global.wake")
+        """Whether the visible surface has controls worth protecting: the
+        input Typer holds of the screen while its frames draw the panel,
+        else what this renderer's painters registered."""
+        shown = self._frame_owner.shown_input() if self._frame_owner is not None else None
+        if shown is None:
+            actions = set(self._visible_input("_buttons"))
+            actions.update(action for action, _spec in self._visible_input("_hitboxes"))
+        else:
+            actions = set(shown["buttons"])
+            actions.update(region[0] for layer in ("base", "overlay") for region in shown[layer])
+        actions.discard("global.wake")
         return not self._visible_value("_loader_active") and bool(actions)
 
     def discard_pending_output(self):
@@ -476,18 +487,19 @@ class FeatherRenderer(RendererBase):
 
     def process_events(self, eventtime):
         """On the reactor, once event_fd is readable: deliver the frame loop's
-        sent and restart notices, apply the input of the screen frames it
-        built, and return Typer's events in order: TapEvent, TouchEvent,
-        ButtonEvent, TouchDeviceEvent and RenderReceipt."""
+        sent and restart notices and return Typer's events in order: TapEvent,
+        TouchEvent, ButtonEvent, TouchDeviceEvent and RenderReceipt. The loop
+        decoded each action against the input it wrote last, so an action is
+        None for a region Typer no longer holds."""
         events = []
         for event in self._loop.take():
             kind = event[0]
             if kind == "tap":
-                events.append(TapEvent(self.decode_action(event[1]), event[1]))
+                events.append(TapEvent(event[2], event[1]))
             elif kind == "touch":
-                events.append(TouchEvent(self.decode_action(event[1]), *event[1:]))
+                events.append(TouchEvent(event[5], *event[1:5]))
             elif kind == "button":
-                events.append(ButtonEvent(self.decode_action(event[1]), event[1], event[2]))
+                events.append(ButtonEvent(event[3], event[1], event[2]))
             elif kind == "touch-device":
                 events.append(TouchDeviceEvent(event[1]))
             elif kind == "receipt":
@@ -499,44 +511,39 @@ class FeatherRenderer(RendererBase):
                     self._sent_handler(event[1], eventtime)
             elif kind == "screen-error":
                 screen_failed(event[1])
-            elif kind == "input":
-                # The input of the screen's frame, before any tap Typer
-                # reports for it; a surface begun meanwhile keeps its own.
-                self._apply_screen_input(event[1])
             else:
                 logging.warning("[feather_screen] typer restarted (last error: %s)",
                                 self._loop.status()["last_error"] or "none")
+                # The new Typer shows nothing of the screen until its next paint
+                # draws all of it, the imperative painters run again: a short
+                # empty panel, never a picture without the deltas sent since.
+                if not self._output_frozen:
+                    self._clear_display()
+                if self._frame_owner is not None:
+                    self._frame_owner.surface_cleared()
                 if self._restart_handler is not None:
                     self._restart_handler()
         return events
 
     @contextmanager
-    def compose(self, preserve_input=False, retain_background=False, finish_input=True):
-        """Submit consecutive ordinary draws as one admitted frame.
-
-        finish_input=False: a frame that preserves the visible surface's input
-        ends it itself (a screen that keeps it, ScreenFrames.keep_input), so
-        the kept-input finish does not run here."""
+    def compose(self):
+        """Submit consecutive ordinary draws as one admitted frame (the legacy
+        page route; a frame owner's screen submits its own frames)."""
         if self._composite_commands is not None:
             raise RuntimeError("render composition is already active")
         self._composite_commands = CommandList()
         self._composite_kind = None
         self._composite_key = None
         self._composite_receipt = None
-        self._preserve_input = bool(preserve_input)
-        self._retain_background = bool(retain_background)
         self._prepare_surface()
         self._dialog_bounds = ()
-        frame = {"accepted": False, "input_changed": False, "background_changed": False}
         try:
-            yield frame
+            yield
         except BaseException:
             self._composite_commands = None
             self._composite_kind = None
             self._composite_key = None
             self._composite_receipt = None
-            self._preserve_input = False
-            self._retain_background = False
             self._finish_surface(False)
             raise
         commands = self._composite_commands
@@ -547,44 +554,38 @@ class FeatherRenderer(RendererBase):
         self._composite_kind = None
         self._composite_key = None
         self._composite_receipt = None
-        self._preserve_input = False
-        self._retain_background = False
-        previous = self._prepared_surface
-        if (commands and retain_background and previous is not None
-                and (not self._dialog_bounds
-                     or self._dialog_bounds != previous["_dialog_bounds"]
-                     or self._header_action != previous["_header_action"])):
-            frame["background_changed"] = True
-            requested_header = self._header_action
-            self._finish_surface(False)
-            self._prepare_surface()
-            self._header_action = requested_header
-            return
-        if commands and preserve_input and finish_input and previous is not None:
-            # Replace only input IDs after building pixels once. These final
-            # resets remove IDs embedded in the earlier draw commands.
-            replaced = self._finish_kept_input()
-            if replaced:
-                frame["input_changed"] = True
-                # Input replacement is a prerequisite for later pixel-only updates.
-                key = None
-                commands.extend(replaced)
-                if kind is None:
-                    kind = "state"
         if commands:
             if receipt is None:
-                frame["accepted"] = self.send(commands, kind=kind, key=key)
+                self.send(commands, kind=kind, key=key)
             else:
-                frame["accepted"] = self.send(
-                    commands, kind=kind, key=key, receipt=receipt[0], receipt_phase=receipt[1])
+                self.send(commands, kind=kind, key=key, receipt=receipt[0], receipt_phase=receipt[1])
         else:
             self._finish_surface(False)
 
+    @contextmanager
+    def painters(self, retain_background=False):
+        """One pass of the frame owner's painters over its screen's frame:
+        retaining_background tells them whether the frame keeps the pixels
+        under them, dialog_bounds collects the dialogs they draw, and
+        painted_critical says whether one of them sent a critical batch (a
+        safety screen the frame loop replays after a Typer restart)."""
+        self._retain_background = bool(retain_background)
+        self._dialog_bounds = ()
+        self._composite_kind = None
+        try:
+            yield
+        finally:
+            self._retain_background = False
+
     @property
-    def header_action_changed(self):
-        """Whether a staged header control needs its old pixels restored."""
-        return (self._prepared_surface is not None
-                and self._header_action != self._prepared_surface["_header_action"])
+    def dialog_bounds(self):
+        """The bounds of the dialogs drawn since the painters' pass or the composition began."""
+        return self._dialog_bounds
+
+    @property
+    def painted_critical(self):
+        """Whether the last painters' pass sent a critical batch."""
+        return self._composite_kind == "critical"
 
     @property
     def retaining_background(self):
@@ -593,9 +594,8 @@ class FeatherRenderer(RendererBase):
 
     @contextmanager
     def collect(self):
-        """Adapt an imperative painter into one node's ordered command list."""
-        if self._composite_commands is None:
-            raise RuntimeError("command collection requires a composed frame")
+        """Adapt an imperative painter into one node's ordered command list:
+        what it sends meanwhile is collected, not submitted."""
         previous = self._composite_commands
         commands = self._composite_commands = []
         try:
@@ -723,7 +723,7 @@ class FeatherRenderer(RendererBase):
 
     def invalidate_input_generation(self):
         """Prepare a new input generation for a replacement surface."""
-        if self._prepare_surface() and not self._preserve_input:
+        if self._prepare_surface():
             self._generation += 1
 
     @property
@@ -1515,9 +1515,13 @@ class FeatherRenderer(RendererBase):
         commands.extend(self._input_commands())
         self.prioritize_next_batch("state")
 
-    def begin_page(self, title, back=False):
+    def show_page(self, title, back=False):
+        """A page starts on the panel: its title and back, the footer beside it, and
+        a new input generation without the previous page's interactions. begin_page
+        draws its chrome too; a page's slot in a screen tree draws its own header.
+        False when the surface cannot be prepared."""
         if not self._prepare_surface():
-            return []
+            return False
         self._page_title = title
         self._page_back = back
         # The page is on the panel: the footer shows beside it.
@@ -1527,6 +1531,11 @@ class FeatherRenderer(RendererBase):
         self.invalidate_input_generation()
         self._reset_interactions()
         self._menu_suppressed = False
+        return True
+
+    def begin_page(self, title, back=False):
+        if not self.show_page(title, back):
+            return []
         show_header_action = self._header_action is not None
         commands = [
             self.clear_hitboxes("base"),
@@ -1596,10 +1605,16 @@ class FeatherRenderer(RendererBase):
         # Its area belongs to something else until the next page shows it.
         self._footer.hide()
 
-    def submit_frame(self, commands):
-        """Submit a frame the frame owner built outside its paint (a change of
-        the chrome its screen holds); it is not composed again."""
-        return self._submit(RenderSubmission(_immutable_commands(commands), None, "presented", False))
+    def submit_frame(self, commands, receipt=None, receipt_phase="presented", critical=False):
+        """Submit a frame the frame owner's screen built; it is not composed again."""
+        if receipt_phase != "presented" and (receipt_phase != "staged" or receipt is None):
+            raise ValueError("staged receipts require a token; unknown receipt phase")
+        receipt = None if receipt is None else validate_render_receipt_token(receipt)
+        try:
+            return self._submit(RenderSubmission(_immutable_commands(commands), receipt, receipt_phase, critical))
+        except ValueError as exc:
+            logging.warning("[feather_screen] rejected render batch: %s", exc)
+            return False
 
     def toast(self, message):
         height = 44
@@ -1622,12 +1637,18 @@ class FeatherRenderer(RendererBase):
         self.prioritize_next_batch("state", "toast-hitbox")
         self.send([self.clear_hitboxes("overlay")])
 
+    def _header_drawn(self):
+        """Whether the frame owner's tree draws the header (a page's slot), which
+        then shows the busy label; otherwise the page drew it with begin_page."""
+        owner = self._frame_owner
+        return owner is not None and owner.header_changed()
+
     def busy_notice(self, label="PLEASE WAIT"):
         label = str(label).upper()
         if label == self._busy_label:
             return
         self._busy_label = label
-        if self._header_action is not None:
+        if self._header_action is not None or self._header_drawn():
             return
         self.send([
             self.fill(BUSY_NOTICE_X, BUSY_NOTICE_Y,
@@ -1647,7 +1668,7 @@ class FeatherRenderer(RendererBase):
         if self._busy_label is None:
             return
         self._busy_label = None
-        if self._header_action is not None:
+        if self._header_action is not None or self._header_drawn():
             return
         commands = [
             self.fill(BUSY_NOTICE_X, BUSY_NOTICE_Y,

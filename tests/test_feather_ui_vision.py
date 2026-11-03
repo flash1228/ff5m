@@ -1695,20 +1695,10 @@ class NativeDialogContractTest(unittest.TestCase):
     def render(self, kind, fixture):
         from ui import FeatherRenderer
         from feather_screen import FeatherScreen, ScreenDialog, ScreenPage
-        from tests.feather_render_test_helper import RenderFrame
+        from tests.feather_render_test_helper import RenderCapture
 
         renderer = FeatherRenderer()
-        captured = []
-
-        def capture(commands, **_metadata):
-            if renderer._composite_commands is not None:
-                renderer._composite_commands.extend(commands)
-            else:
-                captured.extend(commands)
-                renderer._finish_surface(True)
-            return True
-
-        renderer.send = capture
+        capture = RenderCapture(renderer)
         screen = FeatherScreen.__new__(FeatherScreen)
         screen.renderer = renderer
         screen.page = ScreenPage.IDLE_HOME
@@ -1728,9 +1718,8 @@ class NativeDialogContractTest(unittest.TestCase):
         instance = screen._show_dialog(ScreenDialog[kind.upper()], content=content)
         if fixture.get("page"):
             instance.page = fixture["page"]
-            captured.clear()
             screen._render_dialog()
-        frame = RenderFrame(captured, renderer)
+        frame = capture.latest
         screen._close_dialog(instance)
         return frame
 

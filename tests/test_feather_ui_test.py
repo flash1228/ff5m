@@ -763,8 +763,7 @@ class RunnerContractTest(unittest.TestCase):
         renderer = FEATHER.FeatherRenderer()
         capture = RenderCapture(renderer)
         root = ScreenRoot(renderer, Text("Background"),
-                          Rect(0, 0, 800, 480), FEATHER.AppPage.SCREEN_ROOT,
-                          chrome=False)
+                          Rect(0, 0, 800, 480), FEATHER.AppPage.SCREEN_ROOT)
         root.paint()
         root.open(ScreenLayer(Dialog("Foreground", (), (), modal=True)))
         capture.submitted.clear()

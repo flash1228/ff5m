@@ -6,8 +6,8 @@
 
 from .bindings import StateStore, page_state_keys
 from .engine import NATIVE_METHODS, BinaryCommand, CommandBatch, ScreenFrames
-from .font_metrics import get_font_metrics
 from .footer import FOOTER_BOUNDS
+from .header import Header
 from .identity import serialize_key
 from .layout import DeclarativePage, Dirty, Node, Overlay, PageTree, Rect
 
@@ -26,9 +26,8 @@ class ScreenLayer:
 
 class ImperativeSurface(Node):
     """A node an imperative painter draws: its render runs the painter and
-    ignores the layout. A screen root whose content and layers are all
-    imperative surfaces draws them through its ScreenFrames, recording each
-    painter's output when the frame places it."""
+    ignores the layout. The screen root records the painter's output when
+    the frame places it."""
 
     paints_pixels = True
     covers_bounds = True
@@ -49,39 +48,44 @@ class _Recorded(Node):
 
 
 class _PageSlot(Overlay):
-    """The place of a declarative page in the screen tree: its chrome (the
-    title and back button begin_page draws, recorded while the header is not
-    a component) under the page's root, placed at the page's bounds.
+    """The place of a declarative page in the screen tree: its header (with a
+    title) under the page's root, placed at the page's bounds.
 
     The page keeps its state, actions, styles and update pass; its root owns
     the page's tree flags while the screen holds it, and the screen draws the
-    page's nodes with the page's state.
+    page's nodes with the page's state. The header (header.Header) is a tree
+    of its own with the page's title, back button and header button (the
+    page's header_button, if any).
     """
 
     def __init__(self, page, title, back):
         bounds = page.bounds
-        chrome = None if title is None else _Recorded()
-        frame = Overlay(page.root).offset(bounds.x, bounds.y).size(bounds.width, bounds.height)
-        super().__init__(*(node for node in (chrome, frame) if node is not None))
+        self.header = None if title is None else Header(title, back, getattr(page, "header_button", None))
+        self._frame = Overlay(page.root).offset(bounds.x, bounds.y).size(bounds.width, bounds.height)
+        super().__init__(*self._nodes())
         self.page = page
         self.title = title
         self.back = back
-        self.page_chrome = chrome
 
+    def _nodes(self):
+        return (self.header.node, self._frame) if self.header is not None else (self._frame,)
 
-class _PageDraw(ImperativeSurface):
-    """A page's slot as _paint_frame draws it: its chrome, then the page's
-    own frames. TODO(1P-5c): remove with _paint_frame."""
+    def apply_header(self, renderer):
+        """Inside the screen's transaction: the header's values, and its new tree for a new header action."""
+        if self.header is None or not self.header.apply(renderer):
+            return
+        for node in self.children:
+            if node is not self._frame:
+                node.parent = None
+        self.children = self._nodes()
+        self._adopt(*self.children)
+        self.invalidate_layout()
 
-    def __init__(self, slot):
-        super().__init__()
-        self.slot = slot
-
-    def render(self, renderer, state, layout):
-        slot = self.slot
-        commands = [] if slot.title is None else list(renderer.begin_page(slot.title, back=slot.back))
-        commands += slot.page.draw(renderer, slot.page.state)
-        return commands
+    def drew(self, layout):
+        """The screen drew the slot and published its layout."""
+        self.page.screen_drew(layout)
+        if self.header is not None:
+            self.header.page.screen_drew(layout)
 
 
 class ScreenRoot:
@@ -102,7 +106,8 @@ class ScreenRoot:
     its own state: the product writes them there and paints, and a delta
     draws the page's changes while no layer is visible. Under a modal layer
     the changes wait for the layer to close; under other layers the
-    composition repaints. update() writes the layers' values.
+    composition repaints. update() writes the values the content node and
+    the layers read.
 
     select_content, when given, returns (content, title, back) for the
     product's current state; each paint shows what it returns.
@@ -111,21 +116,18 @@ class ScreenRoot:
     the screen's tree between transactions on its own thread, so the tree and
     its state change only there: invalidate() waits for the next paint too.
 
-    While the content is an imperative surface or a declarative page and
-    every visible layer is an imperative surface, the root draws through its
-    ScreenFrames (_paint_screen): the engine composes them by its layer rule
-    and says what the next frame draws, the surfaces it places record their
-    painters' output, and a page's nodes are drawn from the screen's tree.
-    The renderer's footer is a persisting layer of that tree, between the
-    content and the layers, while it shows and its strip lies in the screen;
-    the content is then sized above it. Anything else draws through _paint_frame, which draws no footer.
-    TODO(1P-5c): remove _paint_frame and its PageTree once the remaining
-    content and layers are native (the page with 1P-5d, Dialog with the
-    stage 1 dialog piece); only Designer scenes still reach it.
+    The root draws through its ScreenFrames (_paint_screen): the engine
+    composes the content and the layers by its layer rule and says what the
+    next frame draws. A page's nodes are the screen tree's; every other node
+    is recorded: the frame places the output its source last drew, which an
+    imperative surface's painter draws and any other node's own tree draws
+    (_record), on the reactor until such nodes are native. The renderer's
+    footer is a persisting layer of that tree, between the content and the
+    layers, while it shows and its strip lies in the screen; the content is
+    then sized above it.
     """
 
-    def __init__(self, renderer, content, bounds, page_id, title="", chrome=True,
-                 select_content=None, write_content=None):
+    def __init__(self, renderer, content, bounds, page_id, select_content=None, write_content=None):
         self.renderer = renderer
         self.content = None
         self._content_node = None
@@ -133,37 +135,40 @@ class ScreenRoot:
         self._page = None
         self.bounds = bounds if isinstance(bounds, Rect) else Rect(*bounds)
         self.page_id = page_id
-        self.title = title
-        self.chrome = bool(chrome)
         self.layers = []
         self.visible_layers = ()
         self._visible_content = None
-        self._repaint_pending = False
-        self._draining_repaint = False
+        # A paint asked for while one ran, which may have read its values already (and whether it was forced).
+        self._paint_again = False
+        self._force_again = False
         self.painting = False
         self._rebuild = True
-        self._tree = None
         self._values = {}
         self._select_content = select_content
         self._write_content = write_content
         # Nodes invalidate() asked to repaint (None: the content), applied inside the next paint.
         self._invalidated = []
-        # The screen path: its frames, their tree, each surface's recorded
-        # node (content by (node, title, back), layers by layer), the nodes
-        # the tree holds, the layers' state, and whether its next frame
-        # must draw whole (the panel shows something it did not draw).
+        # The screen's frames, their tree, each recorded node (content by
+        # (node, title, back), layers by layer), the nodes the tree holds, the
+        # state the recorded sources read, the trees that draw sources other
+        # than imperative surfaces, and whether the next frame must draw whole
+        # (the panel shows something it did not draw).
         self._screen = None
         self._screen_tree = None
         self._recorded = {}
         self._shown = ()
         self._screen_state = None
         self._screen_schema = ()
+        self._trees = {}
         self._screen_redraw = True
-        self._screen_path = None
+        # The renderer's header action as the last accepted frame showed it. Imperative painters (the content's
+        # begin_page, a dialog that keeps the header action) draw it only in a whole frame.
+        self._header_action = None
+        # The renderer's dialog bounds as the last accepted frame drew them: a retained painter keeps the pixels
+        # around its dialogs only while they stay.
+        self._dialog_bounds = ()
         # The footer's place in the screen tree: its root at the footer's bounds.
         self._footer_slot = None
-        # _paint_frame's node for a page's slot (TODO(1P-5c): goes with it).
-        self._page_draw = None
         self.replace_content(content)
         renderer.configure_frame_owner(self)
 
@@ -206,8 +211,6 @@ class ScreenRoot:
         if content is self.content and self._content_chrome == (title, bool(back)):
             return
         if isinstance(content, DeclarativePage):
-            if title is not None and self.chrome:
-                raise ValueError("a page title needs a screen root without chrome")
             # Made inside the screen's transaction (_content): it adopts the page's root.
             self._content_node = None
             self._page = content
@@ -241,13 +244,26 @@ class ScreenRoot:
         return self._content_node
 
     def _write_inside(self):
-        """Inside the paint (the screen's transaction on its path): the
+        """Inside the paint (the screen's transaction): the
         content's values and the repaints invalidate() asked for."""
         if self._write_content is not None:
             self._write_content()
         invalidated, self._invalidated = self._invalidated, []
         for node in invalidated:
-            (self._content() if node is None else node).invalidate(Dirty.PAINT)
+            node = self._content() if node is None else node
+            if isinstance(node, _PageSlot):
+                # The slot does not cover its bounds (begin_page leaves the footer's strip alone), and a
+                # repaint would fill them: laid out again, it is drawn as a whole frame draws it.
+                node.invalidate_layout()
+            else:
+                node.invalidate(Dirty.PAINT)
+
+    def shown_input(self):
+        """The input Typer holds of the screen (ScreenFrames.shown_input), or
+        None before its first frame."""
+        if self._screen is None:
+            return None
+        return self._screen.shown_input()
 
     def surface_cleared(self):
         """The renderer cleared the panel (its start): nothing composed before
@@ -258,143 +274,37 @@ class ScreenRoot:
         self._visible_content = None
 
     def paint(self, receipt=None, force=False, receipt_phase="presented"):
-        if self.painting or not self.renderer.render_allowed:
-            self._repaint_pending = self._repaint_pending or force
+        """One transaction of the screen: the content selected and written, the
+        layers' values, the invalidations, the painters of what the frame paints,
+        then its frame. A paint asked for inside one (a painter, write_content, a
+        header change) runs once that one ends. While output is frozen nothing is
+        drawn: the thaw clears the panel, and the paint after it draws it all."""
+        if self.painting:
+            self._paint_again = True
+            self._force_again = self._force_again or force
             return False
-        force = force or self._repaint_pending
-        self._repaint_pending = False
+        if not self.renderer.render_allowed:
+            return False
+        result = self._paint_once(receipt, force, receipt_phase)
+        return self._paint_asked() or result
+
+    def _paint_once(self, receipt, force, receipt_phase):
         self.painting = True
         try:
             if self._select_content is not None:
                 content, title, back = self._select_content()
                 self.replace_content(content, title=title, back=back)
-            screen = self._surfaces_only()
-            if screen != self._screen_path:
-                # The other path drew last: neither keeps what is on the panel.
-                self._screen_path = screen
-                self._rebuild = self._screen_redraw = True
-            if screen:
-                result = self._paint_screen(receipt, force, receipt_phase)
-            else:
-                result = self._paint_frame(receipt, force, receipt_phase)
+            return self._paint_screen(receipt, force, receipt_phase)
         finally:
             self.painting = False
-        return self._drain_repaint() or result
 
-    def _drain_repaint(self):
-        if (not self._repaint_pending or self._draining_repaint
-                or not self.renderer.render_allowed):
+    def _paint_asked(self):
+        """The paint asked for while one ran, drawn now; once, since a paint that
+        asks for itself each time would not end."""
+        if not self._paint_again or not self.renderer.render_allowed:
             return False
-        # One recovery follows the current send. If even that surface cannot
-        # enter the queue, retain the request for the next caller instead of
-        # recursively retrying while critical output still occupies it.
-        self._draining_repaint = True
-        try:
-            return self.paint(force=True)
-        finally:
-            self._draining_repaint = False
-
-    def _paint_frame(self, receipt, force, receipt_phase="presented"):
-        self._write_inside()
-        layers = tuple(layer for layer in self.layers if not layer.suspended)
-        same_surface = self.content is self._visible_content and layers == self.visible_layers
-        restore = force or self.renderer.header_action_changed
-        mode = "full" if self._rebuild or restore else "delta"
-        foreground = None
-        try:
-            if mode == "full":
-                previous_schema = () if self._tree is None else self._tree.state_schema
-                self._tree = PageTree(
-                    Overlay(self._frame_content(), *(layer.node for layer in layers)),
-                    self.bounds, page_id=self.page_id,
-                    state_schema=tuple(key for layer in self.layers
-                                       for key in page_state_keys(layer.node)))
-                # Suspended instances retain their values; closed instances release them.
-                for key in previous_schema:
-                    if key not in self._tree.state_schema:
-                        self._values.pop(key, None)
-            self._tree.state.update(self._values)
-            for layer in layers:
-                layer.node.update(self._tree.state)
-            modal_index = next((index for index in reversed(range(len(layers)))
-                                if layers[index].node.input_blocked), None)
-            if mode == "delta" and modal_index is not None:
-                if all(layer.node.is_clean for layer in layers[modal_index:]):
-                    self.renderer.discard_surface()
-                    return False
-                if all(layer.retain_background for layer in layers[modal_index:]):
-                    mode = "update_foreground"
-                    foreground = tuple(layer.node for layer in layers[modal_index:])
-            elif mode == "delta" and layers and self._page_changed():
-                # Layers are drawn again over the page's changed pixels.
-                return self._paint_frame(receipt, True, receipt_phase)
-            elif (mode == "full" and not restore
-                  and self.content is self._visible_content and not self.visible_layers
-                  and len(layers) == 1 and modal_index == 0 and layers[0].retain_background):
-                mode = "open_foreground"
-                foreground = (layers[0].node,)
-
-            if (mode == "delta" and not layers and self._page_changed()
-                    and self._frame_content().is_clean):
-                # The page's own update frame replays its input itself.
-                commands = self._page.update(self.renderer)
-                accepted = bool(commands) and self.renderer.send(
-                    commands, receipt=receipt, receipt_phase=receipt_phase)
-                self._rebuild = bool(commands) and not accepted
-                return accepted or not commands
-
-            with self.renderer.compose(preserve_input=same_surface,
-                                       retain_background=mode == "update_foreground") as frame:
-                commands = []
-                if mode in ("full", "open_foreground"):
-                    if self.chrome and mode == "full":
-                        commands += self.renderer.begin_page(self.title)
-                    else:
-                        self.renderer.invalidate_input_generation()
-                if mode == "delta":
-                    commands += self._tree.update(self.renderer, self._values)
-                else:
-                    commands += self._tree.draw(
-                        self.renderer, self._values,
-                        reuse_layout=mode == "update_foreground",
-                        reuse_styles=mode == "update_foreground", render_from=foreground)
-                if commands:
-                    self.renderer.send(
-                        commands, receipt=receipt, receipt_phase=receipt_phase,
-                        kind="surface" if mode == "full" else (
-                            None if mode == "delta" else "state"),
-                        key="foreground" if mode == "update_foreground" else None)
-            if frame["background_changed"]:
-                # Unknown or changed panel bounds require restoring exposed pixels.
-                return self._paint_frame(receipt, True, receipt_phase)
-            accepted = frame["accepted"]
-            if accepted:
-                self.visible_layers = layers
-                self._visible_content = self.content
-            self._rebuild = bool(commands) and not accepted
-            return accepted or not commands
-        except BaseException:
-            self.renderer.discard_surface()
-            self._rebuild = True
-            raise
-
-    def _frame_content(self):
-        """The content node _paint_frame draws: a page's slot is drawn by
-        _PageDraw. TODO(1P-5c): remove with _paint_frame."""
-        content = self._content()
-        if not isinstance(content, _PageSlot):
-            return content
-        if self._page_draw is None or self._page_draw.slot is not content:
-            self._page_draw = _PageDraw(content)
-        if not content.is_clean:
-            self._page_draw.invalidate()
-            content.clear_dirty()
-        return self._page_draw
-
-    def _surfaces_only(self):
-        return ((self._page is not None or isinstance(self._content_node, ImperativeSurface))
-                and all(isinstance(layer.node, ImperativeSurface)
-                        for layer in self.layers if not layer.suspended))
+        force, self._paint_again, self._force_again = self._force_again, False, False
+        return self._paint_once(None, force, "presented")
 
     def _screen_layers(self, layers):
         """Set the screen tree's nodes for the content and layers: a page's
@@ -414,7 +324,9 @@ class ScreenRoot:
                     node.parent = None
             self._recorded = dict(zip(keys, nodes))
             self._shown = nodes
-            schema = tuple(key for layer in self.layers for key in page_state_keys(layer.node))
+            sources = ((content,) if slot is None else ()) + tuple(layer.node for layer in self.layers)
+            self._trees = {source: tree for source, tree in self._trees.items() if source in sources}
+            schema = tuple(dict.fromkeys(key for source in sources for key in page_state_keys(source)))
             # Suspended instances retain their values; closed instances release them.
             for key in self._screen_schema:
                 if key not in schema:
@@ -426,13 +338,9 @@ class ScreenRoot:
         sources += [(layer.node, node, layer) for layer, node in zip(layers, nodes[1:])]
         return sources, changed
 
-    def _paint_screen(self, receipt, force, receipt_phase="presented", full_relayout=False):
-        """Draw the surfaces through the screen's frames: the modes of
-        _paint_frame, decided by the engine's layer rule (planned()).
-
-        full_relayout: a relayout of the page that could not draw partially
-        draws whole, as the page's update draws a full relayout: its pass
-        already ran, and the frame replaces the page's input."""
+    def _paint_screen(self, receipt, force, receipt_phase="presented"):
+        """Draw the content and the layers through the screen's frames, in the
+        mode the engine's layer rule decides (planned())."""
         layers = tuple(layer for layer in self.layers if not layer.suspended)
         same_surface = self.content is self._visible_content and layers == self.visible_layers
         if self._screen is None:
@@ -444,8 +352,13 @@ class ScreenRoot:
             self._write_inside()
             shown = self._shown[:1]
             sources, changed = self._screen_layers(layers)
-            redraw = (force or self.renderer.header_action_changed or self._screen_redraw
-                      or (self._rebuild and not changed))
+            slot = sources[0][1] if isinstance(sources[0][1], _PageSlot) else None
+            if slot is not None:
+                slot.apply_header(self.renderer)
+            header_action = getattr(self.renderer, "_header_action", None)
+            # A page's slot alone takes a new header action as its own relayout (apply_header).
+            redraw = (force or self._screen_redraw or (self._rebuild and not changed)
+                      or (header_action != self._header_action and (slot is None or bool(layers))))
             if self._screen_redraw:
                 # The panel's pixels are gone: every layer is drawn, the footer too.
                 screen.redraw()
@@ -453,15 +366,10 @@ class ScreenRoot:
                 # The composition draws whole; the footer's pixels survive it.
                 screen.draw_whole()
             self._screen_redraw = False
-            page = sources[0][1].page if isinstance(sources[0][1], _PageSlot) else None
+            page = None if slot is None else slot.page
             if page is not None:
-                if not full_relayout:
-                    # A frame that draws the page anew prepares it as its draw does.
-                    page.prepare_frame(redraw or shown != self._shown[:1])
-                if self._replays_page_input(page, layers, same_surface):
-                    screen.replay_input()
-                elif self._relayouts_page(page, layers, same_surface):
-                    screen.relayout_page(page.root, page._structure)
+                # A frame that draws the page anew prepares it as its draw does.
+                page.prepare_frame(redraw or shown != self._shown[:1])
             state = self._screen_state
             state.update(self._values)
             for source, node, layer in sources:
@@ -481,94 +389,78 @@ class ScreenRoot:
             screen.end(self.renderer)
             self.renderer.discard_surface()
             return not any(node._blocks_input for _source, node, _layer in sources[1:])
-        mode, foreground = planned
-        # The page's changed input replays over the repaint, as its update does.
-        replay = mode == "repaint" and page is not None and page.root._input_dirty
-        relayout = mode == "relayout"
-        partial = True
         try:
-            opening = mode == "foreground" and changed
-            retained = mode == "foreground" and not changed
-            keep = same_surface and not (replay or relayout or full_relayout)
-            with self.renderer.compose(preserve_input=keep, retain_background=retained,
-                                       finish_input=False) as frame:
-                commands = []
-                if mode == "whole" or opening:
-                    if self.chrome and mode == "whole":
-                        commands += self.renderer.begin_page(self.title)
-                    elif not full_relayout:
-                        # (A full relayout's page chrome takes the new generation itself.)
-                        self.renderer.invalidate_input_generation()
-                if relayout:
-                    # The page's base input, which its controls then replay over, as its
-                    # update's partial relayout registers it.
-                    self.renderer.set_semantic_page(page.page_id)
-                    commands += self.renderer.redraw_page_hitboxes()
-                elif mode != "repaint":
-                    # As the composition's draws named their page.
-                    self.renderer.set_semantic_page(serialize_key(self.page_id))
-                for source, node, _layer in sources:
-                    if source is node:
-                        if mode == "whole":
-                            self._record_page_chrome(node)
-                    elif (mode == "whole" or (mode == "foreground" and node in foreground)
-                            or (mode == "repaint" and not node.is_clean)):
-                        node.commands = CommandBatch(
-                            source.render(self.renderer, state, None), BinaryCommand)
-                if mode == "whole":
-                    # The painters may have shown or hidden the footer (a page begun, a state
-                    # screen); after the plan only a frame that draws whole takes that.
-                    self._place_footer()
-                if keep:
-                    # Its build ends the input as the composition's kept-input finish does.
-                    screen.keep_input()
-                built = screen.end(self.renderer) or ()
-                # A relayout that moved more than the page's boundaries drew nothing.
-                partial = not relayout or bool(built)
-                tail = screen.input_tail
-                commands = commands + list(built) + self._input_tail(tail, page) if partial else []
-                kind = "surface" if mode == "whole" else (
-                    None if mode in ("repaint", "relayout") else "state")
-                # A frame that replaced the kept input is a prerequisite for later
-                # pixel-only updates, as the composition's kept-input finish sends it.
-                replaced = tail == "regions"
-                if commands:
-                    self.renderer.send(
-                        commands, receipt=receipt, receipt_phase=receipt_phase,
-                        kind=kind or ("state" if replaced else None),
-                        key="foreground" if retained and not replaced else None)
+            mode = self._paint_nodes(planned, changed, same_surface, sources, slot, state)
+            critical = self.renderer.painted_critical
+            commands = list(screen.end(self.renderer) or ())
         except BaseException:
             self._abandon_screen()
             raise
-        if frame["background_changed"]:
-            # Unknown or changed panel bounds require restoring exposed pixels.
-            self._screen_redraw = True
-            return self._paint_screen(receipt, True, receipt_phase)
-        if not partial:
-            # It draws whole, with the page's chrome, as its update draws a full relayout.
-            return self._paint_screen(receipt, True, receipt_phase, full_relayout=True)
-        if page is not None and mode in ("whole", "relayout"):
-            page.screen_drew(screen.layout)
-        accepted = frame["accepted"]
-        if accepted:
+        accepted = bool(commands) and self.renderer.submit_frame(
+            commands, receipt=receipt, receipt_phase=receipt_phase, critical=critical)
+        if slot is not None and mode in ("whole", "relayout"):
+            slot.drew(screen.layout)
+        if accepted or not commands:
+            # A frame with nothing to draw leaves the panel as the composition shows it.
+            self.renderer.keep_surface()
             self.visible_layers = layers
             self._visible_content = self.content
+            self._header_action = header_action
+            self._dialog_bounds = self.renderer.dialog_bounds
+        else:
+            self.renderer.discard_surface()
         self._rebuild = bool(commands) and not accepted
         self._screen_redraw = self._rebuild
         return accepted or not commands
 
-    def _input_tail(self, tail, page):
-        """The commands that end a screen frame's input after it (its
-        input_tail): every region replaced under the new generation of a kept
-        surface whose regions changed, or the page's changed input replayed
-        over the repaint, as its update replays it."""
-        if tail == "regions":
-            return self.renderer._input_commands()
-        if tail == "replay":
-            with self.renderer.rebuild_page_input() as commands:
-                page.root.render_interactions(self.renderer, page.state, page.layout)
-            return commands
-        return []
+    def _paint_nodes(self, planned, changed, same_surface, sources, slot, state):
+        """Inside the transaction, what its frame needs from the reactor before
+        it ends: for another surface a new input generation and the page's start,
+        then the output of the recorded nodes it paints. Returns the frame's mode."""
+        renderer, (mode, foreground) = self.renderer, planned
+        retained = mode == "foreground" and not changed
+        with renderer.painters(retain_background=retained):
+            if (mode == "whole" or (mode == "foreground" and changed)) and not same_surface:
+                renderer.invalidate_input_generation()
+                if mode == "whole" and slot is not None and slot.header is not None:
+                    # The page starts on the panel, as its painter's begin_page starts it.
+                    renderer.show_page(slot.title, back=slot.back)
+            if slot is not None and mode in ("whole", "relayout"):
+                renderer.set_semantic_page(slot.page.page_id)
+            elif mode != "repaint":
+                # As the composition's draws named their page.
+                renderer.set_semantic_page(serialize_key(self.page_id))
+            for source, node, _layer in sources:
+                if source is node:
+                    continue  # a page's slot: its nodes are the screen's
+                if (mode == "whole" or (mode == "foreground" and node in foreground)
+                        or (mode in ("repaint", "relayout") and not node.is_clean)):
+                    node.commands = CommandBatch(self._record(source, state), BinaryCommand)
+        if mode == "whole":
+            # The painters may have shown or hidden the footer (a page begun, a state
+            # screen); after the plan only a frame that draws whole takes that.
+            self._place_footer()
+        bounds = renderer.dialog_bounds
+        if retained and (not bounds or bounds != self._dialog_bounds):
+            # The retained painters drew over pixels around dialogs of unknown or other bounds: the panel is
+            # drawn in full, which restores the exposed background.
+            self._screen.redraw()
+            return self._paint_nodes(self._screen.planned(), changed, same_surface, sources, slot, state)
+        return mode
+
+    def _record(self, source, state):
+        """What a recorded node holds: the output of its imperative surface's
+        painter (with what it sends meanwhile), or of any other node drawn whole
+        by a tree of its own with the screen's values (Python on the reactor,
+        until such nodes are native)."""
+        if isinstance(source, ImperativeSurface):
+            with self.renderer.collect() as sent:
+                output = source.render(self.renderer, state, None)
+            return list(sent) + list(output)
+        tree = self._trees.get(source)
+        if tree is None:
+            tree = self._trees[source] = PageTree(source, self.bounds, page_id=self.page_id)
+        return tree.draw(self.renderer, {key: state[key] for key in tree.state_schema})
 
     def _place_footer(self):
         """Inside the screen's transaction: the content and layers with the
@@ -581,9 +473,12 @@ class ScreenRoot:
         if nodes == tuple(self._screen_tree.children):
             return
         content = self._shown[0]
-        height = FOOTER_BOUNDS.y - self.bounds.y if slot is not None else None
-        if content.layout_options.height != height:
-            content.layout_options.height = height
+        if not isinstance(content, _PageSlot):
+            # A recorded node covers its bounds. A page's slot is sized by its own nodes: the header draws
+            # only above the footer, but its wake region covers the screen, as begin_page's does.
+            height = FOOTER_BOUNDS.y - self.bounds.y if slot is not None else None
+            if content.layout_options.height != height:
+                content.layout_options.height = height
         for node in self._screen_tree.children:
             if node not in nodes:
                 node.parent = None
@@ -620,14 +515,23 @@ class ScreenRoot:
         """Whether a modal layer is over the footer (as its last update found it)."""
         return any(node._blocks_input for node in self._shown[1:])
 
+    def header_changed(self):
+        """The renderer's busy label changed: True when a page's slot draws the
+        header, which this paint (or the one after the paint in progress) shows;
+        False for content that draws its own header."""
+        if self._page is None or self._content_chrome[0] is None:
+            return False
+        self.paint()
+        return True
+
     def chrome_changed(self):
         """The footer's values changed: one transaction of the screen, whose frame
         is submitted; the screen's paint when the footer joins it. Inside a paint,
-        or while the screen path draws nothing (before its first frame, on the
-        fallback path, frozen output), the next paint draws it; under a modal
-        layer, the paint that closes it."""
+        or while the screen draws nothing (before its first frame, frozen
+        output), the next paint draws it; under a modal layer, the paint that
+        closes it."""
         screen = self._screen
-        if (self.painting or screen is None or not self._screen_path or not self.renderer.render_allowed
+        if (self.painting or screen is None or not self.renderer.render_allowed
                 or self._footer_covered()):
             return False
         if self._footer_joins():
@@ -643,33 +547,6 @@ class ScreenRoot:
             frame = screen.end(self.renderer)
         return bool(frame) and self.renderer.submit_frame(frame)
 
-    def _replays_page_input(self, page, layers, same_surface):
-        """Whether the page's changed input replays over a repaint, as its
-        update replays it: no layers, no relayout, every control replays its
-        own input and the renderer rebuilds page input."""
-        return (not layers and same_surface and page.root._input_dirty
-                and page.root._dirty < Dirty.LAYOUT and page._structure.replayable
-                and hasattr(self.renderer, "rebuild_page_input"))
-
-    def _relayouts_page(self, page, layers, same_surface):
-        """Whether the page's relayout may draw partially, as its update draws
-        it: no layers, no changed input, the page's layout arranged for its
-        bounds and the current font metrics, and the renderer rebuilds the
-        page's base input."""
-        root = page.root
-        return (not layers and same_surface and root._dirty >= Dirty.LAYOUT and not root._input_dirty
-                and page._layout_bounds == page.bounds
-                and page._layout_metrics_key == get_font_metrics().cache_key
-                and hasattr(self.renderer, "redraw_page_hitboxes"))
-
-    def _record_page_chrome(self, slot):
-        """Before the page's nodes: its chrome, which resets the input the
-        page then registers, and the page's identity."""
-        if slot.page_chrome is not None:
-            slot.page_chrome.commands = CommandBatch(
-                self.renderer.begin_page(slot.title, back=slot.back), BinaryCommand)
-        self.renderer.set_semantic_page(slot.page.page_id)
-
     def _abandon_screen(self):
         """A failed screen frame: whatever it drew is unknown, so the next
         frame draws whole."""
@@ -680,9 +557,6 @@ class ScreenRoot:
                 self._screen.end(self.renderer)
             except RuntimeError:
                 pass
-
-    def _page_changed(self):
-        return self._page is not None and bool(self._page.state.changed_keys)
 
     def submit(self, commands, **metadata):
         """Admit a legacy page delta or repaint its surrounding composition (also
@@ -699,6 +573,9 @@ class ScreenRoot:
         self.painting = True
         try:
             result = self.renderer.send(commands, **metadata)
+            if result and self._screen is not None:
+                # The delta's input is the content's until a frame paints the content.
+                self._screen.note_written(CommandBatch(commands, BinaryCommand))
         finally:
             self.painting = False
-        return self._drain_repaint() or result
+        return self._paint_asked() or result

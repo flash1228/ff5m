@@ -47,7 +47,7 @@ from feather.features.filament import FilamentFeature
 from feather.calibration.z import (
     FeatherZCalibrationMixin, ZCalibrationSession)
 from feather.calibration.extruder import FeatherExtruderCalibrationMixin
-from tests.feather_render_test_helper import Bounds, RenderCapture, RenderFrame, page_screen
+from tests.feather_render_test_helper import Bounds, RenderCapture, RenderFrame, page_screen, shown_actions
 
 
 class ScenarioController(FeatherZCalibrationMixin,
@@ -187,11 +187,11 @@ class ControllerSafetyTest(unittest.TestCase):
 
         drawing = "\n".join(batches[0])
         self.assertNotIn("Typicons", drawing)
-        self.assertIn("nav.menu", controller.renderer._buttons)
+        shown = shown_actions(controller._screen_root)
         for action in (
-                "nav.heat", "nav.network", "nav.job",
+                "nav.menu", "nav.heat", "nav.network", "nav.job",
                 "home.last_job", "nav.filament", "nav.move"):
-            self.assertIn(action, [region.action for region in controller.renderer.hitboxes])
+            self.assertIn(action, shown)
 
     def test_move_caution_loads_existing_auto_bed_profile(self):
         controller = ScenarioController.__new__(ScenarioController)

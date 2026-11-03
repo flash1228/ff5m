@@ -156,7 +156,7 @@ class StatusBarTest(unittest.TestCase):
         capture of what it draws after that page."""
         renderer = PrinterRenderer()
         root = ScreenRoot(renderer, PaintSurface(lambda: renderer.send(renderer.begin_page('Home'))),
-                          Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT), AppPage.SCREEN_ROOT, chrome=False)
+                          Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT), AppPage.SCREEN_ROOT)
         RenderCapture(renderer)
         root.paint()
         return renderer, root, RenderCapture(renderer)
@@ -383,7 +383,7 @@ class StatusBarUnderDialogTest(unittest.TestCase):
             renderer.send(renderer.dialog('PRINT FINISHED', (), (('message.ok', 'OK', 'enabled'),)))
 
         root = ScreenRoot(renderer, PaintSurface(paint_page, accepts_deltas=lambda: True),
-                          Rect(0, 0, 800, 480), AppPage.SCREEN_ROOT, chrome=False)
+                          Rect(0, 0, 800, 480), AppPage.SCREEN_ROOT)
         message = DialogInstance(ScreenDialog.MESSAGE, {}, screen._paint_dialog,
                                  paint_message, ('message.ok',), 0)
         root.paint()

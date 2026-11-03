@@ -20,11 +20,11 @@ from tests.feather_timelapse_test_helper import make_timelapse_state
 try:
     from tests.test_feather_screen import (
         FEATHER, RESURRECTION, GCodeRecorder, Reactor, StatusObject, paint_home)
-    from tests.feather_render_test_helper import RenderCapture, typer_events
+    from tests.feather_render_test_helper import RenderCapture, shown_actions, typer_events
 except ImportError:
     from test_feather_screen import (
         FEATHER, RESURRECTION, GCodeRecorder, Reactor, StatusObject, paint_home)
-    from feather_render_test_helper import RenderCapture, typer_events
+    from feather_render_test_helper import RenderCapture, shown_actions, typer_events
 
 from ui import CONTENT_BOTTOM, Increment
 from ui.font_metrics import get_font_metrics
@@ -6725,7 +6725,6 @@ class ActionPromptProtocolTest(unittest.TestCase):
             "// action:prompt_begin Cold Pull", "// action:prompt_feather_kind cold_pull", "// action:prompt_show")))
         self.assertEqual(home_paints, [])
         self.assertIn(renderer.modal_scrim(), rendering.batches[-1])
-        tap = renderer._wire_action("coldpull.cancel")
         generation = renderer.generation
         controller.extruder.status["temperature"] = 180.0
         FEATHER.FeatherScreen._render_dialog(controller)
@@ -6734,7 +6733,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
         self.assertEqual(home_paints, [])
         self.assertNotIn(renderer.modal_scrim(), rendering.batches[-1])
         self.assertEqual(renderer.generation, generation)
-        self.assertEqual(renderer.decode_action(tap), "coldpull.cancel")
+        self.assertIn("coldpull.cancel", shown_actions(controller._screen_root))
         self.assertTrue(rendering.latest.has_text("PULLING"))
         self.assertTrue(rendering.latest.has_text("NOZZLE 180 / 100 C"))
         controller.operation_context.status["cancel_pending"] = True
@@ -6742,7 +6741,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
         FEATHER.FeatherScreen._render_dialog(controller)
         self.assertEqual(len(rendering.frames), submitted + 1)
         self.assertEqual(home_paints, [])
-        self.assertIsNone(renderer.decode_action(tap))
+        self.assertNotIn("coldpull.cancel", shown_actions(controller._screen_root))
         self.assertNotIn("coldpull.cancel", renderer._buttons)
 
     def test_cold_pull_unchanged_display_skips_output(self):

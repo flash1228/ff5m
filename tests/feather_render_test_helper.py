@@ -223,7 +223,13 @@ def page_screen(renderer, page="Home", deltas=False):
     from ui.renderer import SCREEN_HEIGHT, SCREEN_WIDTH
     painter = page if callable(page) else (lambda: renderer.send(renderer.begin_page(page)))
     surface = PaintSurface(painter, accepts_deltas=(lambda: True) if deltas else None)
-    return ScreenRoot(renderer, surface, Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT), AppPage.SCREEN_ROOT, chrome=False)
+    return ScreenRoot(renderer, surface, Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT), AppPage.SCREEN_ROOT)
+
+
+def shown_actions(root):
+    """The logical actions of the regions Typer holds of root's screen."""
+    shown = root.shown_input()
+    return set() if shown is None else {region[0] for region in tuple(shown["base"]) + tuple(shown["overlay"])}
 
 
 @contextmanager
@@ -235,8 +241,14 @@ def refused_render(renderer):
 
 def typer_events(decode, *lines):
     """Typer's event lines as FeatherRenderer.process_events() returns them:
-    parsed by the engine's frame loop parser, actions decoded by decode."""
-    taken = [FrameLoop.parse_event(line) for line in lines]
-    host = SimpleNamespace(_loop=SimpleNamespace(take=lambda: taken), decode_action=decode,
+    parsed by the engine's frame loop parser, with the action the loop would
+    decode against the input it wrote given by decode(wire)."""
+    taken = []
+    for line in lines:
+        event = FrameLoop.parse_event(line)
+        if event[0] in ("tap", "touch", "button"):
+            event = event[:-1] + (decode(event[1]),)
+        taken.append(event)
+    host = SimpleNamespace(_loop=SimpleNamespace(take=lambda: taken),
                            _sent_handler=None, _restart_handler=None)
     return FeatherRenderer.process_events(host, 0.0)

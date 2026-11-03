@@ -1299,7 +1299,7 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
             self._page_surface = self._new_page_surface()
             root = self._screen_root = ScreenRoot(
                 self.renderer, self._page_surface,
-                Rect(0, 0, 800, 480), AppPage.SCREEN_ROOT, chrome=False,
+                Rect(0, 0, 800, 480), AppPage.SCREEN_ROOT,
                 select_content=self._screen_content, write_content=self._write_page_values)
         return root
 
