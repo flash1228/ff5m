@@ -1056,12 +1056,9 @@ class UITestRun:
 
     def _tap(self, action):
         action = str(action)
-        renderer = self.host.renderer
-        interactive = (
-            action in getattr(renderer, "_buttons", {})
-            or action in getattr(renderer, "_toggles", {})
-            or any(region.action == action for region in getattr(renderer, "hitboxes", ())))
-        if not interactive:
+        # The frame loop builds declarative pages off the reactor, so their
+        # buttons are only in the input Typer holds of the screen.
+        if action not in self.host.renderer.shown_actions():
             raise RuntimeError("Button is absent or disabled: %s" % action)
         if action in PERSISTENT_ACTIONS:
             raise RuntimeError("Persistent action is forbidden: %s" % action)

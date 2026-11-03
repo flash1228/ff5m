@@ -11,6 +11,7 @@ from tests.test_feather_screen import FEATHER, Reactor, StatusObject
 from tests.test_feather_screen_controller import ScenarioController
 from tests.feather_render_test_helper import shown_actions
 from tests.feather_typer_loop import TyperLoop
+from feather_ui_test import runner as UI_TEST
 
 
 def home_controller():
@@ -50,6 +51,26 @@ class ScreenLoopTest(unittest.TestCase):
         shown = shown_actions(root)
         for action in ("nav.menu", "nav.heat", "nav.network", "nav.move"):
             self.assertIn(action, shown)
+
+    def test_the_ui_test_taps_the_buttons_the_loop_drew(self):
+        controller = home_controller()
+        typer = TyperLoop(controller.renderer)
+        self.addCleanup(typer.close)
+        typer.start()
+        controller._render_screen()
+        self.assertTrue(typer.drew("192.168.2.124"))
+        typer.take(lambda events: False, timeout=0.2)
+        tapped = []
+        controller._start_touch_action = tapped.append
+        run = UI_TEST.UITestRun(controller)
+
+        run._tap("nav.menu")
+
+        self.assertEqual(tapped, ["nav.menu"])
+        # Home shows no back button.
+        with self.assertRaisesRegex(RuntimeError, "absent"):
+            run._tap("nav.back")
+        self.assertEqual(tapped, ["nav.menu"])
 
     def test_the_loop_draws_the_heat_page(self):
         controller = home_controller()

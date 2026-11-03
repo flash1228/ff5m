@@ -367,18 +367,24 @@ class FeatherRenderer(RendererBase):
     def output_frozen(self):
         return self._output_frozen
 
-    @property
-    def touch_warning_allowed(self):
-        """Whether the visible surface has controls worth protecting: the
-        input Typer holds of the screen while its frames draw the panel,
-        else what this renderer's painters registered."""
+    def shown_actions(self):
+        """The logical actions of the visible surface's input: what Typer holds
+        of the screen while its frames draw the panel (the loop's builds
+        included), else what this renderer's painters registered."""
         shown = self._frame_owner.shown_input() if self._frame_owner is not None else None
         if shown is None:
             actions = set(self._visible_input("_buttons"))
-            actions.update(action for action, _spec in self._visible_input("_hitboxes"))
+            actions.update(action for name in ("_hitboxes", "_overlay_hitboxes")
+                           for action, _spec in self._visible_input(name))
         else:
             actions = set(shown["buttons"])
             actions.update(region[0] for layer in ("base", "overlay") for region in shown[layer])
+        return actions
+
+    @property
+    def touch_warning_allowed(self):
+        """Whether the visible surface has controls worth protecting."""
+        actions = self.shown_actions()
         actions.discard("global.wake")
         return not self._visible_value("_loader_active") and bool(actions)
 

@@ -592,8 +592,7 @@ class RunnerContractTest(unittest.TestCase):
                 (-110.0, 110.0), (-110.0, 110.0), (0.0, 220.0)),
             "_start_touch_action": dispatch,
             "renderer": type("Renderer", (), {
-                "_buttons": {SCENARIOS.move_actions.Y_PLUS.wire_id: ()},
-                "_toggles": {}, "_hitboxes": {},
+                "shown_actions": lambda self: {SCENARIOS.move_actions.Y_PLUS.wire_id},
             })(),
         })()
         feature = UI_TEST.UITestRun(host)
@@ -627,8 +626,7 @@ class RunnerContractTest(unittest.TestCase):
             "_start_touch_action": (
                 lambda self, action: dispatched.append(action)),
             "renderer": type("Renderer", (), {
-                "_buttons": {SCENARIOS.move_actions.Z_MINUS.wire_id: ()},
-                "_toggles": {}, "_hitboxes": {},
+                "shown_actions": lambda self: {SCENARIOS.move_actions.Z_MINUS.wire_id},
             })(),
         })()
         feature = UI_TEST.UITestRun(host)
@@ -667,8 +665,7 @@ class RunnerContractTest(unittest.TestCase):
             "_start_touch_action": (
                 lambda self, action: dispatched.append(action)),
             "renderer": type("Renderer", (), {
-                "_buttons": {SCENARIOS.move_actions.X_MINUS.wire_id: ()},
-                "_toggles": {}, "_hitboxes": {},
+                "shown_actions": lambda self: {SCENARIOS.move_actions.X_MINUS.wire_id},
             })(),
         })()
         feature = UI_TEST.UITestRun(host)
