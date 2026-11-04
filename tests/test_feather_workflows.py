@@ -4131,29 +4131,30 @@ class FilamentAndCalibrationWorkflowTest(unittest.TestCase):
         controller.heater_bed = type(
             "Bed", (), {"min_temp": 0, "max_temp": 130})()
 
-        FilamentFeature(controller).render(FEATHER.ScreenPage.FILAMENT_MATERIAL)
+        page, title, back = FilamentFeature(controller).page_content(
+            FEATHER.ScreenPage.FILAMENT_MATERIAL)
 
         actions = tuple(
-            action for action in FILAMENT_UI.get_material_page(
-                tuple((material, controller._limited_preheat(material)[0])
-                      for material in controller.heating_materials)).actions.values()
+            action for action in page.actions.values()
             if action.key == FILAMENT_UI.FilamentCommand.SELECT)
         self.assertEqual(
             set(action.payload for action in actions),
             set(controller.heating_materials))
-        self.assertEqual(len(rendering.frames), 1)
+        self.assertEqual((title, back), ("Select material", True))
+        # The screen shows the page: the feature paints nothing itself.
+        self.assertEqual(rendering.frames, [])
 
     def test_empty_heating_filament_page_has_only_empty_state_and_back(self):
         controller = base_controller()
         controller.heating_materials = ()
         controller.heating_profiles = {}
         controller.renderer = FEATHER.FeatherRenderer()
-        rendering = RenderCapture(controller.renderer)
 
-        FilamentFeature(controller).render(FEATHER.ScreenPage.FILAMENT_MATERIAL)
+        page, _title, back = FilamentFeature(controller).page_content(
+            FEATHER.ScreenPage.FILAMENT_MATERIAL)
 
-        self.assertTrue(rendering.latest.has_action("nav.back"))
-        self.assertFalse(FILAMENT_UI.get_material_page(()).actions)
+        self.assertTrue(back)
+        self.assertFalse(page.actions)
 
     def test_filament_action_back_preserves_heat_and_returns_to_materials(self):
         controller = base_controller()

@@ -1795,6 +1795,9 @@ class RunnerContractTest(unittest.TestCase):
             def handle_action(self, page, action):
                 raise RuntimeError("synthetic command failed")
 
+            def page_content(self, page):
+                return None
+
         callbacks = []
         feature = UI_TEST.UITestRun(None)
         owner = FailingOwner()
@@ -1804,6 +1807,9 @@ class RunnerContractTest(unittest.TestCase):
 
             def owner_name(self, page):
                 return owner.name
+
+            def get_for_page(self, page):
+                return owner
 
             def resolve_semantic_action(self, page, action):
                 return owner, None

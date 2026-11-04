@@ -294,6 +294,9 @@ class ControllerSafetyTest(unittest.TestCase):
         }
 
         class Feature:
+            def page_content(self, page):
+                return None
+
             def render(self, page):
                 getattr(controller, routes[page])()
 

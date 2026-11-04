@@ -94,20 +94,20 @@ class FilamentFeature(FeatureHostProxy):
                 self._host.filament_from_pause)
         return None
 
-    def render(self, page):
+    def page_content(self, page):
         if page == ScreenPage.FILAMENT_MATERIAL:
-            commands = self._host.renderer.begin_page(
-                "Select material", back=True)
-            commands += filament_ui.render_material(
-                self._host.renderer, self._profiles())
             self._last_signature = None
-        else:
-            _status, values, self._last_signature = self._values(
-                self._host.reactor.monotonic())
-            commands = self._host.renderer.begin_page(
-                "Filament - %s" % self._host.filament_material, back=True)
-            commands += filament_ui.render_action(
-                self._host.renderer, self._host.filament_from_pause, values)
+            return (filament_ui.get_material_page(self._profiles()),
+                    "Select material", True)
+        return None
+
+    def render(self, page):
+        _status, values, self._last_signature = self._values(
+            self._host.reactor.monotonic())
+        commands = self._host.renderer.begin_page(
+            "Filament - %s" % self._host.filament_material, back=True)
+        commands += filament_ui.render_action(
+            self._host.renderer, self._host.filament_from_pause, values)
         self._host.renderer.send(commands)
 
     def allows_action(self, page, action):

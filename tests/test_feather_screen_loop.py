@@ -90,6 +90,26 @@ class ScreenLoopTest(unittest.TestCase):
             self.assertTrue(typer.drew("215"))
             typer.take(lambda events: False, timeout=0.2)
 
+    def test_the_loop_draws_the_filament_material_page(self):
+        controller = home_controller()
+        controller.page = FEATHER.ScreenPage.FILAMENT_MATERIAL
+        controller.feature_manager = FEATHER.LazyFeatureManager(controller, FEATHER.FEATURE_SPECS)
+        controller.heating_materials = ("PLA", "PETG")
+        controller.heating_profiles = {"PLA": (210, 60), "PETG": (240, 80)}
+        controller.extruder.heater = controller.heater_bed
+        typer = TyperLoop(controller.renderer)
+        self.addCleanup(typer.close)
+        typer.start()
+        with self.assertNoLogs(level="WARNING"):
+            controller._render_screen()
+            # Each material's button with its preheat target under the name.
+            self.assertTrue(typer.drew("PETG"))
+            self.assertTrue(typer.drew("240C"))
+            typer.take(lambda events: False, timeout=0.2)
+        shown = shown_actions(controller._screen_root)
+        self.assertIn("nav.back", shown)
+        self.assertEqual(len([action for action in shown if action.startswith("filament.select.")]), 2)
+
     def test_the_loop_draws_the_printing_page_and_its_ready_preview(self):
         from tests.test_feather_print_preview import DeferredPreviewWorker, PreviewHelper, _controller, _write_gcode
         with PreviewHelper():

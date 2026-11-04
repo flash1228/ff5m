@@ -196,6 +196,11 @@ class FeatureHostProxy:
     def resolve_semantic_action(self, page, wire_id):
         return None
 
+    def page_content(self, page):
+        """The declarative page the screen shows for page, as (tree, title,
+        back), or None when render paints it."""
+        return None
+
     def handle_semantic_action(self, page, action):
         return False
 

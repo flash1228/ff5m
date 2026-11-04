@@ -1296,16 +1296,21 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         """Return what the screen shows now, with its title and back button.
 
         The screen root asks before every paint, as the page painter decided
-        at paint time. A declarative page is the content itself; the painter
-        surface draws the printer's state screens, feature pages and
-        imperative pages.
+        at paint time. A declarative page is the content itself, a feature's
+        when it has one for the page; the painter surface draws the printer's
+        state screens, the other feature pages and imperative pages.
         """
-        if not self._page_covered():
-            if self.page == ScreenPage.IDLE_HOME:
+        if self._state_screen() is None:
+            manager = getattr(self, "feature_manager", None)
+            if manager is not None and manager.owner_name(self.page) is not None:
+                content = manager.get_for_page(self.page).page_content(self.page)
+                if content is not None:
+                    return content
+            elif self.page == ScreenPage.IDLE_HOME:
                 return self._home_content()
-            if self.page == ScreenPage.CONTROL_HEAT:
+            elif self.page == ScreenPage.CONTROL_HEAT:
                 return self._heat_content()
-            if self.page in (ScreenPage.PRINTING, ScreenPage.PAUSED):
+            elif self.page in (ScreenPage.PRINTING, ScreenPage.PAUSED):
                 return self._print_content()
         return self._page_surface, None, False
 
