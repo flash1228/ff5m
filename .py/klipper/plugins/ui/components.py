@@ -673,7 +673,10 @@ class Metric(Component):
         if size_changed:
             self.invalidate_layout()
 
-    def draw(self, renderer, state, bounds):
+    # The engine draws a horizontal metric itself; _metric_commands draws the rest.
+    draw = _NATIVE["metric"]["draw"]
+
+    def _metric_commands(self, renderer, state, bounds):
         kwargs = dict((name, resolve(value, state)) for name, value in self.kwargs.items())
         orientation = kwargs.pop("orientation", "horizontal")
         label_font = kwargs.pop("label_font", "JetBrainsMono 8pt")
