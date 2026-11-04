@@ -43,5 +43,6 @@ def render(renderer, latest):
     if latest is not None:
         date = time.strftime("%Y-%m-%d %H:%M", time.localtime(latest["saved_at"]))
         summary = " / ".join(axis.upper() for axis in latest["axes"]) + "  |  " + date
-    return renderer.begin_page(PAGE.title, back=True) + PAGE.draw(renderer, {
-        StartState.HAS_LAST: latest is not None, StartState.SUMMARY: summary})
+    commands = renderer.begin_page(PAGE.title, back=True)
+    commands += PAGE.draw(renderer, {StartState.HAS_LAST: latest is not None, StartState.SUMMARY: summary})
+    return commands

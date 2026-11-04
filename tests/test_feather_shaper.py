@@ -27,7 +27,7 @@ from ui import Rect
 from ff5m_ui.shaper import progress as progress_ui
 from ui import FeatherRenderer, ThemeColor
 from ui.renderer import BinaryCommand
-from tests.feather_render_test_helper import RenderCapture
+from tests.feather_render_test_helper import RenderCapture, accepted_by_loop
 from tests.test_feather_workflows import base_controller, composed_controller_surface
 from tests.gcode_macro_harness import MacroActionError, MacroExecution
 from feather.previews import decode_fxi1
@@ -80,7 +80,9 @@ class ShaperInspectionTests(unittest.TestCase):
 
     def paint(self):
         page = self.view.write(self.results, self.selections)
-        self.renderer.send(self.renderer.begin_page(page.title, back=page.show_back) + page.draw(self.renderer, page.state))
+        commands = self.renderer.begin_page(page.title, back=page.show_back)
+        commands += page.draw(self.renderer, page.state)
+        self.renderer.send(commands)
 
     def select_current(self):
         fit = next(f for f in self.results[self.view.axis]['shapers'] if f['name'] == self.view.method)
@@ -310,13 +312,9 @@ class ShaperInspectionTests(unittest.TestCase):
 
     def test_actual_result_fits_release_queue_and_every_binary_transport_frame(self):
         self.paint()
-        commands = self.renderer.begin_page('Input shaper',back=True) + self.view.page.draw(self.renderer,self.view.page.state)
-        transport = FeatherRenderer()
-        self.assertTrue(transport.send(commands))
-        self.assertLessEqual(transport._serialized_size(commands), 65536)
-        frames = transport._encode_frames(commands)
-        self.assertTrue(frames)
-        self.assertLessEqual(max(map(len,frames)),8192)
+        commands = self.renderer.begin_page('Input shaper', back=True)
+        commands += self.view.page.draw(self.renderer, self.view.page.state)
+        self.assertTrue(accepted_by_loop(commands, max_batch=65536))
 
     def test_data_changes_invalidate_plot_and_unchanged_results_reuse_it(self):
         result = dict(self.results['x'])

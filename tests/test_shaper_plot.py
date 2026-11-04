@@ -15,6 +15,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parents[1] / '.py/klipper/plugins'
 from ff5m_ui.shaper.plot import _stroke_commands, plot_commands
 from ui import Rect, ThemeColor, FeatherRenderer
 from ui.renderer import BinaryCommand
+from tests.feather_render_test_helper import accepted_by_loop
 from feather.previews import decode_fxi1
 from ff5m_ui.shaper import plot as plotting
 
@@ -71,9 +72,8 @@ class StrokeTests(unittest.TestCase):
         commands = plot_commands(renderer, Rect(68,146,700,210),
             [(xs,first,ThemeColor.PRIMARY),(xs,second,ThemeColor.WARNING)], line_width=2)
         self.assertTrue(any(hasattr(c,'payload') for c in commands))
-        self.assertLess(renderer._serialized_size(commands), 50*1024)
-        self.assertTrue(renderer.send(commands))
-        self.assertLessEqual(max(map(len,renderer._encode_frames(commands))),8192)
+        # Within the plot's budget, every command within one transport frame.
+        self.assertTrue(accepted_by_loop(commands, max_batch=50*1024))
 
 
 class NativeStrokeTests(unittest.TestCase):

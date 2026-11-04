@@ -42,4 +42,6 @@ PAGE.show_back = True
 
 
 def render(renderer, entries):
-    return renderer.begin_page(PAGE.title, back=True) + PAGE.draw(renderer, {HistoryState.ENTRIES: entries})
+    commands = renderer.begin_page(PAGE.title, back=True)
+    commands += PAGE.draw(renderer, {HistoryState.ENTRIES: entries})
+    return commands

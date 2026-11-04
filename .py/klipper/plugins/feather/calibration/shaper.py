@@ -264,9 +264,9 @@ class ShaperSession:
         elif (view.show_table and action.route in ("method", "step", "axis")
               and view.table_page is not None and view.table_page.initialized):
             # Update the table rows in place; a full repaint would reset touch feedback.
+            # The screen takes the delta over the page's recorded surface and keeps its input.
             page, renderer = self._write_view(plugin), feature.renderer
-            with renderer.compose(preserve_input=True):
-                renderer.send(page.update(renderer, page.state))
+            renderer.send(page.update(renderer, page.state))
             return True
         feature._render_screen()
         return True

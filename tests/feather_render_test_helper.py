@@ -11,8 +11,8 @@ from unittest import mock
 
 from types import SimpleNamespace
 
-from ui.engine import FrameLoop
-from ui.renderer import MAX_ATOMIC_DRAW, MAX_BATCH_BYTES, FeatherRenderer, Hitbox
+from ui.engine import CommandBatch, FrameLoop
+from ui.renderer import MAX_ATOMIC_DRAW, MAX_BATCH_BYTES, BinaryCommand, FeatherRenderer, Hitbox
 
 
 @dataclass(frozen=True)
@@ -277,6 +277,18 @@ class RenderCapture:
         if not self.frames:
             raise AssertionError("renderer has not submitted a frame")
         return self.frames[-1]
+
+
+def accepted_by_loop(commands, max_batch=MAX_BATCH_BYTES):
+    """Whether Typer's frame loop takes commands as one batch. An unstarted loop
+    refuses what the running one refuses: ValueError for a command larger than
+    a frame or a batch larger than max_batch."""
+    loop = FrameLoop("/nonexistent/typer", "/nonexistent/events", "feather-test-no-such-process",
+                     max_frame=MAX_ATOMIC_DRAW, max_batch=max_batch)
+    try:
+        return loop.submit(CommandBatch(commands, BinaryCommand))
+    finally:
+        loop.discard()
 
 
 def page_screen(renderer, page="Home", deltas=False):

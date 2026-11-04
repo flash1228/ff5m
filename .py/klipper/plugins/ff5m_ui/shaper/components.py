@@ -67,7 +67,9 @@ class MethodRow(Overlay):
         pressed = renderer.composite_button(
             "", *bounds, resolve(button.label, state), "pressed",
             resolve(button.font, state), include_hitbox=False)
-        return renderer.button_surface(action, *bounds, normal + foreground, pressed + foreground)
+        normal += foreground
+        pressed += foreground
+        return renderer.button_surface(action, *bounds, normal, pressed)
 
 
 class SpectrumPlot(Component):

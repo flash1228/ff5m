@@ -96,7 +96,9 @@ class ShaperLayoutTests(unittest.TestCase):
         view.write(data)
         view.select(ShaperAction('view','table'))
         tree = view.write(data)
-        self.renderer.send(self.renderer.begin_page('Compare')+tree.draw(self.renderer,tree.state))
+        commands = self.renderer.begin_page('Compare')
+        commands += tree.draw(self.renderer, tree.state)
+        self.renderer.send(commands)
         self.assertFalse(self.capture.latest.has_action('cal.shaper.method.zvd'))
         components = {node.key: node for node in tree.root.walk()}
         for method in view.available_methods:

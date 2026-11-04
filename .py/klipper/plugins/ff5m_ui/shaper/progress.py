@@ -107,4 +107,6 @@ def values(status):
 
 
 def render(renderer, status):
-    return renderer.begin_page(PAGE.title) + PAGE.draw(renderer, values(status))
+    commands = renderer.begin_page(PAGE.title)
+    commands += PAGE.draw(renderer, values(status))
+    return commands
