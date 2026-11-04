@@ -105,15 +105,29 @@ class _LayerSlot(Overlay):
     """The place of a declarative page shown as a layer: the page's root at
     the page's bounds and, when the root keeps it (a Popup's
     preserve_header_action), the renderer's header action over it, as the
-    renderer's popup and dialog keep it."""
+    renderer's popup and dialog keep it. header is that action's page
+    (header.header_action_page), which the screen keeps for its layers."""
 
-    def __init__(self, page, header_action):
+    def __init__(self, page, header_action, header):
         bounds = page.bounds
         self.page = page
         self.header_action = header_action
-        self.header = None if header_action is None else header_action_page(header_action)
-        frame = Overlay(page.root).offset(bounds.x, bounds.y).size(bounds.width, bounds.height)
-        super().__init__(*((frame,) if self.header is None else (frame, self.header.root)))
+        self.header = header
+        if header is not None and header.root.parent is not None:
+            header.root.parent.release_header()
+        self._frame = Overlay(page.root).offset(bounds.x, bounds.y).size(bounds.width, bounds.height)
+        super().__init__(*self._nodes())
+
+    def _nodes(self):
+        return (self._frame,) if self.header is None else (self._frame, self.header.root)
+
+    def release_header(self):
+        """Another layer's slot, made later, takes the header action's page: the
+        top one shows it, since a modal layer covers the input of those below."""
+        self.header.root.parent = None
+        self.header = None
+        self.children = self._nodes()
+        self._adopt(*self.children)
 
     def prepare_frame(self, full):
         """Inside the screen's transaction: the pages' Python work and update pass (DeclarativePage.prepare_frame)."""
@@ -213,6 +227,8 @@ class ScreenRoot:
         self._dialog_bounds = ()
         # The footer's place in the screen tree: its root at the footer's bounds.
         self._footer_slot = None
+        # (header action, its page) that page layers keep over them (_LayerSlot).
+        self._layer_header = None
         # That slot while the last placement (_place_footer) left it in the tree and uncovered: until the next
         # one, the footer's values alone change it (chrome_changed).
         self._footer_shown = None
@@ -444,9 +460,14 @@ class ScreenRoot:
             return node or _Recorded()
         keeps = resolve(getattr(page.root, "preserve_header_action", False), page.state)
         header_action = getattr(self.renderer, "_header_action", None) if keeps else None
-        if not isinstance(node, _LayerSlot) or node.header_action != header_action:
-            node = _LayerSlot(page, header_action)
-        return node
+        if isinstance(node, _LayerSlot) and node.header_action == header_action:
+            return node
+        header = None
+        if header_action is not None:
+            if self._layer_header is None or self._layer_header[0] != header_action:
+                self._layer_header = (header_action, header_action_page(header_action))
+            header = self._layer_header[1]
+        return _LayerSlot(page, header_action, header)
 
     def _paint_screen(self, receipt, force, receipt_phase="presented"):
         """Draw the content and the layers through the screen's frames, in the
