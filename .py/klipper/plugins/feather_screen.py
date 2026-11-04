@@ -180,7 +180,7 @@ FEATURE_SPECS = (
     FeatureSpec("model_preview", "feather.screen.pages.model_preview",
                 "ModelPreviewFeature"),
     FeatureSpec("ui_test", _feature_module("ui_test"),
-                "UITestFeature"),
+                "UITestFeature", (ScreenPage.UI_TEST_PREVIEW,)),
     FeatureSpec("filament", _feature_module("filament"),
                 "FilamentFeature", (
                     ScreenPage.FILAMENT_MATERIAL, ScreenPage.FILAMENT_ACTION)),

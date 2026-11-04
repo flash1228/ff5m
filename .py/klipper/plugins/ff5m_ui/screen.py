@@ -51,6 +51,7 @@ class ScreenPage(Enum):
     PRINT_PREVIEW = 45
     EXCLUDE_MODEL = 46
     PREVIEW_SETTINGS = 47
+    UI_TEST_PREVIEW = 48
 
 
 class ScreenDialog(Enum):

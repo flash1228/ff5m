@@ -262,6 +262,9 @@ class FeatherRenderer(RendererBase):
         self._sent_handler = None
         self._event_fd_handler = None
         self._restart_handler = None
+        # Screen frames the loop could not draw, and the last one's reason: a bug, reported in the status.
+        self._screen_errors = 0
+        self._screen_error = ""
         self._next_batch_kind = None
         self._next_batch_key = None
         self._composite_commands = None
@@ -508,6 +511,8 @@ class FeatherRenderer(RendererBase):
                 if self._sent_handler is not None:
                     self._sent_handler(event[1], eventtime)
             elif kind == "screen-error":
+                self._screen_errors += 1
+                self._screen_error = event[1]
                 screen_failed(event[1])
             else:
                 logging.warning("[feather_screen] typer restarted (last error: %s)",
@@ -687,6 +692,8 @@ class FeatherRenderer(RendererBase):
             "pending_batches": loop["pending"],
             "in_flight": loop["in_flight"],
             "dropped_events": loop["dropped_events"],
+            "screen_errors": self._screen_errors,
+            "screen_error": self._screen_error,
             "semantic_page_id": self._semantic_page_id,
         }
 

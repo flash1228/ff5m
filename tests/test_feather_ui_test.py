@@ -1505,24 +1505,6 @@ class RunnerContractTest(unittest.TestCase):
             label == "baseline" or label.startswith("component-default-")
             for label in captures))
 
-    def test_component_render_uses_declared_page_title(self):
-        renderer = mock.Mock()
-        renderer.begin_page.return_value = ["header"]
-        page = mock.Mock()
-        page.title = "FORGE-X // FEATHER"
-        page.page_key.value = "HOME.DASHBOARD"
-        page.draw.return_value = ["body"]
-        feature = UI_TEST.UITestRun(object())
-        feature.host = mock.Mock(renderer=renderer)
-
-        feature.scenarios._render_component_default(page)
-
-        renderer.begin_page.assert_called_once_with(
-            "FORGE-X // FEATHER", back=False)
-        renderer.send.assert_called_once_with(["header", "body"])
-        renderer.footer.assert_called_once_with(
-            "NOZZLE 25/0C | BED 25/0C", "PREVIEW | IDLE")
-
     def test_component_cases_accept_only_known_mutable_typed_state(self):
         feature = UI_TEST.UITestRun(object())
         payload = [{

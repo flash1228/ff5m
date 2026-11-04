@@ -1113,6 +1113,11 @@ class UITestRun:
                 failures.append({"step": "renderer", "error": (
                     "Typer reported an error: %s" %
                     after.get("worker_last_error"))})
+            screen_errors = after.get("screen_errors", 0) - before.get("screen_errors", 0)
+            if screen_errors:
+                failures.append({"step": "renderer", "error": (
+                    "%d screen frame(s) not drawn; last: %s" % (
+                        screen_errors, after.get("screen_error")))})
             if after.get("worker_state") != "running":
                 failures.append({"step": "renderer", "error": (
                     "Typer worker is %s" % after.get("worker_state"))})

@@ -70,6 +70,37 @@ class UITestFeature:
         if run is not None:
             run.on_gcode_output(message)
 
+    # The component suite's preview page (ScreenPage.UI_TEST_PREVIEW): the run's
+    # current page is the screen's content, as a product page is.
+    def page_content(self, page):
+        run = self.current_run
+        return None if run is None else run.scenarios.preview_content()
+
+    def write_page_values(self, page):
+        run = self.current_run
+        if run is not None:
+            run.scenarios.write_preview_values()
+
+    def render(self, page):
+        # No run shows a page there: an empty one.
+        renderer = self.host.renderer
+        renderer.send(renderer.begin_page("UI test", back=False))
+
+    def allows_action(self, page, action):
+        return False
+
+    def handle_action(self, page, action):
+        return False
+
+    def resolve_semantic_action(self, page, wire_id):
+        return None
+
+    def handle_semantic_action(self, page, action):
+        return False
+
+    def back(self, page):
+        return False
+
     def on_render_receipt(self, receipt, eventtime):
         run = self.current_run
         if run is not None:

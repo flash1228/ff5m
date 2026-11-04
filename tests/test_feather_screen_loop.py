@@ -186,6 +186,65 @@ class ScreenLoopTest(unittest.TestCase):
             typer.take(lambda events: False, timeout=0.2)
             self.assertIn("print.cancel", shown_actions(controller._screen_root))
 
+    def _component_run(self):
+        """A UI test run on a home controller over the loop: the component suite's pages are shown there."""
+        controller = home_controller()
+        controller.feature_manager = FEATHER.LazyFeatureManager(controller, FEATHER.FEATURE_SPECS)
+        typer = TyperLoop(controller.renderer)
+        self.addCleanup(typer.close)
+        typer.start()
+        controller._render_screen()
+        self.assertTrue(typer.drew("192.168.2.124"))
+        typer.take(lambda events: False, timeout=0.2)
+        feature = controller.feature_manager.get("ui_test")
+        feature.current_run = run = UI_TEST.UITestRun(controller)
+        run.renderer_baseline = controller.renderer.get_status()
+        return controller, typer, run
+
+    @staticmethod
+    def _component_page(key):
+        return next(page for page in UI_TEST.ScenarioCatalog._component_pages() if page.page_id.endswith(key))
+
+    def test_the_component_suite_shows_a_page_as_the_screens_content(self):
+        controller, typer, run = self._component_run()
+        page = self._component_page(".SAFE_Z_BRIEFING")
+
+        with self.assertNoLogs(level="WARNING"):
+            run.scenarios._render_component_default(page)
+            # The page under its title, which the suite takes from its key.
+            self.assertTrue(typer.drew("Z OFFSET / SAFE BRIEFING"))
+            typer.take(lambda events: False, timeout=0.2)
+
+        self.assertEqual(controller.page, FEATHER.ScreenPage.UI_TEST_PREVIEW)
+        self.assertTrue(set(page.actions) <= shown_actions(controller._screen_root))
+        # A page that declares its title is shown under it.
+        with self.assertNoLogs(level="WARNING"):
+            run.scenarios._render_component_default(self._component_page(".SHAPER_START"))
+            self.assertTrue(typer.drew("INPUT SHAPER"))
+            typer.take(lambda events: False, timeout=0.2)
+        self.assertEqual(run._health_failures(), [])
+
+    def test_a_component_case_shows_its_state_over_the_pages_defaults(self):
+        from ff5m_ui.z_offset.safe_briefing.page import SafeBriefingState
+        controller, typer, run = self._component_run()
+        page = self._component_page(".SAFE_Z_BRIEFING")
+
+        run.scenarios._render_component_case({"page": page, "state": {SafeBriefingState.CURRENT: 12.5}})
+        self.assertTrue(typer.drew("SAVED SAFE Z: 12.5 MM"))
+        run.scenarios._render_component_default(page)
+        self.assertTrue(typer.drew("SAVED SAFE Z: 10.0 MM"))
+
+    def test_a_component_page_the_loop_cannot_draw_fails_the_run(self):
+        controller, typer, run = self._component_run()
+
+        with self.assertLogs(level="WARNING") as logs:
+            run.scenarios._render_component_default(self._component_page(".EXCLUDE_MODEL"))
+            typer.take(lambda events: controller.renderer.get_status()["screen_errors"])
+
+        self.assertIn("needs Python", logs.output[0])
+        self.assertEqual([failure["error"] for failure in run._health_failures()],
+                         ["1 screen frame(s) not drawn; last: the screen's frame needs Python"])
+
     def test_a_restarted_typer_shows_home_again(self):
         controller = home_controller()
         restarted = []

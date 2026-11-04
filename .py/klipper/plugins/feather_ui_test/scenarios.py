@@ -21,6 +21,7 @@ from ff5m_ui.move import actions as move_actions
 from ff5m_ui.z_offset import actions as z_actions
 from feather.files import FileEntry
 from timelapse_state import TimelapsePhase
+from ui import StateStore
 from .context_fixtures import (
     CONTEXT_TYPES, VISUAL_CONTEXTS, visual_context_cases,
 )
@@ -80,6 +81,8 @@ class ScenarioCatalog:
         self.heat_initial = None
         self.heat_stable_since = None
         self._mesh_snapshot = None
+        # The component suite's shown page and its case state, as (page, state).
+        self._component = None
         self.ui_filament_target = None
         self._ui_last_job_original = None
         self._ui_file_view_original = None
@@ -573,19 +576,30 @@ class ScenarioCatalog:
             steps, "component-resume-timer", self._resume_ui_timer)
 
     def _render_component_default(self, page):
-        title = self._component_title(page)
-        commands = self.host.renderer.begin_page(title, back=False)
-        commands += page.draw(self.host.renderer, {})
-        self.host.renderer.send(commands)
-        self._render_component_footer()
+        self._show_component(page, {})
 
     def _render_component_case(self, case):
-        page = case["page"]
-        title = self._component_title(page)
-        commands = self.host.renderer.begin_page(title, back=False)
-        commands += page.draw(self.host.renderer, case["state"])
-        self.host.renderer.send(commands)
+        self._show_component(case["page"], case["state"])
+
+    def _show_component(self, page, state):
+        """Show page on the preview page as the screen's content, in state over
+        its declared defaults; a page the screen cannot draw fails the run."""
+        self._component = (page, state)
         self._render_component_footer()
+        self._show(ScreenPage.UI_TEST_PREVIEW)
+
+    def preview_content(self):
+        """The preview page's content as (tree, title, back), or None."""
+        if self._component is None:
+            return None
+        page = self._component[0]
+        return page, self._component_title(page), False
+
+    def write_preview_values(self):
+        """Inside the screen's transaction: the shown page's state."""
+        if self._component is not None:
+            page, state = self._component
+            page.state.update(StateStore(page.state_schema, state).as_dict())
 
     @staticmethod
     def _component_title(page):
