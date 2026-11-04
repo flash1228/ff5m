@@ -86,10 +86,9 @@ class ExcludeObjectsPagesMixin:
         if self._print_controls_ready():
             self._show_dialog(ScreenDialog.PRINT_MORE, content={})
 
-    def _render_print_more(self, instance):
+    def _print_more_page(self):
         from ff5m_ui.printing.more import PAGE
-        commands = PAGE.draw(self.renderer)
-        self.renderer.send(commands)
+        return PAGE
 
     def _handle_more_action(self, action):
         if self._current_dialog() != ScreenDialog.PRINT_MORE:

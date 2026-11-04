@@ -35,16 +35,19 @@ class PaintSurface(ImperativeSurface):
 
 
 class DialogInstance(ScreenLayer):
-    """Own the accepted dialog content and its actions until explicitly closed."""
+    """Own the accepted dialog content and its actions until explicitly closed.
 
-    def __init__(self, kind, content, paint_dialog, painter, actions, priority, paint_key=None):
+    The layer is the painter's surface, or tree, a declarative page the
+    screen draws (painter None)."""
+
+    def __init__(self, kind, content, paint_dialog, painter, actions, priority, paint_key=None, tree=None):
         self.kind = kind
         self.content = content
         self.page = 0
         self.painter = painter
         self.actions = frozenset(actions)
         self.priority = priority
-        super().__init__(PaintSurface(
+        super().__init__(tree if tree is not None else PaintSurface(
             lambda: paint_dialog(self), modal=True,
             paint_key=(lambda: paint_key(self)) if paint_key is not None else None),
             retain_background=True)

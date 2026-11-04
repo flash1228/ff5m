@@ -111,7 +111,7 @@ EXACT_ACTIONS = {
 class DialogSpec(NamedTuple):
     """Product policy for one dialog kind."""
 
-    # Method name, bound when an instance is accepted.
+    # Method name, bound when an instance is accepted; None for a page.
     painter: str
     # Navigation actions available to every instance of the kind.
     actions: tuple
@@ -127,13 +127,16 @@ class DialogSpec(NamedTuple):
     # Dialogs accepted later open beneath it: it explains why input is
     # unavailable, which stays true whatever content arrives.
     stays_on_top: bool
+    # Method name returning the declarative page the screen draws as the
+    # layer, instead of a painter.
+    page: str = None
 
 
 RECOVERY_DIALOG_PRIORITY = 1
 DIALOGS = {
     ScreenDialog.PRINT_MORE: DialogSpec(
-        "_render_print_more", ("more.close", "more.filament", "more.exclude"),
-        lambda content: (), 0, frozenset(), False, False),
+        None, ("more.close", "more.filament", "more.exclude"),
+        lambda content: (), 0, frozenset(), False, False, page="_print_more_page"),
     ScreenDialog.ACTION_PROMPT: DialogSpec(
         "_render_action_prompt", ("prompt.prev", "prompt.next", "coldpull.cancel"),
         lambda content: content["buttons"], 0, frozenset(), False, False),
@@ -1384,9 +1387,11 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         from feather.screen.composition import DialogInstance
 
         instance = DialogInstance(
-            dialog, content, self._paint_dialog, getattr(self, spec.painter),
+            dialog, content, self._paint_dialog,
+            getattr(self, spec.painter) if spec.painter is not None else None,
             set(spec.actions).union(spec.content_actions(content)), spec.priority,
-            paint_key=self._dialog_paint_key(dialog, content))
+            paint_key=self._dialog_paint_key(dialog, content),
+            tree=getattr(self, spec.page)() if spec.page is not None else None)
         # Covered instances return when the new dialog closes; replaced
         # instances are closed and cannot return.
         on_top = next((layer for layer in root.layers if DIALOGS[layer.kind].stays_on_top), None)
@@ -1422,12 +1427,13 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         root = self._ensure_screen_root()
         current = self._current_dialog_instance()
         if current is not None:
-            if current.node.paint_key is None:
+            if current.painter is not None and current.node.paint_key is None:
+                # A page's layer draws its own changes.
                 root.invalidate(current.node)
             root.paint()
 
     def _paint_dialog(self, instance):
-        if not self.renderer.retaining_background and instance.kind != ScreenDialog.PRINT_MORE:
+        if not self.renderer.retaining_background:
             self.renderer.send((self.renderer.modal_scrim(),))
         instance.painter(instance)
 

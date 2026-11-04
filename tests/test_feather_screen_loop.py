@@ -159,6 +159,33 @@ class ScreenLoopTest(unittest.TestCase):
 
         self.assertIn("print.cancel", shown_actions(controller._screen_root))
 
+    def test_the_loop_draws_more_over_the_printing_page_with_abort(self):
+        from tests.test_feather_print_preview import DeferredPreviewWorker, PreviewHelper, _controller, _write_gcode
+        with PreviewHelper():
+            path = _write_gcode()
+            self.addCleanup(os.unlink, path)
+            controller = _controller(path, DeferredPreviewWorker())
+            controller.renderer = FEATHER.FeatherRenderer()
+            # As the fixture's renderer: a print in progress, the header shows ABORT.
+            controller.renderer.set_header_action("global.abort", "ABORT")
+            typer = TyperLoop(controller.renderer)
+            self.addCleanup(typer.close)
+            typer.start()
+
+            with self.assertNoLogs(level="WARNING"):
+                controller._render_screen()
+                self.assertTrue(typer.drew("PREVIEW"))
+                controller._open_print_more()
+                self.assertTrue(typer.drew("Change Filament"))
+                typer.take(lambda events: False, timeout=0.2)
+            shown = shown_actions(controller._screen_root)
+            # Over the printing page, whose controls it covers, with the header's ABORT kept.
+            self.assertTrue({"more.close", "more.filament", "more.exclude", "global.abort"} <= set(shown))
+            self.assertNotIn("print.cancel", shown)
+            controller._handle_more_action("more.close")
+            typer.take(lambda events: False, timeout=0.2)
+            self.assertIn("print.cancel", shown_actions(controller._screen_root))
+
     def test_a_restarted_typer_shows_home_again(self):
         controller = home_controller()
         restarted = []
