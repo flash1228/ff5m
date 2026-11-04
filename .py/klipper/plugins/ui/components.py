@@ -1418,7 +1418,10 @@ class VerticalGauge(Component):
         self.unavailable_value = unavailable_value
         self.danger_above = danger_above
 
-    def draw(self, renderer, state, bounds):
+    # The engine draws the gauge; _gauge_commands draws what it leaves to Python.
+    draw = _NATIVE["vertical_gauge"]["draw"]
+
+    def _gauge_commands(self, renderer, state, bounds):
         gauge = resolve_deep(self.gauge, state)
         if gauge is None:
             commands = renderer.panel(
@@ -1546,7 +1549,10 @@ class Dialog(Component):
         self.page_actions = page_actions
         self.kwargs = kwargs
 
-    def draw(self, renderer, state, bounds):
+    # In a screen's build the core draws the dialog (a pager or a redrawn header action stays the renderer's).
+    draw = _NATIVE["dialog"]["draw"]
+
+    def _dialog_commands(self, renderer, state, bounds):
         kwargs = dict(
             (name, resolve(value, state))
             for name, value in self.kwargs.items())

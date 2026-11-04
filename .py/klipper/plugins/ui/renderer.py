@@ -74,6 +74,14 @@ _DIALOG_POLICY = (
 )
 
 
+def _dialog_policy(renderer_class):
+    """The dialog policy of a renderer class: _DIALOG_POLICY, its paddings and the screen size, then the rows a modal
+    dialog's surround spans. The engine lays dialogs out by it and draws them in a screen's build."""
+    return _DIALOG_POLICY + (
+        renderer_class.DIALOG_TEXT_PADDING, renderer_class.BUTTON_TEXT_PADDING, SCREEN_WIDTH, SCREEN_HEIGHT,
+        HEADER_BOTTOM + 1, CONTENT_BOTTOM)
+
+
 DRAW_PIPE = "/tmp/typer"
 EVENT_PIPE = "/tmp/feather-events"
 TOUCH_DEVICE = "/dev/input/guppy"
@@ -229,6 +237,11 @@ class FeatherRenderer(RendererBase):
     BUTTON_TEXT_PADDING = 16
     HINT_TEXT_PADDING = 20
     DIALOG_TEXT_PADDING = 28
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls._dialog_policy = _dialog_policy(cls)
+
     def __init__(self, debug=False, theme_directories=None, blending=True,
                  raster_acceleration="scalar", ram_composition=False):
         # The persistent status strip; the frame owner's screen holds it beside the page.
@@ -1266,9 +1279,7 @@ class FeatherRenderer(RendererBase):
         button_groups = tuple(tuple(group) for group in button_groups if group)
         x, y, width, height, title_rows, visible_lines, page, page_count, has_footer, footer_height, rows = (
             dialog_layout(
-                self, _DIALOG_POLICY + (self.DIALOG_TEXT_PADDING, self.BUTTON_TEXT_PADDING, SCREEN_WIDTH,
-                                        SCREEN_HEIGHT),
-                title, tuple(lines), tuple(buttons), button_groups, x, y, width, height, modal and not custom_body,
+                self, self._dialog_policy, title, tuple(lines), tuple(buttons), button_groups, x, y, width, height, modal and not custom_body,
                 custom_body, page))
         if page_count > 1 and (page_actions is None or len(page_actions) != 2):
             raise ValueError("Overflowing dialog requires previous and next actions")
@@ -1796,6 +1807,9 @@ class FeatherRenderer(RendererBase):
         ]
         self.prioritize_next_batch("surface", "applying-modal")
         self.send(commands)
+
+
+FeatherRenderer._dialog_policy = _dialog_policy(FeatherRenderer)
 
 
 def rectangles_overlap(first, second):

@@ -498,6 +498,8 @@ class ScreenRoot:
             if page is not None:
                 # A frame that draws the page anew prepares it as its draw does.
                 page.prepare_frame(redraw or shown[:1] != self._shown[:1])
+                # A modal node in the page (a modal Dialog) makes the content modal, as a layer's root makes its slot.
+                slot._blocks_input = page.root.input_blocked
             state = self._screen_state
             state.update(self._values)
             for source, node, layer in sources:
