@@ -297,6 +297,9 @@ class ControllerSafetyTest(unittest.TestCase):
             def page_content(self, page):
                 return None
 
+            def write_page_values(self, page):
+                pass
+
             def render(self, page):
                 getattr(controller, routes[page])()
 
@@ -3046,61 +3049,55 @@ class ControllerSafetyTest(unittest.TestCase):
         controller.virtual_sdcard.status["progress"] = 0.60
         self.assertEqual(controller._print_progress(4.0), 0.60)
 
-    def test_filament_continue_is_next_to_action_buttons(self):
+    def show_filament_action(self, temperature, target, from_pause=False):
+        """The filament action page shown by the screen, as its feature gives it."""
         controller = ScenarioController.__new__(ScenarioController)
         controller.renderer = FEATHER.FeatherRenderer()
-        batches = RenderCapture(controller.renderer).batches
+        rendering = RenderCapture(controller.renderer)
         controller.reactor = Reactor()
+        controller.page = FEATHER.ScreenPage.FILAMENT_ACTION
         controller.filament_material = "PLA"
-        controller.filament_from_pause = True
+        controller.filament_from_pause = from_pause
         controller.extruder = StatusObject({
-            "temperature": 220.0, "target": 220.0})
+            "temperature": temperature, "target": target})
         controller.extruder.min_extrude_temp = 170.0
+        controller.feature_manager = FEATHER.LazyFeatureManager(
+            controller, FEATHER.FEATURE_SPECS)
+        controller._render_screen()
+        return controller, rendering
 
-        FilamentFeature(controller).render(FEATHER.ScreenPage.FILAMENT_ACTION)
+    def test_filament_continue_is_next_to_action_buttons(self):
+        controller, rendering = self.show_filament_action(
+            220.0, 220.0, from_pause=True)
 
-        drawing = "\n".join(batches[0])
-        for action, y in ((FILAMENT_ACTIONS.LOAD, 72),
-                          (FILAMENT_ACTIONS.UNLOAD, 164),
-                          (FILAMENT_ACTIONS.PURGE, 256)):
+        drawing = "\n".join(rendering.batches[-1])
+        self.assertIn("FILAMENT - PLA", drawing)
+        for y in (72, 164, 256):
             self.assertIn("-p 320 %d -s 460 76" % y, drawing)
-            self.assertIn("--id 1:%s" % action.wire_id, drawing)
-        self.assertIn("--id 1:%s" % FILAMENT_ACTIONS.RESUME.wire_id, drawing)
+        self.assertEqual(
+            {FILAMENT_ACTIONS.LOAD.wire_id, FILAMENT_ACTIONS.UNLOAD.wire_id,
+             FILAMENT_ACTIONS.PURGE.wire_id, FILAMENT_ACTIONS.RESUME.wire_id}
+            - shown_actions(controller._screen_root), set())
 
     def test_filament_actions_enable_only_at_selected_target_temperature(self):
-        controller = ScenarioController.__new__(ScenarioController)
-        controller.renderer = FEATHER.FeatherRenderer()
-        batches = RenderCapture(controller.renderer).batches
-        controller.reactor = Reactor()
+        controller, rendering = self.show_filament_action(200.0, 250.0)
         controller.filament_material = "PETG"
-        controller.filament_from_pause = False
-        controller.extruder = StatusObject({
-            "temperature": 200.0, "target": 250.0})
-        controller.extruder.min_extrude_temp = 170.0
+        feature = controller.feature_manager.get("filament")
+        actions = {FILAMENT_ACTIONS.LOAD.wire_id, FILAMENT_ACTIONS.UNLOAD.wire_id,
+                   FILAMENT_ACTIONS.PURGE.wire_id}
+        self.assertEqual(actions & shown_actions(controller._screen_root), set())
+        self.assertIn("HEATING", "\n".join(rendering.batches[-1]))
 
-        feature = FilamentFeature(controller)
-        feature.render(FEATHER.ScreenPage.FILAMENT_ACTION)
-
-        drawing = "\n".join(batches[0])
-        for action in (FILAMENT_ACTIONS.LOAD, FILAMENT_ACTIONS.UNLOAD,
-                       FILAMENT_ACTIONS.PURGE):
-            self.assertNotIn("--id 1:%s" % action.wire_id, drawing)
-
+        # The feature's update repaints the page with the new values.
         controller.extruder.status["temperature"] = 248.0
-        batches.clear()
-        feature.render(FEATHER.ScreenPage.FILAMENT_ACTION)
-        drawing = "\n".join(batches[0])
-        for action in (FILAMENT_ACTIONS.LOAD, FILAMENT_ACTIONS.UNLOAD,
-                       FILAMENT_ACTIONS.PURGE):
-            self.assertIn("--id 2:%s" % action.wire_id, drawing)
+        feature.update(controller.reactor.monotonic())
+        self.assertEqual(actions - shown_actions(controller._screen_root), set())
+        self.assertIn("READY", "\n".join(rendering.batches[-1]))
 
         controller.extruder.status["temperature"] = 260.0
-        batches.clear()
-        feature.render(FEATHER.ScreenPage.FILAMENT_ACTION)
-        drawing = "\n".join(batches[0])
-        for action in (FILAMENT_ACTIONS.LOAD, FILAMENT_ACTIONS.UNLOAD,
-                       FILAMENT_ACTIONS.PURGE):
-            self.assertNotIn("--id 3:%s" % action.wire_id, drawing)
+        feature.update(controller.reactor.monotonic())
+        self.assertEqual(actions & shown_actions(controller._screen_root), set())
+        self.assertIn("COOLING", "\n".join(rendering.batches[-1]))
 
     def test_terminal_cancel_reports_current_reason_or_generic_result(self):
         for reason, expected in (

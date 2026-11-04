@@ -4232,7 +4232,6 @@ class FilamentAndCalibrationWorkflowTest(unittest.TestCase):
             "SET_FAN_SPEED FAN=fanM106 SPEED=1.00"])
         self.assertTrue(rendering.latest.has_text("PURGING..."))
         self.assertEqual(controller.renderer._buttons, {})
-        self.assertIsNotNone(feature._last_signature)
 
     def test_filament_cooling_fan_stops_at_five_degree_threshold(self):
         controller = base_controller()

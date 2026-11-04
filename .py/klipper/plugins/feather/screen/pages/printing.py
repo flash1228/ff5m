@@ -75,9 +75,7 @@ class PrintingPagesMixin:
         state = printing_ui.get_page().state
         if values is not None and all(state.get(key) == value for key, value in values.items()):
             return
-        # The paint writes them inside the screen's transaction.
-        self._page_values_due = True
-        self._ensure_screen_root().paint()
+        self._paint_page_values()
 
     def _timelapse_wait_text(self):
         if getattr(self, "pending_action", None) == "print.cancel.confirm":

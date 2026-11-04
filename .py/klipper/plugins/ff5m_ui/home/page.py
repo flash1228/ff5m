@@ -205,6 +205,4 @@ def update(host, eventtime):
     if host.page != ScreenPage.IDLE_HOME:
         return
     if collect_dashboard(host, eventtime) != host._last_dashboard:
-        # The paint writes it inside the screen's transaction.
-        host._page_values_due = True
-        host._ensure_screen_root().paint()
+        host._paint_page_values()

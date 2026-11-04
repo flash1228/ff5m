@@ -1314,18 +1314,18 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
                 return self._print_content()
         return self._page_surface, None, False
 
-    def _page_covered(self):
-        manager = getattr(self, "feature_manager", None)
-        return (self._state_screen() is not None
-                or (manager is not None and manager.owner_name(self.page) is not None))
-
     def _write_page_values(self):
         """Inside the screen root's paint (its write_content): write the current
         values of the declarative page the screen shows, when a render or a page
         timer asked for them. A frame loop may take the screen's tree between
         transactions, so the page's state changes only inside one."""
         due, self._page_values_due = getattr(self, "_page_values_due", False), False
-        if self._page_covered():
+        if self._state_screen() is not None:
+            return
+        manager = getattr(self, "feature_manager", None)
+        if manager is not None and manager.owner_name(self.page) is not None:
+            if due:
+                manager.get_for_page(self.page).write_page_values(self.page)
             return
         if self.page in (ScreenPage.PRINTING, ScreenPage.PAUSED):
             # The printing page's loader turns between due writes.
@@ -1491,6 +1491,12 @@ class FeatherScreen(ModelPreviewEntryMixin, FeatherPagesMixin, FeatherControlsMi
         update_notification = getattr(self, "update_notification", None)
         if update_notification is not None:
             update_notification.on_page_changed(old_page, page)
+
+    def _paint_page_values(self):
+        """Paint the shown page with its current values: the paint writes them
+        inside the screen's transaction."""
+        self._page_values_due = True
+        self._ensure_screen_root().paint()
 
     def _render_screen(self, feature=None, force=False):
         root = self._ensure_screen_root()

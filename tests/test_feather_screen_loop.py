@@ -110,6 +110,31 @@ class ScreenLoopTest(unittest.TestCase):
         self.assertIn("nav.back", shown)
         self.assertEqual(len([action for action in shown if action.startswith("filament.select.")]), 2)
 
+    def test_the_loop_draws_the_filament_action_page_and_its_updates(self):
+        controller = home_controller()
+        controller.page = FEATHER.ScreenPage.FILAMENT_ACTION
+        controller.feature_manager = FEATHER.LazyFeatureManager(controller, FEATHER.FEATURE_SPECS)
+        controller.filament_material = "PETG"
+        controller.filament_from_pause = False
+        controller.extruder = StatusObject({"temperature": 200.0, "target": 240.0})
+        controller.extruder.min_extrude_temp = 170.0
+        typer = TyperLoop(controller.renderer)
+        self.addCleanup(typer.close)
+        typer.start()
+        with self.assertNoLogs(level="WARNING"):
+            controller._render_screen()
+            self.assertTrue(typer.drew("HEATING"))
+            self.assertTrue(typer.drew("FEED FILAMENT"))
+            # The material row and the new temperature, written by the feature's update.
+            controller.extruder.status["temperature"] = 239.0
+            controller.feature_manager.get("filament").update(controller.reactor.monotonic())
+            self.assertTrue(typer.drew("239 / 240C"))
+            self.assertTrue(typer.drew("READY"))
+            typer.take(lambda events: False, timeout=0.2)
+        shown = shown_actions(controller._screen_root)
+        self.assertIn("nav.back", shown)
+        self.assertEqual(len([action for action in shown if action.startswith(("filament.load", "filament.purge"))]), 2)
+
     def test_the_loop_draws_the_printing_page_and_its_ready_preview(self):
         from tests.test_feather_print_preview import DeferredPreviewWorker, PreviewHelper, _controller, _write_gcode
         with PreviewHelper():

@@ -201,6 +201,10 @@ class FeatureHostProxy:
         back), or None when render paints it."""
         return None
 
+    def write_page_values(self, page):
+        """Inside the screen's transaction: write the current values of the
+        declarative page page_content gave for page."""
+
     def handle_semantic_action(self, page, action):
         return False
 
