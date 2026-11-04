@@ -6,6 +6,7 @@
 
 """Reads the draw FIFO, logs each flushed transaction's commands and answers
 its receipt at once, as Typer publishing without deferred presentation does.
+A binary command is logged as {"command": ..., "payload": hex}.
 Launches are counted by the log; the config file's {"launches": [behaviour,
 ...]} picks each launch's behaviour (the last repeats), where exit_at is the
 flush (from 1) after which it exits without an answer, as a crashing Typer.
@@ -48,9 +49,20 @@ def main():
         text, buffer = buffer.split(b"\n", 1)
         return text.decode("utf-8")
 
+    def payload(size):
+        nonlocal buffer
+        while len(buffer) < size:
+            buffer += os.read(draw, 65536)
+        data, buffer = buffer[:size], buffer[size:]
+        return data
+
     while True:
         text = line()
         if text == "--end":
+            continue
+        if text.startswith("--binary "):
+            _binary, size, command = text.split(" ", 2)
+            commands.append({"command": command, "payload": payload(int(size)).hex()})
             continue
         if not text.startswith("--batch flush"):
             commands.append(text)

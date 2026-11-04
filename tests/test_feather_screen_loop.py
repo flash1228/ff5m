@@ -4,6 +4,7 @@
 ##
 ## This file may be distributed under the terms of the GNU GPLv3 license
 
+import os
 import unittest
 
 # Puts the plugins on the import path first.
@@ -88,6 +89,30 @@ class ScreenLoopTest(unittest.TestCase):
             controller._render_screen()
             self.assertTrue(typer.drew("215"))
             typer.take(lambda events: False, timeout=0.2)
+
+    def test_the_loop_draws_the_printing_page_and_its_ready_preview(self):
+        from tests.test_feather_print_preview import DeferredPreviewWorker, PreviewHelper, _controller, _write_gcode
+        with PreviewHelper():
+            path = _write_gcode()
+            self.addCleanup(os.unlink, path)
+            worker = DeferredPreviewWorker()
+            controller = _controller(path, worker)
+            controller.renderer = FEATHER.FeatherRenderer()
+            typer = TyperLoop(controller.renderer)
+            self.addCleanup(typer.close)
+            typer.start()
+
+            with self.assertNoLogs(level="WARNING"):
+                controller._render_screen()
+                self.assertTrue(typer.drew("PREVIEW"))
+                # The loop arranged the page: what follows still finds the preview's geometry.
+                controller._render_screen()
+                controller.reactor.flush_callbacks()
+                worker.finish(0)
+                self.assertTrue(typer.drew("--batch image "))
+                typer.take(lambda events: False, timeout=0.2)
+
+        self.assertIn("print.cancel", shown_actions(controller._screen_root))
 
     def test_a_restarted_typer_shows_home_again(self):
         controller = home_controller()

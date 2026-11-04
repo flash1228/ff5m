@@ -31,8 +31,18 @@ def get_page():
     return _page_module().PAGE
 
 
+_GEOMETRY = []
+
+
 def rect(ref):
-    return get_page().rect(ref)
+    """Where ref lies on the printing page. The shown page has no layout of its own
+    while the frame loop arranges it, and these places do not move with its values,
+    so a page laid out once answers."""
+    if not _GEOMETRY:
+        page = _page_module().create_page()
+        page.prepare_layout()
+        _GEOMETRY.append(page)
+    return _GEOMETRY[0].rect(ref)
 
 
 def __getattr__(name):

@@ -11,7 +11,7 @@ import sys
 import tempfile
 import time
 
-from ui.engine import FrameLoop
+from ui.engine import BinaryCommand, FrameLoop
 from ui.renderer import MAX_ATOMIC_DRAW, MAX_BATCH_BYTES
 
 FAKE_TYPER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fake_typer.py")
@@ -56,18 +56,20 @@ class TyperLoop:
         shutil.rmtree(self.directory, ignore_errors=True)
 
     def history(self, launch=None):
-        """The command batches the launch drew, in order."""
+        """The command batches the launch drew, in order; a binary command as a BinaryCommand."""
         if not os.path.exists(self.log_path):
             return []
         with open(self.log_path) as source:
             entries = [json.loads(line) for line in source]
-        return [entry["commands"] for entry in entries
+        return [[BinaryCommand(command["command"], bytes.fromhex(command["payload"]))
+                 if isinstance(command, dict) else command for command in entry["commands"]]
+                for entry in entries
                 if "commands" in entry and (launch is None or entry["launch"] == launch)]
 
     def drew(self, text, launch=None):
         """Whether the launch's last batch drew text, once it did (or the timeout)."""
-        return bool(wait_for(lambda: any(text in command for batch in self.history(launch)[-1:]
-                                         for command in batch)))
+        return bool(wait_for(lambda: any(text in str(getattr(command, "command", command))
+                                         for batch in self.history(launch)[-1:] for command in batch)))
 
     def take(self, until, timeout=5.0):
         """The renderer's events (process_events) until until(events) holds."""
