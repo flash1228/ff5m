@@ -76,6 +76,14 @@ def _action_button(header_action):
     return _placed(Button(action, label, button_state, font=font), HEADER_ACTION)
 
 
+def header_action_page(header_action):
+    """The header action's button alone, where the header's right slot shows it: the page a modal layer keeps
+    over itself, as the renderer's popup and dialog keep the header action."""
+    from .layout import Overlay, PageTree
+    return PageTree(_placed(Overlay(_action_button(header_action)), RIGHT_SLOT), HEADER_BOUNDS,
+                    page_id=HeaderPage.HEADER)
+
+
 def header_content(header_action, button):
     """The header's tree: the wake region, the panel above the footer, the back button (while it shows), the
     title and the right

@@ -6,20 +6,21 @@
 
 from contextlib import contextmanager
 
-from .bindings import StateStore, page_state_keys
+from .bindings import StateStore, page_state_keys, resolve
 from .engine import NATIVE_METHODS, BinaryCommand, CommandBatch, ScreenFrames
 from .footer import FOOTER_BOUNDS
-from .header import Header
+from .header import Header, header_action_page
 from .identity import serialize_key
 from .layout import DeclarativePage, Dirty, LayoutResult, Node, Overlay, PageTree, Rect
 
 
 class ScreenLayer:
-    """One independently owned visual instance, retained while suspended."""
+    """One independently owned visual instance, retained while suspended: a
+    node, or a declarative page whose nodes the screen draws as the content's."""
 
     def __init__(self, node, retain_background=False):
-        if not isinstance(node, Node):
-            raise TypeError("screen layer content must be a Node")
+        if not isinstance(node, (Node, DeclarativePage)):
+            raise TypeError("screen layer content must be a Node or a DeclarativePage")
         self.node = node
         # Opt in only for painters that restore their own foreground pixels.
         self.retain_background = bool(retain_background)
@@ -100,6 +101,33 @@ class _PageSlot(Overlay):
             self.header.page.screen_drew(layout)
 
 
+class _LayerSlot(Overlay):
+    """The place of a declarative page shown as a layer: the page's root at
+    the page's bounds and, when the root keeps it (a Popup's
+    preserve_header_action), the renderer's header action over it, as the
+    renderer's popup and dialog keep it."""
+
+    def __init__(self, page, header_action):
+        bounds = page.bounds
+        self.page = page
+        self.header_action = header_action
+        self.header = None if header_action is None else header_action_page(header_action)
+        frame = Overlay(page.root).offset(bounds.x, bounds.y).size(bounds.width, bounds.height)
+        super().__init__(*((frame,) if self.header is None else (frame, self.header.root)))
+
+    def prepare_frame(self, full):
+        """Inside the screen's transaction: the pages' Python work and update pass (DeclarativePage.prepare_frame)."""
+        self.page.prepare_frame(full)
+        if self.header is not None:
+            self.header.prepare_frame(full)
+
+    def drew(self, layout):
+        """The screen drew the slot and published its layout."""
+        self.page.screen_drew(layout)
+        if self.header is not None:
+            self.header.screen_drew(layout)
+
+
 class ScreenRoot:
     """Own output admission and compose the page and transient layers.
 
@@ -130,8 +158,8 @@ class ScreenRoot:
 
     The root draws through its ScreenFrames (_paint_screen): the engine
     composes the content and the layers by its layer rule and says what the
-    next frame draws. A page's nodes are the screen tree's; every other node
-    is recorded: the frame places the output its source last drew, which an
+    next frame draws. A page's nodes are the screen tree's, the content's and
+    a layer's (its _LayerSlot); every other node is recorded: the frame places the output its source last drew, which an
     imperative surface's painter draws and any other node's own tree draws
     (_record), on the reactor until such nodes are native. The renderer's
     footer is a persisting layer of that tree, between the content and the
@@ -382,7 +410,7 @@ class ScreenRoot:
         keys = [(content,) + self._content_chrome] + list(layers)
         slot = content if isinstance(content, _PageSlot) else None
         nodes = (slot or self._recorded.get(keys[0]) or _Recorded(),) + tuple(
-            self._recorded.get(key) or _Recorded() for key in keys[1:])
+            self._layer_node(key) for key in keys[1:])
         changed = nodes != self._shown
         if changed:
             for node in self._shown:
@@ -391,7 +419,8 @@ class ScreenRoot:
                     node.parent = None
             self._recorded = dict(zip(keys, nodes))
             self._shown = nodes
-            sources = ((content,) if slot is None else ()) + tuple(layer.node for layer in self.layers)
+            sources = ((content,) if slot is None else ()) + tuple(
+                layer.node for layer in self.layers if isinstance(layer.node, Node))
             self._trees = {source: tree for source, tree in self._trees.items() if source in sources}
             schema = tuple(dict.fromkeys(key for source in sources for key in page_state_keys(source)))
             # Suspended instances retain their values; closed instances release them.
@@ -405,6 +434,20 @@ class ScreenRoot:
         sources += [(layer.node, node, layer) for layer, node in zip(layers, nodes[1:])]
         return sources, changed
 
+    def _layer_node(self, layer):
+        """A layer's node in the screen tree: a page's slot, made again when
+        the header action it keeps changes (new input, as a header's), else
+        a recorded node."""
+        node = self._recorded.get(layer)
+        page = layer.node
+        if not isinstance(page, DeclarativePage):
+            return node or _Recorded()
+        keeps = resolve(getattr(page.root, "preserve_header_action", False), page.state)
+        header_action = getattr(self.renderer, "_header_action", None) if keeps else None
+        if not isinstance(node, _LayerSlot) or node.header_action != header_action:
+            node = _LayerSlot(page, header_action)
+        return node
+
     def _paint_screen(self, receipt, force, receipt_phase="presented"):
         """Draw the content and the layers through the screen's frames, in the
         mode the engine's layer rule decides (planned())."""
@@ -414,7 +457,7 @@ class ScreenRoot:
         screen.begin()
         try:
             self._write_inside()
-            shown = self._shown[:1]
+            shown = self._shown
             sources, changed = self._screen_layers(layers)
             slot = sources[0][1] if isinstance(sources[0][1], _PageSlot) else None
             if slot is not None:
@@ -433,10 +476,15 @@ class ScreenRoot:
             page = None if slot is None else slot.page
             if page is not None:
                 # A frame that draws the page anew prepares it as its draw does.
-                page.prepare_frame(redraw or shown != self._shown[:1])
+                page.prepare_frame(redraw or shown[:1] != self._shown[:1])
             state = self._screen_state
             state.update(self._values)
             for source, node, layer in sources:
+                if isinstance(node, _LayerSlot):
+                    node.prepare_frame(redraw or node not in shown)
+                    node._blocks_input = source.root.input_blocked
+                    node._retains_background = layer.retain_background
+                    continue
                 if source is node:
                     continue  # a page's slot: its nodes are the screen's
                 source.update(state)
@@ -456,7 +504,7 @@ class ScreenRoot:
         # A frame loop draws an attached screen: end() hands it the frame, and the loop reports the receipt.
         attached = screen.attached
         try:
-            mode = self._paint_nodes(planned, changed, same_surface, sources, slot, state)
+            mode, foreground = self._paint_nodes(planned, changed, same_surface, sources, slot, state)
             if attached and receipt is not None:
                 screen.receipt(receipt, phase=receipt_phase)
             commands = list(screen.end(self.renderer) or ())
@@ -465,9 +513,12 @@ class ScreenRoot:
             raise
         accepted = attached or (bool(commands) and self.renderer.submit_frame(
             commands, receipt=receipt, receipt_phase=receipt_phase))
-        if slot is not None and mode in ("whole", "relayout"):
+        drew = [slot] if slot is not None and mode in ("whole", "relayout") else []
+        drew += [node for _source, node, _layer in sources[1:] if isinstance(node, _LayerSlot)
+                 and (mode in ("whole", "relayout") or (mode == "foreground" and node in foreground))]
+        for node in drew:
             # The loop arranges an attached screen on its own thread and publishes no layout here.
-            slot.drew(LayoutResult() if attached else screen.layout)
+            node.drew(LayoutResult() if attached else screen.layout)
         if accepted or not commands:
             # A frame with nothing to draw leaves the panel as the composition shows it.
             self.renderer.keep_surface()
@@ -484,7 +535,8 @@ class ScreenRoot:
     def _paint_nodes(self, planned, changed, same_surface, sources, slot, state):
         """Inside the transaction, what its frame needs from the reactor before
         it ends: for another surface a new input generation and the page's start,
-        then the output of the recorded nodes it paints. Returns the frame's mode."""
+        then the output of the recorded nodes it paints. Returns the frame's plan
+        (mode, foreground)."""
         renderer, (mode, foreground) = self.renderer, planned
         retained = mode == "foreground" and not changed
         with renderer.painters(retain_background=retained):
@@ -498,23 +550,25 @@ class ScreenRoot:
             elif mode != "repaint":
                 # As the composition's draws named their page.
                 renderer.set_semantic_page(serialize_key(self.page_id))
+            recorded = False
             for source, node, _layer in sources:
-                if source is node:
+                if not isinstance(node, _Recorded):
                     continue  # a page's slot: its nodes are the screen's
                 if (mode == "whole" or (mode == "foreground" and node in foreground)
                         or (mode in ("repaint", "relayout") and not node.is_clean)):
                     node.commands = CommandBatch(self._record(source, state), BinaryCommand)
+                    recorded = True
         if mode == "whole":
             # The painters may have shown or hidden the footer (a page begun, a state
             # screen); after the plan only a frame that draws whole takes that.
             self._place_footer()
         bounds = renderer.dialog_bounds
-        if retained and (not bounds or bounds != self._dialog_bounds):
+        if retained and recorded and (not bounds or bounds != self._dialog_bounds):
             # The retained painters drew over pixels around dialogs of unknown or other bounds: the panel is
             # drawn in full, which restores the exposed background.
             self._screen.redraw()
             return self._paint_nodes(self._screen.planned(), changed, same_surface, sources, slot, state)
-        return mode
+        return mode, foreground
 
     def _record(self, source, state):
         """What a recorded node holds: the output of its imperative surface's

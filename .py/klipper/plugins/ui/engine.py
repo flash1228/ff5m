@@ -13,7 +13,7 @@ and writes Typer commands. The framework has no Python implementation of
 them, so it cannot start without a matching engine.
 """
 
-ENGINE_ABI = 89
+ENGINE_ABI = 90
 
 try:
     import feather_engine

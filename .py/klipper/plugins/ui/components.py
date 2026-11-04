@@ -337,7 +337,10 @@ class Popup(Frame):
     def interaction_signature(self, state):
         return resolve(self.preserve_header_action, state)
 
-    def draw(self, renderer, state, bounds):
+    # In a screen's build the core draws it: its action's region over the screen, then its panel.
+    draw = _NATIVE["popup"]["draw"]
+
+    def _popup_commands(self, renderer, state, bounds):
         return renderer.popup(
             resolve(self.action, state), *bounds,
             border=resolve(self.border, state), background=resolve(self.background, state),
