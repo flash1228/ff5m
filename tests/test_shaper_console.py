@@ -320,7 +320,7 @@ class ShaperPipelineTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.directory = Path(self.temp.name)
         options = {"plot_command": shlex.join([PLOT_PYTHON, str(PLOT), "--history"])}
-        self.instance, self.settings, self.gcode, self.sweep, self.objects = make_plugin(
+        self.instance, self.settings, self.gcode, self.standard, self.objects = make_plugin(
             self.directory, NATIVE, options)
         self.execution, self.messages = shaper_macros(self.instance, self.gcode, self.objects)
         disk = mock.patch.object(plugin, "disk_directory", return_value=str(self.directory))
@@ -352,11 +352,6 @@ class ShaperPipelineTests(unittest.TestCase):
         self.host._run_script = self.run_macro
         self.capture = RenderCapture(self.host.renderer)
         self.progress_seen = []
-        def show_page(page):
-            self.host.page = page
-            self.host.feature_manager.get("calibration").render(page)
-        self.host._show_page = show_page
-        self.host._render_screen = lambda: show_page(self.host.page)
         if not miss_begin:
             self.instance.printer.register_event_handler("operation_context:begin", self.host._handle_operation_begin)
         self.instance.printer.register_event_handler("operation_context:end", self.host._handle_operation_end)
@@ -365,7 +360,7 @@ class ShaperPipelineTests(unittest.TestCase):
             self.host.feature_manager.update(self.instance.reactor.monotonic())
             self.progress_seen.append(self.host.page == ScreenPage.CALIBRATION_PROGRESS
                                       and self.capture.latest.has_action("cal.cancel"))
-        self.sweep.observe = observe
+        self.standard.observe = observe
         return self.host.feature_manager.get("calibration") if not miss_begin else None
 
     def finish_feather_callbacks(self):
@@ -377,20 +372,23 @@ class ShaperPipelineTests(unittest.TestCase):
         from ff5m_ui.screen import ScreenPage
         self.attach_feather()
         for _ in range(2):
-            self.run_macro("FORGE_SHAPER AXIS=x")
+            self.run_macro("FORGE_SHAPER SWEEP=0 AXIS=x")
             self.finish_feather_callbacks()
             self.assertEqual(self.host.page, ScreenPage.CALIBRATION_RESULT)
             feature = self.host.feature_manager.peek("calibration")
             self.assertIs(feature.shaper.view.results, self.instance.record.results)
             self.assertTrue(self.capture.latest.has_action("cal.shaper.save"))
             self.assertEqual(self.capture.latest.button("cal.shaper.apply").state, "selected")
+            result = self.instance.record.results["x"]
+            chosen = next(fit for fit in result["shapers"] if fit["name"] == result["recommended"])
+            self.assertTrue(self.capture.latest.has_text("%s %.1fHz *" % (chosen["name"].upper(), chosen["freq"])))
         self.assertTrue(self.progress_seen)
         self.assertTrue(all(self.progress_seen))
 
     def test_feather_adopts_an_already_running_measurement_from_context_snapshot(self):
         from ff5m_ui.screen import ScreenPage
         self.attach_feather(miss_begin=True)
-        self.run_macro("FORGE_SHAPER_CALIBRATE AXIS=y")
+        self.run_macro("FORGE_SHAPER_CALIBRATE SWEEP=0 AXIS=y")
         self.finish_feather_callbacks()
         self.assertTrue(self.progress_seen)
         self.assertTrue(all(self.progress_seen))
@@ -402,6 +400,7 @@ class ShaperPipelineTests(unittest.TestCase):
         from ff5m_ui.screen import ScreenPage
         feature = self.attach_feather()
         feature.calibration_kind = "shaper"
+        feature._active_shaper().sweep = False
         feature._start_calibration()
         self.finish_feather_callbacks()
         self.assertEqual(self.host.page, ScreenPage.CALIBRATION_RESULT)
@@ -411,7 +410,7 @@ class ShaperPipelineTests(unittest.TestCase):
         self.assertFalse(self.objects["toolhead"].motors_enabled)
 
     def test_complete_macro_measures_stages_reports_and_exports_real_images(self):
-        self.run_macro("FORGE_SHAPER AXIS=x")
+        self.run_macro("FORGE_SHAPER SWEEP=0 AXIS=x")
         record = self.instance.record
         self.assertEqual(set(record.results), {"x"})
         self.assertEqual(self.instance.history.load(record.id)[0], record.results)
@@ -427,18 +426,18 @@ class ShaperPipelineTests(unittest.TestCase):
         self.assertFalse(self.objects["operation_context"].get_status(0.)["context_types"])
 
     def test_feather_measurement_stores_data_without_staging_or_exporting(self):
-        self.run_macro("FORGE_SHAPER_CALIBRATE AXIS=y")
+        self.run_macro("FORGE_SHAPER_CALIBRATE SWEEP=0 AXIS=y")
         self.assertEqual(set(self.instance.record.results), {"y"})
         self.assertEqual(self.settings, [])
         self.assertFalse((self.directory / "plots").exists())
         self.assertFalse(self.objects["toolhead"].motors_enabled)
 
     def test_failed_measurement_preserves_history_and_does_not_apply_or_plot(self):
-        self.run_macro("FORGE_SHAPER_CALIBRATE AXIS=x")
+        self.run_macro("FORGE_SHAPER_CALIBRATE SWEEP=0 AXIS=x")
         before = self.instance.history.entries()
-        self.sweep.fail_axis = "y"
+        self.standard.fail_axis = "y"
         with self.assertRaises(RuntimeError):
-            self.run_macro("FORGE_SHAPER")
+            self.run_macro("FORGE_SHAPER SWEEP=0")
         self.assertEqual(self.instance.history.entries(), before)
         self.assertEqual(self.settings, [])
         self.assertFalse((self.directory / "plots").exists())
@@ -447,7 +446,7 @@ class ShaperPipelineTests(unittest.TestCase):
     def test_plot_failure_preserves_measurement_settings_and_powers_down_motors(self):
         self.instance.plot_command = [sys.executable, "-c", "raise SystemExit('Plot renderer failed')"]
         with self.assertRaisesRegex(RuntimeError, "Plot renderer failed"):
-            self.run_macro("FORGE_SHAPER AXIS=y")
+            self.run_macro("FORGE_SHAPER SWEEP=0 AXIS=y")
         record = self.instance.record
         self.assertEqual(self.instance.history.load(record.id)[0], record.results)
         self.assertEqual(self.instance.state, "complete")
@@ -456,7 +455,7 @@ class ShaperPipelineTests(unittest.TestCase):
         self.assertEqual(list((self.directory / "plots").glob("*.png")), [])
 
     def test_empty_renderer_output_is_an_error_and_cannot_replace_previous_graphs(self):
-        self.run_macro("FORGE_SHAPER AXIS=x")
+        self.run_macro("FORGE_SHAPER SWEEP=0 AXIS=x")
         before = {p: p.read_bytes() for p in (self.directory / "plots").glob("*.png")}
         self.instance.plot_command = [sys.executable, "-c", "pass"]
         command = Command(PLOT="1")
@@ -474,7 +473,7 @@ class ShaperPipelineTests(unittest.TestCase):
         first_x = None
         for timestamp in range(1, 8):
             with mock.patch.object(plugin.time, "time", return_value=float(timestamp)):
-                self.run_macro("FORGE_SHAPER AXIS=xy" if timestamp == 1 else "FORGE_SHAPER AXIS=x")
+                self.run_macro("FORGE_SHAPER SWEEP=0 AXIS=xy" if timestamp == 1 else "FORGE_SHAPER SWEEP=0 AXIS=x")
             plots = list((self.directory / "plots").glob("*.png"))
             for path in plots:
                 if path.name == "custom.png":

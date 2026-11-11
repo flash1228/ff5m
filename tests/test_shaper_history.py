@@ -46,6 +46,24 @@ class HistoryTests(unittest.TestCase):
         self.assertEqual(self.history.entries()[1]['id'], previous['id'])
         self.assertEqual(self.history.load(previous['id']), (self.results, 1.))
 
+    def test_saved_display_band_survives_history_and_old_records_show_the_full_output(self):
+        old = self.history.save(self.results, 1.)[0]
+        self.results['x']['max_freq'] = 150.
+        current = self.history.save(self.results, 2.)[0]
+        restored = self.history.load(current['id'])[0]['x']
+        self.assertEqual(restored, self.results['x'])
+        self.assertEqual(storage.display_max_freq(restored), 150.)
+        self.assertEqual(storage.display_max_freq(self.history.load(old['id'])[0]['x']), 200.)
+
+    def test_invalid_display_band_cannot_replace_valid_history(self):
+        before = self.history.save(self.results, 1.)
+        for maximum in (0., -1., 201., float('nan'), float('inf'), None, True, '150', [], {}):
+            with self.subTest(maximum=maximum):
+                self.results['x']['max_freq'] = maximum
+                with self.assertRaisesRegex(ValueError, 'display frequency'):
+                    self.history.save(self.results, 2.)
+                self.assertEqual(self.history.entries(), before)
+
     def test_history_rejects_arbitrary_paths(self):
         self.history.save(self.results, 1.)
         for invalid in ('../last', '/tmp/last.fxs', 'unknown'):
@@ -68,6 +86,25 @@ class HistoryTests(unittest.TestCase):
         self.assertEqual(self.history.entries(), before)
         self.assertEqual((self.directory/storage.LAST_RESULT).read_bytes(), blob)
         self.assertEqual(list(self.directory.glob('*.part')), [])
+
+    def test_failed_save_does_not_delete_an_archive_left_by_an_interrupted_save(self):
+        entry = self.history.save(self.results, 1.)[0]
+        # A stopped process may have archived last.fxs before replacing it.
+        latest = self.directory / storage.LAST_RESULT
+        archive = self.directory / ('result-' + entry['id'] + '.fxs')
+        archive.write_bytes(latest.read_bytes())
+        before = {path.name: path.read_bytes() for path in self.directory.iterdir()}
+        replace = storage.os.replace
+
+        def fail_latest(source, target):
+            if pathlib.Path(target) == latest:
+                raise OSError('disk full')
+            return replace(source, target)
+
+        with mock.patch.object(storage.os, 'replace', side_effect=fail_latest):
+            with self.assertRaisesRegex(OSError, 'disk full'):
+                self.history.save(self.results, 2.)
+        self.assertEqual({path.name: path.read_bytes() for path in self.directory.iterdir()}, before)
 
     def test_corrupt_latest_does_not_hide_archives_or_prevent_a_new_save(self):
         self.history.save(self.results, 1.)

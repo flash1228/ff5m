@@ -17,6 +17,7 @@ from ui import Rect, ThemeColor, FeatherRenderer
 from ui.renderer import BinaryCommand
 from feather.previews import decode_fxi1
 from ff5m_ui.shaper import plot as plotting
+from ff5m_ui.shaper.components import SpectrumPlot, spectrum_commands
 
 
 def raster_pixels(commands):
@@ -41,6 +42,37 @@ class Palette:
 
 
 class StrokeTests(unittest.TestCase):
+    def test_spectrum_ends_at_the_axis_without_out_of_band_peak_or_edge_stroke(self):
+        renderer = FeatherRenderer()
+        result = dict(freq_bins=[0., 75., 150., 200.], psd_sum=[0., 1., 0., 1000.],
+                      shapers=[dict(name='mzv', response=[0., 0., 0., 0.])])
+        bounds = Rect(0, 0, 150, 100)
+        primary = 0xff000000 | int(renderer.color(ThemeColor.PRIMARY), 16)
+        pixels = raster_pixels(spectrum_commands(renderer, result, 'mzv', 'linear', bounds, max_freq=150))
+        # The 1000 peak at 200 Hz is outside the axis, so the 75 Hz peak reaches the top.
+        self.assertEqual(pixels.get((75, 0)), primary)
+        self.assertNotIn(primary, [color for (x, y), color in pixels.items() if x == 150 and y < 95])
+        previous = dict(freq_bins=[0., 75., 150., 200.], psd_sum=[0., .1, 0., 0.])
+        compared = raster_pixels(spectrum_commands(renderer, result, 'mzv', 'linear', bounds,
+                                                   reference=previous, max_freq=150))
+        self.assertEqual(compared.get((75, 0)), primary)
+
+    def test_cached_spectrum_changes_when_only_the_axis_end_changes(self):
+        renderer = FeatherRenderer()
+        result = dict(freq_bins=[0., 75., 150., 200.], psd_sum=[0., 1., 0., 0.],
+                      shapers=[dict(name='mzv', response=[0., 0., 0., 0.])])
+        chart = SpectrumPlot(result, max_freq=160)
+        bounds = Rect(0, 0, 160, 100)
+        first = raster_pixels(chart.draw(renderer, {}, bounds))
+        chart.max_freq = 200
+        second = raster_pixels(chart.draw(renderer, {}, bounds))
+        self.assertNotEqual(first, second)
+        # 75 Hz lies at 75/200 of the 160 px plot.
+        primary = 0xff000000 | int(renderer.color(ThemeColor.PRIMARY), 16)
+        self.assertEqual(second.get((60, 0)), primary)
+        chart.max_freq = 160
+        self.assertEqual(first, raster_pixels(chart.draw(renderer, {}, bounds)))
+
     def raster(self, xs, ys):
         commands = _stroke_commands(Palette(), Rect(0, 0, 64, 64),
                                     [(xs, ys, ThemeColor.PRIMARY)], 64., 64., 2)

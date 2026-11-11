@@ -68,7 +68,7 @@ def make_plugin(directory, binary, options=None):
     limits = {"max_accel": 5000., "max_accel_to_decel": 2500.}
     head = types.SimpleNamespace(clock=0., square_corner_velocity=25., motors_enabled=False,
         manual_move=lambda *args: None, wait_moves=lambda: None, dwell=lambda t: None,
-        get_status=lambda now: dict(limits))
+        get_status=lambda now: dict(limits), get_position=lambda: [0., 0., 100., 0.])
     head.get_last_move_time = lambda: head.clock
     chip = types.SimpleNamespace(is_measuring=lambda: False)
     chip.api_dump = types.SimpleNamespace()
@@ -79,11 +79,11 @@ def make_plugin(directory, binary, options=None):
         pending.setdefault(section, {})[key] = value
     shaping = types.SimpleNamespace(enabled=True)
     shaping.enable_shaping = lambda: setattr(shaping, "enabled", True)
-    sweep = types.SimpleNamespace(fail_axis=None, cancel_axis=None,
+    standard = types.SimpleNamespace(fail_axis=None, cancel_axis=None,
         get_start_test_points=lambda: [(0., 0., 100.)], prepare_test=lambda gcmd: None,
         freq_start=5., freq_end=100.)
     tester = FakeTester()
-    tester.test, tester.accel_chips, tester.move_speed, tester.max_smoothing = sweep, [("xy", chip)], 50., None
+    tester.test, tester.accel_chips, tester.move_speed, tester.max_smoothing = standard, [("xy", chip)], 50., None
     objects = {"gcode": gcode, "toolhead": head, "resonance_tester": tester,
                "input_shaper": shaping,
                "configfile": types.SimpleNamespace(set=set_config,
@@ -116,8 +116,8 @@ def make_plugin(directory, binary, options=None):
         getfloat=lambda key, default, **kwargs: default,
         getboolean=lambda key, default: default)
     instance = plugin.ForgeShaper(config)
-    sweep.statuses = []
-    sweep.observe = lambda: None
+    standard.statuses = []
+    standard.observe = lambda: None
     def run(axis, command):
         start = head.clock
         before = dict(limits)
@@ -125,22 +125,22 @@ def make_plugin(directory, binary, options=None):
         shaping.enabled = False
         limits.update(max_accel=10000., max_accel_to_decel=10000.)
         command.respond_info("Testing frequency 43 Hz")
-        sweep.statuses.append(instance.get_status(reactor.monotonic()))
-        sweep.observe()
-        if sweep.fail_axis == axis.axis:
-            raise RuntimeError("sweep failed")
+        standard.statuses.append(instance.get_status(reactor.monotonic()))
+        standard.observe()
+        if standard.fail_axis == axis.axis:
+            raise RuntimeError("pulse test failed")
         for offset in range(0, 2400, 80):
             chip.api_dump.client.send({"params": {"data": [(start + sample(i)[0],) + sample(i)[1:]
                 for i in range(offset, offset + 80)]}})
             reactor.pause(reactor.monotonic() + .001)
-        if sweep.cancel_axis == axis.axis:
+        if standard.cancel_axis == axis.axis:
             instance.cancel()
         command.respond_info("Sweep finished")
         head.clock = start + 3.
         limits.update(before)
         shaping.enabled = True
-    sweep.run_test = run
-    return instance, settings, gcode, sweep, objects
+    standard.run_test = run
+    return instance, settings, gcode, standard, objects
 
 
 class NativeTests(unittest.TestCase):
@@ -316,17 +316,17 @@ class NativeTests(unittest.TestCase):
         return make_plugin(self.directory, self.binary)
 
     def test_complete_job_publishes_two_axes_and_only_explicit_apply_stages_settings(self):
-        instance, settings, gcode, sweep, objects = self.make_plugin()
+        instance, settings, gcode, standard, objects = self.make_plugin()
         with mock.patch.object(plugin, "disk_directory", return_value=str(self.directory)):
-            instance.cmd_CALIBRATE(FakeCommand({}))
+            instance.cmd_CALIBRATE(FakeCommand({'SWEEP': 0}))
         self.assertEqual(instance.state, "complete")
         self.assertFalse(instance.busy)
         self.assertEqual(set(instance.record.results), {"x", "y"})
         self.assertEqual(settings, [])
         self.assertEqual(list(self.directory.rglob("*.samples")), [])
-        self.assertEqual([s["axis"] for s in sweep.statuses], ["x", "y"])
-        self.assertEqual([s["frequency"] for s in sweep.statuses], [43., 43.])
-        self.assertEqual(sweep.statuses[1]["completed_axes"], ("x",))
+        self.assertEqual([s["axis"] for s in standard.statuses], ["x", "y"])
+        self.assertEqual([s["frequency"] for s in standard.statuses], [43., 43.])
+        self.assertEqual(standard.statuses[1]["completed_axes"], ("x",))
         status = instance.get_status(instance.job.finished_at + 20.)
         self.assertEqual(status["requested_axes"], ("x", "y"))
         self.assertEqual(status["completed_axes"], ("x", "y"))
@@ -341,19 +341,19 @@ class NativeTests(unittest.TestCase):
     def test_last_result_survives_restart_and_loading_does_not_measure(self):
         instance, settings, _, _, _ = self.make_plugin()
         with mock.patch.object(plugin, "disk_directory", return_value=str(self.directory)):
-            instance.cmd_CALIBRATE(FakeCommand({}))
+            instance.cmd_CALIBRATE(FakeCommand({'SWEEP': 0}))
         path = self.directory / storage.LAST_RESULT
         self.assertTrue(path.read_bytes().startswith(storage.SAVED_MAGIC))
         self.assertLess(path.stat().st_size, len(json.dumps(instance.record.results)))
         self.assertEqual({p.name for p in self.directory.iterdir()}, {storage.LAST_RESULT})
-        restored, settings, _, sweep, _ = self.make_plugin()
+        restored, settings, _, standard, _ = self.make_plugin()
         self.assertEqual(restored.state, "idle")
         self.assertIsNone(restored.record)
         with mock.patch("subprocess.Popen", side_effect=AssertionError("Started measurement")):
             restored.restore_saved()
         self.assertEqual(restored.state, "complete")
         self.assertEqual(restored.record, instance.record)
-        self.assertEqual(sweep.statuses, [])
+        self.assertEqual(standard.statuses, [])
         self.assertEqual(settings, [])
         restored.cmd_APPLY(FakeCommand({"AXIS": "x", "SHAPER": "ei"}))
         self.assertEqual(settings[0], ("input_shaper", "shaper_type_x", "ei"))
@@ -374,7 +374,7 @@ class NativeTests(unittest.TestCase):
         with mock.patch.object(plugin, 'disk_directory', return_value=str(self.directory)):
             for timestamp in (10., 20., 30.):
                 with mock.patch.object(plugin.time, 'time', return_value=timestamp):
-                    instance.cmd_CALIBRATE(FakeCommand({}))
+                    instance.cmd_CALIBRATE(FakeCommand({'SWEEP': 0}))
         entries = instance.get_history()
         latest = instance.record
         self.assertEqual(latest.saved_at, 30.)
@@ -394,7 +394,7 @@ class NativeTests(unittest.TestCase):
         with mock.patch.object(plugin, 'disk_directory', return_value=str(self.directory)):
             for timestamp in (10., 20.):
                 with mock.patch.object(plugin.time, 'time', return_value=timestamp):
-                    instance.cmd_CALIBRATE(FakeCommand({}))
+                    instance.cmd_CALIBRATE(FakeCommand({'SWEEP': 0}))
         load = instance.history.load
         previous = instance.reference.id
         def damaged(result_id):
@@ -408,16 +408,16 @@ class NativeTests(unittest.TestCase):
         self.assertIsNone(instance.reference)
 
     def test_failed_new_job_keeps_previous_snapshot_and_success_replaces_it(self):
-        instance, _, _, sweep, _ = self.make_plugin()
+        instance, _, _, standard, _ = self.make_plugin()
         with mock.patch.object(plugin, "disk_directory", return_value=str(self.directory)):
-            instance.cmd_CALIBRATE(FakeCommand({}))
+            instance.cmd_CALIBRATE(FakeCommand({'SWEEP': 0}))
             before = (self.directory / storage.LAST_RESULT).read_bytes()
-            sweep.fail_axis = 'y'
+            standard.fail_axis = 'y'
             with self.assertRaises(RuntimeError):
-                instance.cmd_CALIBRATE(FakeCommand({}))
+                instance.cmd_CALIBRATE(FakeCommand({'SWEEP': 0}))
             self.assertEqual((self.directory / storage.LAST_RESULT).read_bytes(), before)
-            sweep.fail_axis = None
-            instance.cmd_CALIBRATE(FakeCommand({'AXIS': 'y'}))
+            standard.fail_axis = None
+            instance.cmd_CALIBRATE(FakeCommand({'AXIS': 'y', 'SWEEP': 0}))
         self.assertEqual(set(saved_results(self.directory)), {'y'})
         self.assertEqual(len(instance.get_history()), 2)
         self.assertEqual(len(list(self.directory.glob('*.fxs'))), 2)
@@ -433,7 +433,7 @@ class NativeTests(unittest.TestCase):
             job.write_text('replaced')
         with mock.patch.object(plugin, 'disk_directory', return_value=str(self.directory)), \
                 mock.patch.object(storage, 'save_results', side_effect=save_and_replace_job):
-            instance.cmd_CALIBRATE(FakeCommand({}))
+            instance.cmd_CALIBRATE(FakeCommand({'SWEEP': 0}))
         self.assertEqual(instance.state, 'complete')
         self.assertEqual(instance.error, '')
         self.assertEqual(saved_results(self.directory), instance.record.results)
@@ -441,11 +441,11 @@ class NativeTests(unittest.TestCase):
     def test_failed_or_cancelled_second_axis_publishes_nothing_and_restores_limits(self):
         for attribute, expected in (("fail_axis", "error"), ("cancel_axis", "cancelled")):
             with self.subTest(outcome=expected):
-                instance, settings, gcode, sweep, objects = self.make_plugin()
-                setattr(sweep, attribute, "y")
+                instance, settings, gcode, standard, objects = self.make_plugin()
+                setattr(standard, attribute, "y")
                 with mock.patch.object(plugin, "disk_directory", return_value=str(self.directory)):
                     with self.assertRaises(RuntimeError):
-                        instance.cmd_CALIBRATE(FakeCommand({}))
+                        instance.cmd_CALIBRATE(FakeCommand({'SWEEP': 0}))
                 self.assertEqual(instance.state, expected)
                 self.assertIsNone(instance.record)
                 self.assertFalse(instance.busy)
@@ -457,35 +457,35 @@ class NativeTests(unittest.TestCase):
                 self.assertEqual(list(self.directory.glob("job-*")), [])
 
     def test_storage_preflight_failure_is_a_command_error_before_capture(self):
-        instance, settings, gcode, sweep, objects = self.make_plugin()
+        instance, settings, gcode, standard, objects = self.make_plugin()
         with mock.patch.object(plugin, "disk_directory", side_effect=ValueError("RAM filesystem")):
             with self.assertRaises(RuntimeError):
                 instance.cmd_CALIBRATE(FakeCommand({}))
         self.assertFalse(instance.busy)
-        self.assertEqual(sweep.statuses, [])
+        self.assertEqual(standard.statuses, [])
         self.assertEqual(settings, [])
         self.assertEqual(gcode.commands, [])
         self.assertEqual(list(self.directory.iterdir()), [])
 
     def test_active_print_is_rejected_before_capture(self):
-        instance, settings, gcode, sweep, objects = self.make_plugin()
+        instance, settings, gcode, standard, objects = self.make_plugin()
         objects["print_stats"] = types.SimpleNamespace(get_status=lambda now: {"state": "printing"})
         with self.assertRaises(RuntimeError):
             instance.cmd_CALIBRATE(FakeCommand({}))
         self.assertFalse(instance.busy)
-        self.assertEqual(sweep.statuses, [])
+        self.assertEqual(standard.statuses, [])
         self.assertEqual(settings, [])
         self.assertEqual(gcode.commands, [])
         self.assertEqual(list(self.directory.iterdir()), [])
 
     def test_active_sd_stream_is_rejected_even_before_print_stats_catches_up(self):
-        instance, settings, gcode, sweep, objects = self.make_plugin()
+        instance, settings, gcode, standard, objects = self.make_plugin()
         objects['print_stats'] = types.SimpleNamespace(get_status=lambda now: {'state': 'standby'})
         objects['virtual_sdcard'] = types.SimpleNamespace(is_active=lambda: True)
         with self.assertRaises(RuntimeError):
             instance.cmd_CALIBRATE(FakeCommand({}))
         self.assertFalse(instance.busy)
-        self.assertEqual(sweep.statuses, [])
+        self.assertEqual(standard.statuses, [])
         self.assertEqual(settings, [])
         self.assertEqual(gcode.commands, [])
         self.assertEqual(list(self.directory.iterdir()), [])
@@ -497,6 +497,9 @@ class TestAxis:
 
     def matches(self, chip_axis):
         return self.axis in chip_axis
+
+    def get_point(self, offset):
+        return (offset, 0.) if self.axis == "x" else (0., offset)
 
 
 class FakeTester:
@@ -515,8 +518,11 @@ class FakeCommand:
     def get_float(self, name, default, **kwargs):
         return float(self.get(name, default))
 
-    def get_int(self, name, default, **kwargs):
-        return int(self.get(name, default))
+    def get_int(self, name, default, minval=None, maxval=None):
+        value = int(self.get(name, default))
+        if (minval is not None and value < minval) or (maxval is not None and value > maxval):
+            raise self.error("%s must be %s to %s" % (name, minval, maxval))
+        return value
 
     def respond_info(self, message):
         pass

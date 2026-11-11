@@ -69,6 +69,8 @@ class ShaperSession:
 
     def __init__(self, feature):
         self.feature = feature
+        # Vibration method chosen on the start page; kept while the screen runs.
+        self.sweep = True
         # Open result page and its raster cache.
         self.view = None
         # Saved records listed in place of the start page.
@@ -95,6 +97,8 @@ class ShaperSession:
 
     def follow_new_job(self):
         plugin = self.plugin
+        # A fresh measurement always asks before leaving its results.
+        self.opened_selections = None
         # A missed begin event may be reconciled after acquisition has started.
         self.job_id = plugin.job.id - int(plugin.busy)
         self.revision = plugin.revision
@@ -139,7 +143,7 @@ class ShaperSession:
             renderer.send(history_ui.render(renderer, self.history))
             return
         entries = self.plugin.get_history()
-        renderer.send(start_ui.render(renderer, entries[0] if entries else None))
+        renderer.send(start_ui.render(renderer, entries[0] if entries else None, self.sweep))
 
     def _progress(self):
         plugin = self.plugin
@@ -222,11 +226,17 @@ class ShaperSession:
 
     def _handle_start(self, action):
         plugin, feature = self.plugin, self.feature
-        if action.route == "start":
-            feature._handle_calibration_action("cal.confirm")
-            return True
         if plugin.busy:
             return False
+        if action.route == "vibrations":
+            if action.value not in ("standard", "sweeping"):
+                return False
+            self.sweep = action.value == "sweeping"
+            feature._render_screen()
+            return True
+        if action.route == "start":
+            feature._start_calibration()
+            return True
         if action.route == "last":
             entries = plugin.get_history()
             if not entries:

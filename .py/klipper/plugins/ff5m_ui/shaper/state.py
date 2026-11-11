@@ -21,6 +21,7 @@ class ShaperState(StateKey):
     TICK_LOW = state(str, default='0')
     TICK_MIDDLE = state(str, default='0.75')
     TICK_HIGH = state(str, default='1.5')
+    FREQ_MAX = state(int, default=200, minimum=40, maximum=200)
     CAN_SAVE = state(bool, default=False)
     SAVE_LABEL = state(str, default="SAVE")
     IS_SELECTED = state(bool, default=False)

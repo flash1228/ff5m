@@ -1650,6 +1650,9 @@ class FeatherControlsMixin:
                              "JetBrainsMono 8pt", "center", "middle")]
         return commands
 
+    def _shaper_calibration_script(self):
+        return "ZSHAPER" if self._forge_shaper() is None else "FORGE_SHAPER_CALIBRATE"
+
     def _run_calibration(self, eventtime):
         stop_heaters = self.calibration_kind in (
             "pid_bed", "pid_extruder")
@@ -1688,7 +1691,7 @@ class FeatherControlsMixin:
                 self._run_script(
                     "PID_TUNE_EXTRUDER TEMPERATURE=%.0f" % nozzle)
             elif self.calibration_kind == "shaper":
-                self._run_script("FORGE_SHAPER_CALIBRATE" if self._forge_shaper() is not None else "ZSHAPER")
+                self._run_script(self._shaper_calibration_script())
             else:
                 raise RuntimeError("Unsupported calibration")
         except Exception as exc:

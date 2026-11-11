@@ -8,11 +8,25 @@ from ui import Overlay, ThemeColor
 from ui.bindings import resolve
 from ui.components import Component
 from ui.properties import EditorSpec, Invalidation, PropertySpec, SourceSpec, ValidationSpec, property_schema
+from shaper_storage import MAX_SPECTRUM_FREQ, display_max_freq
 
 from .plot import plot_commands
 from .state import METHODS
 
 CACHE_BUDGET_BYTES = 384 * 1024
+
+
+def frequency_axis(*results):
+    """Common X axis end: the widest recorded band, rounded up to a multiple
+    of 40 Hz so the four grid intervals have whole 10 Hz labels. Bins up to
+    200 Hz always exist, so the rounded axis never runs past the data."""
+    band = max((display_max_freq(result) for result in results if result), default=MAX_SPECTRUM_FREQ)
+    return 40 * math.ceil(band / 40.)
+
+
+def visible_psd(result, max_freq):
+    """PSD at the bins shown on an axis ending at max_freq."""
+    return tuple(p for f, p in zip(result["freq_bins"], result["psd_sum"]) if f <= max_freq)
 
 
 def spectrum_scale(psd, mode):
@@ -36,21 +50,25 @@ def spectrum_scale(psd, mode):
 
 
 def spectrum_commands(renderer, result, method, scale, bounds, before_color=ThemeColor.PRIMARY,
-                      after_color=ThemeColor.SECONDARY, line_width=2, reference=None):
+                      after_color=ThemeColor.SECONDARY, line_width=2, reference=None, max_freq=MAX_SPECTRUM_FREQ):
     selected = next(s for s in result["shapers"] if s["name"] == method)
-    frequencies, psd = result["freq_bins"], result["psd_sum"]
+    # Bins past the axis would be clamped onto its right edge.
+    psd = visible_psd(result, max_freq)
+    frequencies = result["freq_bins"][:len(psd)]
     # A transfer-function amplitude becomes power only after squaring.
     after = tuple(p * response * response for p, response in zip(psd, selected["response"]))
-    curves = []
+    curves = [(frequencies, psd, before_color), (frequencies, after, after_color)]
+    measured = psd
     if reference:
-        curves.append((reference["freq_bins"], reference["psd_sum"], ThemeColor.DIM))
-    curves.extend(((frequencies, psd, before_color), (frequencies, after, after_color)))
-    axis = spectrum_scale(list(psd) + (reference["psd_sum"] if reference else []), scale)
+        reference_psd = visible_psd(reference, max_freq)
+        curves.insert(0, (reference["freq_bins"][:len(reference_psd)], reference_psd, ThemeColor.DIM))
+        measured += reference_psd
+    axis = spectrum_scale(measured, scale)
     if scale == "log":
         def transform(values):
             return tuple((math.log10(max(p, axis["floor"])) - axis["lower_log"]) / 6. for p in values)
         curves = [(xs, transform(ys), color) for xs, ys, color in curves]
-    return plot_commands(renderer, bounds, tuple(curves), y_max=axis["top"], line_width=line_width)
+    return plot_commands(renderer, bounds, tuple(curves), x_max=max_freq, y_max=axis["top"], line_width=line_width)
 
 
 class MethodRow(Overlay):
@@ -91,16 +109,19 @@ class SpectrumPlot(Component):
                        editor=EditorSpec("theme_color", group="Appearance", catalog="theme_tokens"),
                        bindings=("direct", "derived"), source=SourceSpec(name=name))
           for name, default in (("before_color", ThemeColor.PRIMARY), ("after_color", ThemeColor.SECONDARY))),
+        PropertySpec("max_freq", int, default=200, bindings=("direct", "derived"),
+                     editor=EditorSpec("number", group="Data"), validation=ValidationSpec(minimum=40, maximum=200),
+                     source=SourceSpec(name="max_freq")),
         PropertySpec("line_width", int, default=2, editor=EditorSpec("number", group="Appearance"),
                      validation=ValidationSpec(minimum=1, maximum=6), bindings=("direct",),
                      invalidation=Invalidation.PAINT, source=SourceSpec(name="line_width")),
     )
 
     def __init__(self, result=None, method="mzv", scale="linear", before_color=ThemeColor.PRIMARY,
-                 after_color=ThemeColor.SECONDARY, line_width=2, key=None, reference=None):
+                 after_color=ThemeColor.SECONDARY, line_width=2, key=None, reference=None, max_freq=200):
         super().__init__(key=key)
         self.result, self.method, self.scale = result, method, scale
-        self.reference = reference
+        self.reference, self.max_freq = reference, max_freq
         self.before_color, self.after_color, self.line_width = before_color, after_color, line_width
         self._cache_key, self._commands = None, ()
         self._bounds = None
@@ -121,7 +142,7 @@ class SpectrumPlot(Component):
     def state_signature(self, state):
         return (resolve(self.result, state), resolve(self.method, state), resolve(self.scale, state),
                 resolve(self.before_color, state), resolve(self.after_color, state), resolve(self.line_width, state),
-                resolve(self.reference, state))
+                resolve(self.reference, state), resolve(self.max_freq, state))
 
     def draw(self, renderer, state, bounds):
         before, after = resolve(self.before_color, state), resolve(self.after_color, state)
@@ -131,7 +152,7 @@ class SpectrumPlot(Component):
         fit = next((s for s in result.get("shapers", ()) if s["name"] == signature[1]), {})
         data_key = (tuple(result.get("freq_bins", ())), tuple(result.get("psd_sum", ())), tuple(fit.get("response", ())),
                     tuple(reference.get("freq_bins", ())), tuple(reference.get("psd_sum", ())))
-        key = (data_key, signature[1:6], tuple(bounds), *(renderer.color(color) for color in
+        key = (data_key, signature[1:6], signature[7], tuple(bounds), *(renderer.color(color) for color in
                (before, after, ThemeColor.DIM, ThemeColor.BACKGROUND, ThemeColor.BORDER)))
         if key != self._cache_key:
             cached = self._cache.pop(key, None)
@@ -141,7 +162,8 @@ class SpectrumPlot(Component):
             else:
                 if result and fit:
                     self._commands = spectrum_commands(renderer, result, signature[1], signature[2],
-                                                       bounds, before, after, signature[5], reference=reference)
+                                                       bounds, before, after, signature[5], reference=reference,
+                                                       max_freq=signature[7])
                 else:
                     self._commands = plot_commands(renderer, bounds, ())
                 size = sum(len(c) + len(getattr(c, "payload", b"")) + 64 for c in self._commands)

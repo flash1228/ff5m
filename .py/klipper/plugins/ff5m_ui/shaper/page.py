@@ -36,6 +36,11 @@ def _axis_state(current, enabled, axis):
     return ("selected" if current == axis else "enabled") if enabled else "disabled"
 
 
+def _frequency_tick(maximum, quarter, unit=""):
+    # The axis end is a multiple of 40 Hz, so each quarter is a whole number.
+    return "%d%s" % (maximum * quarter // 4, unit)
+
+
 def axes():
     return Grid(matrix=((
         Button(ShaperAction("axis", "x"), "X", font=FONT,
@@ -93,16 +98,17 @@ chart = Grid(matrix=((
     y_ticks,
     SpectrumPlot(bind(ShaperState.RESULT), bind(ShaperState.METHOD), bind(ShaperState.SCALE),
                  before_color=ThemeColor.PRIMARY, after_color=ThemeColor.SECONDARY, line_width=2,
-                 reference=bind(ShaperState.REFERENCE))
+                 reference=bind(ShaperState.REFERENCE), max_freq=bind(ShaperState.FREQ_MAX))
         .margin(top=12, bottom=12).ref(ShaperRef.PLOT),
 ),), columns=(48, FLEX), rows=(FLEX,))
 
 x_ticks = Grid(matrix=((
     Text("0", font=FONT, color=ThemeColor.DIM, horizontal="left"),
-    Text("50", font=FONT, color=ThemeColor.DIM),
-    Text("100", font=FONT, color=ThemeColor.DIM),
-    Text("150", font=FONT, color=ThemeColor.DIM),
-    Text("200 Hz", font=FONT, color=ThemeColor.DIM, horizontal="right"),
+    Text(derived(partial(_frequency_tick, quarter=1), bind(ShaperState.FREQ_MAX)), font=FONT, color=ThemeColor.DIM),
+    Text(derived(partial(_frequency_tick, quarter=2), bind(ShaperState.FREQ_MAX)), font=FONT, color=ThemeColor.DIM),
+    Text(derived(partial(_frequency_tick, quarter=3), bind(ShaperState.FREQ_MAX)), font=FONT, color=ThemeColor.DIM),
+    Text(derived(partial(_frequency_tick, quarter=4, unit=" Hz"), bind(ShaperState.FREQ_MAX)),
+         font=FONT, color=ThemeColor.DIM, horizontal="right"),
 ),), columns=(Flex(1), Flex(2), Flex(2), Flex(2), Flex(1)), rows=(FLEX,)) \
     .height(22).padding(left=48).ref(ShaperRef.X_TICKS)
 

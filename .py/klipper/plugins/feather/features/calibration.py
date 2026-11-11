@@ -123,13 +123,19 @@ class CalibrationFeature(FeatherControlsMixin, FeatureHostProxy):
 
     def _prepare_calibration_progress(self):
         super()._prepare_calibration_progress()
-        # A new job starts a new flow; drop the previous one with its graph cache.
+        # A new job drops the previous flow's views and graph cache. The
+        # session itself stays, with the method chosen on the start page.
         if self.shaper is not None:
             self.shaper.deactivate()
-            self.shaper = None
         shaper = self._active_shaper()
         if shaper is not None:
             shaper.follow_new_job()
+
+    def _shaper_calibration_script(self):
+        shaper = self._active_shaper()
+        if shaper is None:
+            return super()._shaper_calibration_script()
+        return "FORGE_SHAPER_CALIBRATE SWEEP=%d" % shaper.sweep
 
     def _render_calibration_progress(self):
         shaper = self._active_shaper()

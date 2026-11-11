@@ -3,7 +3,7 @@
 
 import time
 
-from .components import spectrum_scale
+from .components import frequency_axis, spectrum_scale, visible_psd
 from .page import CONTENT, ShaperRef, create_page
 from .state import APPLICABLE_METHODS, ShaperState, comparison_values
 
@@ -66,8 +66,10 @@ class ShaperResults:
             reference_label += (" | " if reference_label else "") + "VIEW " + time.strftime(
                 "%Y-%m-%d %H:%M", time.localtime(saved_at))
         fit = next(s for s in result["shapers"] if s["name"] == self.method)
-        spectrum = spectrum_scale(list(result["psd_sum"]) + (list(previous["psd_sum"]) if previous else []),
-                                  state[ShaperState.SCALE])
+        # Comparing records share one frequency axis, as they share one PSD axis.
+        max_freq = frequency_axis(result, previous)
+        psd = visible_psd(result, max_freq) + (visible_psd(previous, max_freq) if previous else ())
+        spectrum = spectrum_scale(psd, state[ShaperState.SCALE])
         state.update({
             ShaperState.REFERENCE: {"freq_bins": previous["freq_bins"], "psd_sum": previous["psd_sum"]}
                                    if previous else {},
@@ -88,8 +90,9 @@ class ShaperResults:
             ShaperState.METRICS: "VIB %.1f%% / SM %.3f" % (fit["vibrs"] * 100., fit["smoothing"]),
             ShaperState.ACCEL: "ACCEL ~%.0f mm/s2" % (round(fit["max_accel"] / 100.) * 100.),
             ShaperState.RECOMMENDED: "* RECOMMENDED / SCV %.1f" % result["scv"],
-            ShaperState.SCALE_TITLE: spectrum["title"], ShaperState.TICK_LOW: spectrum["ticks"][0],
-            ShaperState.TICK_MIDDLE: spectrum["ticks"][1], ShaperState.TICK_HIGH: spectrum["ticks"][2],
+            ShaperState.FREQ_MAX: max_freq, ShaperState.SCALE_TITLE: spectrum["title"],
+            ShaperState.TICK_LOW: spectrum["ticks"][0], ShaperState.TICK_MIDDLE: spectrum["ticks"][1],
+            ShaperState.TICK_HIGH: spectrum["ticks"][2],
         })
         if self.show_table:
             if self.table_page is None:

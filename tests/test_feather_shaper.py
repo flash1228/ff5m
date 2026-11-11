@@ -495,6 +495,64 @@ class ShaperWorkflowTests(unittest.TestCase):
         self.assertFalse(self.feature.handle_semantic_action(self.host.page, ShaperAction('last')))
         self.assertEqual(self.host.gcode.commands, [])
 
+    def start_measurement(self, finish=None):
+        """Press START and run the queued calibration callback; returns the command it ran."""
+        callbacks = []
+        self.host.reactor.register_callback = callbacks.append
+        self.host._run_script = mock.Mock(side_effect=finish)
+        action = self.feature.resolve_semantic_action(self.host.page, "cal.shaper.start")
+        self.assertTrue(self.feature.handle_semantic_action(self.host.page, action))
+        self.assertEqual(len(callbacks), 1)
+        callbacks.pop()(self.host.reactor.monotonic())
+        self.host._run_script.assert_called_once()
+        return self.host._run_script.call_args.args[0]
+
+    def chosen_vibrations(self):
+        return {method: self.capture.latest.button("cal.shaper.vibrations." + method).state
+                for method in ("standard", "sweeping")}
+
+    def test_vibration_choice_controls_each_start_and_lasts_while_the_screen_runs(self):
+        self.host._show_page(ScreenPage.CALIBRATION_CONFIRM)
+        self.assertEqual(self.chosen_vibrations(), {"standard": "enabled", "sweeping": "selected"})
+        self.assertEqual(self.start_measurement(), "FORGE_SHAPER_CALIBRATE SWEEP=1")
+
+        self.host._show_page(ScreenPage.CALIBRATION_CONFIRM)
+        standard = self.feature.resolve_semantic_action(self.host.page, "cal.shaper.vibrations.standard")
+        self.assertTrue(self.feature.handle_semantic_action(self.host.page, standard))
+        self.assertEqual(self.host.page, ScreenPage.CALIBRATION_CONFIRM)
+        self.assertEqual(self.chosen_vibrations(), {"standard": "selected", "sweeping": "enabled"})
+        self.assertEqual(self.start_measurement(), "FORGE_SHAPER_CALIBRATE SWEEP=0")
+
+        # Neither the finished job nor another calibration resets the choice.
+        self.feature.calibration_kind = "pid_bed"
+        self.host.reactor.register_callback = lambda callback: None
+        self.feature._start_calibration()
+        self.feature.calibration_kind = "shaper"
+        self.host._show_page(ScreenPage.CALIBRATION_CONFIRM)
+        self.assertEqual(self.chosen_vibrations(), {"standard": "selected", "sweeping": "enabled"})
+        self.assertEqual(self.start_measurement(), "FORGE_SHAPER_CALIBRATE SWEEP=0")
+
+    def test_fresh_measurement_after_a_saved_result_asks_before_leaving(self):
+        self.pending['input_shaper'] = {'shaper_type_y': 'mzv', 'shaper_freq_y': '55.2'}
+        self.open_saved_result()
+        self.host._show_message = mock.Mock(return_value=None)
+        self.feature.back(self.host.page)
+        self.host._show_message.assert_not_called()
+        self.assertEqual(self.host.page, ScreenPage.CALIBRATION_CONFIRM)
+        # Leave the saved-record list for the start page.
+        self.assertTrue(self.feature.back(self.host.page))
+
+        def finish(_command):
+            self.native.job = plugin.Job(self.native.job.id + 1, ("x",))
+            self.native.state, self.native.revision = "complete", self.native.revision + 1
+            self.native.record = plugin.Record("fresh", 2., self.native.record.results)
+        self.start_measurement(finish)
+        self.assertEqual(self.host.page, ScreenPage.CALIBRATION_RESULT)
+        self.assertIs(self.feature.shaper.view.results, self.native.record.results)
+        self.feature.back(self.host.page)
+        self.host._show_message.assert_called_once()
+        self.assertEqual(self.host.page, ScreenPage.CALIBRATION_RESULT)
+
     def test_history_back_returns_to_start_and_invalid_slots_cannot_open_records(self):
         self.native.restore_saved = mock.Mock()
         self.host.page = ScreenPage.CALIBRATION_CONFIRM

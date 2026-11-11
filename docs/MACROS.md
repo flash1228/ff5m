@@ -49,7 +49,8 @@ Managed operations such as `START_PRINT`, `CLEAR_NOZZLE`, bed-mesh validation, f
 
 - **FORGE_SHAPER**
   - **Description**: Calibrates input shapers, selects recommended settings, and generates PNG graphs. Run while the printer is idle.
-  - **Parameters**: `AXIS=x|y|xy` (default: `xy`); `MAX_SMOOTHING` (default: resonance tester setting). Optional sweep parameters: `FREQ_START`, `FREQ_END`, `HZ_PER_SEC`, `INPUT_SHAPING`.
+  - **Parameters**: `AXIS=x|y|xy` (default: `xy`); `MAX_SMOOTHING` (default: resonance tester setting). Optional test parameters: `FREQ_START`, `FREQ_END`, `HZ_PER_SEC`, `INPUT_SHAPING`.
+  - `SWEEP=1` (default) uses sweeping vibrations, the Klipper 0.13 method. `SWEEP=0` uses standard vibrations, the older Klipper 0.11 method.
   - **Saving**: Review the results, then run `SAVE_CONFIG` to save the settings and restart Klipper.
 
 - **FORGE_SHAPER_CALIBRATE**

@@ -19,6 +19,12 @@ LAST_RESULT = "last.fxs"
 SAVED_MAGIC = b"FXSRES1\n"
 MAX_SAVED_BYTES = 2 * MAX_RESULT_BYTES + 1024
 HISTORY_LIMIT = 5
+MAX_SPECTRUM_FREQ = 200.
+
+
+def display_max_freq(result):
+    """Upper frequency of a result's graph; records saved before the band was kept show the full output."""
+    return result.get("max_freq", MAX_SPECTRUM_FREQ)
 
 
 def disk_directory(path):
@@ -53,10 +59,13 @@ def validate_result(result):
     frequencies = result["freq_bins"]
     if not 2 <= len(frequencies) <= 512 or frequencies[0] != 0:
         raise ValueError("Invalid spectrum size")
-    if any(not math.isfinite(v) or v < 0 or v > 200 for v in frequencies):
+    if any(not math.isfinite(v) or v < 0 or v > MAX_SPECTRUM_FREQ for v in frequencies):
         raise ValueError("Invalid frequencies")
     if any(a >= b for a, b in zip(frequencies, frequencies[1:])):
         raise ValueError("Unordered frequencies")
+    maximum = display_max_freq(result)
+    if type(maximum) not in (int, float) or not 0. < maximum <= MAX_SPECTRUM_FREQ:
+        raise ValueError("Invalid spectrum display frequency")
     def curve(values):
         if len(values) != len(frequencies) or any(not math.isfinite(v) or v < 0 for v in values):
             raise ValueError("Invalid spectrum values")
@@ -224,15 +233,16 @@ class ResultHistory:
             except (OSError, ValueError, TypeError, struct.error) as error:
                 logging.warning("[forge_shaper] Replacing invalid latest result: %s", error)
         if previous is not None:
-            archived = os.path.join(self.directory, "result-" + previous["id"] + ".fxs")
-            if not os.path.exists(archived):
+            archive = os.path.join(self.directory, "result-" + previous["id"] + ".fxs")
+            if not os.path.exists(archive):
                 fd, temporary = tempfile.mkstemp(prefix=".history-", suffix=".part", dir=self.directory)
                 try:
                     with os.fdopen(fd, "wb") as target, open(latest, "rb") as source:
                         shutil.copyfileobj(source, target, 64 * 1024)
                         target.flush()
                         os.fsync(target.fileno())
-                    os.replace(temporary, archived)
+                    os.replace(temporary, archive)
+                    archived = archive
                 finally:
                     if os.path.exists(temporary):
                         os.unlink(temporary)

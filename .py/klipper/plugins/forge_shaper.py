@@ -15,7 +15,8 @@ import subprocess
 import tempfile
 import time
 
-from .shaper_storage import METHODS, REFERENCE_METHODS, ResultHistory, disk_directory, load_result
+from .shaper_storage import MAX_SPECTRUM_FREQ, METHODS, REFERENCE_METHODS, ResultHistory, disk_directory, load_result
+from .shaper_sweep import SweepingVibrations
 
 MAX_PENDING_BYTES = 64 * 1024
 SAMPLE = struct.Struct("<4d")
@@ -154,8 +155,8 @@ class CaptureClient:
         self.pending.clear()
 
 
-class SweepCommand:
-    """Check the job between sweep frequency reports without altering its moves."""
+class FrequencyReportCommand:
+    """Check the job between test frequency reports without altering its moves."""
     def __init__(self, command, check, progress):
         self.command, self.check, self.progress = command, check, progress
 
@@ -415,14 +416,17 @@ class ForgeShaper:
         axes = gcmd.get("AXIS", "xy").lower()
         if axes not in ("x", "y", "xy"):
             raise gcmd.error("AXIS must be x, y or xy")
+        sweep_enabled = gcmd.get_int("SWEEP", 1, minval=0, maxval=1)
         self._require_idle(gcmd)
         tester = self.printer.lookup_object("resonance_tester")
-        if len(tester.test.get_start_test_points()) != 1:
+        points = tester.test.get_start_test_points()
+        if len(points) != 1:
             raise gcmd.error("Native shaper calibration supports one probe point; use standard calibration for multiple points")
         axis_type = importlib.import_module(tester.__class__.__module__).TestAxis
+        test_axes = {axis: axis_type(axis) for axis in axes}
         chips = {}
-        for axis in axes:
-            matching = [chip for chip_axis, chip in tester.accel_chips if axis_type(axis).matches(chip_axis)]
+        for axis, direction in test_axes.items():
+            matching = [chip for chip_axis, chip in tester.accel_chips if direction.matches(chip_axis)]
             if len(matching) != 1 or not hasattr(matching[0], "api_dump"):
                 raise gcmd.error("Native shaper calibration requires one ADXL API sensor per axis")
             if matching[0].is_measuring():
@@ -443,11 +447,24 @@ class ForgeShaper:
             tester.test.prepare_test(gcmd)
             self.job.freq_start = tester.test.freq_start
             self.job.freq_end = tester.test.freq_end
+            sweep = None
+            if sweep_enabled:
+                config_status = self.printer.lookup_object("configfile").get_status(self.reactor.monotonic())
+                configured = config_status["settings"]["printer"]
+                # settings includes the stock tester's injected default of 75.
+                # Only an explicit config value overrides our sweep default.
+                accel_per_hz = float(config_status["config"].get("resonance_tester", {}).get("accel_per_hz", 60.))
+                toolhead = self.printer.lookup_object("toolhead")
+                params = self.printer.lookup_object("mod_params", None)
+                safe_z = abs(float((params.variables if params is not None else {}).get("safe_z", 10.)))
+                sweep = SweepingVibrations(tester.test, configured, gcmd, safe_z, accel_per_hz)
+                sweep.validate(points[0], test_axes.values(), toolhead.get_status(self.reactor.monotonic()),
+                               gcmd, self._yield_before_sweep)
             for axis in axes:
                 self._check()
                 self.job.axis, self.job.frequency, self.job.samples = axis, None, 0
                 source = os.path.join(job, axis + ".samples")
-                start, end = self._measure(gcmd, tester, axis_type(axis), chips[axis], source)
+                start, end = self._measure(gcmd, tester, points[0], test_axes[axis], chips[axis], source, sweep)
                 self._check()
                 self._set_phase("processing")
                 output = os.path.join(job, axis + ".json")
@@ -459,6 +476,8 @@ class ForgeShaper:
                 results[axis] = load_result(output)
                 if results[axis]["axis"] != axis:
                     raise RuntimeError("Shaper result axis mismatch")
+                # Klipper 0.13 analyzes up to 1.5 times the highest test frequency; graphs show that band.
+                results[axis]["max_freq"] = min(MAX_SPECTRUM_FREQ, 1.5 * self.job.freq_end)
                 self.job.completed_axes = tuple(results)
                 if not self.keep_raw:
                     os.unlink(source)
@@ -484,9 +503,8 @@ class ForgeShaper:
                 self.job.finished_at = self.reactor.monotonic()
                 self.busy = False
 
-    def _sweep_progress(self, message):
-        # VibrationPulseTest exposes frequency reports, not a progress hook.
-        # Observe its bounded reports without changing the movement generator.
+    def _frequency_report(self, message):
+        # Both motion paths report frequency through the same command.
         if message.startswith("Testing frequency ") and message.endswith(" Hz"):
             try:
                 frequency = float(message[len("Testing frequency "):-len(" Hz")])
@@ -495,35 +513,55 @@ class ForgeShaper:
             if math.isfinite(frequency):
                 self.job.frequency = max(self.job.freq_start, min(self.job.freq_end, frequency))
 
-    def _measure(self, gcmd, tester, axis, chip, path):
+    def _yield_before_sweep(self):
+        self.reactor.pause(self.reactor.NOW)
+        self._check()
+
+    def _measure(self, gcmd, tester, point, axis, chip, path, sweep):
         self._set_phase("positioning")
         toolhead = self.printer.lookup_object("toolhead")
-        toolhead.manual_move(tester.test.get_start_test_points()[0], tester.move_speed)
+        # Travel sideways only at the higher of the current and test heights.
+        if toolhead.get_position()[2] < point[2]:
+            toolhead.manual_move([None, None, point[2]], tester.move_speed)
+        else:
+            toolhead.manual_move([point[0], point[1]], tester.move_speed)
+        toolhead.manual_move(point, tester.move_speed)
         toolhead.wait_moves()
         toolhead.dwell(.5)
-        before = toolhead.get_status(self.reactor.monotonic())
-        start = toolhead.get_last_move_time()
         self.capture = CaptureClient(self.reactor, self.executable, path, path + ".log")
         try:
             chip.api_dump.add_client(self.capture)
             self._set_phase("measuring")
-            try:
-                tester.test.run_test(axis, SweepCommand(gcmd, self._check, self._sweep_progress))
-            except Exception:
-                self.gcode.run_script_from_command("SET_VELOCITY_LIMIT ACCEL=%.9g ACCEL_TO_DECEL=%.9g" % (
-                    before["max_accel"], before["max_accel_to_decel"]))
-                shaper = self.printer.lookup_object("input_shaper", None)
-                if shaper is not None and not gcmd.get_int("INPUT_SHAPING", 0):
-                    shaper.enable_shaping()
-                raise
-            end = toolhead.get_last_move_time()
-            toolhead.wait_moves()
+            command = FrequencyReportCommand(gcmd, self._check, self._frequency_report)
+            if sweep is not None:
+                start, end = sweep.run(toolhead, axis, command, self._check)
+            else:
+                start, end = self._run_pulse_test(gcmd, tester, axis, command)
             self.capture.finish(lambda: self.job.cancelled)
             return start, end
         finally:
             self.job.samples = self.capture.samples
             self.capture.close()
             self.capture = None
+
+    def _run_pulse_test(self, gcmd, tester, axis, command):
+        """Klipper 0.11 vibration pulses; returns the (start, end) print times."""
+        toolhead = self.printer.lookup_object("toolhead")
+        before = toolhead.get_status(self.reactor.monotonic())
+        start = toolhead.get_last_move_time()
+        try:
+            tester.test.run_test(axis, command)
+        except Exception:
+            # run_test restores neither limits nor shaping when it fails.
+            self.gcode.run_script_from_command("SET_VELOCITY_LIMIT ACCEL=%.9g ACCEL_TO_DECEL=%.9g" % (
+                before["max_accel"], before["max_accel_to_decel"]))
+            shaper = self.printer.lookup_object("input_shaper", None)
+            if shaper is not None and not gcmd.get_int("INPUT_SHAPING", 0):
+                shaper.enable_shaping()
+            raise
+        end = toolhead.get_last_move_time()
+        toolhead.wait_moves()
+        return start, end
 
     def cmd_APPLY(self, gcmd):
         method = gcmd.get("SHAPER", "auto").lower()

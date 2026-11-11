@@ -193,7 +193,16 @@ After saving, check that both temperatures remain stable.
 
 ## Input Shaper Calibration
 
-In Feather, open **Control → Calibration → Input Shaper** and follow the on-screen steps. From the Fluidd/Mainsail console, run while the printer is idle:
+Clear the bed before calibrating. In Feather, open **Control → Calibration → Input Shaper** and choose the vibration method:
+
+- **Sweeping** (default) is the Klipper 0.13 method. It moves the toolhead about 20 mm to each side of the test point, so the test point must be at or above the Safe Z height and have that much free travel.
+- **Standard** is the older Klipper 0.11 method with short pulses at the test point.
+
+The toolhead first rises to the test height, then moves sideways to the test point. Motors are switched off when the calibration ends.
+
+View saved results in **Last Results** in Feather or with `FORGE_SHAPER_HISTORY`.
+
+From the Fluidd/Mainsail console, run while the printer is idle:
 
 ```gcode
 FORGE_SHAPER

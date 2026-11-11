@@ -20,6 +20,10 @@ import numpy as np
 
 from textwrap import wrap
 
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(ROOT, ".py", "klipper", "plugins"))
+from shaper_storage import ResultHistory, display_max_freq
+
 MAX_TITLE_LENGTH = 65
 
 
@@ -32,11 +36,12 @@ def plot_freq_response(data):
     max_freq = data.max_freq
 
     freqs = calibration_data.freq_bins
-    psd = calibration_data.psd_sum[freqs <= max_freq]
-    px = calibration_data.psd_x[freqs <= max_freq]
-    py = calibration_data.psd_y[freqs <= max_freq]
-    pz = calibration_data.psd_z[freqs <= max_freq]
-    freqs = freqs[freqs <= max_freq]
+    visible = freqs <= max_freq
+    psd = calibration_data.psd_sum[visible]
+    px = calibration_data.psd_x[visible]
+    py = calibration_data.psd_y[visible]
+    pz = calibration_data.psd_z[visible]
+    freqs = freqs[visible]
 
     fontP = matplotlib.font_manager.FontProperties()
     fontP.set_size('x-small')
@@ -70,9 +75,9 @@ def plot_freq_response(data):
         linestyle = 'dotted'
         if shaper.name == data.best_shaper:
             linestyle = 'dashdot'
-            best_shaper_vals = shaper.vals
-        ax2.plot(freqs, shaper.vals, label=label, linestyle=linestyle)
-    ax.plot(freqs, psd * best_shaper_vals,
+            best_shaper_vals = shaper.vals[visible]
+        ax2.plot(freqs, shaper.vals[visible], label=label, linestyle=linestyle)
+    ax.plot(freqs, psd * best_shaper_vals ** 2,
             label='After\nshaper', color='cyan')
     # A hack to add a human-readable shaper recommendation to legend
     ax2.plot([], [], ' ',
@@ -139,15 +144,12 @@ def plot_data(data):
     result.best_shaper = best_shaper
     result.scv = scv
     result.axis = axis
-    result.max_freq = 200
+    result.max_freq = display_max_freq(data["calibration_data"])
 
     return result
 
 
 def history_graphs(directory, result_id, axes, output):
-    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    sys.path.insert(0, os.path.join(root, ".py", "klipper", "plugins"))
-    from shaper_storage import ResultHistory
     results, saved_at = ResultHistory(directory).load(result_id)
     if axes not in ("x", "y", "xy") or any(axis not in results for axis in axes):
         raise ValueError("Requested axes are not present in this shaper result")
