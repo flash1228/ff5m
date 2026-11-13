@@ -322,7 +322,7 @@ class SweepingVibrationsTest(unittest.TestCase):
                 capture.assert_called_once()
 
     @unittest.skipUnless(os.environ.get("FORGE_SHAPER_HELPER"), "Set FORGE_SHAPER_HELPER for native analysis")
-    def test_console_macro_saves_a_sweeping_result_in_existing_history(self):
+    def test_console_macro_saves_a_sweeping_result_and_applies_its_recommendation(self):
         self.standard.freq_end = 9.
         self.head.commanded_pos = [20., 0., 2., 0.]
         chip = self.objects["resonance_tester"].accel_chips[0][1]
@@ -349,5 +349,8 @@ class SweepingVibrationsTest(unittest.TestCase):
         self.assertEqual(record.results["y"]["max_freq"], 13.5)
         self.assertEqual(self.instance.history.load(record.id)[0], record.results)
         self.assertEqual(self.instance.get_history()[0]["id"], record.id)
-        self.assertEqual(self.settings, [])
+        self.assertEqual(self.settings, [('input_shaper', 'shaper_type_y', 'mzv'),
+                                         ('input_shaper', 'shaper_freq_y', '42.6')])
+        # Applied after the sweep re-enabled shaping, so Klipper keeps the new parameters.
+        self.assertEqual(self.shaper.live, {'y': {'type': 'mzv', 'freq': 42.6}})
         self.assertTrue(self.shaper.enabled)

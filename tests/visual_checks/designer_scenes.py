@@ -40,6 +40,8 @@ def main(argv=None):
             "usage: designer_scenes.py DESIGNER_ROOT PROJECT_ROOT PLAN")
     designer_root, project_root, plan_path = map(pathlib.Path, argv)
     sys.path.insert(0, str(designer_root.resolve()))
+    # Checkpoints include the project's typed state and theme values, including Shaper progress stages.
+    sys.path.insert(0, str(project_root.resolve() / ".py" / "klipper" / "plugins"))
     from feather_preview.host_client import ProjectHostClient
 
     plan_path = plan_path.resolve()

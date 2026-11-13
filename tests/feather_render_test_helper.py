@@ -42,6 +42,8 @@ class RenderedText:
     wrap: bool
     truncate: bool
     color: str | None = None
+    # Typer's -ha: x is the text's left edge, centre or right edge.
+    horizontal: str = "left"
 
 
 @dataclass(frozen=True)
@@ -152,7 +154,8 @@ class RenderFrame:
                     value, int(position[0]), int(position[1]), font,
                     int(max_width) if max_width is not None else None,
                     int(max_height) if max_height is not None else None,
-                    "--wrap" in tokens, "--truncate" in tokens, _option(tokens, "-c")))
+                    "--wrap" in tokens, "--truncate" in tokens, _option(tokens, "-c"),
+                    _option(tokens, "-ha") or "left"))
             elif kind in ("fill", "stroke"):
                 bounds = _bounds(tokens)
                 if bounds is not None:

@@ -3,7 +3,7 @@
 
 import time
 
-from ui import FLEX, Button, Column, Flex, Frame, Grid, PageTree, Rect, Spacer, Text
+from ui import FLEX, Button, Column, Frame, Grid, PageTree, Rect, Row, Spacer, Text
 from ui.bindings import bind, derived, state
 from ui.identity import StateKey
 
@@ -32,26 +32,27 @@ def _method_note(sweep):
     return "Klipper 0.11. Short pulses in place."
 
 
-root = Grid(matrix=((Spacer(), Column(
-    Spacer().height(16),
+root = Column(
     Frame(Column(
-        Text("BEFORE YOU START").style(UiStyle.DIM_LEFT).height(22),
+        Text("BEFORE YOU START").style(UiStyle.PRIMARY_LEFT).height(22),
         Text("Remove prints and objects from the bed.", wrap=True).style(UiStyle.TEXT_LEFT),
-        gap=4,
-    )).style(UiStyle.FRAME_PANEL).height(70).padding(left=24, right=24, top=10, bottom=10),
-    Spacer().height(16),
-    Grid(matrix=((
-        Text("VIBRATIONS").style(UiStyle.DIM_LEFT),
-        _method("STANDARD", False),
-        _method("SWEEPING", True),
-    ),), columns=(96, FLEX, FLEX), rows=(FLEX,), gap=(12, 0)).height(48),
-    Spacer().height(6),
+        gap=6,
+    )).style(UiStyle.FRAME_PANEL).height(82).padding(left=20, right=20, top=16, bottom=16),
+    Spacer().height(20),
+    Row(
+        Text("VIBRATIONS").width("content").style(UiStyle.TEXT_LEFT).ref("shaper.start.vibrations.label"),
+        Spacer(),
+        _method("STANDARD", True),
+        _method("SWEEPING", False),
+        gap=8,
+    ).height(48),
+    Spacer().height(12),
     Text(derived(_method_note, bind(StartState.SWEEP))).style(UiStyle.DIM_LEFT)
-        .height(22).ref("shaper.start.vibrations.note"),
-    Spacer().height(16),
+        .height(24).ref("shaper.start.vibrations.note"),
+    Spacer().height(20),
     Button(ShaperAction("start"), "START CALIBRATION")
         .style(UiStyle.BUTTON_BOLD_12).height(56).ref("shaper.start.measure"),
-    Spacer().height(16),
+    Spacer().height(20),
     Grid(matrix=((
         Button(ShaperAction("last"), "LAST RESULTS",
                state=derived(lambda ready: "enabled" if ready else "disabled", bind(StartState.HAS_LAST)))
@@ -59,8 +60,8 @@ root = Grid(matrix=((Spacer(), Column(
         Text(bind(StartState.SUMMARY), truncate=True).style(UiStyle.DIM_LEFT).ref("shaper.start.summary"),
     ),), columns=(FLEX, FLEX), rows=(FLEX,), gap=(12, 0)).height(44),
     Spacer(),
-), Spacer()),), columns=(FLEX, Flex(5), FLEX), rows=(FLEX,)) \
-    .padding(left=24, right=24, top=18, bottom=18).ref("shaper.start.root")
+).padding(left=40, top=18, right=40, bottom=18) \
+    .ref("shaper.start.root")
 
 PAGE = PageTree(root, Rect(0, 56, 800, 386), page_id=AppPage.SHAPER_START,
                 state_schema=tuple(StartState), styles=UI_STYLES)

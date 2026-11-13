@@ -14,13 +14,15 @@ from ui.components import Button
 from ..keys import AppPage
 from .actions import REPEAT, DONE
 from .components import BOTTOM_SCREW, TOP_SCREW
-from .graphics import BedHardware
+from .graphics import PLATE_BOTTOM, PLATE_FACE, PLATE_TOP, BedHardware
 from .state import ScrewResultState, adjustment
 
 
 PAGE_TITLE = "Calibration result"
 PAGE_BOUNDS = Rect(0, 56, 800, 386)
 FONT = "JetBrainsMono 7pt"
+# REAR and FRONT lie on the drawn plate surface, this far inside its rear and front edges.
+SURFACE_LABEL_INSET = 10
 
 
 class ScrewResultRef(Enum):
@@ -45,11 +47,12 @@ orientation = Column(
     Spacer(),
     Text("FRONT", color=ThemeColor.DIM, font=FONT).height(20),
     gap=0,
-).padding(top=46, bottom=72)
+).padding(top=PLATE_TOP + SURFACE_LABEL_INSET, bottom=PLATE_BOTTOM + PLATE_FACE + SURFACE_LABEL_INSET)
+# Centred on the plate surface, between its rear and front edges.
 instruction = Text(
     "ADJUST FROM BELOW", color=ThemeColor.WARNING,
     font="Roboto Bold 10pt",
-).margin(top=36, bottom=72)
+).margin(top=PLATE_TOP, bottom=PLATE_BOTTOM + PLATE_FACE)
 bed = Overlay(
     BedHardware(
         front_left=bind(ScrewResultState.FRONT_LEFT_DIRECTION),
@@ -60,14 +63,6 @@ bed = Overlay(
 ).allow_overflow().ref(ScrewResultRef.BED)
 
 
-compact_legend = Column(
-    Text("CW = CLOCKWISE   CCW = COUNTERCLOCKWISE",
-         color=ThemeColor.TEXT, font=FONT),
-    Text("TURNS:CLOCK MINUTES", color=ThemeColor.WARNING, font=FONT),
-    Text("00:15 = QUARTER   00:30 = HALF   01:00 = FULL TURN",
-         color=ThemeColor.TEXT, font=FONT),
-    gap=0,
-)
 legend_rows = Column(
     Row(
         Text("CW = CLOCKWISE", color=ThemeColor.TEXT, font=FONT).width("content"),

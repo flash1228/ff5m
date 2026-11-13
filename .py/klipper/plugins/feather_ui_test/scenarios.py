@@ -23,6 +23,7 @@ from feather.files import FileEntry
 from timelapse_state import TimelapsePhase
 from ui import StateStore
 from . import memory
+from . import shaper_visuals
 from .context_fixtures import (
     CONTEXT_TYPES, VISUAL_CONTEXTS, visual_context_cases,
 )
@@ -349,6 +350,10 @@ class ScenarioCatalog:
         self._add_call(steps, "ui-calibration-pages",
                        self._render_calibration_variants)
         self._add_capture(steps, "ui-calibration-variants")
+        for kind in shaper_visuals.CASES:
+            self._add_render_capture(
+                steps, "ui-shaper-" + kind,
+                lambda value=kind: shaper_visuals.show(self, value))
         self._add_render_capture(
             steps, "ui-calibration-guide-axes",
             self._render_calibration_guide)
@@ -619,7 +624,7 @@ class ScenarioCatalog:
         if self._component is None:
             return None
         page = self._component[0]
-        return page, self._component_title(page), False
+        return page, self._component_title(page), getattr(page, "show_back", False)
 
     def write_preview_values(self):
         """Inside the screen's transaction: the shown page's state."""
@@ -629,9 +634,9 @@ class ScenarioCatalog:
 
     @staticmethod
     def _component_title(page):
-        title = getattr(page, "title", None)
-        if title:
-            return str(title)
+        # A page that sets a title, even None (fullscreen draws its own header), keeps it.
+        if hasattr(page, "title"):
+            return page.title
         title = str(getattr(page.page_key, "value", page.page_key))
         return title.replace("_", " ").replace(".", " / ")
 

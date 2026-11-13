@@ -77,7 +77,8 @@ def make_plugin(directory, binary, options=None):
     def set_config(section, key, value):
         settings.append((section, key, value))
         pending.setdefault(section, {})[key] = value
-    shaping = types.SimpleNamespace(enabled=True)
+    # Klipper's input_shaper: live parameters per axis, set by SET_INPUT_SHAPER.
+    shaping = types.SimpleNamespace(enabled=True, live={})
     shaping.enable_shaping = lambda: setattr(shaping, "enabled", True)
     standard = types.SimpleNamespace(fail_axis=None, cancel_axis=None,
         get_start_test_points=lambda: [(0., 0., 100.)], prepare_test=lambda gcmd: None,
@@ -104,6 +105,17 @@ def make_plugin(directory, binary, options=None):
             limits.update(max_accel=float(values["ACCEL"]), max_accel_to_decel=float(values["ACCEL_TO_DECEL"]))
         elif name == "M84":
             head.motors_enabled = False
+        elif name == "SET_INPUT_SHAPER":
+            # Klipper's enable_shaping restores the parameters saved when a test disabled shaping.
+            if not shaping.enabled:
+                raise AssertionError("SET_INPUT_SHAPER while shaping is disabled is lost on enable")
+            for key, value in values.items():
+                kind, _, axis = key.rpartition("_")
+                if kind not in ("SHAPER_TYPE", "SHAPER_FREQ") or axis not in ("X", "Y"):
+                    raise AssertionError("Unexpected SET_INPUT_SHAPER parameter: " + key)
+                live = shaping.live.setdefault(axis.lower(), {})
+                live["type" if kind == "SHAPER_TYPE" else "freq"] = (
+                    value.lower() if kind == "SHAPER_TYPE" else float(value))
         else:
             raise AssertionError("Unexpected G-code effect: " + command)
     gcode.run_script_from_command = execute
@@ -315,14 +327,19 @@ class NativeTests(unittest.TestCase):
     def make_plugin(self):
         return make_plugin(self.directory, self.binary)
 
-    def test_complete_job_publishes_two_axes_and_only_explicit_apply_stages_settings(self):
+    def test_complete_job_applies_both_recommendations_and_allows_an_explicit_override(self):
         instance, settings, gcode, standard, objects = self.make_plugin()
         with mock.patch.object(plugin, "disk_directory", return_value=str(self.directory)):
             instance.cmd_CALIBRATE(FakeCommand({'SWEEP': 0}))
         self.assertEqual(instance.state, "complete")
         self.assertFalse(instance.busy)
         self.assertEqual(set(instance.record.results), {"x", "y"})
-        self.assertEqual(settings, [])
+        # Independent Klipper reference for sample(): MZV at 42.6 Hz on both axes, active and staged.
+        self.assertEqual(objects["input_shaper"].live, {
+            "x": {"type": "mzv", "freq": 42.6}, "y": {"type": "mzv", "freq": 42.6}})
+        self.assertEqual(settings, [
+            ("input_shaper", "shaper_type_x", "mzv"), ("input_shaper", "shaper_freq_x", "42.6"),
+            ("input_shaper", "shaper_type_y", "mzv"), ("input_shaper", "shaper_freq_y", "42.6")])
         self.assertEqual(list(self.directory.rglob("*.samples")), [])
         self.assertEqual([s["axis"] for s in standard.statuses], ["x", "y"])
         self.assertEqual([s["frequency"] for s in standard.statuses], [43., 43.])
@@ -334,8 +351,10 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(status["job_id"], 1)
         self.assertEqual(status["elapsed"], instance.job.finished_at - instance.job.started_at)
         instance.cmd_APPLY(FakeCommand({"AXIS": "x", "SHAPER": "ei"}))
-        self.assertEqual(settings[0], ("input_shaper", "shaper_type_x", "ei"))
-        self.assertEqual(settings[1][1], "shaper_freq_x")
+        self.assertEqual(settings[4:], [("input_shaper", "shaper_type_x", "ei"),
+                                        ("input_shaper", "shaper_freq_x", "53.0")])
+        self.assertEqual(objects["input_shaper"].live, {
+            "x": {"type": "ei", "freq": 53.}, "y": {"type": "mzv", "freq": 42.6}})
         self.assertFalse(objects["toolhead"].motors_enabled)
 
     def test_last_result_survives_restart_and_loading_does_not_measure(self):
@@ -346,7 +365,7 @@ class NativeTests(unittest.TestCase):
         self.assertTrue(path.read_bytes().startswith(storage.SAVED_MAGIC))
         self.assertLess(path.stat().st_size, len(json.dumps(instance.record.results)))
         self.assertEqual({p.name for p in self.directory.iterdir()}, {storage.LAST_RESULT})
-        restored, settings, _, standard, _ = self.make_plugin()
+        restored, settings, _, standard, objects = self.make_plugin()
         self.assertEqual(restored.state, "idle")
         self.assertIsNone(restored.record)
         with mock.patch("subprocess.Popen", side_effect=AssertionError("Started measurement")):
@@ -355,12 +374,14 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(restored.record, instance.record)
         self.assertEqual(standard.statuses, [])
         self.assertEqual(settings, [])
+        self.assertEqual(objects["input_shaper"].live, {})
         restored.cmd_APPLY(FakeCommand({"AXIS": "x", "SHAPER": "ei"}))
         self.assertEqual(settings[0], ("input_shaper", "shaper_type_x", "ei"))
-        before = list(settings)
+        before, live = list(settings), copy.deepcopy(objects["input_shaper"].live)
         with self.assertRaises(RuntimeError):
             restored.cmd_APPLY(FakeCommand({"AXIS": "x", "SHAPER": "zvd"}))
         self.assertEqual(settings, before)
+        self.assertEqual(objects["input_shaper"].live, live)
 
     def test_load_without_saved_results_keeps_the_plugin_idle(self):
         instance, _, _, _, _ = self.make_plugin()
@@ -408,19 +429,53 @@ class NativeTests(unittest.TestCase):
         self.assertIsNone(instance.reference)
 
     def test_failed_new_job_keeps_previous_snapshot_and_success_replaces_it(self):
-        instance, _, _, standard, _ = self.make_plugin()
+        instance, settings, _, standard, objects = self.make_plugin()
         with mock.patch.object(plugin, "disk_directory", return_value=str(self.directory)):
             instance.cmd_CALIBRATE(FakeCommand({'SWEEP': 0}))
             before = (self.directory / storage.LAST_RESULT).read_bytes()
+            selected, live = list(settings), copy.deepcopy(objects["input_shaper"].live)
             standard.fail_axis = 'y'
             with self.assertRaises(RuntimeError):
                 instance.cmd_CALIBRATE(FakeCommand({'SWEEP': 0}))
             self.assertEqual((self.directory / storage.LAST_RESULT).read_bytes(), before)
+            self.assertEqual(settings, selected)
+            self.assertEqual(objects["input_shaper"].live, live)
             standard.fail_axis = None
             instance.cmd_CALIBRATE(FakeCommand({'AXIS': 'y', 'SWEEP': 0}))
         self.assertEqual(set(saved_results(self.directory)), {'y'})
         self.assertEqual(len(instance.get_history()), 2)
         self.assertEqual(len(list(self.directory.glob('*.fxs'))), 2)
+        self.assertEqual(settings[len(selected):], [
+            ("input_shaper", "shaper_type_y", "mzv"), ("input_shaper", "shaper_freq_y", "42.6")])
+        self.assertEqual(objects['configfile'].get_status(0.)['save_config_pending_items']['input_shaper'], {
+            'shaper_type_x': 'mzv', 'shaper_freq_x': '42.6', 'shaper_type_y': 'mzv', 'shaper_freq_y': '42.6'})
+
+    def test_failed_result_publication_does_not_apply_recommendations(self):
+        instance, settings, _, _, objects = self.make_plugin()
+        with mock.patch.object(plugin, 'disk_directory', return_value=str(self.directory)), \
+                mock.patch.object(instance.history, 'save', side_effect=OSError('disk full')):
+            with self.assertRaisesRegex(RuntimeError, 'disk full'):
+                instance.cmd_CALIBRATE(FakeCommand({'SWEEP': 0}))
+        self.assertEqual(instance.state, 'error')
+        self.assertEqual(settings, [])
+        self.assertEqual(objects['input_shaper'].live, {})
+        self.assertIsNone(instance.record)
+
+    def test_an_inapplicable_recommendation_fails_before_the_result_is_saved_or_opened(self):
+        instance, settings, _, _, objects = self.make_plugin()
+        load = plugin.load_result
+        def reference_only_recommendation(path):
+            # ZVD is reference only: the job cannot apply what it would recommend.
+            return dict(load(path), recommended='zvd')
+        with mock.patch.object(plugin, 'disk_directory', return_value=str(self.directory)), \
+                mock.patch.object(plugin, 'load_result', side_effect=reference_only_recommendation):
+            with self.assertRaisesRegex(RuntimeError, 'No applicable zvd shaper'):
+                instance.cmd_CALIBRATE(FakeCommand({'SWEEP': 0}))
+        self.assertEqual(instance.state, 'error')
+        self.assertEqual((instance.record, instance.revision), (None, 0))
+        self.assertEqual(instance.get_history(), [])
+        self.assertEqual(settings, [])
+        self.assertEqual(objects['input_shaper'].live, {})
 
     def test_cleanup_failure_does_not_discard_a_completed_calibration(self):
         instance, _, _, _, _ = self.make_plugin()

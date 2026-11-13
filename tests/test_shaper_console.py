@@ -394,9 +394,9 @@ class ShaperPipelineTests(unittest.TestCase):
         self.assertTrue(all(self.progress_seen))
         self.assertEqual(self.host.page, ScreenPage.CALIBRATION_RESULT)
         self.assertTrue(self.capture.latest.has_action("cal.shaper.apply"))
-        self.assertFalse(self.capture.latest.has_action("cal.shaper.save"))
+        self.assertTrue(self.host.feature_manager.peek('calibration').shaper.view.can_save)
 
-    def test_feather_start_executes_measurement_without_automatic_apply_or_png(self):
+    def test_feather_start_applies_recommendations_without_saving_or_exporting(self):
         from ff5m_ui.screen import ScreenPage
         feature = self.attach_feather()
         feature.calibration_kind = "shaper"
@@ -405,7 +405,12 @@ class ShaperPipelineTests(unittest.TestCase):
         self.finish_feather_callbacks()
         self.assertEqual(self.host.page, ScreenPage.CALIBRATION_RESULT)
         self.assertIs(feature.shaper.view.results, self.instance.record.results)
-        self.assertEqual(self.settings, [])
+        self.assertEqual(feature.shaper.selections, {
+            'x': {'name': 'mzv', 'freq': 42.6}, 'y': {'name': 'mzv', 'freq': 42.6}})
+        self.assertEqual(len(self.settings), 4)
+        self.assertEqual(self.objects['input_shaper'].live, {
+            'x': {'type': 'mzv', 'freq': 42.6}, 'y': {'type': 'mzv', 'freq': 42.6}})
+        self.assertTrue(feature.shaper.view.can_save)
         self.assertFalse((self.directory / "plots").exists())
         self.assertFalse(self.objects["toolhead"].motors_enabled)
 
@@ -425,21 +430,24 @@ class ShaperPipelineTests(unittest.TestCase):
         self.assertFalse(self.objects["toolhead"].motors_enabled)
         self.assertFalse(self.objects["operation_context"].get_status(0.)["context_types"])
 
-    def test_feather_measurement_stores_data_without_staging_or_exporting(self):
+    def test_single_axis_measurement_applies_only_that_axis_without_exporting(self):
         self.run_macro("FORGE_SHAPER_CALIBRATE SWEEP=0 AXIS=y")
         self.assertEqual(set(self.instance.record.results), {"y"})
-        self.assertEqual(self.settings, [])
+        self.assertEqual(self.settings, [('input_shaper', 'shaper_type_y', 'mzv'),
+                                         ('input_shaper', 'shaper_freq_y', '42.6')])
+        self.assertEqual(self.objects['input_shaper'].live, {'y': {'type': 'mzv', 'freq': 42.6}})
         self.assertFalse((self.directory / "plots").exists())
         self.assertFalse(self.objects["toolhead"].motors_enabled)
 
     def test_failed_measurement_preserves_history_and_does_not_apply_or_plot(self):
         self.run_macro("FORGE_SHAPER_CALIBRATE SWEEP=0 AXIS=x")
         before = self.instance.history.entries()
+        selected = list(self.settings)
         self.standard.fail_axis = "y"
         with self.assertRaises(RuntimeError):
             self.run_macro("FORGE_SHAPER SWEEP=0")
         self.assertEqual(self.instance.history.entries(), before)
-        self.assertEqual(self.settings, [])
+        self.assertEqual(self.settings, selected)
         self.assertFalse((self.directory / "plots").exists())
         self.assertFalse(self.objects["toolhead"].motors_enabled)
 

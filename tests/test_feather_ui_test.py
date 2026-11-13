@@ -1557,7 +1557,7 @@ class RunnerContractTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = pathlib.Path(directory)
             plugins = root / ".py/klipper/plugins"
-            for package in HYBRID.UI_FINGERPRINT_PACKAGES:
+            for package in HYBRID.FINGERPRINT.UI_FINGERPRINT_PACKAGES:
                 (plugins / package).mkdir(parents=True)
             resource = plugins / "ff5m_ui/icon.fxi1"
             with mock.patch.object(UI_TEST, "__file__", str(plugins / "feather_ui_test/runner.py")):
@@ -1575,7 +1575,7 @@ class RunnerContractTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = pathlib.Path(directory)
             plugins = root / ".py/klipper/plugins"
-            for package in HYBRID.UI_FINGERPRINT_PACKAGES:
+            for package in HYBRID.FINGERPRINT.UI_FINGERPRINT_PACKAGES:
                 (plugins / package).mkdir(parents=True)
             reader = plugins / "feather/gcode_info.py"
             reader.parent.mkdir()

@@ -200,6 +200,8 @@ Clear the bed before calibrating. In Feather, open **Control → Calibration →
 
 The toolhead first rises to the test height, then moves sideways to the test point. Motors are switched off when the calibration ends.
 
+Calibration automatically selects recommended settings for the measured axes. In Feather, you can view the graphs and choose other settings. Saving restarts Klipper.
+
 View saved results in **Last Results** in Feather or with `FORGE_SHAPER_HISTORY`.
 
 From the Fluidd/Mainsail console, run while the printer is idle:

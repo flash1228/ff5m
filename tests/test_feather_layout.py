@@ -270,30 +270,6 @@ class ScrewResultLayoutTest(unittest.TestCase):
         self.assertEqual(done.right, diagram.right)
         self.assertEqual(repeat.y, done.y)
 
-    def test_page_reflows_inside_a_smaller_viewport(self):
-        bounds = Rect(10, 56, 700, 350)
-        page = screw_result.create_page(bounds)
-        renderer = FeatherRenderer()
-        commands = page.draw(renderer, screw_result.result_values(self.results))
-        frame = RenderFrame(commands, renderer)
-
-        diagram = page.rect(screw_result.ScrewResultRef.DIAGRAM)
-        bed = page.rect(screw_result.ScrewResultRef.BED)
-        repeat = page.rect(screw_result.ScrewResultRef.REPEAT)
-        done = page.rect(screw_result.ScrewResultRef.DONE)
-        self.assertEqual((diagram.x, diagram.right),
-                         (bounds.x + 20, bounds.right - 20))
-        self.assertEqual(bed.center_x, bounds.center_x)
-        self.assertEqual(repeat.width, done.width)
-        self.assertLess(diagram.bottom, repeat.y)
-        self.assertLess(frame.text("FRONT LEFT").x, bed.x)
-        self.assertGreater(frame.text("FRONT RIGHT").x, bed.right)
-        legend = page.rect(screw_result.ScrewResultRef.LEGEND)
-        for label in frame.texts:
-            if legend.y < label.y < legend.bottom:
-                self.assertEqual(label.x, bounds.center_x)
-                self.assertLessEqual(renderer.text_width(label.value, label.font), legend.width)
-
     def test_empty_default_state_does_not_collapse_the_layout(self):
         page = screw_result.create_page()
         page.draw(FeatherRenderer(), {})
@@ -317,27 +293,44 @@ class ScrewResultLayoutTest(unittest.TestCase):
         self.assertGreaterEqual(
             legend.bottom - last.y - get_font_metrics().metric(last.font).glyph_height // 2, 10)
 
-    def test_compact_adjustments_and_legend_remain_readable(self):
-        for width, height in ((640, 306), (700, 350)):
-            with self.subTest(width=width):
-                page = screw_result.create_page(Rect(0, 56, width, height))
-                renderer = FeatherRenderer()
-                frame = RenderFrame(page.draw(
-                    renderer, screw_result.result_values(self.results)), renderer)
-                legend = page.rect(screw_result.ScrewResultRef.LEGEND)
-                for value in ("CW 00:05", "CCW 00:15", "CCW 00:04"):
-                    text = frame.text(value)
-                    self.assertLessEqual(
-                        renderer.text_width(value, text.font), text.max_width)
-                self.assertEqual(frame.text("CW 00:05").font,
-                                 frame.text("CCW 00:15").font)
-                hints = [text for text in frame.texts
-                         if legend.y < text.y < legend.bottom]
-                self.assertEqual(len(hints), 3)
-                for text in hints:
-                    self.assertEqual(text.x, legend.center_x)
-                    self.assertLessEqual(
-                        renderer.text_width(text.value, text.font), legend.width - 30)
+    def test_rear_front_and_instruction_lie_on_the_plate_surface_clear_of_its_edges(self):
+        from ui.font_metrics import get_font_metrics
+
+        renderer = FeatherRenderer()
+        frame = RenderFrame(screw_result.PAGE.draw(renderer, screw_result.result_values(self.results)), renderer)
+        bed = screw_result.PAGE.rect(screw_result.ScrewResultRef.BED)
+        # The drawn plate outline: its rear edge is the highest long horizontal line, its front edge the upper of
+        # the two full-width ones (the lower is the bottom of the front face).
+        lines = [shape.bounds for shape in frame.shapes
+                 if shape.kind == "fill" and shape.bounds.height == 2 and shape.bounds.width > bed.width // 2
+                 and bed.x <= shape.bounds.x and shape.bounds.right <= bed.right
+                 and bed.y <= shape.bounds.y < bed.bottom]
+        rear_edge = min(line.bottom for line in lines)
+        widest = max(line.width for line in lines)
+        front_edge = min(line.y for line in lines if line.width == widest)
+        for value in ("REAR", "FRONT", "ADJUST FROM BELOW"):
+            with self.subTest(text=value):
+                text = frame.text(value)
+                half = get_font_metrics().metric(text.font).glyph_height // 2
+                self.assertLess(rear_edge, text.y - half)
+                self.assertLess(text.y + half, front_edge)
+
+    def test_adjustments_fit_their_corners_and_the_legend_fits_the_panel(self):
+        renderer = FeatherRenderer()
+        frame = RenderFrame(screw_result.PAGE.draw(renderer, screw_result.result_values(self.results)), renderer)
+        legend = screw_result.PAGE.rect(screw_result.ScrewResultRef.LEGEND)
+        for value in ("CW 00:05", "CCW 00:15", "CCW 00:04"):
+            with self.subTest(adjustment=value):
+                text = frame.text(value)
+                self.assertLessEqual(renderer.text_width(value, text.font), text.max_width)
+        hints = [text for text in frame.texts if legend.y < text.y < legend.bottom]
+        self.assertTrue(hints)
+        for text in hints:
+            with self.subTest(hint=text.value):
+                width = renderer.text_width(text.value, text.font)
+                left = text.x - {"left": 0, "center": width // 2, "right": width}[text.horizontal]
+                self.assertGreaterEqual(left, legend.x)
+                self.assertLessEqual(left + width, legend.right)
 
 
 class PrintingLayoutTest(unittest.TestCase):

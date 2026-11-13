@@ -935,7 +935,7 @@ alternative. `--mode` remains an alias for existing commands.
   current UI fingerprint, and the UI set must be complete before model review.
 - `designer`: automatically discovers every module-level `DeclarativePage`,
   renders its default state, and adds the meaningful typed state/action cases
-  in `scenarios.json`. The current corpus has 32 frames over 15 pages. Native
+  in `scenarios.json`. Native
   messages, errors, OTA notifications, and other imperative screens belong to
   the printer corpus; Designer scenarios cannot replace a page with drawing
   fixtures. A clean Designer result remains `partial` because native printer
@@ -946,6 +946,21 @@ alternative. `--mode` remains an alias for existing commands.
 - `parity`: retained for diagnostics. Adds paired Designer/real-renderer checks
   for the same default and typed-state cases from the cold `SUITE=COMPONENT`
   harness to the hybrid corpus.
+
+Shaper defaults and typed-state cases cover the start page, saved history,
+progress and cancellation, graph and comparison views, reference-only ZVD,
+and fullscreen linear/logarithmic spectra. Native UI captures also include
+Y fitting, a previous-record comparison, single-axis results, and save/leave
+confirmations. `feather_ui_test/shaper_visuals.py` supplies disposable screen
+inputs through the real page renderer; it never starts a resonance test or
+changes Klipper settings. Both screenshot sources have textual expectations
+for model review. Unit tests retain selection, saving, cancellation, cache
+lifecycle and numerical spectrum contracts; layout and styling belong to
+these visual captures.
+Designer currently omits a page's additional standard-header action, so the
+FULL SCREEN entry button is required by the native printer expectations and
+an explicit allowed variation in the Designer graph expectations. Fullscreen
+page controls are visible in both sources.
 
 The screenshot source is selected before rendering. Printer Regression's
 existing captures are preserved. The UI suite also covers ten cases that

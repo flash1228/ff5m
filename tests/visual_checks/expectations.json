@@ -2,6 +2,654 @@
     "schema_version": 1,
     "cases":
     {
+        "default-shaper-start": {
+            "description": "Shaper start page with sweeping selected and no saved calibration.",
+            "required": [
+                "INPUT SHAPER title and back action",
+                "BEFORE YOU START bed-clearance instructions",
+                "STANDARD and SWEEPING vibration choices",
+                "START CALIBRATION and LAST RESULTS actions",
+                "SWEEPING selected and LAST RESULTS disabled"
+            ],
+            "forbidden": [
+                "fabricated saved result",
+                "clipped or overlapping important content"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "default-shaper-history": {
+            "description": "Saved shaper history example.",
+            "required": [
+                "SHAPER RESULTS title and back action",
+                "dated calibration entries with axis labels",
+                "LATEST on the newest entry"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "default-shaper-progress": {
+            "description": "Shaper measurement example on X.",
+            "required": [
+                "calibration progress title, sweep or fit detail and elapsed/sample telemetry",
+                "requested X/Y sweep and fit stage indicators",
+                "CANCEL action while cancellation is available"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "default-shaper-result": {
+            "description": "Shaper result example before settings are selected.",
+            "required": [
+                "INPUT SHAPER title",
+                "X/Y, previous/next method, LINEAR or LOG and LIST controls",
+                "measured and after-shaper spectrum with frequency and PSD axes",
+                "vibration, smoothing and acceleration metrics",
+                "USE or SELECTED axis action and SAVE action",
+                "SAVE disabled"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding",
+                "Designer omits the runtime header action FULL SCREEN; native printer captures must include it"
+            ]
+        },
+        "default-shaper-compare": {
+            "description": "Full comparison including the reference-only ZVD row.",
+            "required": [
+                "input-shaper comparison table with SHAPER, Hz, VIB %, SM and ACCEL headings",
+                "all six method rows including 3HUMP_EI and ZVD [REF]",
+                "recommended method marker and selected viewed method",
+                "X/Y, axis selection/apply and SAVE controls"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "default-shaper-fullscreen": {
+            "description": "Fullscreen linear spectrum example.",
+            "required": [
+                "chart occupying the screen below a compact header",
+                "header with BACK, wider previous/next buttons around method and frequency, LINEAR or LOG, and X/Y",
+                "measured and compensated curves with readable frequency and PSD axes",
+                "compact bottom legend with vibrations, smoothing and MAX ACCEL"
+            ],
+            "forbidden": [
+                "ordinary page title or persistent printer status strip",
+                "USE, SAVE or LIST controls taking space from the fullscreen graph",
+                "clipped or overlapping important content"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "shaper-start-ready": {
+            "description": "Shaper start with a saved calibration.",
+            "required": [
+                "INPUT SHAPER title and back action",
+                "BEFORE YOU START bed-clearance instructions",
+                "STANDARD and SWEEPING vibration choices",
+                "START CALIBRATION and LAST RESULTS actions",
+                "SWEEPING selected and LAST RESULTS enabled"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "shaper-start-standard": {
+            "description": "Standard vibration mode without saved results.",
+            "required": [
+                "INPUT SHAPER title and back action",
+                "BEFORE YOU START bed-clearance instructions",
+                "STANDARD and SWEEPING vibration choices",
+                "START CALIBRATION and LAST RESULTS actions",
+                "STANDARD selected with short-pulse guidance and LAST RESULTS disabled"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "shaper-history-five": {
+            "description": "Five saved calibration records.",
+            "required": [
+                "SHAPER RESULTS title and back action",
+                "dated calibration entries with axis labels",
+                "LATEST on the newest entry",
+                "five separate dated entries with mixed X/Y axis coverage"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "shaper-cancelling": {
+            "description": "Calibration cancellation is pending.",
+            "required": [
+                "calibration progress title, sweep or fit detail and elapsed/sample telemetry",
+                "requested X/Y sweep and fit stage indicators",
+                "CANCELLING title and busy/disabled cancellation action",
+                "safe sweep boundary helper text"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "shaper-graph-selected": {
+            "description": "Automatically selected recommendations ready to save.",
+            "required": [
+                "INPUT SHAPER title",
+                "X/Y, previous/next method, LINEAR or LOG and LIST controls",
+                "measured and after-shaper spectrum with frequency and PSD axes",
+                "vibration, smoothing and acceleration metrics",
+                "USE or SELECTED axis action and SAVE action",
+                "selected X and selected/recommended MZV",
+                "SAVE X & Y enabled"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding",
+                "Designer omits the runtime header action FULL SCREEN; native printer captures must include it"
+            ]
+        },
+        "shaper-graph-log-y": {
+            "description": "Y results using logarithmic PSD.",
+            "required": [
+                "INPUT SHAPER title",
+                "X/Y, previous/next method, LINEAR or LOG and LIST controls",
+                "measured and after-shaper spectrum with frequency and PSD axes",
+                "vibration, smoothing and acceleration metrics",
+                "USE or SELECTED axis action and SAVE action",
+                "Y selected, LOG control and CAL PSD (LOG) scale",
+                "SAVE X & Y enabled"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding",
+                "Designer omits the runtime header action FULL SCREEN; native printer captures must include it"
+            ]
+        },
+        "shaper-graph-single-axis": {
+            "description": "X-only measurement.",
+            "required": [
+                "INPUT SHAPER title",
+                "X/Y, previous/next method, LINEAR or LOG and LIST controls",
+                "measured and after-shaper spectrum with frequency and PSD axes",
+                "vibration, smoothing and acceleration metrics",
+                "USE or SELECTED axis action and SAVE action",
+                "X selected, Y disabled and SAVE X enabled"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding",
+                "Designer omits the runtime header action FULL SCREEN; native printer captures must include it"
+            ]
+        },
+        "shaper-table-selected": {
+            "description": "Comparison after recommended settings have been selected.",
+            "required": [
+                "input-shaper comparison table with SHAPER, Hz, VIB %, SM and ACCEL headings",
+                "all six method rows including 3HUMP_EI and ZVD [REF]",
+                "recommended method marker and selected viewed method",
+                "X/Y, axis selection/apply and SAVE controls",
+                "MZV viewed and selected, SAVE X & Y enabled"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "shaper-reference-only": {
+            "description": "ZVD is shown only as a reference while recommendations remain staged.",
+            "required": [
+                "INPUT SHAPER title",
+                "X/Y, previous/next method, LINEAR or LOG and LIST controls",
+                "measured and after-shaper spectrum with frequency and PSD axes",
+                "vibration, smoothing and acceleration metrics",
+                "USE or SELECTED axis action and SAVE action",
+                "ZVD [REF] and REFERENCE ONLY guidance",
+                "apply action disabled and SAVE X & Y still enabled"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding",
+                "Designer omits the runtime header action FULL SCREEN; native printer captures must include it"
+            ]
+        },
+        "shaper-fullscreen-linear": {
+            "description": "Fullscreen recommended X spectrum in linear mode.",
+            "required": [
+                "chart occupying the screen below a compact header",
+                "header with BACK, wider previous/next buttons around method and frequency, LINEAR or LOG, and X/Y",
+                "measured and compensated curves with readable frequency and PSD axes",
+                "compact bottom legend with vibrations, smoothing and MAX ACCEL",
+                "X selected and LINEAR control"
+            ],
+            "forbidden": [
+                "ordinary page title or persistent printer status strip",
+                "USE, SAVE or LIST controls taking space from the fullscreen graph",
+                "clipped or overlapping important content"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "shaper-fullscreen-log-y": {
+            "description": "Fullscreen Y spectrum in log mode.",
+            "required": [
+                "chart occupying the screen below a compact header",
+                "header with BACK, wider previous/next buttons around method and frequency, LINEAR or LOG, and X/Y",
+                "measured and compensated curves with readable frequency and PSD axes",
+                "compact bottom legend with vibrations, smoothing and MAX ACCEL",
+                "Y selected, LOG control and CAL PSD (LOG) scale"
+            ],
+            "forbidden": [
+                "ordinary page title or persistent printer status strip",
+                "USE, SAVE or LIST controls taking space from the fullscreen graph",
+                "clipped or overlapping important content"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "printer:ui-shaper-start": {
+            "description": "Sweeping start with saved results.",
+            "required": [
+                "INPUT SHAPER title and back action",
+                "BEFORE YOU START bed-clearance instructions",
+                "STANDARD and SWEEPING vibration choices",
+                "START CALIBRATION and LAST RESULTS actions",
+                "SWEEPING selected and LAST RESULTS enabled"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "printer:ui-shaper-start-standard": {
+            "description": "Standard start without saved results.",
+            "required": [
+                "INPUT SHAPER title and back action",
+                "BEFORE YOU START bed-clearance instructions",
+                "STANDARD and SWEEPING vibration choices",
+                "START CALIBRATION and LAST RESULTS actions",
+                "STANDARD selected and LAST RESULTS disabled"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "printer:ui-shaper-history": {
+            "description": "Five saved records in native history.",
+            "required": [
+                "SHAPER RESULTS title and back action",
+                "dated calibration entries with axis labels",
+                "LATEST on the newest entry",
+                "five separate entries with mixed X/Y coverage"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "printer:ui-shaper-progress": {
+            "description": "X measurement in progress.",
+            "required": [
+                "calibration progress title, sweep or fit detail and elapsed/sample telemetry",
+                "requested X/Y sweep and fit stage indicators",
+                "CANCEL action while cancellation is available",
+                "MEASURING X RESONANCE and current sweep frequency"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "printer:ui-shaper-processing-y": {
+            "description": "Y fit follows completed X measurement.",
+            "required": [
+                "calibration progress title, sweep or fit detail and elapsed/sample telemetry",
+                "requested X/Y sweep and fit stage indicators",
+                "PROCESSING Y MEASUREMENTS and active Y FIT"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "printer:ui-shaper-cancelling": {
+            "description": "Pending cancellation at a safe boundary.",
+            "required": [
+                "calibration progress title, sweep or fit detail and elapsed/sample telemetry",
+                "requested X/Y sweep and fit stage indicators",
+                "CANCELLING title, busy cancellation action and safe-boundary helper text"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "printer:ui-shaper-graph": {
+            "description": "Result with recommendations already selected.",
+            "required": [
+                "INPUT SHAPER title with FULL SCREEN at the top right",
+                "X/Y, previous/next method, LINEAR or LOG and LIST controls",
+                "measured and after-shaper spectrum with frequency and PSD axes",
+                "vibration, smoothing and acceleration metrics",
+                "USE or SELECTED axis action and SAVE action",
+                "SAVE X & Y enabled and selected X recommendation"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "printer:ui-shaper-graph-log-reference": {
+            "description": "Logarithmic measured spectrum compared with an older record.",
+            "required": [
+                "INPUT SHAPER title with FULL SCREEN at the top right",
+                "X/Y, previous/next method, LINEAR or LOG and LIST controls",
+                "measured and after-shaper spectrum with frequency and PSD axes",
+                "vibration, smoothing and acceleration metrics",
+                "USE or SELECTED axis action and SAVE action",
+                "LOG and CAL PSD (LOG)",
+                "dim reference spectrum and REF/VIEW date metadata"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "printer:ui-shaper-graph-single-axis": {
+            "description": "Single-axis calibration result.",
+            "required": [
+                "INPUT SHAPER title with FULL SCREEN at the top right",
+                "X/Y, previous/next method, LINEAR or LOG and LIST controls",
+                "measured and after-shaper spectrum with frequency and PSD axes",
+                "vibration, smoothing and acceleration metrics",
+                "USE or SELECTED axis action and SAVE action",
+                "Y disabled, X selected and SAVE X enabled"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "printer:ui-shaper-table": {
+            "description": "Native shaper comparison.",
+            "required": [
+                "input-shaper comparison table with SHAPER, Hz, VIB %, SM and ACCEL headings",
+                "all six method rows including 3HUMP_EI and ZVD [REF]",
+                "recommended method marker and selected viewed method",
+                "X/Y, axis selection/apply and SAVE controls",
+                "SAVE X & Y enabled"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "printer:ui-shaper-reference": {
+            "description": "Reference-only ZVD in graph view.",
+            "required": [
+                "INPUT SHAPER title with FULL SCREEN at the top right",
+                "X/Y, previous/next method, LINEAR or LOG and LIST controls",
+                "measured and after-shaper spectrum with frequency and PSD axes",
+                "vibration, smoothing and acceleration metrics",
+                "USE or SELECTED axis action and SAVE action",
+                "ZVD [REF] and REFERENCE ONLY guidance",
+                "apply disabled while SAVE X & Y remains enabled"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "printer:ui-shaper-fullscreen": {
+            "description": "Native fullscreen X spectrum.",
+            "required": [
+                "chart occupying the screen below a compact header",
+                "header with BACK, wider previous/next buttons around method and frequency, LINEAR or LOG, and X/Y",
+                "measured and compensated curves with readable frequency and PSD axes",
+                "compact bottom legend with vibrations, smoothing and MAX ACCEL",
+                "X selected and LINEAR control"
+            ],
+            "forbidden": [
+                "ordinary page title or persistent printer status strip",
+                "USE, SAVE or LIST controls taking space from the fullscreen graph",
+                "clipped or overlapping important content"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "printer:ui-shaper-fullscreen-log": {
+            "description": "Native fullscreen Y spectrum in log mode.",
+            "required": [
+                "chart occupying the screen below a compact header",
+                "header with BACK, wider previous/next buttons around method and frequency, LINEAR or LOG, and X/Y",
+                "measured and compensated curves with readable frequency and PSD axes",
+                "compact bottom legend with vibrations, smoothing and MAX ACCEL",
+                "Y selected, LOG control and CAL PSD (LOG)"
+            ],
+            "forbidden": [
+                "ordinary page title or persistent printer status strip",
+                "USE, SAVE or LIST controls taking space from the fullscreen graph",
+                "clipped or overlapping important content"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "printer:ui-shaper-save": {
+            "description": "Saving staged shapers asks for restart confirmation.",
+            "required": [
+                "SAVE INPUT SHAPERS? dialog",
+                "staged X/Y shaper names and frequencies",
+                "restart warning with CANCEL and SAVE & RESTART actions"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        },
+        "printer:ui-shaper-leave": {
+            "description": "Leaving active, unsaved shapers asks whether to save.",
+            "required": [
+                "LEAVE SHAPER RESULTS? dialog",
+                "active, unsaved X/Y shaper names and frequencies",
+                "note that a Klipper restart discards them and any later SAVE_CONFIG saves them",
+                "EXIT, SAVE & RESTART and STAY actions"
+            ],
+            "forbidden": [
+                "clipped or overlapping important content",
+                "blank or corrupted chart area when a spectrum is expected"
+            ],
+            "allowed_variations": [
+                "theme colors",
+                "font rasterization",
+                "timestamp formatting and timezone",
+                "minor numeric rounding"
+            ]
+        }
+,
         "default-home":
         {
             "description": "Default declarative home dashboard in its idle state.",

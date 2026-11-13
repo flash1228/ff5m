@@ -7,7 +7,6 @@
 ##
 ## This file may be distributed under the terms of the GNU GPLv3 license
 
-import hashlib
 import json
 import logging
 import math
@@ -25,6 +24,7 @@ from .artifacts import (
     SCREEN_HEIGHT, SCREEN_WIDTH, _atomic_json, _jsonable,
 )
 from .context_fixtures import OperationContextRecorder
+from .fingerprint import ui_fingerprint
 from .scenarios import ScenarioCatalog
 from .resources import (
     ContextTestFixture, PrinterStateSnapshot, capture_print_tuning,
@@ -59,45 +59,6 @@ VALID_SUITES = frozenset((
 ))
 NONPHYSICAL_SUITES = frozenset(("UI", "LEAK", "COMPONENT", "RENDER"))
 EXTENDED_CONTEXT_SUITES = frozenset(("CONTEXT_PRINT", "CONTEXT_MATERIAL"))
-UI_FINGERPRINT_FILES = (
-    "feather_screen.py",
-    "object_exclusion.py",
-    "feather_ui_test/fixtures/exclude_models.json",
-    "feather/gcode_info.py",
-    "feather/model_preview.py",
-    "feather/screen/model_preview.py",
-    "feather/screen/pages/model_preview.py",
-    "feather/calibration/extruder.py",
-    "feather/calibration/z.py",
-    "feather/control/joystick.py",
-    "feather/control/motion.py",
-    "feather/features/benchmark.py",
-    "feather/features/calibration.py",
-    "feather/features/extruder.py",
-    "feather/features/filament.py",
-    "feather/features/manager.py",
-    "feather/features/settings.py",
-    "feather/features/ui_test.py",
-    "feather/features/z.py",
-    "feather/network/pages.py",
-    "feather/screen/controls.py",
-    "feather/screen/keyboard.py",
-    "feather/screen/pagination.py",
-    "feather/screen/pages/__init__.py",
-    "feather/screen/pages/exclude_objects.py",
-    "feather/screen/pages/files.py",
-    "feather/screen/pages/home.py",
-    "feather/screen/pages/mod_editor.py",
-    "feather/screen/pages/mod_settings.py",
-    "feather/screen/pages/print_cancel.py",
-    "feather/screen/pages/printing.py",
-    "feather/screen/pages/recovery.py",
-    "feather/screen/pages/settings.py",
-    "feather/settings/mod.py",
-    "feather/testing/operation_context_fixtures.py",
-    "feather/update_notification.py",
-)
-UI_FINGERPRINT_PACKAGES = ("ui", "ff5m_ui", "feather_ui_test")
 # Informational notes the product deliberately prints with the error prefix
 # during a healthy run.  Every other "!!" response fails the run: a command
 # error inside a macro or a background timer would otherwise pass unnoticed.
@@ -773,32 +734,7 @@ class UITestRun:
     @staticmethod
     def _ui_fingerprint():
         """Hash deployed UI sources and indexed assets when a test starts."""
-        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        files = []
-        for relative in UI_FINGERPRINT_FILES:
-            path = os.path.join(root, relative)
-            if os.path.isfile(path):
-                files.append((relative, path))
-        for package in UI_FINGERPRINT_PACKAGES:
-            package_root = os.path.join(root, package)
-            for current, directories, names in os.walk(package_root):
-                directories[:] = [
-                    name for name in directories if name != "__pycache__"]
-                for name in names:
-                    if not name.endswith((".py", ".fxi1")):
-                        continue
-                    path = os.path.join(current, name)
-                    relative = os.path.relpath(path, root)
-                    files.append((relative, path))
-        digest = hashlib.sha256()
-        for relative, path in sorted(files):
-            digest.update(relative.replace(os.sep, "/").encode("utf-8"))
-            digest.update(b"\0")
-            with open(path, "rb") as stream:
-                for chunk in iter(lambda: stream.read(128 * 1024), b""):
-                    digest.update(chunk)
-            digest.update(b"\0")
-        return digest.hexdigest()
+        return ui_fingerprint(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     def _attach_context_recorder(self):
         manager = getattr(self.host, "operation_context", None)

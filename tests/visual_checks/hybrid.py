@@ -7,6 +7,7 @@
 """Host-only Designer capture and hybrid artifact composition."""
 
 import hashlib
+import importlib.util
 import json
 import os
 import pathlib
@@ -19,45 +20,20 @@ import time
 
 SCHEMA_VERSION = 1
 CASE_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,95}$")
-UI_FINGERPRINT_FILES = (
-    "feather_screen.py",
-    "object_exclusion.py",
-    "feather_ui_test/fixtures/exclude_models.json",
-    "feather/gcode_info.py",
-    "feather/model_preview.py",
-    "feather/screen/model_preview.py",
-    "feather/screen/pages/model_preview.py",
-    "feather/calibration/extruder.py",
-    "feather/calibration/z.py",
-    "feather/control/joystick.py",
-    "feather/control/motion.py",
-    "feather/features/benchmark.py",
-    "feather/features/calibration.py",
-    "feather/features/extruder.py",
-    "feather/features/filament.py",
-    "feather/features/manager.py",
-    "feather/features/settings.py",
-    "feather/features/ui_test.py",
-    "feather/features/z.py",
-    "feather/network/pages.py",
-    "feather/screen/controls.py",
-    "feather/screen/keyboard.py",
-    "feather/screen/pagination.py",
-    "feather/screen/pages/__init__.py",
-    "feather/screen/pages/exclude_objects.py",
-    "feather/screen/pages/files.py",
-    "feather/screen/pages/home.py",
-    "feather/screen/pages/mod_editor.py",
-    "feather/screen/pages/mod_settings.py",
-    "feather/screen/pages/print_cancel.py",
-    "feather/screen/pages/printing.py",
-    "feather/screen/pages/recovery.py",
-    "feather/screen/pages/settings.py",
-    "feather/settings/mod.py",
-    "feather/testing/operation_context_fixtures.py",
-    "feather/update_notification.py",
-)
-UI_FINGERPRINT_PACKAGES = ("ui", "ff5m_ui", "feather_ui_test")
+PLUGINS = pathlib.Path(__file__).resolve().parents[2] / ".py" / "klipper" / "plugins"
+
+
+def _ui_test_module(name):
+    """A standard-library-only module of the printer's UI test, loaded by path: its package imports Klipper code."""
+    spec = importlib.util.spec_from_file_location("feather_ui_test_" + name, PLUGINS / "feather_ui_test" / (name + ".py"))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+# The printer runner hashes the same files the same way.
+FINGERPRINT = _ui_test_module("fingerprint")
+SHAPER_CASES = _ui_test_module("shaper_visuals").CASES
 UI_SUITE_LABELS = frozenset((
     "baseline",
     "ui-home-filled",
@@ -177,7 +153,7 @@ UI_SUITE_LABELS = frozenset((
     "ui-touch-unavailable",
     "ui-busy-notice",
     "ui-toast",
-))
+)) | frozenset("ui-shaper-" + case for case in SHAPER_CASES)
 CAPTURE_PROGRESS_PREFIX = "FF5M_CAPTURE_PROGRESS "
 
 
@@ -695,28 +671,11 @@ def file_sha256(path):
 
 def ui_fingerprint(project_root):
     root = pathlib.Path(project_root).resolve() / ".py" / "klipper" / "plugins"
-    files = []
-    for relative in UI_FINGERPRINT_FILES:
-        path = root / relative
-        if path.is_file():
-            files.append((relative, path))
-    for package in UI_FINGERPRINT_PACKAGES:
-        package_root = root / package
-        if not package_root.is_dir():
-            raise RegressionConfigurationError(
-                "UI fingerprint package is missing: %s" % package)
-        for path in package_root.rglob("*"):
-            if path.suffix in (".py", ".fxi1") and "__pycache__" not in path.parts:
-                files.append((path.relative_to(root).as_posix(), path))
-    digest = hashlib.sha256()
-    for relative, path in sorted(files, key=lambda item: item[0]):
-        digest.update(relative.encode("utf-8"))
-        digest.update(b"\0")
-        with path.open("rb") as stream:
-            for chunk in iter(lambda: stream.read(128 * 1024), b""):
-                digest.update(chunk)
-        digest.update(b"\0")
-    return digest.hexdigest()
+    # Here a missing package means a broken checkout; the printer runner hashes whatever is deployed.
+    for package in FINGERPRINT.UI_FINGERPRINT_PACKAGES:
+        if not (root / package).is_dir():
+            raise RegressionConfigurationError("UI fingerprint package is missing: %s" % package)
+    return FINGERPRINT.ui_fingerprint(str(root))
 
 
 def verify_artifact_fingerprint(directory, expected):

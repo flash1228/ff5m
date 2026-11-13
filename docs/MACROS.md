@@ -54,7 +54,7 @@ Managed operations such as `START_PRINT`, `CLEAR_NOZZLE`, bed-mesh validation, f
   - **Saving**: Review the results, then run `SAVE_CONFIG` to save the settings and restart Klipper.
 
 - **FORGE_SHAPER_CALIBRATE**
-  - **Description**: Measures input shapers for manual review and selection. Used by Feather.
+  - **Description**: Calibrates input shapers, like Klipper's `SHAPER_CALIBRATE`.
   - **Parameters**: Same as `FORGE_SHAPER`.
 
 - **FORGE_SHAPER_RESULTS**

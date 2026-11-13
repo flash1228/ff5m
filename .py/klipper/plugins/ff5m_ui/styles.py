@@ -36,12 +36,7 @@ UI_STYLES = StyleSheet(
     Style(UiStyle.DIM_LEFT, target=Text, based_on=UiStyle.DIM, horizontal="left"),
     Style(UiStyle.VALUE, target=Text, color=ThemeColor.TEXT, font="JetBrainsMono 12pt"),
     Style(UiStyle.VALUE_LEFT, target=Text, based_on=UiStyle.VALUE, horizontal="left"),
-    Style(
-        UiStyle.BRIGHT_BOLD_12,
-        target=Text,
-        color=ThemeColor.BRIGHT,
-        font="JetBrainsMono Bold 12pt",
-    ),
+    Style(UiStyle.BRIGHT_BOLD_12, target=Text, color=ThemeColor.BRIGHT, font="JetBrainsMono Bold 12pt"),
     Style(UiStyle.BUTTON, target=Button, font="JetBrainsMono 8pt"),
     Style(UiStyle.BUTTON_BOLD_8, target=Button, font="JetBrainsMono Bold 8pt"),
     Style(UiStyle.BUTTON_BOLD_11, target=Button, font="JetBrainsMono Bold 11pt"),

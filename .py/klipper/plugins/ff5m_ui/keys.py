@@ -32,6 +32,7 @@ class AppPage(PageKey):
     SAFE_Z_CALIBRATION = "z_offset.safe"
     CALIBRATION_SCREWS_RESULT = "calibration.screws.result"
     SHAPER_RESULT = "calibration.shaper.result"
+    SHAPER_FULLSCREEN = "calibration.shaper.fullscreen"
     SHAPER_COMPARE = "calibration.shaper.compare"
     SHAPER_PROGRESS = "calibration.shaper.progress"
     SHAPER_START = "calibration.shaper.start"

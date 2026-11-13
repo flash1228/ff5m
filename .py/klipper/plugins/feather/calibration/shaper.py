@@ -50,8 +50,8 @@ def confirmation_dialog(kind, selections):
     if kind != "leave":
         raise ValueError("Unknown shaper confirmation: %s" % kind)
     if selections:
-        lines.insert(0, "Unsaved shaper settings:")
-        lines.append("A Klipper restart will discard them.")
+        lines.insert(0, "Active shaper settings, not saved:")
+        lines.extend(("A Klipper restart discards them.", "Any later SAVE_CONFIG saves them."))
     else:
         lines.append("No shaper selected.")
     actions = [(dialog_ui.LEAVE_SHAPER, "EXIT", "enabled")]
@@ -125,7 +125,7 @@ class ShaperSession:
 
     def release_view(self):
         if self.view is not None:
-            self.view.plot.clear_cache()
+            self.view.clear_cache()
         self.view = None
 
     def on_page_changed(self, new_page):
@@ -153,6 +153,9 @@ class ShaperSession:
             if plugin is not None:
                 if self.view is None:
                     self.view = results_ui.ShaperResults()
+                # A safety action (ABORT) needs the standard header, which fullscreen replaces.
+                if self.view.mode == "fullscreen" and self.feature.renderer.header_action is not None:
+                    self.view.show_graph()
                 return self.view.page_for(plugin.record.results)
         return None
 
@@ -286,8 +289,8 @@ class ShaperSession:
 
     def back(self, page):
         if page == ScreenPage.CALIBRATION_RESULT and self.view is not None:
-            if self.view.show_table:
-                self.view.select(ShaperAction("view", "graph"))
+            if self.view.mode != "graph":
+                self.view.show_graph()
                 self.feature._render_screen()
                 return True
             selections = self.selections

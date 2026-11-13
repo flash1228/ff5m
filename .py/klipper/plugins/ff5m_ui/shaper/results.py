@@ -3,9 +3,18 @@
 
 import time
 
+from ui import Rect
+
 from .components import frequency_axis, spectrum_scale, visible_psd
 from .page import CONTENT, ShaperRef, create_page
 from .state import APPLICABLE_METHODS, ShaperState, comparison_values
+
+# The shown chart or table; the values of ShaperAction("view", ...).
+VIEWS = ("graph", "table", "fullscreen")
+
+
+def _plot(page):
+    return next(node for node in page.root.walk() if node.key == ShaperRef.PLOT)
 
 
 class ShaperResults:
@@ -15,16 +24,42 @@ class ShaperResults:
         self.bounds = bounds
         self.results = None
         self.selections = {}
-        self.show_table = False
+        self.mode = "graph"  # one of VIEWS
         self.table_page = None
+        self.fullscreen_page = None
         self.axis = self.method = None
         self.scale = "linear"
         self.graph_page = create_page(bounds)
-        self.plot = next(node for node in self.graph_page.root.walk() if node.key == ShaperRef.PLOT)
+
+    @property
+    def plot(self):
+        """The spectrum plot shown: the fullscreen one, else the graph page's."""
+        return _plot(self.page if self.mode == "fullscreen" else self.graph_page)
+
+    def clear_cache(self):
+        for page in (self.graph_page, self.fullscreen_page):
+            if page is not None:
+                _plot(page).clear_cache()
+
+    def show_graph(self):
+        self._show("graph")
+
+    def _show(self, mode):
+        # Switching views releases the rasters; the chart shown next draws its own.
+        if self.mode != mode:
+            self.clear_cache()
+            self.mode = mode
 
     @property
     def page(self):
-        if not self.show_table:
+        if self.mode == "fullscreen":
+            if self.fullscreen_page is None:
+                from .fullscreen import BOUNDS, create_page
+                # The whole screen at the content's width: header, content and the footer's strip.
+                footer_height = BOUNDS.height - CONTENT.bottom
+                self.fullscreen_page = create_page(Rect(0, 0, self.bounds.width, self.bounds.bottom + footer_height))
+            return self.fullscreen_page
+        if self.mode == "graph":
             return self.graph_page
         if self.table_page is None:
             from .compare import create_page
@@ -50,9 +85,10 @@ class ShaperResults:
     def write(self, results, selections=None, reference=None, reference_at=None, saved_at=None):
         state = self.graph_page.state
         if self.results is not results:
-            self.plot.clear_cache()
-            self.results, self.show_table = results, False
+            self.clear_cache()
+            self.results, self.mode = results, "graph"
             self.table_page = None
+            self.fullscreen_page = None
             self.selections = {}
             self.axis = next(axis for axis in ("x", "y") if axis in results)
             self.method, self.scale = results[self.axis]["recommended"], "linear"
@@ -97,7 +133,7 @@ class ShaperResults:
             ShaperState.TICK_LOW: spectrum["ticks"][0], ShaperState.TICK_MIDDLE: spectrum["ticks"][1],
             ShaperState.TICK_HIGH: spectrum["ticks"][2],
         })
-        if self.show_table:
+        if self.mode != "graph":
             self.page.state.update(state)
         return self.page
 
@@ -112,10 +148,8 @@ class ShaperResults:
             self.method = methods[index]
         elif action.route == "scale":
             self.scale = "log" if self.scale == "linear" else "linear"
-        elif action.route == "view" and action.value in ("table", "graph"):
-            self.show_table = action.value == "table"
-            if self.show_table:
-                self.plot.clear_cache()
+        elif action.route == "view" and action.value in VIEWS:
+            self._show(action.value)
         else:
             return False
         return True

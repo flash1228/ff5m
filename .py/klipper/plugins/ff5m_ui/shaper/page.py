@@ -15,6 +15,7 @@ from .state import ShaperState
 
 CONTENT = Rect(0, 56, 800, 386)
 FONT = "JetBrainsMono 8pt"
+EXPAND = ShaperAction("view", "fullscreen")
 
 
 class ShaperRef(Enum):
@@ -65,6 +66,11 @@ def save_button():
                                 bind(ShaperState.CAN_SAVE))).ref(ShaperRef.SAVE)
 
 
+def scale_button():
+    return Button(ShaperAction("scale"), derived(lambda scale: "LOG" if scale == "log" else "LINEAR",
+                                               bind(ShaperState.SCALE)), font=FONT)
+
+
 toolbar = Grid(matrix=((
     axes(),
     Grid(matrix=((
@@ -72,8 +78,7 @@ toolbar = Grid(matrix=((
         Text(bind(ShaperState.METHOD_LABEL), color=ThemeColor.SECONDARY, font=FONT, truncate=True),
         Button(ShaperAction("step", "next"), ">", font=FONT),
     ),), columns=(48, FLEX, 48), rows=(FLEX,), gap=8),
-    Button(ShaperAction("scale"), derived(lambda scale: "LOG" if scale == "log" else "LINEAR",
-                                          bind(ShaperState.SCALE)), font=FONT),
+    scale_button(),
     Button(ShaperAction("view", "table"), "LIST", font=FONT),
 ),), columns=(Flex(6), Flex(15), Flex(5), Flex(5)), rows=(FLEX,), gap=12).height(48).ref(ShaperRef.TOOLBAR)
 
@@ -125,12 +130,15 @@ root = Grid(matrix=((toolbar,), (Column(legend, chart, x_ticks),),
             columns=(FLEX,), rows=(48, FLEX, 48), gap=12) \
     .padding(left=24, right=24, top=18, bottom=18).ref(ShaperRef.ROOT)
 
-PAGE = PageTree(root, CONTENT, page_id=AppPage.SHAPER_RESULT, state_schema=tuple(ShaperState))
-PAGE.title = "Input shaper"
-PAGE.show_back = True
-
 
 def create_page(bounds=CONTENT):
-    page = PageTree(deepcopy(PAGE.root), bounds, page_id=AppPage.SHAPER_RESULT, state_schema=tuple(ShaperState))
-    page.title, page.show_back = PAGE.title, PAGE.show_back
+    page = PageTree(deepcopy(root), bounds, page_id=AppPage.SHAPER_RESULT,
+                    state_schema=tuple(ShaperState), actions=(EXPAND,))
+    page.title = "Input shaper"
+    page.show_back = True
+    page.header_button = Button(EXPAND, "FULL SCREEN", font=FONT).size(160, 46)
     return page
+
+
+# Designer discovers the module's page; every result view creates its own tree.
+PAGE = create_page()

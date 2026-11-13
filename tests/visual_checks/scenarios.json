@@ -702,6 +702,171 @@
         "ui.pages.exclude_model.state.ExcludeState.REQUEST": "danger",
         "ui.pages.exclude_model.state.ExcludeState.REQUEST_LABEL": "EXCLUDE SELECTED (1)"
       }
+    },
+    {
+      "id": "shaper-start-ready",
+      "label": "shaper / start / ready",
+      "page": "ui.pages.keys.AppPage.SHAPER_START",
+      "state": {
+        "ff5m_ui.shaper.start.HAS_LAST": true,
+        "ff5m_ui.shaper.start.SUMMARY": "X / Y  |  2026-11-02 15:13"
+      }
+    },
+    {
+      "id": "shaper-start-standard",
+      "label": "shaper / start / standard",
+      "page": "ui.pages.keys.AppPage.SHAPER_START",
+      "state": {
+        "ff5m_ui.shaper.start.SWEEP": false,
+        "ff5m_ui.shaper.start.HAS_LAST": false
+      }
+    },
+    {
+      "id": "shaper-history-five",
+      "label": "shaper / history / five",
+      "page": "ui.pages.keys.AppPage.SHAPER_HISTORY",
+      "state": {
+        "ff5m_ui.shaper.history.ENTRIES": [
+          {
+            "id": "visual-0",
+            "saved_at": 1793613222.0,
+            "axes": [
+              "x",
+              "y"
+            ],
+            "latest": true
+          },
+          {
+            "id": "visual-1",
+            "saved_at": 1793526822.0,
+            "axes": [
+              "y"
+            ],
+            "latest": false
+          },
+          {
+            "id": "visual-2",
+            "saved_at": 1793440422.0,
+            "axes": [
+              "x",
+              "y"
+            ],
+            "latest": false
+          },
+          {
+            "id": "visual-3",
+            "saved_at": 1793354022.0,
+            "axes": [
+              "y"
+            ],
+            "latest": false
+          },
+          {
+            "id": "visual-4",
+            "saved_at": 1793267622.0,
+            "axes": [
+              "x",
+              "y"
+            ],
+            "latest": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "shaper-cancelling",
+      "label": "shaper / cancelling",
+      "page": "ui.pages.keys.AppPage.SHAPER_PROGRESS",
+      "state": {
+        "ff5m_ui.shaper.progress.CANCELLING": true,
+        "ff5m_ui.shaper.progress.TITLE": "CANCELLING..."
+      }
+    },
+    {
+      "id": "shaper-graph-selected",
+      "label": "shaper / graph / selected",
+      "page": "ui.pages.keys.AppPage.SHAPER_RESULT",
+      "state": {
+        "ff5m_ui.shaper.results.CAN_SAVE": true,
+        "ff5m_ui.shaper.results.SAVE_LABEL": "SAVE X & Y",
+        "ff5m_ui.shaper.results.IS_SELECTED": true
+      }
+    },
+    {
+      "id": "shaper-graph-log-y",
+      "label": "shaper / graph / log / y",
+      "page": "ui.pages.keys.AppPage.SHAPER_RESULT",
+      "state": {
+        "ff5m_ui.shaper.results.CAN_SAVE": true,
+        "ff5m_ui.shaper.results.SAVE_LABEL": "SAVE X & Y",
+        "ff5m_ui.shaper.results.IS_SELECTED": true,
+        "ff5m_ui.shaper.results.SCALE": "log",
+        "ff5m_ui.shaper.results.SCALE_TITLE": "CAL PSD (LOG)",
+        "ff5m_ui.shaper.results.TICK_HIGH": "1e5",
+        "ff5m_ui.shaper.results.TICK_MIDDLE": "1e2",
+        "ff5m_ui.shaper.results.TICK_LOW": "1e-1",
+        "ff5m_ui.shaper.results.AXIS": "y"
+      }
+    },
+    {
+      "id": "shaper-graph-single-axis",
+      "label": "shaper / graph / single / axis",
+      "page": "ui.pages.keys.AppPage.SHAPER_RESULT",
+      "state": {
+        "ff5m_ui.shaper.results.CAN_SAVE": true,
+        "ff5m_ui.shaper.results.IS_SELECTED": true,
+        "ff5m_ui.shaper.results.SAVE_LABEL": "SAVE X",
+        "ff5m_ui.shaper.results.Y_ENABLED": false
+      }
+    },
+    {
+      "id": "shaper-table-selected",
+      "label": "shaper / table / selected",
+      "page": "ui.pages.keys.AppPage.SHAPER_COMPARE",
+      "state": {
+        "ff5m_ui.shaper.results.CAN_SAVE": true,
+        "ff5m_ui.shaper.results.SAVE_LABEL": "SAVE X & Y",
+        "ff5m_ui.shaper.results.IS_SELECTED": true
+      }
+    },
+    {
+      "id": "shaper-reference-only",
+      "label": "shaper / reference / only",
+      "page": "ui.pages.keys.AppPage.SHAPER_RESULT",
+      "state": {
+        "ff5m_ui.shaper.results.CAN_SAVE": true,
+        "ff5m_ui.shaper.results.SAVE_LABEL": "SAVE X & Y",
+        "ff5m_ui.shaper.results.IS_SELECTED": false,
+        "ff5m_ui.shaper.results.METHOD": "zvd",
+        "ff5m_ui.shaper.results.METHOD_LABEL": "ZVD 63.4Hz [REF]",
+        "ff5m_ui.shaper.results.CAN_APPLY": false
+      }
+    },
+    {
+      "id": "shaper-fullscreen-linear",
+      "label": "shaper / fullscreen / linear",
+      "page": "ui.pages.keys.AppPage.SHAPER_FULLSCREEN",
+      "state": {
+        "ff5m_ui.shaper.results.CAN_SAVE": true,
+        "ff5m_ui.shaper.results.SAVE_LABEL": "SAVE X & Y",
+        "ff5m_ui.shaper.results.IS_SELECTED": true
+      }
+    },
+    {
+      "id": "shaper-fullscreen-log-y",
+      "label": "shaper / fullscreen / log / y",
+      "page": "ui.pages.keys.AppPage.SHAPER_FULLSCREEN",
+      "state": {
+        "ff5m_ui.shaper.results.CAN_SAVE": true,
+        "ff5m_ui.shaper.results.SAVE_LABEL": "SAVE X & Y",
+        "ff5m_ui.shaper.results.IS_SELECTED": true,
+        "ff5m_ui.shaper.results.SCALE": "log",
+        "ff5m_ui.shaper.results.SCALE_TITLE": "CAL PSD (LOG)",
+        "ff5m_ui.shaper.results.TICK_HIGH": "1e5",
+        "ff5m_ui.shaper.results.TICK_MIDDLE": "1e2",
+        "ff5m_ui.shaper.results.TICK_LOW": "1e-1",
+        "ff5m_ui.shaper.results.AXIS": "y"
+      }
     }
   ]
 }

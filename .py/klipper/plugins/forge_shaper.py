@@ -233,7 +233,7 @@ class ForgeShaper:
         self.gcode.register_command("_FORGE_SHAPER_MEASURE", self.cmd_CALIBRATE,
                                     desc="Run bounded native shaper calibration")
         self.gcode.register_command("FORGE_SHAPER_APPLY", self.cmd_APPLY,
-                                    desc="Stage a selected shaper for SAVE_CONFIG")
+                                    desc="Apply a selected shaper now and stage it for SAVE_CONFIG")
         self.gcode.register_command("FORGE_SHAPER_RESULTS", self.cmd_RESULTS,
                                     desc="Show saved shaper metrics without changing the selected result")
         self.gcode.register_command("FORGE_SHAPER_HISTORY", self.cmd_HISTORY,
@@ -482,13 +482,15 @@ class ForgeShaper:
                 if not self.keep_raw:
                     os.unlink(source)
             self._check()
+            # A recommendation that cannot be applied fails the job before anything is saved or opened.
+            chosen = self._choose_shapers(results, tuple(results), "auto")
             entries = self.history.save(results, time.time())
-            # No partial result is published and no printer setting changes automatically.
+            # Apply recommendations only after every requested axis and the saved result succeeded.
             self._open(entries, 0, results)
-            for axis, result in results.items():
-                best = next(s for s in result["shapers"] if s["name"] == result["recommended"])
-                gcmd.respond_info("%s: recommended %s at %.1f Hz" % (
-                    axis.upper(), best["name"], best["freq"]))
+            self._apply_shapers(chosen)
+            for axis, fit in chosen:
+                gcmd.respond_info("%s: recommended %s at %.1f Hz" % (axis.upper(), fit["name"], fit["freq"]))
+            gcmd.respond_info("Recommended shaper settings applied. SAVE_CONFIG saves them and restarts Klipper.")
         except Exception as error:
             self.state = "cancelled" if self.job.cancelled else "error"
             self.error = str(error)
@@ -568,31 +570,42 @@ class ForgeShaper:
         try:
             record = self._read_result(gcmd.get("RESULT", None))
             axes = self._result_axes(gcmd.get("AXIS", ""), record)
-            chosen = self._apply_shapers(record, axes, method)
+            chosen = self._choose_shapers(record.results, axes, method)
         except (OSError, ValueError, KeyError, TypeError, struct.error) as error:
             raise gcmd.error(str(error))
-        gcmd.respond_info("Staged %s. SAVE_CONFIG saves and restarts Klipper." % ", ".join(
+        self._apply_shapers(chosen)
+        gcmd.respond_info("Applied %s. SAVE_CONFIG saves them and restarts Klipper." % ", ".join(
             "%s: %s %.1f Hz" % (axis.upper(), fit["name"], fit["freq"]) for axis, fit in chosen))
 
-    def _apply_shapers(self, record, axes, method):
+    @staticmethod
+    def _choose_shapers(results, axes, method):
+        """The (axis, fit) pairs for method; every axis is validated before any is applied."""
         if method in REFERENCE_METHODS:
             raise ValueError("ZVD is reference only; firmware support has not been enabled")
         if method not in METHODS + ("auto",):
             raise ValueError("Unknown shaper method")
-        # Validate every axis before staging either axis's settings.
         chosen = []
         for axis in axes:
-            result = record.results[axis]
+            result = results[axis]
             name = result["recommended"] if method == "auto" else method
             fit = next((s for s in result["shapers"] if s["name"] == name), None)
             if name not in METHODS or fit is None or fit.get("reference_only", False):
                 raise ValueError("No applicable %s shaper for axis %s" % (name, axis))
             chosen.append((axis, fit))
-        configfile = self.printer.lookup_object("configfile")
-        for axis, fit in chosen:
-            configfile.set("input_shaper", "shaper_type_" + axis, fit["name"])
-            configfile.set("input_shaper", "shaper_freq_" + axis, "%.1f" % fit["freq"])
         return chosen
+
+    def _apply_shapers(self, chosen):
+        """Activate the chosen shapers now and stage them for SAVE_CONFIG, like upstream Klipper's SHAPER_CALIBRATE."""
+        settings = [(axis, fit["name"], "%.1f" % fit["freq"]) for axis, fit in chosen]
+        # One command updates both axes together; a configuration Klipper rejects is not staged.
+        if self.printer.lookup_object("input_shaper", None) is not None:
+            self.gcode.run_script_from_command("SET_INPUT_SHAPER " + " ".join(
+                "SHAPER_TYPE_%s=%s SHAPER_FREQ_%s=%s" % (axis.upper(), name, axis.upper(), freq)
+                for axis, name, freq in settings))
+        configfile = self.printer.lookup_object("configfile")
+        for axis, name, freq in settings:
+            configfile.set("input_shaper", "shaper_type_" + axis, name)
+            configfile.set("input_shaper", "shaper_freq_" + axis, freq)
 
     def get_status(self, eventtime):
         job = self.job

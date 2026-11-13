@@ -5,7 +5,7 @@ from copy import deepcopy
 from functools import partial
 
 from ui import (
-    FLEX, Button, ButtonSurface, Column, FeatherRenderer, Flex, Frame, Grid, PageTree, Text, ThemeColor,
+    FLEX, ButtonSurface, Column, FeatherRenderer, Flex, Frame, Grid, PageTree, Text, ThemeColor,
     ThemeRole, When,
 )
 from ui.bindings import bind, derived
@@ -79,14 +79,14 @@ footer = Grid(matrix=((
 
 root = Column(Column(caption, header).height(44), rows, footer, gap=8) \
     .padding(left=24, right=24, top=8, bottom=10).ref("shaper.compare.root")
-PAGE = PageTree(root, CONTENT, page_id=AppPage.SHAPER_COMPARE,
-                state_schema=tuple(ShaperState))
-PAGE.title = "Compare shapers"
-PAGE.show_back = True
 
 
 def create_page(bounds=CONTENT):
-    page = PageTree(deepcopy(PAGE.root), bounds, page_id=AppPage.SHAPER_COMPARE,
-                    state_schema=tuple(ShaperState))
-    page.title, page.show_back = PAGE.title, PAGE.show_back
+    page = PageTree(deepcopy(root), bounds, page_id=AppPage.SHAPER_COMPARE, state_schema=tuple(ShaperState))
+    page.title = "Compare shapers"
+    page.show_back = True
     return page
+
+
+# Designer discovers the module's page; every result view creates its own tree.
+PAGE = create_page()

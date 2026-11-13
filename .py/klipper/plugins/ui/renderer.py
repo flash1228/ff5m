@@ -1489,6 +1489,11 @@ class FeatherRenderer(RendererBase):
             self._press(old_wire_id, False)
         return True
 
+    @property
+    def header_action(self):
+        """The action set_header_action shows in the header's right slot, or None."""
+        return None if self._header_action is None else self._header_action[0]
+
     def _header_action_commands(self):
         if self._header_action is None:
             return []

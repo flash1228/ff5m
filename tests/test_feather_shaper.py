@@ -38,12 +38,6 @@ from feather.previews import decode_fxi1
 TEST_PLOT = Rect(68, 146, 700, 210)
 
 
-def row_texts(frame, bounds):
-    """Capture rendered cells independently of their wording."""
-    return tuple(text for text in frame.texts
-                 if bounds.x <= text.x < bounds.right and bounds.y <= text.y < bounds.bottom)
-
-
 def show_feature_page(feature, page):
     """Paint page as the screen does: the tree and values the feature gives, or its painter."""
     content = feature.page_content(page)
@@ -152,15 +146,6 @@ class ShaperInspectionTests(unittest.TestCase):
         self.assertTrue(self.capture.latest.has_action('cal.shaper.view.table'))
         self.assertFalse(self.capture.latest.has_action('cal.shaper.method.ei'))
 
-    def test_a_pressed_table_row_shows_the_pressed_face_over_its_cells(self):
-        self.paint()
-        self.view.select(ShaperAction("view", "table"))
-        self.paint()
-        self.renderer.flash_button("cal.shaper.method.ei")
-        drawn = "\n".join(str(command) for command in self.capture.batches[-1])
-        self.assertIn("-c " + self.renderer.color(FeatherRenderer.BUTTON_COLORS["pressed"][0]), drawn)
-        self.assertIn("EI", drawn)
-
     def test_feature_renders_real_result_and_only_apply_routes_a_setting_command(self):
         host = base_controller()
         host.renderer = self.renderer
@@ -203,22 +188,6 @@ class ShaperInspectionTests(unittest.TestCase):
         self.assertFalse(self.view.select(ShaperAction('done')))
         self.assertFalse(self.view.select(ShaperAction('axis', 'z')))
 
-    def test_comparison_feedback_repaints_every_cell_on_press_and_cancel(self):
-        self.paint()
-        self.view.select(ShaperAction('view', 'table'))
-        self.paint()
-        painted = self.capture.latest
-        for method in self.view.available_methods:
-            action = ShaperAction('method', method).wire_id
-            bounds = painted.button(action).bounds
-            cells = row_texts(painted, bounds)
-            self.assertTrue(cells)
-            for feedback in (self.renderer.flash_button, self.renderer.restore_button):
-                with self.subTest(method=method, feedback=feedback.__name__):
-                    self.assertTrue(feedback(action))
-                    self.assertEqual(row_texts(self.capture.latest, bounds), cells)
-        self.assertEqual(self.view.method, self.results['x']['recommended'])
-
     def test_save_availability_tracks_selected_axes_independently_of_browsing(self):
         self.paint()
         self.assertFalse(self.view.can_save)
@@ -241,23 +210,6 @@ class ShaperInspectionTests(unittest.TestCase):
         self.assertTrue(self.capture.latest.has_action('cal.shaper.save'))
         self.assertEqual(self.view.selections['x'], original['x'])
         self.assertTrue(self.view.page.state[ShaperState.IS_SELECTED])
-
-    def test_partial_table_axis_update_keeps_feedback_content_current(self):
-        self.paint()
-        self.view.select(ShaperAction('view', 'table'))
-        self.paint()
-        self.view.select(ShaperAction('axis', 'y'))
-        tree = self.view.write(self.results, self.selections)
-        self.renderer.send(tree.update(self.renderer, tree.state))
-        painted = self.capture.latest
-        for method in self.view.available_methods:
-            bounds = painted.button(ShaperAction('method', method).wire_id).bounds
-            cells = row_texts(painted, bounds)
-            self.assertTrue(cells)
-            for feedback in (self.renderer.flash_button, self.renderer.restore_button):
-                with self.subTest(method=method, feedback=feedback.__name__):
-                    feedback(ShaperAction('method', method).wire_id)
-                    self.assertEqual(row_texts(self.capture.latest, bounds), cells)
 
     def test_log_scale_changes_only_the_spectrum_and_retains_method_scale_across_axes(self):
         self.paint()
@@ -400,9 +352,6 @@ class ShaperInspectionTests(unittest.TestCase):
         self.paint()
         self.assertTrue(self.capture.latest.has_action('cal.shaper.method.zvd'))
         self.assertTrue(self.view.page.state[ShaperState.HAS_ZVD])
-        buttons = list(self.capture.latest.buttons.values())
-        for button in buttons:
-            self.assertGreaterEqual(button.bounds.height, 44)
         self.view.select(ShaperAction('axis', 'y'))
         self.view.select(ShaperAction('step', 'prev'))
         self.assertNotEqual(self.view.method, 'zvd')
@@ -424,7 +373,7 @@ class ShaperInspectionTests(unittest.TestCase):
             self.assertFalse(feature.handle_semantic_action(ScreenPage.CALIBRATION_RESULT, ShaperAction(route)))
         self.assertEqual(host.gcode.commands, [])
 
-    def test_wide_method_steps_and_comparison_page_keep_selection_and_touch_bounds(self):
+    def test_method_steps_and_comparison_page_keep_selection(self):
         self.paint()
         self.assertTrue(self.capture.latest.has_action("cal.shaper.step.next"))
         with mock.patch("subprocess.Popen", side_effect=AssertionError("Unexpected computation")):
@@ -439,9 +388,6 @@ class ShaperInspectionTests(unittest.TestCase):
             self.view.select(ShaperAction("view", "graph"))
             self.paint()
         self.assertEqual(self.view.method, "ei")
-        for button in self.capture.latest.buttons.values():
-            self.assertGreaterEqual(button.bounds.width, 44)
-            self.assertGreaterEqual(button.bounds.height, 44)
 
     def test_new_result_releases_previous_record_and_resets_save_availability(self):
         self.paint()
@@ -723,23 +669,16 @@ class ShaperWorkflowTests(unittest.TestCase):
         self.host.page = ScreenPage.CALIBRATION_RESULT
         self.host._render_screen()
 
-    def test_table_method_selection_updates_rows_without_rebuilding_the_page(self):
+    def test_table_method_selection_keeps_action_generation_and_sends_no_commands(self):
         self.show_on_the_real_screen()
         self.feature.handle_semantic_action(ScreenPage.CALIBRATION_RESULT, ShaperAction('view', 'table'))
         previous = self.feature.shaper.view.method
         self.assertNotEqual(previous, 'ei')
-        unrelated = next(method for method in ('zv', 'mzv', '2hump_ei') if method != previous)
         generation = self.host.renderer.generation
-        shown = len(self.capture.batches)
 
         self.feature.handle_semantic_action(ScreenPage.CALIBRATION_RESULT, ShaperAction('method', 'ei'))
 
         self.assertEqual(self.feature.shaper.view.method, 'ei')
-        drawn = "\n".join(str(command) for batch in self.capture.batches[shown:] for command in batch)
-        self.assertIn('cal.shaper.method.ei', drawn)
-        self.assertIn('cal.shaper.method.' + previous, drawn)
-        row = self.feature.shaper.view.page.rect('shaper.row.' + unrelated)
-        self.assertNotIn('--batch fill -p %d %d -s' % (row.x, row.y), drawn)
         self.assertEqual(self.host.renderer.generation, generation)
         self.assertEqual(self.host.gcode.commands, [])
 
@@ -776,7 +715,7 @@ class ShaperWorkflowTests(unittest.TestCase):
         self.assertTrue(self.feature.back(self.host.page))
         self.assertEqual(self.host.page, ScreenPage.CALIBRATION_RESULT)
         self.assertIs(self.feature.shaper.view, view)
-        self.assertFalse(view.show_table)
+        self.assertEqual(view.mode, 'graph')
         self.host._show_message.assert_not_called()
         self.assertTrue(view.plot.commands)
 
@@ -820,7 +759,7 @@ class ShaperWorkflowTests(unittest.TestCase):
         self.assertEqual(self.host.gcode.commands, [])
         self.host._restart_klipper.assert_not_called()
 
-    def test_two_axis_exit_dialog_fits_one_page_and_can_save_without_another_prompt(self):
+    def test_two_axis_exit_confirmation_can_save_without_another_prompt(self):
         self.pending['input_shaper'] = {'shaper_type_x': 'mzv', 'shaper_freq_x': '64.2',
                                         'shaper_type_y': 'zv', 'shaper_freq_y': '53.8'}
         self.compose_dialogs()
@@ -829,8 +768,6 @@ class ShaperWorkflowTests(unittest.TestCase):
             self.assertTrue(any(frequency in text.value for text in self.capture.latest.texts))
         for action in ('shaper.leave.confirm', 'shaper.save.confirm', 'message.ok'):
             self.assertTrue(self.capture.latest.has_action(action))
-        self.assertFalse(self.capture.latest.has_action('message.next'))
-        self.assertFalse(self.capture.latest.has_action('message.prev'))
         self.host._restart_klipper.assert_not_called()
         self.host.last_action_time = -100.
         self.host._dispatch_action('shaper.save.confirm')

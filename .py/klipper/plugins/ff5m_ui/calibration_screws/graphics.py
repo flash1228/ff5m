@@ -8,6 +8,11 @@ from ui.components import Component
 
 from .. import calibration_icons
 
+# The plate inside BedHardware's bounds: insets of its rear edge and of its bottom, and the depth of its front face
+# below the surface. The page places its REAR, FRONT and instruction text on that surface by the same numbers.
+PLATE_TOP = 36
+PLATE_BOTTOM = 65
+PLATE_FACE = 9
 
 class BedHardware(Component):
     """Draw a raised plate with mounting points linked to nuts below it."""
@@ -56,9 +61,9 @@ class BedHardware(Component):
                       for corner, value in self.directions.items()}
         commands = []
         plate = bounds.inset(
-            max(28, bounds.width // 12), 36,
-            max(28, bounds.width // 12), 65)
-        surface_height = plate.height - 9
+            max(28, bounds.width // 12), PLATE_TOP,
+            max(28, bounds.width // 12), PLATE_BOTTOM)
+        surface_height = plate.height - PLATE_FACE
         perspective_inset = min(42, plate.width // 8)
         # Merge identical scanlines to keep the complete frame within the
         # real renderer's bounded queue without changing its pixels.

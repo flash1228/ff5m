@@ -6,6 +6,7 @@
 
 import logging
 
+from ui.actions import Back
 from ui.lazy import LazyModule
 from ff5m_ui.screen import ScreenPage
 from feather.features.manager import FeatureHostProxy
@@ -116,6 +117,9 @@ class CalibrationFeature(FeatherControlsMixin, FeatureHostProxy):
         return calibration_screws_ui.PAGE.resolve_action(wire_id)
 
     def handle_semantic_action(self, page, action):
+        # A page's own BACK button (the fullscreen shaper chart) takes the header's Back path.
+        if isinstance(action, Back):
+            return self.back(page)
         shaper = self._active_shaper()
         if shaper is not None:
             return shaper.handle(page, action)
