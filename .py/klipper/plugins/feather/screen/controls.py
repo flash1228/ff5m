@@ -13,6 +13,7 @@ from ui import (
         Toggle,
     )
 from ui.lazy import LazyModule
+from ff5m_ui.dialogs import DialogAction, DialogState, Prompt, prompt_action
 from ff5m_ui.keys import AppPage
 from ff5m_ui.print_state import PrintState
 from ff5m_ui.printing.actions import PrintingAction, PrintingRoute
@@ -22,21 +23,22 @@ from ff5m_ui.move.geometry import (
         JOYSTICK_XY_CENTER, JOYSTICK_XY_RADIUS,
         JOYSTICK_Z_CENTER, JOYSTICK_Z_RADIUS,
     )
-from ff5m_ui.move import runtime as move_ui
 from ff5m_ui.heat import runtime as heat_ui
 from ff5m_ui.z_offset.constants import Z_WEIGHT_DANGER
 from feather.control import joystick as joystick_ui
-from feather.control import motion as joystick_motion
 from feather.screen.pagination import Pagination, pagination_footer
 from feather.screen import prompt_titles
 from feather.materials import render_material_selector
 
 
 home_ui = LazyModule("ff5m_ui.home.page")
+joystick_motion = LazyModule("feather.control.motion")
+keyboard_ui = LazyModule("feather.screen.keyboard")
+move_ui = LazyModule("ff5m_ui.move.runtime")
 preview_actions = LazyModule("ff5m_ui.model_preview.actions")
 printing_ui = LazyModule("ff5m_ui.printing.runtime")
 z_offset_ui = LazyModule("ff5m_ui.z_offset.runtime")
-calibration_screws_ui = LazyModule("ff5m_ui.calibration_screws.runtime")
+PRINT_MORE_ROUTES = (PrintingRoute.MORE_CLOSE, PrintingRoute.MORE_FILAMENT, PrintingRoute.MORE_EXCLUDE)
 SAFE_Z_ADJUST_STEP = 1.0
 JOG_STEP_MINIMUM = 0.1
 JOG_STEP_MAXIMUM = 100.0
@@ -274,22 +276,44 @@ class FeatherControlsMixin:
             logging.exception("[feather_screen] joystick motion failed")
             self._stop_joystick()
             return self.reactor.NEVER
-    def _render_move(self, snapshot=None, caution=None):
+    def _render_move(self):
         self._require_idle()
-        now = self.reactor.monotonic()
-        if snapshot is None:
-            snapshot = self._move_status_snapshot(now)
-        if caution is None:
-            caution = self._move_caution_state(snapshot, now)
-        commands = self.renderer.begin_page("Move", back=True)
-        if getattr(self, "move_mode", "step") == "joystick":
-            self.joystick_feedback_at = 0.0
-            commands += self._joystick_move_commands(snapshot, caution)
+        self._render_screen()
+
+    def _move_page(self):
+        return (move_ui.JOYSTICK_PAGE if getattr(self, "move_mode", "step") == "joystick"
+                else move_ui.STEP_PAGE)
+
+    def _move_content(self):
+        return self._move_page(), "Move", True
+
+    def _paint_move_values(self, values, caution):
+        """Show what a status or feedback path observed, without observing it again in the write."""
+        self._move_values = values, caution
+        self._paint_page_values()
+
+    def _write_move_values(self):
+        """Inside the screen's transaction: the page's values, from the observation a status or
+        feedback path left, else from a new one for a render of the page."""
+        observed, self._move_values = getattr(self, "_move_values", None), None
+        joystick = getattr(self, "move_mode", "step") == "joystick"
+        if observed is None:
+            self._require_idle()
+            now = self.reactor.monotonic()
+            values = self._move_status_snapshot(now)
+            caution = self._move_caution_state(values, now)
+            self._last_move, self.move_caution_signature = values, caution
+            if joystick:
+                self.joystick_feedback_at = 0.0
         else:
-            commands += self._step_move_commands(snapshot, caution)
-        self.move_caution_signature = caution
-        self.renderer.send(commands)
-        self._last_move = snapshot
+            values, caution = observed
+        page_values = self._move_ui_state(values, caution)
+        if joystick:
+            page_values[move_ui.MoveState.INERTIA] = float(self._joystick_inertia_snapshot())
+            page_values[move_ui.MoveState.CURSOR] = getattr(self, "joystick_cursor", None)
+        else:
+            page_values[move_ui.MoveState.JOG_STEP] = float(self.jog_step)
+        self._move_page().state.update(page_values)
 
     def _move_ui_state(self, snapshot, caution=None):
         values = move_ui.snapshot_values(snapshot)
@@ -305,18 +329,6 @@ class FeatherControlsMixin:
 
     def _move_caution_z(self):
         return abs(float(self._setting("safe_z", 10.0))) / 2.0
-
-    def _step_move_commands(self, snapshot, caution=None):
-        values = self._move_ui_state(snapshot, caution)
-        values[move_ui.MoveState.JOG_STEP] = float(self.jog_step)
-        return move_ui.render_step(self.renderer, values)
-
-    def _joystick_move_commands(self, snapshot, caution=None):
-        values = self._move_ui_state(snapshot, caution)
-        values[move_ui.MoveState.INERTIA] = float(
-            self._joystick_inertia_snapshot())
-        values[move_ui.MoveState.CURSOR] = getattr(self, "joystick_cursor", None)
-        return move_ui.render_joystick(self.renderer, values)
 
     def _move_status_snapshot(self, eventtime, position=None):
         status = self.toolhead.get_status(eventtime)
@@ -373,24 +385,9 @@ class FeatherControlsMixin:
             # normal page update below still owns the warning; no independent
             # imperative caution renderer is used.
             return False
-        ui_state = self._move_ui_state(values, caution)
-        if getattr(self, "move_mode", "step") == "joystick":
-            ui_state[move_ui.MoveState.INERTIA] = float(
-                self._joystick_inertia_snapshot())
-            ui_state[move_ui.MoveState.CURSOR] = getattr(
-                self, "joystick_cursor", None)
-            commands = move_ui.update_joystick(self.renderer, ui_state)
-        else:
-            commands = move_ui.render_step_status(
-                self.renderer, ui_state, axes=True)
         self.move_caution_signature = caution
-        if commands:
-            self.renderer.send(commands)
+        self._paint_move_values(values, caution)
         return True
-
-    def _move_status_commands(self, values, axes=False, caution=None):
-        return move_ui.render_step_status(
-            self.renderer, self._move_ui_state(values, caution), axes=axes)
 
     def _update_move_status(self, eventtime):
         values = self._move_status_snapshot(eventtime)
@@ -401,18 +398,7 @@ class FeatherControlsMixin:
         if values == previous:
             return
         self._last_move = values
-        if getattr(self, "move_mode", "step") == "joystick":
-            ui_state = self._move_ui_state(values, caution)
-            ui_state[move_ui.MoveState.INERTIA] = float(
-                self._joystick_inertia_snapshot())
-            ui_state[move_ui.MoveState.CURSOR] = getattr(
-                self, "joystick_cursor", None)
-            self.renderer.send(move_ui.update_joystick(
-                self.renderer, ui_state))
-            return
-        axes_changed = previous is None or values[4:] != previous[4:]
-        self.renderer.send(self._move_status_commands(
-            values, axes=axes_changed, caution=caution))
+        self._paint_move_values(values, caution)
 
     def _joystick_inertia_snapshot(self):
         planner = getattr(self, "joystick", None)
@@ -425,8 +411,7 @@ class FeatherControlsMixin:
         if (self.page != ScreenPage.CONTROL_MOVE
                 or getattr(self, "move_mode", "step") != "joystick"):
             return
-        renderer = getattr(self, "renderer", None)
-        if renderer is None or getattr(renderer, "send", None) is None:
+        if getattr(self, "renderer", None) is None:
             return
         deadline = getattr(self, "joystick_feedback_at", 0.0)
         if not force and eventtime < deadline:
@@ -440,15 +425,9 @@ class FeatherControlsMixin:
         if (caution[0] and cursor is not None
                 and cursor[0] == move_ui.JOYSTICK_XY.wire_id):
             return
-        inertia = self._joystick_inertia_snapshot()
-        ui_state = self._move_ui_state(values, caution)
-        ui_state[move_ui.MoveState.INERTIA] = float(inertia)
-        ui_state[move_ui.MoveState.CURSOR] = cursor
-        commands = move_ui.update_joystick(self.renderer, ui_state)
         self._last_move = values
         self.joystick_feedback_at = eventtime + joystick_ui.FEEDBACK_PERIOD
-        if commands:
-            self.renderer.send(commands)
+        self._paint_move_values(values, caution)
 
     def _semantic_ui_page(self):
         if self.page in (ScreenPage.MODEL_PREVIEW, ScreenPage.PRINT_PREVIEW):
@@ -461,9 +440,7 @@ class FeatherControlsMixin:
         if self.page in (ScreenPage.PRINTING, ScreenPage.PAUSED):
             return printing_ui.get_page()
         if self.page == ScreenPage.CONTROL_MOVE:
-            return (move_ui.JOYSTICK_PAGE
-                    if getattr(self, "move_mode", "step") == "joystick"
-                    else move_ui.STEP_PAGE)
+            return self._move_page()
         if self.page == ScreenPage.SAFE_Z_BRIEFING:
             return z_offset_ui.SAFE_BRIEFING_PAGE
         if self.page == ScreenPage.SAFE_Z_CALIBRATION:
@@ -559,8 +536,17 @@ class FeatherControlsMixin:
                     PrintState.PREPARING, PrintState.PRINTING,
                     PrintState.PAUSED)
                 self._show_page(ScreenPage.IDLE_HOME)
+            elif action.route in PRINT_MORE_ROUTES:
+                self._handle_more_action(action.wire_id)
             else:
                 self._handle_print_action(action.wire_id)
+            return
+        if isinstance(action, DialogAction):
+            self._handle_dialog_action(action.route)
+            return
+        if isinstance(action, Command) and action.key == Prompt.RUN:
+            if action.payload:
+                self._run_script(action.payload)
             return
         if isinstance(action, Back):
             self._go_back()
@@ -597,6 +583,9 @@ class FeatherControlsMixin:
                 return
             raise KeyError("Unsupported product toggle: %s" % action.key)
         if isinstance(action, Increment):
+            if action.key == DialogState.PAGE:
+                self._turn_dialog_page(action)
+                return
             if action.key == move_ui.MoveState.JOG_STEP:
                 self.jog_step = self._adjust_jog_step(
                     self.jog_step, action.amount)
@@ -751,14 +740,8 @@ class FeatherControlsMixin:
         else:
             raise KeyError("Unsupported Z-offset command: %s" % key)
 
-    def _render_heat(self):
-        now = self.reactor.monotonic()
-        values, signature = self._heat_ui_values(now)
-        commands = self.renderer.begin_page("Heat / fan", back=True)
-        commands += heat_ui.render(
-            self.renderer, self.heating_materials, values)
-        self.renderer.send(commands)
-        self._last_heat = signature
+    def _heat_content(self):
+        return heat_ui.get_page(self.heating_materials), "Heat / fan", True
 
     def _heat_ui_values(self, eventtime):
         extruder = self.extruder.get_status(eventtime)
@@ -781,15 +764,18 @@ class FeatherControlsMixin:
         )
         return values, signature
 
-    def _update_heat_status(self, eventtime):
+    def _write_heat_values(self, eventtime):
+        """Write the heaters and fan into the page when they changed; return whether it did."""
         values, signature = self._heat_ui_values(eventtime)
         if signature == self._last_heat:
-            return
+            return False
         self._last_heat = signature
-        commands = heat_ui.update(
-            self.renderer, self.heating_materials, values)
-        if commands:
-            self.renderer.send(commands)
+        heat_ui.get_page(self.heating_materials).state.update(values)
+        return True
+
+    def _update_heat_status(self, eventtime):
+        if self._heat_ui_values(eventtime)[1] != self._last_heat:
+            self._paint_page_values()
 
     def _handle_heat_action(self, action):
         now = self.reactor.monotonic()
@@ -839,7 +825,8 @@ class FeatherControlsMixin:
                                       self.reactor.monotonic() + 0.1)
 
     def _refresh_heat_after_action(self, eventtime):
-        self._render_heat()
+        if self.page == ScreenPage.CONTROL_HEAT:
+            self._render_screen()
         if self.toast_until > eventtime:
             self.renderer.toast(self.toast_message)
 
@@ -1263,8 +1250,8 @@ class FeatherControlsMixin:
     def _update_z_weight_status(self, eventtime):
         gauge = self._update_z_weight_gauge(eventtime)
         if getattr(self, "page", None) == ScreenPage.Z_OFFSET_PAPER:
-            self.renderer.send(z_offset_ui.update_paper_gauge(
-                self.renderer, None if gauge is None else dict(gauge)))
+            # The paper page's gauge is one of its values.
+            self._paint_page_values()
             self._check_z_pressure(eventtime)
             return
         self.renderer.send(self._z_weight_gauge_commands(eventtime))
@@ -1816,7 +1803,7 @@ class FeatherControlsMixin:
                 yield line
 
     @staticmethod
-    def _prompt_button(payload, index):
+    def _prompt_button(payload):
         parts = str(payload).split("|", 2)
         label = parts[0].strip()
         command = (
@@ -1831,9 +1818,8 @@ class FeatherControlsMixin:
             "secondary": "selected",
         }.get(color, "enabled")
         return {
-            "action": "prompt.button.%d" % index,
+            "action": prompt_action(command),
             "label": label,
-            "command": command,
             "state": state,
         }
 
@@ -1845,7 +1831,7 @@ class FeatherControlsMixin:
             "rows": [],
             "footer": [],
             "group": None,
-            "buttons": {},
+            "buttons": [],
             "kind": None,
         }
 
@@ -1853,8 +1839,8 @@ class FeatherControlsMixin:
         prompt = self._prompt_draft
         if prompt is None:
             return
-        button = self._prompt_button(payload, len(prompt["buttons"]))
-        prompt["buttons"][button["action"]] = button
+        button = self._prompt_button(payload)
+        prompt["buttons"].append(button)
         if footer:
             prompt["footer"].append(button)
         elif prompt["group"] is not None:
@@ -1878,10 +1864,6 @@ class FeatherControlsMixin:
         current = self._find_dialog(ScreenDialog.ACTION_PROMPT)
         prompt = current.content if current is not None else self._prompt_draft or {}
         return prompt_titles.is_cold_pull(prompt)
-
-    def _action_prompt_has_temperature_status(self):
-        current = self._find_dialog(ScreenDialog.ACTION_PROMPT)
-        return current is not None and prompt_titles.has_temperature_status(current.content)
 
     def _show_action_prompt(self):
         if self._prompt_draft is None:
@@ -1972,7 +1954,7 @@ class FeatherControlsMixin:
                for line in str(message).splitlines()):
             if self._release_boot_screen():
                 return
-            self.renderer.invalidate_footer()
+            self.renderer.redraw_display()
             self._show_page(self.page)
             return
         for line in self._prompt_response_lines(message):
@@ -1985,26 +1967,6 @@ class FeatherControlsMixin:
             result = self.parse_screw_result(message)
             if result:
                 self.calibration_results.append(result)
-
-    def _handle_action_prompt_action(self, action):
-        instance = self._current_dialog_instance()
-        if instance is None or instance.kind != ScreenDialog.ACTION_PROMPT:
-            return
-        prompt = instance.content
-        if action == "prompt.prev":
-            current = self._current_dialog_instance()
-            if current is not None:
-                current.page = max(0, current.page - 1)
-            self._render_dialog()
-        elif action == "prompt.next":
-            current = self._current_dialog_instance()
-            if current is not None:
-                current.page += 1
-            self._render_dialog()
-        elif action.startswith("prompt.button."):
-            button = prompt["buttons"].get(action)
-            if button is not None and button["command"]:
-                self._run_script(button["command"])
 
     def _nozzle_temperature_display(self):
         status = self.extruder.get_status(self.reactor.monotonic())
@@ -2020,15 +1982,6 @@ class FeatherControlsMixin:
             temperature, target,
             bool(operation.get("cancel_available")), bool(operation.get("cancel_pending")),
         )
-
-    def _dialog_paint_key(self, dialog, content):
-        if dialog != ScreenDialog.ACTION_PROMPT:
-            return None
-        if content["kind"] == prompt_titles.COLD_PULL:
-            return lambda instance: self._cold_pull_display()
-        if content["kind"] == prompt_titles.HEATING_NOZZLE:
-            return lambda instance: self._nozzle_temperature_display()
-        return None
 
     def _cold_pull_status_dialog(self, cancel_action, modal=True):
         """Build the cold-pull progress shared by the prompt and calibration."""
@@ -2091,12 +2044,6 @@ class FeatherControlsMixin:
                 self.renderer.text(640, 285, "%d X %d POINTS" % (columns, rows),
                                    ThemeColor.DIM, "JetBrainsMono 8pt", "left", "middle"),
             ]
-        elif self.calibration_kind == "screws" and self.calibration_results:
-            commands += calibration_screws_ui.render(
-                self.renderer, self.calibration_results,
-                self._screw_reference_name())
-            self.renderer.send(commands)
-            return
         else:
             commands.append(self.renderer.text(400, 150, "Calibration completed",
                                                ThemeColor.PRIMARY, "Roboto Bold 14pt", "center"))

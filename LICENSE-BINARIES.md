@@ -21,7 +21,10 @@ The native programs that Forge-X ships in [`.bin/exec/`](.bin/exec/), built from
 - `splash`
 - `typer`
 
-and the accompanying profile control tool in `.bin/tools/overclocking/bin/t113-profilectl`.
+the accompanying profile control tool in `.bin/tools/overclocking/bin/t113-profilectl`,
+and the native Feather UI engine, also built from the author's own source code:
+
+- `feather_engine.abi3.so` in [`.py/klipper/plugins/ui/`](.py/klipper/plugins/ui/)
 
 These are called the **Components**. Everything else in this repository is **not** covered by this license, see [Other files](#other-files).
 
@@ -79,6 +82,6 @@ This license does not cover the following parts of Forge-X. They keep their own 
 | Part | License |
 | --- | --- |
 | Forge-X itself: scripts, Python code, macros, configuration, documentation, themes | GNU GPLv3, see [`LICENSE`](LICENSE) |
-| Klipper modules and their patches in `.py/klipper/`, including the `c_helper.so` helper | GNU GPLv3 (derived from Klipper); the source is in [DrA1ex/klipper-ad5m](https://github.com/DrA1ex/klipper-ad5m) |
+| Klipper modules and their patches in `.py/klipper/`, including the `c_helper.so` helper, except the `feather_engine.abi3.so` Component | GNU GPLv3 (derived from Klipper); the source is in [DrA1ex/klipper-ad5m](https://github.com/DrA1ex/klipper-ad5m) |
 | forge-x-streamer, the camera service in `.bin/exec/` | GNU GPL-2.0-or-later, see [Camera](docs/CAMERA.md) |
 | Linux kernel modules `zram.ko` and `zsmalloc.ko`, and other third-party components | their own licenses (GPL for the kernel modules) |

@@ -10,11 +10,18 @@ import json
 from dataclasses import dataclass, fields, is_dataclass
 from enum import Enum
 
-from .bindings import Binding, StateStore, resolve_deep, state_spec
+from .bindings import Binding, DerivedBinding, ItemBinding, StateStore, resolve_deep, state_spec
+from .engine import collect_actions as _collect_actions
 from .identity import CommandKey, PageKey, StateKey, serialize_key
 
 
+_PLAIN = (str, int, float, bool)
+
+
 def _json_value(value):
+    # Exact types only: an Enum that subclasses int or str takes the slow path.
+    if value is None or type(value) in _PLAIN:
+        return value
     if isinstance(value, (PageKey, StateKey, CommandKey)):
         return serialize_key(value)
     if isinstance(value, Enum):
@@ -47,6 +54,8 @@ def _json_value(value):
 
 
 def _validate_payload(value):
+    if value is None or type(value) in _PLAIN:
+        return
     if type(value) in (SetValue, ItemCommand):
         # These descriptors expose defensive copies of their typed snapshots.
         return
@@ -74,14 +83,26 @@ def _fingerprint(value):
     return hashlib.sha1(encoded).hexdigest()[:12]
 
 
+_ACTION_VALIDATED = object()
+
+
 class Action:
     """Base class for framework-visible UI effects."""
 
     kind = None
 
+    def __deepcopy__(self, memo):
+        # Actions are frozen and their payloads immutable, so a copy of a
+        # component's fields shares them.
+        return self
+
     @property
     def wire_id(self):
-        return "ui.%s" % _fingerprint(self.as_dict())
+        cached = getattr(self, "_wire_id", None)
+        if cached is None:
+            cached = "ui.%s" % _fingerprint(self.as_dict())
+            object.__setattr__(self, "_wire_id", cached)
+        return cached
 
     def as_dict(self):
         raise NotImplementedError
@@ -365,9 +386,13 @@ class Command(Action):
         # The transport identity covers the complete semantic invocation. A
         # project may reuse one CommandKey with several typed payloads without
         # creating collisions or teaching the renderer about domain behavior.
-        value = self.key.value
-        prefix = str(value) if isinstance(value, str) else "command"
-        return "%s.%s" % (prefix, _fingerprint(self.as_dict()))
+        cached = getattr(self, "_wire_id", None)
+        if cached is None:
+            value = self.key.value
+            prefix = str(value) if isinstance(value, str) else "command"
+            cached = "%s.%s" % (prefix, _fingerprint(self.as_dict()))
+            object.__setattr__(self, "_wire_id", cached)
+        return cached
 
     def as_dict(self):
         return {
@@ -407,6 +432,13 @@ class ItemCommand(Action):
     def payload(self):
         return copy.deepcopy(self._payload)
 
+    def __deepcopy__(self, memo):
+        # Frozen with an immutable payload, so a template's items share it. A derived binding keeps a cache of its
+        # own and is the one payload each item copies.
+        if type(self._payload) is not DerivedBinding:
+            return self
+        return ItemCommand(self.key, copy.deepcopy(self._payload, memo), self.hint)
+
     @property
     def wire_id(self):
         raise RuntimeError(
@@ -414,7 +446,8 @@ class ItemCommand(Action):
 
     def resolve(self, scope):
         return Command(
-            self.key, payload=resolve_deep(self.payload, scope), hint=self.hint)
+            self.key, payload=resolve_deep(
+                self._payload if type(self._payload) is ItemBinding else self.payload, scope), hint=self.hint)
 
     def as_dict(self):
         payload = (self.payload.as_dict()
@@ -437,7 +470,9 @@ def validate_action(action):
     """Action replacements must be immutable, portable value objects."""
     if not isinstance(action, Action):
         raise TypeError("Interactive components require a semantic Action")
-    _validate_payload(action)
+    if getattr(action, "_validated_action", None) is not _ACTION_VALIDATED:
+        _validate_payload(action)
+        object.__setattr__(action, "_validated_action", _ACTION_VALIDATED)
     return action
 
 
@@ -450,36 +485,18 @@ def action_metadata(action):
 
 
 def collect_actions(root):
-    """Collect the semantic actions reachable from one component tree."""
-    result = {}
+    """Collect the semantic actions reachable from one component tree.
 
-    def add(value):
-        if value is None:
-            return
-        if isinstance(value, Action):
-            validate_action(value)
-            wire = value.wire_id
-            existing = result.get(wire)
-            if existing is not None and existing != value:
-                raise ValueError("Semantic action wire collision: %s" % wire)
-            result[wire] = value
-            return
-        if isinstance(value, (tuple, list)):
-            for item in value:
-                if isinstance(item, (tuple, list)) and item:
-                    add(item[0])
-                else:
-                    add(item)
-
-    for node in root.walk():
-        add(getattr(node, "action", None))
-        add(getattr(node, "active_action", None))
-        add(getattr(node, "buttons", None))
-    return result
+    The engine walks the render tree and returns {wire_id: action} for each
+    node's action, active_action, buttons, page_actions and button_groups
+    (sequences add their items, or the items' first elements). Unequal actions under one wire id raise
+    ValueError.
+    """
+    return _collect_actions(root, Action, validate_action, _ACTION_VALIDATED)
 
 
-def _apply_state_action(store, action):
-    result = store.copy()
+def state_action_values(store, action):
+    """The values a portable state action writes, given the store it acts on."""
     if isinstance(action, SetValue):
         value = action.value
     elif isinstance(action, Toggle):
@@ -507,7 +524,12 @@ def _apply_state_action(store, action):
         value = store[action.key][:-1]
     else:
         value = ""
-    result.update({action.key: value})
+    return {action.key: value}
+
+
+def _apply_state_action(store, action):
+    result = store.copy()
+    result.update(state_action_values(store, action))
     return result
 
 

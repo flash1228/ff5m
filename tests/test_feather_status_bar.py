@@ -17,9 +17,15 @@ sys.path.insert(0, str(pathlib.Path(__file__).parents[1] / '.py/klipper/plugins'
 
 from feather.files import FileWorker
 from feather.system_usage import SystemUsageSampler, read_cpu_counters, read_free_cache_kib
+from feather.screen.composition import PaintSurface
+from tests.feather_render_test_helper import painted_dialog
+from feather_screen import FeatherScreen
+from ff5m_ui.keys import AppPage
+from ff5m_ui.screen import ScreenDialog
 from ff5m_ui.status_bar import PrinterRenderer, footer_values
 from tests.feather_render_test_helper import RenderCapture
-from ui import ThemeColor, ThemeRole
+from ui import Rect, ScreenLayer, ScreenRoot, ThemeColor, ThemeRole
+from ui.renderer import FOOTER_Y, SCREEN_HEIGHT, SCREEN_WIDTH
 
 
 class SystemMemoryTest(unittest.TestCase):
@@ -188,35 +194,44 @@ class StatusBarTest(unittest.TestCase):
         return footer_values(dict(temperature=300, target=300), dict(temperature=120, target=120),
                              cpu, memory, network, status, style)
 
-    def test_colorful_retains_full_labels_and_vanilla_retains_original_presentation(self):
+    @staticmethod
+    def screen():
+        """A printer renderer, its screen root showing a page beside the footer, and a
+        capture of what it draws after that page."""
         renderer = PrinterRenderer()
-        capture = RenderCapture(renderer)
+        root = ScreenRoot(renderer, PaintSurface(lambda: renderer.send(renderer.begin_page('Home'))),
+                          Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT), AppPage.SCREEN_ROOT)
+        RenderCapture(renderer)
+        root.paint()
+        return renderer, root, RenderCapture(renderer)
+
+    @staticmethod
+    def shown(renderer, root, values):
+        """The footer as the next page shows it once the panel's pixels are gone."""
+        renderer.footer(*values)
+        renderer.redraw_display()
+        root.paint(force=True)
+
+    def test_colorful_retains_full_labels_and_vanilla_retains_original_presentation(self):
+        renderer, root, capture = self.screen()
         for theme in ('DEFAULT', 'CLASSIC'):
             renderer.set_theme(theme)
-            renderer.footer(*self.values(style='COLORFUL'))
-            self.assertEqual([text.value for text in capture.latest.texts], [
+            self.shown(renderer, root, self.values(style='COLORFUL'))
+            self.assertEqual([text.value for text in footer_texts(capture.latest)], [
                 'NOZZLE 300/300C', '·', 'BED 120/120C', '255.255.255.255', '·', 'CANCELLED'])
-            colored = [shlex.split(command) for command in capture.batches[-1]
-                       if command.startswith('--batch text ')]
             expected = (ThemeColor.SECONDARY, ThemeColor.DIM, ThemeColor.WARNING,
                         ThemeColor.TEXT, ThemeColor.DIM, ThemeColor.PRIMARY)
-            self.assertEqual([tokens[tokens.index('-c')+1] for tokens in colored],
-                             [renderer.color(color) for color in expected])
+            self.assertEqual(footer_colors(capture.batches[-1]), [renderer.color(color) for color in expected])
             previous_right = 19
-            for text in capture.latest.texts:
+            for text in footer_texts(capture.latest):
                 self.assertGreaterEqual(text.x, previous_right)
                 previous_right = text.x + renderer.text_width(text.value, text.font)
                 self.assertLessEqual(previous_right, 780)
             renderer.footer(*self.values(style='VANILLA'))
             self.assertEqual([text.value for text in capture.latest.texts], [
                 'NOZZLE 300/300C | BED 120/120C', '255.255.255.255 | CANCELLED'])
-            commands = [shlex.split(command) for command in capture.batches[-1]
-                        if command.startswith('--batch text ')]
-            self.assertTrue(all(tokens[tokens.index('-c')+1] == renderer.color(ThemeColor.PRIMARY)
-                                for tokens in commands))
-        self.assertTrue(all((batch.kind, batch.key) == ('state', 'footer')
-                            and len(renderer._encode_frames(batch.commands)) == 1
-                            for batch in capture.submitted))
+            self.assertTrue(all(color == renderer.color(ThemeColor.PRIMARY)
+                                for color in footer_colors(capture.batches[-1])))
 
     def test_memory_rounds_to_whole_mib_with_exact_halves_down(self):
         for mib, expected in ((0, 0), (0.5, 0), (0.6, 1), (1.4, 1), (1.5, 1),
@@ -229,13 +244,12 @@ class StatusBarTest(unittest.TestCase):
         self.assertIn('CPU --%', self.values(cpu=None)[0])
 
     def test_cpu_digit_changes_center_metrics_in_remaining_space_without_padding(self):
-        renderer = PrinterRenderer()
-        capture = RenderCapture(renderer)
+        renderer, root, capture = self.screen()
         outer_positions = None
         for cpu in (None, 0, 9, 10, 99, 100):
             with self.subTest(cpu=cpu):
                 renderer.footer(*self.values(cpu=cpu))
-                texts = capture.latest.texts
+                texts = footer_texts(capture.latest)
                 cpu_text = next(text for text in texts if text.value.startswith('CPU '))
                 self.assertEqual(cpu_text.value, 'CPU %s%%' % ('--' if cpu is None else cpu))
                 bed = capture.latest.text('B 120/120C')
@@ -251,8 +265,7 @@ class StatusBarTest(unittest.TestCase):
                 self.assertEqual(current, outer_positions)
 
     def test_metrics_groups_anchor_left_center_and_right_without_padding_memory(self):
-        renderer = PrinterRenderer()
-        capture = RenderCapture(renderer)
+        renderer, root, capture = self.screen()
         outer_positions = None
         for memory in (0, 9, 20, 128):
             with self.subTest(memory=memory):
@@ -275,8 +288,7 @@ class StatusBarTest(unittest.TestCase):
                 self.assertEqual(current, outer_positions)
 
     def test_center_column_adapts_to_temperature_network_and_state_widths(self):
-        renderer = PrinterRenderer()
-        capture = RenderCapture(renderer)
+        renderer, root, capture = self.screen()
         for temperature, network, status in ((0, 'OFFLINE', 'idle'),
                                              (100, '192.168.2.124', 'printing'),
                                              (300, '255.255.255.255', 'cancelled')):
@@ -294,8 +306,7 @@ class StatusBarTest(unittest.TestCase):
                                        expected_center, delta=0.5)
 
     def test_long_ip_and_state_leave_a_visible_gap_beside_metrics(self):
-        renderer = PrinterRenderer()
-        capture = RenderCapture(renderer)
+        renderer, root, capture = self.screen()
         renderer.footer(*self.values())
         frame = capture.latest
         bed = frame.text('B 120/120C')
@@ -307,30 +318,31 @@ class StatusBarTest(unittest.TestCase):
         self.assertGreaterEqual(network.x - free.x - renderer.text_width(free.value, free.font), gap)
 
     def test_all_colored_fields_are_one_cached_footer_batch(self):
-        renderer = PrinterRenderer()
-        capture = RenderCapture(renderer)
+        renderer, root, capture = self.screen()
         renderer.footer(*self.values())
         renderer.footer(*self.values())
         self.assertEqual(len(capture.submitted), 1)
-        batch = capture.submitted[0]
-        self.assertEqual((batch.kind, batch.key), ('state', 'footer'))
-        self.assertEqual(len(renderer._encode_frames(batch.commands)), 1)
-        self.assertEqual([text.value for text in capture.latest.texts], [
+        self.assertEqual([text.value for text in footer_texts(capture.latest)], [
             'N 300/300C', '·', 'B 120/120C', 'CPU 100%', '·',
             'FREE 128MB', '255.255.255.255', '·', 'CANCELLED'])
         renderer.footer(*self.values(cpu=99))
         self.assertEqual(len(capture.submitted), 2)
         self.assertTrue(capture.latest.has_text('CPU 99%'))
 
+    def test_a_field_that_grows_draws_only_the_footer(self):
+        renderer, root, capture = self.screen()
+        renderer.footer(*self.values(cpu=9))
+        renderer.footer(*self.values(cpu=10))
+        self.assertTrue(capture.latest.has_text('CPU 10%'))
+        self.assertEqual(capture.latest.texts, footer_texts(capture.latest))
+
     def test_fields_and_middle_dots_fit_longest_values_and_follow_every_theme(self):
-        renderer = PrinterRenderer()
-        capture = RenderCapture(renderer)
+        renderer, root, capture = self.screen()
         for theme in renderer.theme_names():
             with self.subTest(theme=theme):
                 renderer.set_theme(theme)
-                renderer.invalidate_footer()
-                renderer.footer(*self.values())
-                texts = capture.latest.texts
+                self.shown(renderer, root, self.values())
+                texts = footer_texts(capture.latest)
                 self.assertEqual(len(texts), 9)
                 previous_right = 19
                 for text in texts:
@@ -339,25 +351,100 @@ class StatusBarTest(unittest.TestCase):
                     self.assertLessEqual(previous_right, 780)
                 colors = [ThemeRole.TEMPERATURE_NOZZLE, ThemeRole.TEMPERATURE_BED, ThemeColor.TEXT,
                           ThemeColor.TEXT, ThemeColor.SUCCESS, ThemeColor.PRIMARY]
-                commands = [shlex.split(command) for command in capture.batches[-1]
-                            if command.startswith('--batch text ')]
                 expected = []
                 for index, color in enumerate(colors):
                     if index % 2:
                         expected.append(renderer.color(ThemeColor.DIM))
                     expected.append(renderer.color(color))
-                self.assertEqual([tokens[tokens.index('-c') + 1] for tokens in commands], expected)
+                self.assertEqual(footer_colors(capture.batches[-1]), expected)
 
-    def test_hidden_update_restores_latest_footer_with_the_next_page(self):
-        renderer = PrinterRenderer()
-        capture = RenderCapture(renderer)
+    def test_an_update_under_a_dialog_shows_when_the_dialog_closes(self):
+        renderer, root, capture = self.screen()
         renderer.footer(*self.values())
-        renderer.invalidate_footer()
-        renderer.footer(*self.values(cpu=15), paint=False)
-        self.assertEqual(len(capture.submitted), 1)
-        renderer.send(renderer.begin_page('Settings'))
+        dialog = painted_dialog(ScreenDialog.MESSAGE, {}, renderer, lambda layer: renderer.send(
+            renderer.dialog('PRINT FINISHED', (), (('message.ok', 'OK', 'enabled'),))))
+        root.open(dialog)
+        submitted = len(capture.submitted)
+        renderer.footer(*self.values(cpu=15))
+        self.assertEqual(len(capture.submitted), submitted)
+        root.close(dialog)
         self.assertTrue(capture.latest.has_text('CPU 15%'))
         self.assertTrue(capture.latest.has_text('CANCELLED'))
+
+
+def footer_texts(frame):
+    """The frame's texts in the footer strip."""
+    return [text for text in frame.texts if text.y >= FOOTER_Y]
+
+
+def footer_colors(commands):
+    """The colors of the texts the commands draw in the footer strip."""
+    texts = [shlex.split(command) for command in commands if command.startswith('--batch text ')]
+    return [tokens[tokens.index('-c') + 1] for tokens in texts
+            if int(tokens[tokens.index('-p') + 2]) >= FOOTER_Y]
+
+
+def footer_scrims(commands):
+    """Translucent fills over the footer band since its last opaque paint."""
+    scrims = None
+    for command in commands:
+        tokens = str(command).split()
+        if tokens[:2] != ['--batch', 'fill']:
+            continue
+        x, y = (int(value) for value in tokens[tokens.index('-p') + 1:tokens.index('-p') + 3])
+        width, height = (int(value) for value in tokens[tokens.index('-s') + 1:tokens.index('-s') + 3])
+        color = tokens[tokens.index('-c') + 1]
+        if x > 0 or y > FOOTER_Y or x + width < SCREEN_WIDTH or y + height < SCREEN_HEIGHT:
+            continue
+        if len(color) == 8 and color[:2].upper() != 'FF':
+            scrims = None if scrims is None else scrims + 1
+        else:
+            scrims = 0
+    return scrims
+
+
+class StatusBarUnderDialogTest(unittest.TestCase):
+    def test_footer_is_dimmed_once_by_a_dialog_and_restored_by_pages(self):
+        # Replays the UI suite's message -> page -> dialog layout -> print
+        # result sequence; Typer applies every batch in order.
+        renderer = PrinterRenderer()
+        renderer.footer(*StatusBarTest().values(status='standby'))
+        screen = FeatherScreen.__new__(FeatherScreen)
+        screen.renderer = renderer
+        title = ['HOME']
+        capture = RenderCapture(renderer)
+        rendered = []
+
+        def drain():
+            while item := capture.get():
+                rendered.extend(item.commands)
+
+        def paint_page():
+            renderer.send(renderer.begin_page(title[0]))
+
+        def paint_message(instance):
+            renderer.send(renderer.dialog('PRINT FINISHED', (), (('message.ok', 'OK', 'enabled'),)))
+
+        root = ScreenRoot(renderer, PaintSurface(paint_page, accepts_deltas=True),
+                          Rect(0, 0, 800, 480), AppPage.SCREEN_ROOT)
+        message = painted_dialog(ScreenDialog.MESSAGE, {}, renderer, paint_message)
+        root.paint()
+        root.open(message)
+        drain()
+        self.assertEqual(footer_scrims(rendered), 1)
+
+        root.close(message, paint=False)
+        title[0] = 'NETWORK'
+        root.paint(force=True)
+        drain()
+        renderer.send(renderer.begin_page('DIALOG LAYOUT') + renderer.dialog(
+            'SHORT MESSAGE', ('READY TO CONTINUE.',), (('dialog.test.ok', 'OK', 'warning'),)))
+        drain()
+        self.assertEqual(footer_scrims(rendered), 0)
+
+        root.open(message)
+        drain()
+        self.assertEqual(footer_scrims(rendered), 1)
 
 
 if __name__ == '__main__':

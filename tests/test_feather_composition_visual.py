@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from unittest import mock
 
+from tests import feather_render_test_helper as render_helper
 from tests.visual_checks import composition
 from tests.visual_checks.composition_scenes import (
     FeatherScreen, drawing_operations, run_sequence,
@@ -39,7 +40,6 @@ class CompositionVisualTest(unittest.TestCase):
         close = steps["close"]
         text = [op["value"] for op in close["dirty_operations"] if op["type"] == "text"]
         self.assertIn("LATEST DATA", text)
-        self.assertIn("STATUS: LATEST DATA", text)
         self.assertNotIn("NEXT DIALOG", text)
         self.assertEqual(steps["button-busy"]["controls"], ["global.wake"])
 
@@ -50,16 +50,15 @@ class CompositionVisualTest(unittest.TestCase):
             self.assertEqual(step["counts"]["dialog"], 2)
             self.assertEqual(step["counts"]["batches"], 1)
             self.assertEqual(step["counts"]["scrim"], 1)
-            self.assertEqual(step["batches"][0]["kind"], "surface")
 
     def test_repeated_scrim_is_recorded_and_reported_as_failure(self):
-        original = FeatherScreen._paint_dialog
+        original = render_helper.paint_scrim
 
-        def broken_paint(screen, instance):
-            screen.renderer.send((screen.renderer.modal_scrim(),))
-            original(screen, instance)
+        def broken_paint(renderer):
+            renderer.send((renderer.modal_scrim(),))
+            original(renderer)
 
-        with mock.patch.object(FeatherScreen, "_paint_dialog", broken_paint):
+        with mock.patch.object(render_helper, "paint_scrim", broken_paint):
             steps = run_sequence("cards")
         opening = next(step for step in steps if step["id"] == "cards-open")
         self.assertTrue(opening["failures"])

@@ -15,12 +15,14 @@ import logging
 
 from feather.network import protocol
 from feather.network import client as feather_network
-from feather.screen.keyboard import TEXT_KEYBOARD, is_keyboard_action
 from feather.screen.pagination import Pagination
 from ui import ThemeColor
+from ui.lazy import LazyModule
+from ff5m_ui import dialogs as dialog_ui
 from ff5m_ui.screen import ScreenPage
 
 
+keyboard_ui = LazyModule("feather.screen.keyboard")
 NETWORK_ROWS = 5
 NETWORK_WATCHDOG = 20.0
 NETWORK_WATCHDOG_PROBE = 5.0
@@ -171,9 +173,9 @@ class FeatherNetworkPagesMixin:
         elif action == "net.password.toggle":
             self.password_visible = not self.password_visible
             self._render_keyboard()
-        elif is_keyboard_action(action):
+        elif keyboard_ui.is_keyboard_action(action):
             (self.password, self.password_cursor, self.keyboard_shift,
-             self.keyboard_symbols) = TEXT_KEYBOARD.apply(
+             self.keyboard_symbols) = keyboard_ui.TEXT_KEYBOARD.apply(
                 self.password, self.password_cursor, action, self.keyboard_shift,
                 self.keyboard_symbols, max_length=64)
             self._render_keyboard()
@@ -341,8 +343,8 @@ class FeatherNetworkPagesMixin:
                     and self.selected_network is not None
                     and self.selected_network.get("saved")):
                 self._show_message(error, return_page, (
-                    ("message.ok", "CANCEL", "enabled"),
-                    ("net.reset.saved", "RESET PASSWORD", "warning"),
+                    (dialog_ui.OK, "CANCEL", "enabled"),
+                    (dialog_ui.RESET_WIFI_PASSWORD, "RESET PASSWORD", "warning"),
                 ))
                 return
 
@@ -468,15 +470,14 @@ class FeatherNetworkPagesMixin:
             self.renderer.fill(25, 120, 750, 53, ThemeColor.PANEL),
             self.renderer.stroke(25, 120, 750, 53, ThemeColor.PRIMARY, 2),
         ]
-        commands += TEXT_KEYBOARD.render_value(
-            self.renderer, self.password, self.password_cursor,
-            42, 147, 575, ThemeColor.PRIMARY,
-            masked=not self.password_visible)
+        commands += self.renderer.text_field(
+            42, 147, 575, self.password, self.password_cursor,
+            ThemeColor.PRIMARY, masked=not self.password_visible)
         commands += self.renderer.button(
             "net.password.toggle", 645, 128, 120, 37,
             "HIDE" if self.password_visible else "SHOW",
             font="JetBrainsMono 8pt")
-        commands += TEXT_KEYBOARD.render(
+        commands += keyboard_ui.TEXT_KEYBOARD.render(
             self.renderer, self.keyboard_symbols, self.keyboard_shift)
         valid = self._valid_password(self.password)
         commands += self.renderer.button(

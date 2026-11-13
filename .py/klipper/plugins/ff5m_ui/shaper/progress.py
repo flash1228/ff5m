@@ -104,7 +104,3 @@ def values(status):
             status["elapsed"] // 60, status["elapsed"] % 60, status["samples"]),
         ProgressState.CANCELLING: cancelling, ProgressState.STEPS: steps,
     }
-
-
-def render(renderer, status):
-    return renderer.begin_page(PAGE.title) + PAGE.draw(renderer, values(status))

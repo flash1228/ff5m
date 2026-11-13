@@ -22,7 +22,7 @@ BenchmarkStats = namedtuple(
         "cpu_ms",
         "flush_ms",
         "python_ms",
-        "fps_loss_percent",
+        "python_p95_ms",
         "raster",
     ),
 )
@@ -45,8 +45,8 @@ class BenchmarkState(StateKey):
     CPU_MS = state(float, default=None, unit="ms", category="benchmark")
     FLUSH_MS = state(float, default=None, unit="ms", category="benchmark")
     PYTHON_MS = state(float, default=None, unit="ms", category="benchmark")
-    FPS_LOSS_PERCENT = state(
-        float, default=None, unit="percent", category="benchmark")
+    PYTHON_P95_MS = state(
+        float, default=None, unit="ms", category="benchmark")
     RASTER = state(str, default="SCALAR", category="benchmark")
     STATUS = state(str, default="WARMUP 0/30")
 
@@ -60,7 +60,7 @@ def empty_stats(raster):
         cpu_ms=None,
         flush_ms=None,
         python_ms=None,
-        fps_loss_percent=None,
+        python_p95_ms=None,
         raster=str(raster),
     )
 
@@ -76,7 +76,7 @@ def stats_values(stats):
         BenchmarkState.CPU_MS: stats.cpu_ms,
         BenchmarkState.FLUSH_MS: stats.flush_ms,
         BenchmarkState.PYTHON_MS: stats.python_ms,
-        BenchmarkState.FPS_LOSS_PERCENT: stats.fps_loss_percent,
+        BenchmarkState.PYTHON_P95_MS: stats.python_p95_ms,
         BenchmarkState.RASTER: stats.raster,
     }
 

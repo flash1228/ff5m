@@ -268,7 +268,7 @@ class SuiteSelectionTest(unittest.TestCase):
 
     def test_individual_suites_do_not_expand(self):
         for name in (
-                "ui", "component", "render", "motion", "heat", "screws",
+                "ui", "leak", "component", "render", "motion", "heat", "screws",
                 "mesh", "z"):
             self.assertEqual(len(REGRESSION.selected_suites(name)), 1)
 

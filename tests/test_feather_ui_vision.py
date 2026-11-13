@@ -1691,34 +1691,25 @@ class NativeDialogContractTest(unittest.TestCase):
     def setUp(self):
         plugins = ROOT / ".py" / "klipper" / "plugins"
         self.enterContext(mock.patch.object(sys, "path", [str(plugins), *sys.path]))
+        from ff5m_ui import dialogs
+        self.dialogs = dialogs
 
     def render(self, kind, fixture):
         from ui import FeatherRenderer
         from feather_screen import FeatherScreen, ScreenDialog, ScreenPage
-        from tests.feather_render_test_helper import RenderFrame
+        from tests.feather_render_test_helper import RenderCapture
 
         renderer = FeatherRenderer()
-        captured = []
-
-        def capture(commands, **_metadata):
-            if renderer._composite_commands is not None:
-                renderer._composite_commands.extend(commands)
-            else:
-                captured.extend(commands)
-                renderer._finish_surface(True)
-            return True
-
-        renderer.send = capture
+        capture = RenderCapture(renderer)
         screen = FeatherScreen.__new__(FeatherScreen)
         screen.renderer = renderer
         screen.page = ScreenPage.IDLE_HOME
         screen._paint_page = lambda: None
-        screen._paint_dialog = lambda instance: instance.painter(instance)
         if kind == "message":
             content = {
                 "message": fixture["message"], "title": fixture.get("title"),
                 "actions": tuple(tuple(button) for button in fixture.get(
-                    "buttons", (("message.ok", "OK", "enabled"),))),
+                    "buttons", ((self.dialogs.OK, "OK", "enabled"),))),
             }
         else:
             content = {
@@ -1727,10 +1718,8 @@ class NativeDialogContractTest(unittest.TestCase):
             }
         instance = screen._show_dialog(ScreenDialog[kind.upper()], content=content)
         if fixture.get("page"):
-            instance.page = fixture["page"]
-            captured.clear()
-            screen._render_dialog()
-        frame = RenderFrame(captured, renderer)
+            screen._ensure_screen_root().write_layer(instance, {self.dialogs.DialogState.PAGE: fixture["page"]})
+        frame = capture.latest
         screen._close_dialog(instance)
         return frame
 
@@ -1761,8 +1750,8 @@ class NativeDialogContractTest(unittest.TestCase):
                 ({"title": "Print cancelled", "message": "FILAMENT RUNOUT"},
                  "Print cancelled", {"message.ok"}),
                 ({"message": "Save the active mesh?", "buttons": [
-                    ["mesh.save", "SAVE & RESTART", "enabled"],
-                    ["message.ok", "LATER", "enabled"]]},
+                    [self.dialogs.SAVE_MESH, "SAVE & RESTART", "enabled"],
+                    [self.dialogs.OK, "LATER", "enabled"]]},
                  "Save bed mesh?", {"mesh.save", "message.ok"})):
             with self.subTest(title=title):
                 frame = self.render("message", fixture)
@@ -1782,7 +1771,7 @@ class NativeDialogContractTest(unittest.TestCase):
                 second = self.render(kind, dict(fixture, page=1))
                 self.assertNotEqual([item.value for item in first.texts],
                                     [item.value for item in second.texts])
-                self.assertIn(kind + ".prev", second.buttons)
+                self.assertTrue(second.has_action(self.dialogs.PREVIOUS_PAGE.wire_id))
 
 
 class RegressionOrchestratorTest(unittest.TestCase):

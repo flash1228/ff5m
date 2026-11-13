@@ -7,9 +7,8 @@
 from enum import Enum
 
 from ui import ThemeColor
-from ui.bindings import bind, derived, resolve
-from ui.components import Button, Component, Fill, Frame, Text
-from ui.font_metrics import get_font_metrics
+from ui.bindings import bind, derived
+from ui.components import Button, Disc, Fill, Image, PathText, ProgressBar, Stroke, Text
 from ui.layout import FLEX, Column, Equal, Flex, Grid, Overlay, PageTree, Rect, Spacer, StateCase
 
 from ..keys import AppPage
@@ -47,45 +46,6 @@ class PrintingRef(Enum):
     CANCEL = "printing.cancel"
 
 
-class PrintProgress(Component):
-    """The progress value and its inset track are one paint invariant."""
-
-    covers_bounds = True
-
-    def __init__(self, value, key=None):
-        super().__init__(key=key)
-        self.value = value
-
-    def state_signature(self, state):
-        return max(0, min(100, int(resolve(self.value, state))))
-
-    def draw(self, renderer, state, bounds):
-        inset = min(6, bounds.width // 2, bounds.height // 2)
-        inner = bounds.inset(inset)
-        progress = max(0, min(100, int(resolve(self.value, state))))
-        width = round(inner.width * progress / 100.0)
-        commands = [
-            renderer.stroke(*bounds, color=ThemeColor.BORDER, line_width=2),
-            renderer.fill(inner.x, inner.y, inner.width, inner.height, ThemeColor.BACKGROUND),
-        ]
-        if width:
-            commands.append(renderer.fill(inner.x, inner.y, width, inner.height, ThemeColor.PRIMARY))
-        return commands
-
-
-class PrintStatus(Text):
-    def _display_value(self, state, bounds, font):
-        value = super()._display_value(state, bounds, font)
-        metrics = get_font_metrics()
-        width = min(bounds.width, resolve(self.kwargs.get("max_width"), state) or bounds.width)
-        while metrics.text_width(value, font) > width:
-            _parent, separator, tail = value.partition(" -> ")
-            if not separator:
-                break
-            value = "-> " + tail
-        return value
-
-
 def _button_state(ready, pending, action):
     if not ready:
         return "disabled"
@@ -116,11 +76,13 @@ def _details(compact=False):
             vertical="top",
             truncate=True,
         ).height("content").ref(PrintingRef.FILENAME),
-        PrintStatus(
+        # A long operation path keeps its innermost steps.
+        PathText(
             bind(PrintingState.STATUS),
+            separator=" -> ",
+            trim="",
             horizontal="left",
             vertical="top",
-            truncate=True,
         ).style(UiStyle.TEXT).height("content").ref(PrintingRef.STATUS),
         gap=8,
     ).padding(top=4).height("content")
@@ -137,7 +99,7 @@ def _details(compact=False):
             ),),
             columns=Equal(2), rows=Equal(1), gap=0,
         ).height("content"),
-        PrintProgress(progress_value).height(34).ref(PrintingRef.PROGRESS),
+        ProgressBar(progress_value).height(34).ref(PrintingRef.PROGRESS),
         gap=4,
     ).height("content")
 
@@ -152,7 +114,8 @@ def _details(compact=False):
         right_label="HEIGHT", right_value=bind(PrintingState.HEIGHT), right_ref=PrintingRef.HEIGHT,
     )
 
-    return Column(
+    # The details' own background lets a changed value repaint alone.
+    return Overlay(Fill(ThemeColor.BACKGROUND), Column(
         information,
         progress,
         Spacer(),
@@ -161,20 +124,27 @@ def _details(compact=False):
         Fill(ThemeColor.BORDER).height(1),
         position,
         gap=0 if compact else 2,
-    ).ref(PrintingRef.DETAILS)
+    )).ref(PrintingRef.DETAILS)
 
 
 def _preview():
+    status = bind(PrintingState.PREVIEW_STATUS)
     no_preview = Overlay(
-        StateCase(
-            Text("NO PREVIEW").style(UiStyle.DIM),
-            selector=bind(PrintingState.PREVIEW_STATUS), expected="none"),
-        StateCase(
-            Text("NO PREVIEW").style(UiStyle.DIM),
-            selector=bind(PrintingState.PREVIEW_STATUS), expected="failed"),
+        # Its own background lets the loader turn without repainting the panel.
+        Fill(ThemeColor.PANEL),
+        StateCase(Text("NO PREVIEW").style(UiStyle.DIM), selector=status, expected="none"),
+        StateCase(Text("NO PREVIEW").style(UiStyle.DIM), selector=status, expected="failed"),
+        StateCase(Image(bind(PrintingState.PREVIEW_BANDS)), selector=status, expected="ready"),
+        # Last, with its own bounds, so a turn of the loader repaints the disc alone.
+        StateCase(Disc(bind(PrintingState.LOADER_RADIUS)), selector=status, expected="loading")
+        .size(72, 72).align("center", "center"),
     ).margin(left=8, right=8, bottom=8).ref(PrintingRef.PREVIEW_BOX)
 
-    return Frame(
+    # The panel draws as a Frame with UiStyle.FRAME_PANEL; as an Overlay of its own pieces a change
+    # inside it repaints only what changed (a Frame repaints whole).
+    return Overlay(
+        Fill(ThemeColor.PANEL),
+        Stroke(ThemeColor.BORDER, 1),
         Column(
             Column(
                 Text("PREVIEW").style(UiStyle.PRIMARY_LEFT).height("content"),
@@ -182,13 +152,14 @@ def _preview():
             no_preview,
             gap=0,
         ),
-    ).style(UiStyle.FRAME_PANEL).ref(PrintingRef.PREVIEW)
+    ).ref(PrintingRef.PREVIEW)
 
 
 def _buttons():
     ready = bind(PrintingState.CONTROLS_READY)
     pending = bind(PrintingState.PENDING_ACTION)
     pause = Overlay(
+        Fill(ThemeColor.BACKGROUND),
         StateCase(
             Button(PAUSE, "PAUSE", state=derived(_pause_state, ready, pending)).style(UiStyle.BUTTON_BOLD_8),
             selector=bind(PrintingState.PAUSED), expected=False),

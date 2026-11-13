@@ -472,7 +472,7 @@ class ArtifactWorker:
             if path == self.run_directory or not os.path.isdir(path):
                 continue
             if re.match(
-                    r"^\d{8}-\d{6}-\d{6}-(full|ui|component|render|motion|heat|screws|mesh|z|context_print|context_material)$",
+                    r"^\d{8}-\d{6}-\d{6}-(full|ui|leak|component|render|motion|heat|screws|mesh|z|context_print|context_material)$",
                     name) is None:
                 continue
             summary_path = os.path.join(path, "summary.json")

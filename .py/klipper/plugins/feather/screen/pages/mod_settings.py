@@ -9,10 +9,10 @@ import logging
 from ui.lazy import LazyModule
 from ff5m_ui.screen import ScreenPage
 
-from feather.screen.keyboard import TEXT_KEYBOARD, is_keyboard_action
 
 
 mod_ui = LazyModule("feather.settings.mod")
+keyboard_ui = LazyModule("feather.screen.keyboard")
 parameter_ui = LazyModule("ff5m_ui.parameter_controls")
 preview_ui = LazyModule("ff5m_ui.model_preview.settings")
 
@@ -33,18 +33,71 @@ class ModSettingsPagesMixin:
             return [self.params.params_map[key] for key in keys]
         return mod_ui.visible_parameters(self.params)
 
-    def _mod_category_pages(self, parameters):
+    def _mod_list_geometry(self):
+        bounds = parameter_ui.content_bounds(self.renderer, kind="list")
+        width = parameter_ui.list_width(bounds)
+        leading_height = preview_ui.current_view_pitch(self.model_preview, width) if self._preview_parameter_context() else 0
+        if width >= 600:
+            return bounds, leading_height, mod_ui.ITEM_PITCH
+        heights = {}
+
+        def item_pitch(index, param):
+            if param.key not in heights:
+                heights[param.key] = parameter_ui.parameter_pitch(param, width)
+            return heights[param.key]
+
+        return bounds, leading_height, item_pitch
+
+    def _mod_category_pages(self, parameters, geometry=None):
         preview = self._preview_parameter_context()
+        bounds, leading_height, item_pitch = geometry or self._mod_list_geometry()
         return mod_ui.category_pages(self.params, parameters,
                                      label="PRINT PREVIEW" if preview else None,
-                                     leading_height=mod_ui.ITEM_PITCH if preview else 0)
+                                     leading_height=leading_height, capacity=bounds.height, item_pitch=item_pitch)
 
-    def _render_mod_settings(self, anchor_key=None):
+    def _mod_pagination(self):
+        """The shown parameters, the list geometry and its category pages.
+
+        Visibility and pagination walk every mod parameter (about 1,300 Python calls), so the mod list keeps them
+        until an input changes: the manager's parameters, categories or values, or the list bounds. A write that
+        changes none of them, such as a toggle's animation frame or a page turn, reuses them. The preview list has
+        a few rows and is computed each time. Callers only read what this returns.
+        """
+        if self._preview_parameter_context():
+            parameters = self._mod_parameters()
+            geometry = self._mod_list_geometry()
+            return parameters, geometry, self._mod_category_pages(parameters, geometry)
+        manager = self.params
+        inputs = (manager.params, getattr(manager, "ui_categories_map", None),
+                  parameter_ui.content_bounds(self.renderer, kind="list"), manager.variables)
+        cached = getattr(self, "_mod_pagination_cache", None)
+        if cached is None or cached[0] != inputs:
+            parameters = self._mod_parameters()
+            geometry = self._mod_list_geometry()
+            # The values are a snapshot: the manager changes its dict in place.
+            cached = self._mod_pagination_cache = (
+                inputs[:3] + (dict(manager.variables),),
+                (parameters, geometry, self._mod_category_pages(parameters, geometry)))
+        return cached[1]
+
+    def _mod_list_tree(self):
+        """The list the screen shows: its templates follow its rows when they are written."""
+        bounds = parameter_ui.content_bounds(self.renderer, kind="list")
+        preview = self._preview_parameter_context()
+        tree = getattr(self, "_mod_tree", None)
+        if tree is None or getattr(self, "_mod_tree_variant", None) != (preview, bounds):
+            tree = self._mod_tree = parameter_ui.create_list_tree(preview=preview, bounds=bounds, kinds=())
+            self._mod_tree_variant = preview, bounds
+        return tree
+
+    def _mod_settings_content(self):
+        title = "Preview settings" if self._preview_parameter_context() else "Mod settings"
+        return self._mod_list_tree(), title, True
+
+    def _write_mod_settings_values(self):
         self._require_idle()
-        parameters = self._mod_parameters()
-        pages = self._mod_category_pages(parameters)
-        if anchor_key is None:
-            anchor_key = getattr(self, "mod_restore_anchor_key", None)
+        _parameters, geometry, pages = self._mod_pagination()
+        anchor_key = getattr(self, "mod_restore_anchor_key", None)
         self.mod_restore_anchor_key = None
         if anchor_key is not None:
             anchored = mod_ui.page_of_parameter(pages, anchor_key)
@@ -58,17 +111,47 @@ class ModSettingsPagesMixin:
             for index, param in mod_ui.page_parameters(sections))
 
         preview = self._preview_parameter_context()
-        commands = self.renderer.begin_page("Preview settings" if preview else "Mod settings", back=True)
-        commands += parameter_ui.create_list_page(
+        bounds, leading_height, item_pitch = geometry
+        state = parameter_ui.list_state(
             self.params, sections, self.mod_page, len(pages),
-            mod_ui.next_category_hint(pages, self.mod_page, leading_height=mod_ui.ITEM_PITCH if preview else 0),
-            preview=preview,
-            leading_row=preview_ui.current_view_row(self.model_preview) if preview and self.mod_page == 0 else None,
-            measure_text=self.renderer.text_width).draw(self.renderer)
-        self.renderer.send(commands)
+            mod_ui.next_category_hint(pages, self.mod_page, leading_height=leading_height,
+                                      capacity=bounds.height, item_pitch=item_pitch),
+            preview_ui.current_view_content(self.model_preview) if preview and self.mod_page == 0 else None)
+        moving = self.__dict__.get("mod_toggle_motion", {})
+        for row in state[parameter_ui.ParameterListState.ROWS]:
+            if row.get("parameter") in moving:
+                row["active"], row["progress"] = moving[row["parameter"]]
+        tree = self._mod_list_tree()
+        parameter_ui.ensure_list_templates(tree, state)
+        tree.state.update(state)
+
+    def _move_mod_toggle(self, key, active, frames=4, duration=0.12):
+        """Move a toggle's thumb toward active in timed writes of the list, as
+        the renderer animates a toggle it drew; the last one leaves the toggle
+        showing the parameter's value."""
+        moving = self.__dict__.setdefault("mod_toggle_motion", {})
+
+        def move(_eventtime, index):
+            if index < frames:
+                moving[key] = active, index / frames
+            else:
+                moving.pop(key, None)
+            if self.page in (ScreenPage.MOD_SETTINGS, ScreenPage.PREVIEW_SETTINGS):
+                self._paint_page_values()
+
+        move(None, 1)
+        now = self.reactor.monotonic()
+        for index in range(2, frames + 1):
+            self.reactor.register_callback(lambda eventtime, step=index: move(eventtime, step),
+                                           now + duration * (index - 1) / (frames - 1))
+
+    def _render_mod_settings(self, anchor_key=None):
+        if anchor_key is not None:
+            self.mod_restore_anchor_key = anchor_key
+        self._render_screen()
 
     def _open_mod_parameter(self, index, return_page=ScreenPage.MOD_SETTINGS):
-        parameters = self._mod_parameters()
+        parameters, _geometry, pages = self._mod_pagination()
         rendered_key = getattr(self, "mod_action_keys", {}).get(index)
         if rendered_key is not None:
             param = next(
@@ -85,7 +168,6 @@ class ModSettingsPagesMixin:
         # Anchor on the first row of the current page.  Editing a parameter can
         # reveal or hide dependent rows, so the page number alone would not
         # bring the user back to the same place.
-        pages = self._mod_category_pages(parameters)
         page = pages[max(0, min(getattr(self, "mod_page", 0), len(pages) - 1))]
         rows = mod_ui.page_parameters(page)
         self.mod_restore_anchor_key = rows[0][1].key if rows else None
@@ -94,13 +176,7 @@ class ModSettingsPagesMixin:
         if kind == "bool":
             current = bool(self.params.variables.get(param.key, param.default))
             new_value = not current
-            action = "mod.item.%d" % index
-            scheduler = lambda callback, delay: self.reactor.register_callback(
-                callback, self.reactor.monotonic() + delay)
-            animate = getattr(self.renderer, "animate_toggle", None)
-            if animate is not None:
-                animate(action, mod_ui.bool_display_active(
-                    param, new_value), scheduler)
+            self._move_mod_toggle(param.key, mod_ui.bool_display_active(param, new_value))
 
             def complete():
                 self._render_mod_settings()
@@ -198,9 +274,7 @@ class ModSettingsPagesMixin:
             return
         self.mod_update_modal_visible = True
         self.mod_update_modal_at = eventtime
-        modal = getattr(self.renderer, "applying_modal", None)
-        if modal is not None:
-            modal()
+        self._render_screen()
         logging.info("[feather_screen] showing mod update modal")
 
     def _finish_mod_update(self, eventtime, token=None):
@@ -259,21 +333,6 @@ class ModSettingsPagesMixin:
         if param is None:
             raise RuntimeError("No parameter selected")
         kind = mod_ui.parameter_kind(param)
-        if action.startswith("mod.option."):
-            entries = self.parameter_option_entries
-            index = int(action.rsplit(".", 1)[1])
-            if index < 0 or index >= len(entries):
-                raise RuntimeError("Unknown option")
-            option = entries[index]
-            if not option.enabled:
-                return
-            if param.key == "feather_theme":
-                self.renderer.set_theme(option.value)
-            self.selected_parameter_option = option.value
-            self._render_parameter_options()
-            if param.key == "feather_status_bar":
-                self._refresh_status_bar(style=option.value)
-            return
         if action == "mod.options.prev":
             self.parameter_options_page_index = max(
                 0, self.parameter_options_page_index - 1)
@@ -319,14 +378,34 @@ class ModSettingsPagesMixin:
                 token = action[len("mod.key."):]
             self.mod_edit_value = mod_ui.numeric_input_spec(param).apply(
                 self.mod_edit_value, token)
-        elif kind == "str" and is_keyboard_action(action):
+        elif kind == "str" and keyboard_ui.is_keyboard_action(action):
             (self.mod_edit_value, self.mod_edit_cursor,
              self.mod_keyboard_shift,
-             self.mod_keyboard_symbols) = TEXT_KEYBOARD.apply(
+             self.mod_keyboard_symbols) = keyboard_ui.TEXT_KEYBOARD.apply(
                 self.mod_edit_value, self.mod_edit_cursor, action,
                 self.mod_keyboard_shift, self.mod_keyboard_symbols,
                 max_length=mod_ui.MAX_VALUE_LENGTH)
         self._render_mod_value()
+
+    def _choose_parameter_option(self, index):
+        """Stage the picker's option at index until apply; a theme or a status
+        bar style shows at once."""
+        self._require_idle()
+        param = self.mod_parameter
+        if param is None:
+            raise RuntimeError("No parameter selected")
+        entries = self.parameter_option_entries
+        if index < 0 or index >= len(entries):
+            raise RuntimeError("Unknown option")
+        option = entries[index]
+        if not option.enabled:
+            return
+        if param.key == "feather_theme":
+            self.renderer.set_theme(option.value)
+        self.selected_parameter_option = option.value
+        self._render_parameter_options()
+        if param.key == "feather_status_bar":
+            self._refresh_status_bar(style=option.value)
 
     def _restore_setting_preview(self):
         param = getattr(self, "mod_parameter", None)

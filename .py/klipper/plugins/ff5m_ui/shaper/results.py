@@ -17,20 +17,23 @@ class ShaperResults:
         self.selections = {}
         self.show_table = False
         self.table_page = None
+        self.axis = self.method = None
+        self.scale = "linear"
         self.graph_page = create_page(bounds)
         self.plot = next(node for node in self.graph_page.root.walk() if node.key == ShaperRef.PLOT)
 
     @property
     def page(self):
-        return self.table_page if self.show_table else self.graph_page
+        if not self.show_table:
+            return self.graph_page
+        if self.table_page is None:
+            from .compare import create_page
+            self.table_page = create_page(self.bounds)
+        return self.table_page
 
-    @property
-    def axis(self):
-        return self.graph_page.state[ShaperState.AXIS]
-
-    @property
-    def method(self):
-        return self.graph_page.state[ShaperState.METHOD]
+    def page_for(self, results):
+        """The page shown once results are written: new results open on the graph."""
+        return self.page if self.results is results else self.graph_page
 
     @property
     def can_save(self):
@@ -51,9 +54,8 @@ class ShaperResults:
             self.results, self.show_table = results, False
             self.table_page = None
             self.selections = {}
-            axis = next(axis for axis in ("x", "y") if axis in results)
-            state.update({ShaperState.AXIS: axis, ShaperState.METHOD: results[axis]["recommended"],
-                          ShaperState.SCALE: "linear"})
+            self.axis = next(axis for axis in ("x", "y") if axis in results)
+            self.method, self.scale = results[self.axis]["recommended"], "linear"
         self.selections = dict(selections or {})
         result = results[self.axis]
         previous = (reference or {}).get(self.axis)
@@ -69,8 +71,9 @@ class ShaperResults:
         # Comparing records share one frequency axis, as they share one PSD axis.
         max_freq = frequency_axis(result, previous)
         psd = visible_psd(result, max_freq) + (visible_psd(previous, max_freq) if previous else ())
-        spectrum = spectrum_scale(psd, state[ShaperState.SCALE])
+        spectrum = spectrum_scale(psd, self.scale)
         state.update({
+            ShaperState.AXIS: self.axis, ShaperState.METHOD: self.method, ShaperState.SCALE: self.scale,
             ShaperState.REFERENCE: {"freq_bins": previous["freq_bins"], "psd_sum": previous["psd_sum"]}
                                    if previous else {},
             ShaperState.REFERENCE_LABEL: reference_label,
@@ -95,25 +98,20 @@ class ShaperResults:
             ShaperState.TICK_HIGH: spectrum["ticks"][2],
         })
         if self.show_table:
-            if self.table_page is None:
-                from .compare import create_page
-                self.table_page = create_page(self.bounds)
-            self.table_page.state.update(state)
+            self.page.state.update(state)
         return self.page
 
     def select(self, action):
-        state = self.graph_page.state
         if action.route == "axis" and action.value in self.results:
-            state.update({ShaperState.AXIS: action.value,
-                          ShaperState.METHOD: self.results[action.value]["recommended"]})
+            self.axis, self.method = action.value, self.results[action.value]["recommended"]
         elif action.route == "method" and action.value in self.available_methods:
-            state.update({ShaperState.METHOD: action.value})
+            self.method = action.value
         elif action.route == "step" and action.value in ("prev", "next"):
             methods = self.available_methods
             index = (methods.index(self.method) + (1 if action.value == "next" else -1)) % len(methods)
-            state.update({ShaperState.METHOD: methods[index]})
+            self.method = methods[index]
         elif action.route == "scale":
-            state.update({ShaperState.SCALE: "log" if state[ShaperState.SCALE] == "linear" else "linear"})
+            self.scale = "log" if self.scale == "linear" else "linear"
         elif action.route == "view" and action.value in ("table", "graph"):
             self.show_table = action.value == "table"
             if self.show_table:

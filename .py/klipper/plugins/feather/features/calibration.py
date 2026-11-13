@@ -53,6 +53,27 @@ class CalibrationFeature(FeatherControlsMixin, FeatureHostProxy):
             ScreenPage.CALIBRATION_RESULT: self._render_calibration_result,
         }[page]()
 
+    def _screw_results_shown(self, page):
+        """The screw results page instead of the result painter (its error and cancelled screens come first)."""
+        return (page == ScreenPage.CALIBRATION_RESULT and not self.calibration_error
+                and not getattr(self, "calibration_cancelled", False)
+                and self.calibration_kind == "screws" and bool(self.calibration_results))
+
+    def page_content(self, page):
+        if self._screw_results_shown(page):
+            return calibration_screws_ui.PAGE, "Calibration result", False
+        shaper = self._active_shaper()
+        return None if shaper is None else shaper.page_content(page)
+
+    def write_page_values(self, page):
+        if self._screw_results_shown(page):
+            calibration_screws_ui.PAGE.state.update(calibration_screws_ui.result_values(
+                self.calibration_results, self._screw_reference_name()))
+            return
+        shaper = self._active_shaper()
+        if shaper is not None:
+            shaper.write_page_values(page)
+
     def allows_action(self, page, action):
         exact = {
             ScreenPage.CALIBRATION_HOME: (
@@ -115,12 +136,6 @@ class CalibrationFeature(FeatherControlsMixin, FeatureHostProxy):
         shaper = self._active_shaper()
         return shaper is not None and shaper.confirm(kind)
 
-    def _render_calibration_confirm(self):
-        shaper = self._active_shaper()
-        if shaper is None:
-            return super()._render_calibration_confirm()
-        shaper.render_start()
-
     def _prepare_calibration_progress(self):
         super()._prepare_calibration_progress()
         # A new job drops the previous flow's views and graph cache. The
@@ -137,20 +152,10 @@ class CalibrationFeature(FeatherControlsMixin, FeatureHostProxy):
             return super()._shaper_calibration_script()
         return "FORGE_SHAPER_CALIBRATE SWEEP=%d" % shaper.sweep
 
-    def _render_calibration_progress(self):
-        shaper = self._active_shaper()
-        if shaper is None or not shaper.render_progress():
-            super()._render_calibration_progress()
-
     def _update_calibration_progress(self):
         shaper = self._active_shaper()
         if shaper is None or not shaper.update_progress():
             super()._update_calibration_progress()
-
-    def _render_calibration_result(self):
-        shaper = self._active_shaper()
-        if shaper is None or not shaper.render_result():
-            super()._render_calibration_result()
 
     def _start_z_calibration(self):
         self.feature_manager.get("z").start_calibration()

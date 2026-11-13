@@ -11,7 +11,7 @@ from ui.bindings import bind, derived
 
 from ..keys import AppPage
 from .actions import PreviewAction, PreviewRoute
-from .common import BUTTON_FONT, FONT, ModelFrame, PreviewRef, PreviewState, _style_state, _selected
+from .common import BUTTON_FONT, FONT, PreviewRef, PreviewState, _style_state, _selected, model_frame
 
 
 TITLE = "Model preview benchmark"
@@ -25,7 +25,7 @@ def create_page(width=189, height=188):
     preview = Column(
         Overlay(
             Panel(border=ThemeColor.PRIMARY, background=ThemeColor.PANEL),
-            ModelFrame(bind(PreviewState.BANDS), bind(PreviewState.ERROR))
+            model_frame()
             .margin(20).ref(PreviewRef.IMAGE).repaint_boundary(),
         ).height(height + 40),
         Spacer(),

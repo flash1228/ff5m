@@ -13,23 +13,30 @@ import shlex
 import tempfile
 import threading
 import unittest
+from types import SimpleNamespace
 from unittest import mock
 from tests.feather_timelapse_test_helper import make_timelapse_state
 
 try:
     from tests.test_feather_screen import (
-        FEATHER, RESURRECTION, GCodeRecorder, Reactor, StatusObject)
-    from tests.feather_render_test_helper import RenderCapture
+        FEATHER, RESURRECTION, GCodeRecorder, Reactor, StatusObject, paint_home, paint_printing)
+    from tests.feather_render_test_helper import (
+        paint_content,
+        RenderCapture, press, prompt_wire, refresh_prompt, shown_actions, touchable_actions, typer_events)
 except ImportError:
     from test_feather_screen import (
-        FEATHER, RESURRECTION, GCodeRecorder, Reactor, StatusObject)
-    from feather_render_test_helper import RenderCapture
+        FEATHER, RESURRECTION, GCodeRecorder, Reactor, StatusObject, paint_home, paint_printing)
+    from feather_render_test_helper import (
+        paint_content,
+        RenderCapture, press, prompt_wire, refresh_prompt, shown_actions, touchable_actions, typer_events)
 
 from ui import CONTENT_BOTTOM, Increment
+from ff5m_ui import dialogs as dialog_ui
 from ui.font_metrics import get_font_metrics
 from ff5m_ui.move import runtime as MOVE_UI
 from ff5m_ui.move.step import page as MOVE_STEP_PAGE
 from ff5m_ui.heat import runtime as HEAT_UI
+from ff5m_ui.printing import runtime as printing_ui
 from ff5m_ui.filament import runtime as FILAMENT_UI
 from ff5m_ui.filament.actions import select as select_filament
 from ff5m_ui.z_offset import runtime as Z_OFFSET_UI
@@ -52,6 +59,7 @@ class ScenarioController(FeatherZCalibrationMixin,
 
 
 from feather import files as FILES
+from feather.control import motion as JOYSTICK_MOTION
 from feather.previews import PreviewCache
 from feather.screen import pages as PAGES
 from feather.screen.pages import files as FILE_PAGES
@@ -174,8 +182,23 @@ class OperationContextStub(StatusObject):
                 "request_id": active_id}
 
 
+def show_file_confirm(controller):
+    controller._write_file_confirm_values()
+    paint_content(controller, controller._file_confirm_content())
+
+
+def show_screen(controller):
+    """The screen's paint of a controller without a root: the file browser's page, else the dialog."""
+    if controller.page == FEATHER.ScreenPage.FILE_BROWSER and not controller._file_scan_shown():
+        controller._write_file_browser_values()
+        paint_content(controller, controller._file_browser_content())
+    else:
+        FEATHER.FeatherScreen._render_dialog(controller)
+
+
 def base_controller(state="idle"):
     controller = ScenarioController.__new__(ScenarioController)
+    controller._render_file_confirm = lambda: show_file_confirm(controller)
     controller.reactor = Reactor()
     controller.reactor.register_callback = lambda callback, waketime=None: None
     controller.reactor.register_fd = lambda fd, callback: "netd-fd"
@@ -206,14 +229,21 @@ def base_controller(state="idle"):
     controller.renderer = mock.MagicMock()
     controller.renderer.output_frozen = False
     controller.renderer.header_action_changed = False
-    controller.renderer.needs_redraw = False
+    controller.renderer.footer_chrome = None
+    controller.renderer._header_action = None
     controller.renderer.compose.return_value.__enter__.return_value = {
         "accepted": True, "background_changed": False, "input_changed": False,
     }
     controller.renderer.set_header_action.return_value = False
     controller._render_dialog = lambda: None
     controller._paint_page = lambda: None
-    controller._render_screen = lambda feature=None: FEATHER.FeatherScreen._render_dialog(controller)
+    # Home is declarative; these tests paint every page with _paint_page.
+    paint_home(controller, lambda: controller._paint_page())
+    paint_printing(controller, lambda: controller._paint_page())
+    controller._render_screen = lambda feature=None: show_screen(controller)
+    controller._paint_page_values = lambda: (
+        show_screen(controller) if controller.page in (FEATHER.ScreenPage.FILE_BROWSER, FEATHER.ScreenPage.CONTROL_MOVE)
+        else FEATHER.FeatherScreen._paint_page_values(controller))
     controller._last_context_cancel_result = None
     controller._filament_request_token = 0
     controller.busy_phase = 0
@@ -248,7 +278,6 @@ def base_controller(state="idle"):
     controller.toast_until = 0
     controller.toast_message = ""
     controller._toast = lambda message: None
-    controller._render_print_page = lambda: None
     controller._update_print_controls = lambda: None
     controller._render_cancel_confirm = lambda: None
     controller.file_page = 0
@@ -352,6 +381,18 @@ def composed_controller_surface(controller, painter):
     return rendering
 
 
+def feature_on_screen(controller, name):
+    """Show the controller's pages through its real screen over a real renderer, with the
+    features loaded as on the printer; returns the feature called name and the capture."""
+    for method in ("_paint_page", "_render_screen", "_render_dialog"):
+        controller.__dict__.pop(method, None)
+    controller._show_touch_unavailable = lambda: None
+    controller.renderer = FEATHER.FeatherRenderer()
+    capture = RenderCapture(controller.renderer)
+    controller.feature_manager = FEATHER.LazyFeatureManager(controller, FEATHER.FEATURE_SPECS)
+    return controller.feature_manager.get(name), capture
+
+
 class ScreenCompositionWorkflowTest(unittest.TestCase):
     def test_heating_prompt_tick_updates_temperature_without_reapplying_scrim(self):
         controller, _ = ActionPromptProtocolTest.controller_with_navigation()
@@ -402,6 +443,87 @@ class ScreenCompositionWorkflowTest(unittest.TestCase):
         self.assertTrue(rendering.latest.has_action("global.abort"))
         self.assertTrue(rendering.latest.has_action("coldpull.cancel"))
 
+    def test_a_plain_prompt_stays_as_it_is_through_the_periodic_update(self):
+        controller, _ = ActionPromptProtocolTest.controller_with_navigation()
+        rendering = RenderCapture(controller.renderer)
+        del controller._apply_safety_visibility
+        controller.page = FEATHER.ScreenPage.CONTROL_HOME
+        controller.extruder = StatusObject({"temperature": 130, "target": 250})
+        controller.heater_bed = StatusObject({"temperature": 30, "target": 0})
+        controller.filament_sensor = None
+        controller.busy_message = None
+        controller.network_client = mock.Mock(spec=["service"])
+        controller.dimmed, controller.last_touch_time, controller.dim_timeout = False, 0, 10000
+        controller._handle_gcode_output("\n".join((
+            "// action:prompt_begin Choose", "// action:prompt_button Go|G28", "// action:prompt_show")))
+        controller._update_cycle(100)
+        submitted = len(rendering.frames)
+
+        controller.extruder.status["temperature"] = 200
+        controller._update_cycle(101)
+
+        self.assertEqual(len(rendering.frames), submitted)
+        self.assertEqual(controller._current_dialog(), FEATHER.ScreenDialog.ACTION_PROMPT)
+
+    def periodic_controller(self):
+        controller, _ = ActionPromptProtocolTest.controller_with_navigation()
+        del controller._apply_safety_visibility
+        controller.page = FEATHER.ScreenPage.CONTROL_HOME
+        controller.extruder = StatusObject({"temperature": 30, "target": 0})
+        controller.heater_bed = StatusObject({"temperature": 30, "target": 0})
+        controller.filament_sensor = None
+        controller.busy_message = None
+        controller.network_client = mock.Mock(spec=["service"])
+        controller.dimmed, controller.last_touch_time, controller.dim_timeout = False, 0, 10000
+        return controller
+
+    def test_a_periodic_update_moves_the_operations_loader_by_a_frame_of_its_bars(self):
+        controller = self.periodic_controller()
+        rendering = RenderCapture(controller.renderer)
+        controller.busy_message, controller.busy_phase = "HOMING", 0
+        controller._render_screen()
+        controller._update_cycle(100)
+        submitted = len(rendering.batches)
+
+        controller._update_cycle(101)
+
+        self.assertEqual(controller.busy_phase, 2)
+        turn = "\n".join("\n".join(batch) for batch in rendering.batches[submitted:])
+        self.assertIn("-p 386 280 -s 32 12", turn)
+        self.assertNotIn("HOMING", turn)
+
+    def test_a_periodic_update_moves_the_file_scans_loader_by_a_frame_of_its_bars(self):
+        controller = self.periodic_controller()
+        rendering = RenderCapture(controller.renderer)
+        controller.page = FEATHER.ScreenPage.FILE_BROWSER
+        controller.file_source, controller.file_scan_source = "internal", "internal"
+        controller.file_scan_loading, controller.file_scan_phase = True, 0
+        controller.file_worker = mock.Mock()
+        controller._render_screen()
+        controller._update_cycle(100)
+        submitted = len(rendering.batches)
+
+        controller._update_cycle(101)
+
+        self.assertEqual(controller.file_scan_phase, 2)
+        self.assertIn("-p 386 280 -s 32 12", "\n".join("\n".join(batch) for batch in rendering.batches[submitted:]))
+        controller.file_worker.submit.assert_called_once()
+
+    def test_the_browser_shows_its_files_while_another_source_is_scanned(self):
+        controller = base_controller()
+        controller.page = FEATHER.ScreenPage.FILE_BROWSER
+        controller.renderer = FEATHER.FeatherRenderer()
+        rendering = RenderCapture(controller.renderer)
+        controller.file_worker = mock.Mock()
+        controller.file_entry_cache["internal"] = [FILES.FileEntry("part.gcode", "/data/part.gcode")]
+        controller.file_scan_loading, controller.file_scan_source = True, "usb"
+
+        controller._render_file_browser()
+
+        shown = "\n".join("\n".join(batch) for batch in rendering.batches)
+        self.assertIn("part", shown)
+        self.assertNotIn("OPERATION IN PROGRESS", shown)
+
     def test_touch_unavailable_visual_scenario_uses_dialog_lifecycle(self):
         from feather_ui_test.scenarios import ScenarioCatalog
 
@@ -427,9 +549,10 @@ class ScreenCompositionWorkflowTest(unittest.TestCase):
         controller._show_dialog(FEATHER.ScreenDialog.TOUCH_UNAVAILABLE, content={})
         scrim = controller.renderer.modal_scrim()
         self.assertEqual(rendering.batches[-1].count(scrim), 1)
+        drawn = len(rendering.batches)
         for _ in range(2):
             FEATHER.FeatherScreen._render_dialog(controller)
-            self.assertNotIn(scrim, rendering.batches[-1])
+        self.assertEqual(len(rendering.batches), drawn)
 
     def test_periodic_data_and_footer_are_revealed_after_modal_close(self):
         controller = base_controller()
@@ -461,8 +584,9 @@ class ScreenCompositionWorkflowTest(unittest.TestCase):
         self.assertTrue(rendering.latest.has_text("OLD"))
         self.assertTrue(rendering.latest.has_text("Foreground"))
         self.assertEqual(controller.renderer.decode_action(tap), "message.ok")
-        self.assertEqual(set(controller.renderer._buttons), {"message.ok"})
+        self.assertEqual(touchable_actions(controller.renderer), {"message.ok"})
         controller._close_dialog(FEATHER.ScreenDialog.MESSAGE)
+        # The footer is a layer of the screen: the close frame shows it too.
         self.assertTrue(rendering.latest.has_text("LATEST"))
         self.assertTrue(rendering.latest.has_text("N 42/0C"))
         self.assertTrue(rendering.latest.has_text("B 30/0C"))
@@ -474,8 +598,8 @@ class ScreenCompositionWorkflowTest(unittest.TestCase):
         def paint():
             controller.renderer.send(controller.renderer.begin_page(controller.page.name) + [
                 controller.renderer.text(content["x"], 100, content["text"])])
-        controller._render_home = paint
-        controller._render_print_page = paint
+        paint_home(controller, paint)
+        controller._render_timelapse_wait = paint
         controller._show_message("Foreground", controller.page)
         frames = len(rendering.frames)
         content.update(text="LATEST", x=180)
@@ -485,12 +609,12 @@ class ScreenCompositionWorkflowTest(unittest.TestCase):
 
         self.assertEqual(len(rendering.frames), frames)
         self.assertTrue(rendering.latest.has_text("FIRST"))
-        controller._show_page(FEATHER.ScreenPage.PRINTING)
+        controller._show_page(FEATHER.ScreenPage.TIMELAPSE_WAIT)
         self.assertEqual(len(rendering.frames), frames + 1)
-        self.assertTrue(rendering.latest.has_text("PRINTING"))
+        self.assertTrue(rendering.latest.has_text("TIMELAPSE_WAIT"))
         self.assertTrue(rendering.latest.has_text("LATEST"))
         self.assertTrue(rendering.latest.has_text("Foreground"))
-        self.assertEqual(set(controller.renderer._buttons), {"message.ok"})
+        self.assertEqual(touchable_actions(controller.renderer), {"message.ok"})
         controller._render_screen()
         self.assertEqual(len(rendering.frames), frames + 1)
 
@@ -522,49 +646,44 @@ class ScreenCompositionWorkflowTest(unittest.TestCase):
         controller._show_message("Foreground", controller.page)
         frames = len(rendering.frames)
 
+        # As the renderer handles Typer's restart notice.
+        controller._screen_root.restarted()
         controller._renderer_restarted()
-        controller._redraw_after_dropped_frame()
 
-        self.assertEqual(len(rendering.frames), frames + 2)
+        self.assertEqual(len(rendering.frames), frames + 1)
         self.assertTrue(rendering.latest.has_text("Foreground"))
-        self.assertEqual(set(controller.renderer._buttons), {"message.ok"})
+        self.assertEqual(touchable_actions(controller.renderer), {"message.ok"})
 
     def test_blocking_operation_suspends_and_restores_the_same_prompt(self):
         controller = base_controller()
         controller.busy_message = None
         def paint():
-            if controller.busy_message:
-                controller.renderer.loader(controller.busy_message)
-            else:
-                controller.renderer.send(controller.renderer.begin_page("Home"))
+            controller.renderer.send(controller.renderer.begin_page("Home"))
         rendering = composed_controller_surface(controller, paint)
         controller._show_page = lambda page: controller._render_screen()
         controller._start_action_prompt("Retained")
         controller._append_action_prompt_button("CONFIRM|CONFIRM_COMMAND")
         controller._show_action_prompt()
         prompt = controller._current_dialog_instance()
+        confirm = prompt_wire(controller)
         def run(command):
             self.assertTrue(rendering.latest.has_text("HOMING..."))
-            self.assertNotIn("prompt.button.0", controller.renderer._buttons)
+            self.assertNotIn(confirm, controller.renderer.shown_actions())
             self.assertIsNone(controller._current_dialog())
         controller._run_script = run
 
         controller._run_blocking_gcode("G28", "HOMING...")
 
         self.assertIs(controller._current_dialog_instance(), prompt)
-        self.assertTrue(rendering.latest.has_action("prompt.button.0"))
+        self.assertTrue(rendering.latest.has_action(confirm))
 
 
 class FileWorkflowTest(unittest.TestCase):
     def test_scan_completion_preserves_dialog_and_reveals_latest_files(self):
         controller = base_controller()
         controller.page = FEATHER.ScreenPage.FILE_BROWSER
-        def paint_files():
-            controller.renderer.send(controller.renderer.begin_page("Files") + [
-                controller.renderer.text(40, 100, entry.name)
-                for entry in controller.file_entries])
-        controller._render_file_browser = paint_files
-        rendering = composed_controller_surface(controller, paint_files)
+        rendering = composed_controller_surface(controller, lambda: None)
+        controller.file_entry_cache["internal"] = []
         controller._show_message("Scanning files", controller.page)
         entries = [FILES.FileEntry("new.gcode", "/data/new.gcode")]
 
@@ -572,11 +691,11 @@ class FileWorkflowTest(unittest.TestCase):
 
         self.assertIs(controller.file_entry_cache["internal"], entries)
         frame = rendering.latest
-        self.assertFalse(frame.has_text("new.gcode"))
+        self.assertFalse(any("new.gcode" in command for command in rendering.batches[-1]))
         self.assertEqual(frame.texts[-1].value, "Scanning files")
-        self.assertEqual(set(controller.renderer._buttons), {"message.ok"})
+        self.assertEqual(touchable_actions(controller.renderer), {"message.ok"})
         controller._close_dialog(FEATHER.ScreenDialog.MESSAGE)
-        self.assertTrue(rendering.latest.has_text("new.gcode"))
+        self.assertTrue(any("new.gcode" in command for command in rendering.batches[-1]))
         self.assertFalse(rendering.latest.has_text("Scanning files"))
 
     def test_file_worker_keeps_io_off_caller_and_delivers_on_scheduler(self):
@@ -648,8 +767,7 @@ class FileWorkflowTest(unittest.TestCase):
         controller.file_scan_token = 0
         controller.usb_storage = None
         controller.file_worker = PendingWorker()
-        controller.renderer = FEATHER.FeatherRenderer()
-        rendering = RenderCapture(controller.renderer)
+        rendering = composed_controller_surface(controller, controller._render_file_browser)
 
         old_entries = [FILES.FileEntry(
             "old-%d.gcode" % index, "/data/old-%d.gcode" % index)
@@ -706,8 +824,7 @@ class FileWorkflowTest(unittest.TestCase):
                 with self.subTest(cached=cached, error=error):
                     controller = base_controller()
                     controller.page = FEATHER.ScreenPage.FILE_BROWSER
-                    controller.renderer = FEATHER.FeatherRenderer()
-                    capture = RenderCapture(controller.renderer)
+                    capture = composed_controller_surface(controller, controller._render_file_browser)
                     controller.file_worker = mock.Mock()
                     controller.file_worker.submit.return_value = True
                     controller._build_file_scan_task = lambda source: lambda: []
@@ -715,10 +832,10 @@ class FileWorkflowTest(unittest.TestCase):
                     if cached:
                         controller.file_entry_cache["internal"] = [
                             FILES.FileEntry("old.gcode", "/data/old.gcode")]
-                    controller._paint_page = controller._render_file_browser
                     root = controller._ensure_screen_root()
 
                     controller._start_file_scan("internal")
+                    controller._render_screen()
                     self.assertTrue(capture.latest.has_text("LOADING PRINT FILES..."))
                     self.assertFalse(capture.latest.has_action("file.refresh"))
                     controller.file_scan_phase = 2
@@ -1052,7 +1169,6 @@ class FileWorkflowTest(unittest.TestCase):
                 for command in batch))
 
         second_callback = controller.file_worker.submit.call_args.args[1]
-        generation = controller.renderer._generation
         self.assertTrue(controller.renderer.flash_button("file.item1"))
         entry.mtime = 30
         second_callback({
@@ -1060,7 +1176,6 @@ class FileWorkflowTest(unittest.TestCase):
             "color": controller.renderer.color(FEATHER.ThemeColor.PRIMARY),
             "blob": b"second",
         }, None)
-        self.assertEqual(controller.renderer._generation, generation)
         self.assertTrue(any(
             getattr(command, "payload", None) == b"second"
             for command in feedback[-1]))
@@ -1238,6 +1353,49 @@ class FileWorkflowTest(unittest.TestCase):
         self.assertNotIn("internal", controller.file_entry_loaded_at)
         self.assertIn("usb", controller.file_entry_cache)
 
+    def test_file_lists_outlive_the_file_pages_only_until_a_visit_would_rescan_them(self):
+        controller = base_controller()
+        controller.page = FEATHER.ScreenPage.FILE_BROWSER
+        controller.file_worker = mock.Mock()
+        controller.file_worker.submit.return_value = True
+        controller._build_file_scan_task = lambda source: lambda: []
+        composed_controller_surface(controller, controller._render_file_browser)
+        entries = [FILES.FileEntry("part.gcode", "/data/part.gcode")]
+        controller.file_entry_cache.update(internal=entries, usb=entries)
+        controller.file_entry_loaded_at.update(internal=100.0, usb=100.0)
+        controller.file_entries = entries
+        controller.selected_file = entries[0]
+        stale = 100.0 + FILE_PAGES.FILE_CACHE_TTL
+        controller.extruder = StatusObject({"temperature": 25, "target": 0})
+        controller.heater_bed = StatusObject({"temperature": 25, "target": 0})
+        controller.filament_sensor = controller.busy_message = None
+        controller.network_client = mock.Mock(spec=["service"])
+        controller.dimmed, controller.last_touch_time, controller.dim_timeout = False, 0, 10000
+
+        def tick():  # the screen's periodic update
+            controller._update_cycle(controller.reactor.now)
+
+        # The file pages keep what they show, however old.
+        controller.reactor.now = stale
+        for page in (FEATHER.ScreenPage.FILE_BROWSER, FEATHER.ScreenPage.FILE_CONFIRM):
+            controller._show_page(page)
+            tick()
+        self.assertEqual(set(controller.file_entry_cache), {"internal", "usb"})
+
+        # Elsewhere a list goes once a visit would scan it again; a younger one still opens the browser at once.
+        controller.file_entry_loaded_at["internal"] = stale - 1.0
+        controller._show_page(FEATHER.ScreenPage.MAIN_MENU)
+        tick()
+        self.assertEqual(set(controller.file_entry_cache), {"internal"})
+        controller._show_page(FEATHER.ScreenPage.FILE_BROWSER)
+        controller.file_worker.submit.assert_not_called()
+
+        controller._show_page(FEATHER.ScreenPage.MAIN_MENU)
+        controller.reactor.now = stale - 1.0 + FILE_PAGES.FILE_CACHE_TTL
+        tick()
+        self.assertEqual((controller.file_entry_cache, controller.file_entry_loaded_at), ({}, {}))
+        self.assertEqual(controller.file_entries, [])
+
     def test_file_browser_flattens_two_levels_and_skips_hidden_trees(self):
         with tempfile.TemporaryDirectory() as root:
             level_one = os.path.join(root, "models")
@@ -1393,10 +1551,10 @@ class FileWorkflowTest(unittest.TestCase):
         controller.file_confirm_repeat = True
         rendering = RenderCapture(controller.renderer)
 
-        controller._render_file_confirm()
+        show_file_confirm(controller)
         repeat_label = rendering.latest.button("file.start").label
         controller.file_confirm_repeat = False
-        controller._render_file_confirm()
+        show_file_confirm(controller)
 
         self.assertNotEqual(
             repeat_label, rendering.latest.button("file.start").label)
@@ -1409,7 +1567,7 @@ class FileWorkflowTest(unittest.TestCase):
         for repeat in (False, True):
             with self.subTest(repeat=repeat):
                 controller.file_confirm_repeat = repeat
-                controller._render_file_confirm()
+                show_file_confirm(controller)
                 buttons = [rendering.latest.button(action) for action in ("file.preview", "file.start")]
                 for button in buttons:
                     self.assertLessEqual(controller.renderer.text_width(button.label, button.font)
@@ -1428,7 +1586,7 @@ class FileWorkflowTest(unittest.TestCase):
         controller.file_confirm_auto_mesh = False
         rendering = RenderCapture(controller.renderer)
 
-        controller._render_file_confirm()
+        show_file_confirm(controller)
 
         self.assertTrue(rendering.latest.has_action("file.mesh.rebuild"))
         self.assertFalse(rendering.latest.has_action("file.mesh.auto"))
@@ -1455,10 +1613,10 @@ class FileWorkflowTest(unittest.TestCase):
             "variables": {"use_kamp": False}})()
         rendering = RenderCapture(controller.renderer)
 
-        controller._render_file_confirm()
+        show_file_confirm(controller)
         normal_copy = tuple(text.value for text in rendering.latest.texts)
         controller.params.variables["use_kamp"] = True
-        controller._render_file_confirm()
+        show_file_confirm(controller)
 
         kamp_copy = tuple(text.value for text in rendering.latest.texts)
         self.assertEqual(len(kamp_copy), len(normal_copy))
@@ -1476,7 +1634,7 @@ class FileWorkflowTest(unittest.TestCase):
         controller.file_confirm_auto_mesh = True
         rendering = RenderCapture(controller.renderer)
 
-        controller._render_file_confirm()
+        show_file_confirm(controller)
 
         toggles = []
         for action in ("file.mesh.rebuild", "file.mesh.auto"):
@@ -1500,7 +1658,7 @@ class FileWorkflowTest(unittest.TestCase):
         controller.file_confirm_auto_mesh = True
         rendering = RenderCapture(controller.renderer)
 
-        controller._render_file_confirm()
+        show_file_confirm(controller)
 
         frame = rendering.latest
         filename = frame.text(controller.selected_file.name)
@@ -1683,8 +1841,8 @@ class FileWorkflowTest(unittest.TestCase):
         self.assertEqual(len(messages), 1)
         self.assertIn("ACTIVE FOR THIS SESSION", messages[0][0])
         self.assertEqual(messages[0][2], (
-            ("mesh.save", "SAVE & RESTART", "enabled"),
-            ("message.ok", "LATER", "enabled")))
+            (dialog_ui.SAVE_MESH, "SAVE & RESTART", "enabled"),
+            (dialog_ui.OK, "LATER", "enabled")))
 
     def test_completed_fallback_auto_mesh_offers_save(self):
         # A pure default print start: no mesh argument was given, no profile
@@ -1706,8 +1864,8 @@ class FileWorkflowTest(unittest.TestCase):
         self.assertEqual(len(messages), 1)
         self.assertIn("ACTIVE FOR THIS SESSION", messages[0][0])
         self.assertEqual(messages[0][2], (
-            ("mesh.save", "SAVE & RESTART", "enabled"),
-            ("message.ok", "LATER", "enabled")))
+            (dialog_ui.SAVE_MESH, "SAVE & RESTART", "enabled"),
+            (dialog_ui.OK, "LATER", "enabled")))
 
     def test_print_leveling_policy_suppresses_mesh_save_offer(self):
         # print_leveling re-measures the mesh on every print, so persisting
@@ -1737,8 +1895,8 @@ class FileWorkflowTest(unittest.TestCase):
         controller._show_message(
             "THE NEW AUTO BED MESH IS ACTIVE FOR THIS SESSION. "
             "SAVE IT TO PRINTER.CFG? KLIPPER WILL RESTART.", controller.page,
-            actions=(("mesh.save", "SAVE & RESTART", "enabled"),
-                     ("message.ok", "LATER", "enabled")))
+            actions=((dialog_ui.SAVE_MESH, "SAVE & RESTART", "enabled"),
+                     (dialog_ui.OK, "LATER", "enabled")))
 
         frame = rendering.latest
         body_lines = [text for text in frame.texts
@@ -1832,11 +1990,12 @@ class FileWorkflowTest(unittest.TestCase):
 
     def test_mesh_save_action_requires_idle_and_runs_save_config(self):
         controller = base_controller()
+        controller.renderer = FEATHER.FeatherRenderer()
         controller.last_action_time = -1
         controller._show_message(
             "Save the new bed mesh?", controller.page,
-            actions=(("mesh.save", "SAVE & RESTART", "enabled"),
-                     ("message.ok", "LATER", "enabled")))
+            actions=((dialog_ui.SAVE_MESH, "SAVE & RESTART", "enabled"),
+                     (dialog_ui.OK, "LATER", "enabled")))
         checked = []
         restarts = []
         controller._require_idle = lambda: checked.append(True)
@@ -2354,7 +2513,7 @@ class PrintWorkflowTest(unittest.TestCase):
             "// action:prompt_footer_button WAIT|_TIMELAPSE_START_WAIT_CHOICE",
             "// action:prompt_show")))
 
-        controller._dispatch_action("prompt.button.0")
+        runtime.run("_TIMELAPSE_START_WAIT_CHOICE")
 
         self.assertIsNone(controller._current_dialog())
         self.assertEqual(controller.page, FEATHER.ScreenPage.TIMELAPSE_WAIT)
@@ -2449,13 +2608,11 @@ class PrintWorkflowTest(unittest.TestCase):
                 controller._prepare_gcode_preview = lambda stats=None: None
                 controller._current_print_progress_values = (
                     lambda *args: (0, ("0s", "0s", "0 / 10", 0.0)))
-                controller._display_status_text = lambda eventtime: name
-                controller._render_print_page = lambda: (
-                    FEATHER.FeatherScreen._render_print_page(controller))
-                rendering = composed_controller_surface(
-                    controller, controller._render_print_page)
+                controller._display_status_parts = lambda eventtime: (name,)
+                del controller._print_content, controller._write_print_values
+                rendering = composed_controller_surface(controller, None)
 
-                controller._render_print_page()
+                controller._render_screen()
 
                 for action in (primary, "print.more", "print.z"):
                     self.assertEqual(rendering.latest.has_action(action),
@@ -2516,9 +2673,9 @@ class PrintWorkflowTest(unittest.TestCase):
         controller.toolhead = StatusObject({"homed_axes": "xyz"})
         controller._prepare_gcode_preview = lambda stats=None: None
         controller._current_print_progress_values = lambda *args: (0, ("0s", "0s", "0 / 10", 0.0))
-        controller._display_status_text = lambda eventtime: "Paused"
-        controller._render_print_page = lambda: FEATHER.FeatherScreen._render_print_page(controller)
-        rendering = composed_controller_surface(controller, controller._render_print_page)
+        controller._display_status_parts = lambda eventtime: ("Paused",)
+        del controller._print_content, controller._write_print_values
+        rendering = composed_controller_surface(controller, None)
         controller._show_page = lambda page: (setattr(controller, "page", page), controller._render_screen())
 
         self.assertEqual(controller._reconcile_print_state(100), "paused")
@@ -2673,8 +2830,7 @@ class PrintWorkflowTest(unittest.TestCase):
         controller = base_controller("paused")
         controller.page = FEATHER.ScreenPage.PAUSED
         controller.busy_message = None
-        composed_controller_surface(controller, lambda:
-            controller.renderer.loader(controller.busy_message, 0))
+        composed_controller_surface(controller, lambda: None)
         controller._show_page = lambda page: None
         immediate = []
         controller._run_immediate_command = lambda command: immediate.append(
@@ -2686,7 +2842,7 @@ class PrintWorkflowTest(unittest.TestCase):
                 command, controller.busy_message,
                 controller._blocking_operation_active(),
                 controller._safety_decision().visible,
-                controller.renderer._loader_active,
+                controller._state_screen() is not None,
             ))
             controller._handle_touch_action("global.abort")
 
@@ -2857,10 +3013,11 @@ class PrintWorkflowTest(unittest.TestCase):
         controller.page = FEATHER.ScreenPage.OPERATION_CANCEL
         controller.cancel_mode = "not_cancelable"
         controller.renderer = FEATHER.FeatherRenderer()
+        capture = RenderCapture(controller.renderer)
 
         FEATHER.FeatherScreen._render_cancel_confirm(controller)
 
-        frame = controller.renderer._batch_queue.get(timeout=0)
+        frame = capture.get()
         self.assertNotIn(controller.renderer.modal_scrim(), frame.commands)
         self.assertTrue(any('"CANNOT CANCEL SAFELY"' in command
                             for command in frame.commands))
@@ -3075,16 +3232,20 @@ class PrintWorkflowTest(unittest.TestCase):
                     controller.renderer = FEATHER.FeatherRenderer()
                     capture = RenderCapture(controller.renderer)
                     operation = ScenarioCatalog._operation_context_snapshot(specification, state)
-                    label = controller._display_status_text(status=operation)
-                    controller._draw_print_status(label)
+                    parts = controller._display_status_parts(status=operation)
+                    controller.page = FEATHER.ScreenPage.PRINTING
+                    del controller._print_content
+                    controller._write_print_values = lambda eventtime, due: printing_ui.get_page().state.update(
+                        {printing_ui.PrintingState.STATUS: parts})
+                    FEATHER.FeatherScreen._render_screen(controller)
                     bounds = printing_ui.rect(printing_ui.PrintingRef.STATUS)
                     text = next(text for text in capture.latest.texts if text.y == bounds.y)
                     metrics = get_font_metrics()
                     self.assertFalse(text.wrap)
-                    self.assertTrue(text.value.rstrip().endswith(label.rsplit(" -> ", 1)[-1]))
+                    self.assertTrue(text.value.rstrip().endswith(parts[-1]))
                     self.assertLessEqual(metrics.text_width(text.value.strip(), text.font), text.max_width)
                     self.assertEqual(bounds.height, metrics.metric(text.font).glyph_height)
-                    self.assertEqual(printing_ui.get_page().state[printing_ui.PrintingState.STATUS], label)
+                    self.assertEqual(printing_ui.get_page().state[printing_ui.PrintingState.STATUS], parts)
 
     def test_operation_revision_redraws_print_status_once(self):
         controller = base_controller("printing")
@@ -3094,7 +3255,8 @@ class PrintWorkflowTest(unittest.TestCase):
             current_state="HOMING",
             revision=3)
         drawn = []
-        controller._draw_print_status = drawn.append
+        controller._request_print_values = lambda values: drawn.append(
+            values[printing_ui.PrintingState.STATUS])
 
         controller._update_operation_context(10.0)
         controller._update_operation_context(11.0)
@@ -3103,7 +3265,7 @@ class PrintWorkflowTest(unittest.TestCase):
         controller._update_operation_context(12.0)
 
         self.assertEqual(drawn, [
-            "PRINT PREP -> HOMING", "PRINT PREP -> HEATING BED"])
+            ("PRINT PREP", "HOMING"), ("PRINT PREP", "HEATING BED")])
 
     def test_print_state_transition_selects_correct_page(self):
         controller = base_controller("idle")
@@ -3216,6 +3378,7 @@ class PrintWorkflowTest(unittest.TestCase):
 
     def test_cancel_context_end_waits_for_observed_print_stop(self):
         controller = base_controller("paused")
+        controller.renderer = FEATHER.FeatherRenderer()
         controller.page = FEATHER.ScreenPage.OPERATION_CANCEL
         controller.pending_action = "print.cancel.confirm"
         controller.cancel_mode = "pending"
@@ -3250,6 +3413,7 @@ class PrintWorkflowTest(unittest.TestCase):
 
     def test_failed_print_cleanup_never_reports_success_for_an_active_print(self):
         controller = base_controller("printing")
+        controller.renderer = FEATHER.FeatherRenderer()
         controller.page = FEATHER.ScreenPage.OPERATION_CANCEL
         controller.pending_action = "print.cancel.confirm"
         controller.cancel_mode = "pending"
@@ -3301,6 +3465,7 @@ class PrintWorkflowTest(unittest.TestCase):
 
     def test_cleanup_failure_is_retained_after_observing_a_stopped_print(self):
         controller = base_controller("paused")
+        controller.renderer = FEATHER.FeatherRenderer()
         controller.page = FEATHER.ScreenPage.OPERATION_CANCEL
         controller.pending_action = "print.cancel.confirm"
         controller.cancel_requested = True
@@ -3530,12 +3695,12 @@ class MotionHeatSettingsTest(unittest.TestCase):
                 self.events.append(("release",))
 
         controller.joystick = Planner()
-        controller._handle_continuous_touch(
-            "touch 7:%s begin 365 220" % MOVE_UI.JOYSTICK_XY.wire_id)
-        controller._handle_continuous_touch(
-            "touch 7:%s move 400 180" % MOVE_UI.JOYSTICK_XY.wire_id)
-        controller._handle_continuous_touch(
-            "touch 7:%s end 400 180" % MOVE_UI.JOYSTICK_XY.wire_id)
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 7:%s begin 365 220" % MOVE_UI.JOYSTICK_XY.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 7:%s move 400 180" % MOVE_UI.JOYSTICK_XY.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 7:%s end 400 180" % MOVE_UI.JOYSTICK_XY.wire_id))
 
         self.assertEqual(controller.joystick.events,
                          [("xy", 365, 220), ("xy", 400, 180), ("release",)])
@@ -3581,18 +3746,18 @@ class MotionHeatSettingsTest(unittest.TestCase):
         controller.joystick = Planner()
         controller._update_joystick_feedback = lambda *args, **kwargs: None
 
-        controller._handle_continuous_touch(
-            "touch 9:%s begin 240 229" % MOVE_UI.JOYSTICK_XY.wire_id)
-        controller._handle_continuous_touch(
-            "touch 9:%s move 300 229" % MOVE_UI.JOYSTICK_XY.wire_id)
-        controller._handle_continuous_touch(
-            "touch 9:%s end 300 229" % MOVE_UI.JOYSTICK_XY.wire_id)
-        controller._handle_continuous_touch(
-            "touch 9:%s begin 510 180" % MOVE_UI.JOYSTICK_Z.wire_id)
-        controller._handle_continuous_touch(
-            "touch 9:%s move 510 160" % MOVE_UI.JOYSTICK_Z.wire_id)
-        controller._handle_continuous_touch(
-            "touch 9:%s end 510 160" % MOVE_UI.JOYSTICK_Z.wire_id)
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 9:%s begin 240 229" % MOVE_UI.JOYSTICK_XY.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 9:%s move 300 229" % MOVE_UI.JOYSTICK_XY.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 9:%s end 300 229" % MOVE_UI.JOYSTICK_XY.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 9:%s begin 510 180" % MOVE_UI.JOYSTICK_Z.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 9:%s move 510 160" % MOVE_UI.JOYSTICK_Z.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 9:%s end 510 160" % MOVE_UI.JOYSTICK_Z.wire_id))
 
         self.assertEqual(
             controller.joystick.events,
@@ -3615,12 +3780,12 @@ class MotionHeatSettingsTest(unittest.TestCase):
         controller._wake_if_dimmed = lambda: True
         controller.joystick = mock.Mock()
 
-        controller._handle_continuous_touch(
-            "touch 8:%s begin 540 100" % MOVE_UI.JOYSTICK_Z.wire_id)
-        controller._handle_continuous_touch(
-            "touch 8:%s move 540 90" % MOVE_UI.JOYSTICK_Z.wire_id)
-        controller._handle_continuous_touch(
-            "touch 8:%s end 540 90" % MOVE_UI.JOYSTICK_Z.wire_id)
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 8:%s begin 540 100" % MOVE_UI.JOYSTICK_Z.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 8:%s move 540 90" % MOVE_UI.JOYSTICK_Z.wire_id))
+        controller._handle_continuous_touch(*typer_events(
+            controller.renderer.decode_action, "touch 8:%s end 540 90" % MOVE_UI.JOYSTICK_Z.wire_id))
 
         controller.joystick.assert_not_called()
         self.assertIsNone(controller.joystick_suppressed)
@@ -3691,7 +3856,7 @@ class MotionHeatSettingsTest(unittest.TestCase):
             next_wake, 100.0 + FEATHER.joystick_ui.PERIOD)
         self.assertGreaterEqual(len(controller.toolhead.moves), 2)
         self.assertLessEqual(len(controller.toolhead.moves),
-                             FEATHER.joystick_motion.MAX_REFILL_SEGMENTS)
+                             JOYSTICK_MOTION.MAX_REFILL_SEGMENTS)
         self.assertGreater(controller.toolhead.moves[0][2], 0.0)
         self.assertEqual(controller.toolhead.moves[0][2],
                          controller.joystick.xy_accel)
@@ -3731,7 +3896,7 @@ class MotionHeatSettingsTest(unittest.TestCase):
             active = False
 
             def start(self, eventtime):
-                raise FEATHER.joystick_motion.StreamBusy()
+                raise JOYSTICK_MOTION.StreamBusy()
 
         controller.joystick = Planner()
         controller.joystick_stream = BusyStream()
@@ -3745,7 +3910,7 @@ class MotionHeatSettingsTest(unittest.TestCase):
         self.assertEqual(notices, [])
 
         stopped = controller._joystick_tick(
-            100.0 + FEATHER.joystick_motion.START_BUSY_GRACE + 0.001)
+            100.0 + JOYSTICK_MOTION.START_BUSY_GRACE + 0.001)
 
         self.assertEqual(stopped, controller.reactor.NEVER)
         self.assertTrue(controller.joystick.released)
@@ -3792,8 +3957,11 @@ class MotionHeatSettingsTest(unittest.TestCase):
         controller.extruder = StatusObject({"temperature": 21.5, "target": 220})
         controller.heater_bed = StatusObject({"temperature": 24.0, "target": 60})
         controller.fan = StatusObject({"speed": 0.25})
+        controller._last_heat = None
+        controller._render_screen = lambda feature=None: (
+            FEATHER.FeatherScreen._render_screen(controller, feature))
 
-        controller._render_heat()
+        controller._show_page(FEATHER.ScreenPage.CONTROL_HEAT)
 
         actions = tuple(
             action for action in HEAT_UI.get_page(
@@ -3806,6 +3974,33 @@ class MotionHeatSettingsTest(unittest.TestCase):
         controller._update_heat_status(101)
         self.assertGreater(len(rendering.frames), 1)
 
+    def test_heat_values_are_written_inside_the_screen_transaction(self):
+        # A frame loop may take the screen's tree between transactions on its own thread.
+        controller = base_controller()
+        controller.renderer = FEATHER.FeatherRenderer()
+        RenderCapture(controller.renderer)
+        controller.extruder = StatusObject({"temperature": 21.5, "target": 220})
+        controller.heater_bed = StatusObject({"temperature": 24.0, "target": 60})
+        controller.fan = StatusObject({"speed": 0.25})
+        controller._last_heat = None
+        controller._render_screen = lambda feature=None: (
+            FEATHER.FeatherScreen._render_screen(controller, feature))
+        write = controller._write_heat_values
+        writes = []
+
+        def record(eventtime):
+            written = write(eventtime)
+            if written:
+                writes.append(controller._ensure_screen_root()._screen.open)
+            return written
+
+        controller._write_heat_values = record
+        controller._show_page(FEATHER.ScreenPage.CONTROL_HEAT)
+        controller.fan.status["speed"] = 0.5
+        controller._update_heat_status(101)
+
+        self.assertEqual(writes, [True, True])
+
     def test_empty_heating_keeps_manual_heat_controls_without_preset_hitboxes(self):
         controller = base_controller()
         controller.heating_materials = ()
@@ -3815,8 +4010,9 @@ class MotionHeatSettingsTest(unittest.TestCase):
         controller.extruder = StatusObject({"temperature": 21.5, "target": 0})
         controller.heater_bed = StatusObject({"temperature": 24.0, "target": 0})
         controller.fan = StatusObject({"speed": 0.0})
+        controller._last_heat = None
 
-        controller._render_heat()
+        controller._show_page(FEATHER.ScreenPage.CONTROL_HEAT)
 
         actions = tuple(
             action.key for action in HEAT_UI.get_page(()).actions.values())
@@ -4090,29 +4286,30 @@ class FilamentAndCalibrationWorkflowTest(unittest.TestCase):
         controller.heater_bed = type(
             "Bed", (), {"min_temp": 0, "max_temp": 130})()
 
-        FilamentFeature(controller).render(FEATHER.ScreenPage.FILAMENT_MATERIAL)
+        page, title, back = FilamentFeature(controller).page_content(
+            FEATHER.ScreenPage.FILAMENT_MATERIAL)
 
         actions = tuple(
-            action for action in FILAMENT_UI.get_material_page(
-                tuple((material, controller._limited_preheat(material)[0])
-                      for material in controller.heating_materials)).actions.values()
+            action for action in page.actions.values()
             if action.key == FILAMENT_UI.FilamentCommand.SELECT)
         self.assertEqual(
             set(action.payload for action in actions),
             set(controller.heating_materials))
-        self.assertEqual(len(rendering.frames), 1)
+        self.assertEqual((title, back), ("Select material", True))
+        # The screen shows the page: the feature paints nothing itself.
+        self.assertEqual(rendering.frames, [])
 
     def test_empty_heating_filament_page_has_only_empty_state_and_back(self):
         controller = base_controller()
         controller.heating_materials = ()
         controller.heating_profiles = {}
         controller.renderer = FEATHER.FeatherRenderer()
-        rendering = RenderCapture(controller.renderer)
 
-        FilamentFeature(controller).render(FEATHER.ScreenPage.FILAMENT_MATERIAL)
+        page, _title, back = FilamentFeature(controller).page_content(
+            FEATHER.ScreenPage.FILAMENT_MATERIAL)
 
-        self.assertTrue(rendering.latest.has_action("nav.back"))
-        self.assertFalse(FILAMENT_UI.get_material_page(()).actions)
+        self.assertTrue(back)
+        self.assertFalse(page.actions)
 
     def test_filament_action_back_preserves_heat_and_returns_to_materials(self):
         controller = base_controller()
@@ -4178,8 +4375,7 @@ class FilamentAndCalibrationWorkflowTest(unittest.TestCase):
         controller.busy_message = "PURGING..."
         commands = []
         controller._run_script = commands.append
-        rendering = composed_controller_surface(controller, lambda:
-            controller.renderer.loader(controller.busy_message, 0))
+        rendering = composed_controller_surface(controller, lambda: None)
         controller._screen_root.paint()
         feature = FilamentFeature(controller)
         feature._selected_target = 250.0
@@ -4190,7 +4386,6 @@ class FilamentAndCalibrationWorkflowTest(unittest.TestCase):
             "SET_FAN_SPEED FAN=fanM106 SPEED=1.00"])
         self.assertTrue(rendering.latest.has_text("PURGING..."))
         self.assertEqual(controller.renderer._buttons, {})
-        self.assertIsNotNone(feature._last_signature)
 
     def test_filament_cooling_fan_stops_at_five_degree_threshold(self):
         controller = base_controller()
@@ -4543,11 +4738,9 @@ class FilamentAndCalibrationWorkflowTest(unittest.TestCase):
                     controller = base_controller()
                     controller.toolhead.status["homed_axes"] = homed
                     controller.page = FEATHER.ScreenPage.Z_OFFSET_SUMMARY
-                    controller.renderer = FEATHER.FeatherRenderer()
-                    capture = RenderCapture(controller.renderer)
+                    feature, capture = feature_on_screen(controller, "z")
                     shown = []
                     controller._show_page = shown.append
-                    feature = ZCalibrationFeature(controller)
                     session = feature.z_calibration
                     session.begin(0.2, None, "", -0.25, True)
                     session.choose_zone("center")
@@ -4579,7 +4772,8 @@ class FilamentAndCalibrationWorkflowTest(unittest.TestCase):
                         self.assertEqual(controller.gcode.commands, [])
                     else:
                         self.assertFalse(session.active)
-                        self.assertEqual(shown, [FEATHER.ScreenPage.CALIBRATION_HOME])
+                        # Sending G-code may show the summary again first (ABORT's visibility).
+                        self.assertEqual(shown[-1:], [FEATHER.ScreenPage.CALIBRATION_HOME])
                         commands = "\n".join(controller.gcode.commands)
                         self.assertNotIn("_HOME_IF_NEEDED", commands)
                         self.assertEqual("SET_MOD PARAM=z_offset VALUE=0.250" in commands,
@@ -4589,16 +4783,14 @@ class FilamentAndCalibrationWorkflowTest(unittest.TestCase):
         controller = base_controller()
         controller.toolhead.status["homed_axes"] = ""
         controller.page = FEATHER.ScreenPage.Z_OFFSET_SUMMARY
-        controller.renderer = FEATHER.FeatherRenderer()
-        capture = RenderCapture(controller.renderer)
-        feature = ZCalibrationFeature(controller)
+        feature, capture = feature_on_screen(controller, "z")
         session = feature.z_calibration
         session.begin(0.2, None, "", -0.25, True)
         session.choose_zone("center")
         session.set_trigger(-0.5)
         session.accept()
 
-        feature.render(controller.page)
+        controller._render_screen()
 
         for action in Z_OFFSET_UI.ZONE_ACTIONS.values():
             self.assertFalse(capture.latest.has_action(action.wire_id))
@@ -4613,16 +4805,12 @@ class FilamentAndCalibrationWorkflowTest(unittest.TestCase):
     def test_z_calibration_abort_is_rendered_even_without_homing_or_heating(self):
         controller = base_controller()
         controller.toolhead.status["homed_axes"] = ""
-        controller.feature_manager = FEATHER.LazyFeatureManager(
-            controller, FEATHER.FEATURE_SPECS)
-        feature = controller.feature_manager.get("z")
+        feature, capture = feature_on_screen(controller, "z")
         feature.z_calibration.begin(0.2, None, "", -0.25, False)
         feature.z_calibration.choose_zone("center")
         controller.gcode_move = StatusObject({"homing_origin": (0.0, 0.0, 0.0)})
         controller.z_adjust_warning_threshold = 0.3
         controller._update_z_weight_gauge = lambda eventtime: None
-        controller.renderer = FEATHER.FeatherRenderer()
-        capture = RenderCapture(controller.renderer)
         pages = (
             FEATHER.ScreenPage.CALIBRATION_Z,
             FEATHER.ScreenPage.Z_OFFSET_SUMMARY,
@@ -4638,7 +4826,7 @@ class FilamentAndCalibrationWorkflowTest(unittest.TestCase):
                 with self.subTest(page=page, homed=homed):
                     controller.page = page
                     controller._apply_safety_visibility(page)
-                    feature.render(page)
+                    controller._render_screen()
                     self.assertTrue(capture.latest.has_action("global.abort"))
         controller._handle_touch_action("global.abort")
         self.assertEqual(controller.gcode.commands, ["M112"])
@@ -5176,7 +5364,7 @@ class NetworkWorkflowTest(unittest.TestCase):
         self.assertEqual(len(rendering.frames), frames)
         self.assertFalse(rendering.latest.has_text("CONNECTED"))
         self.assertEqual(rendering.latest.texts[-1].value, "Network message")
-        self.assertEqual(set(controller.renderer._buttons), {"message.ok"})
+        self.assertEqual(touchable_actions(controller.renderer), {"message.ok"})
         controller._close_dialog(FEATHER.ScreenDialog.MESSAGE)
         self.assertTrue(rendering.latest.has_text("CONNECTED"))
         self.assertFalse(rendering.latest.has_text("Network message"))
@@ -5794,7 +5982,7 @@ class NetworkWorkflowTest(unittest.TestCase):
 
         self.assertTrue(messages)
         actions = messages[-1][2]
-        self.assertIn("net.reset.saved", [action[0] for action in actions])
+        self.assertIn(dialog_ui.RESET_WIFI_PASSWORD, [action[0] for action in actions])
 
         pages = []
         controller._show_page = pages.append
@@ -5930,10 +6118,8 @@ class TouchEventBridgeTest(unittest.TestCase):
     def test_periodic_page_update_preserves_blocking_loader(self):
         controller = base_controller("printing")
         controller.page = FEATHER.ScreenPage.PRINTING
-        rendering = composed_controller_surface(controller, lambda:
-            controller.renderer.loader(controller.busy_message, 0)
-            if controller.busy_message else controller.renderer.send(
-                controller.renderer.begin_page("Printing")))
+        rendering = composed_controller_surface(controller, lambda: controller.renderer.send(
+            controller.renderer.begin_page("Printing")))
         controller.busy_message = "HOMING..."
         controller.operation_context.status["revision"] = 1
 
@@ -5996,8 +6182,7 @@ class TouchEventBridgeTest(unittest.TestCase):
         controller.page = FEATHER.ScreenPage.CONTROL_MOVE
         controller.busy_message = None
         controller.toolhead = StatusObject({"homed_axes": ""})
-        composed_controller_surface(controller, lambda:
-            controller.renderer.loader(controller.busy_message, 0))
+        composed_controller_surface(controller, lambda: None)
         controller._show_page = lambda page: None
         observed = []
 
@@ -6020,37 +6205,10 @@ class TouchEventBridgeTest(unittest.TestCase):
         self.assertEqual(controller.safety.lease_count, 0)
         self.assertTrue(controller._safety_decision().visible)
 
-    def test_fragmented_cpp_tap_events_are_reassembled(self):
-        controller = base_controller()
-        controller.renderer = type("Renderer", (), {"event_fd": 7})()
-        controller.event_partial = ""
-        controller.last_touch_time = 0
-        controller.dimmed = False
-        controller._wake_if_dimmed = lambda: False
-        actions = []
-        controller._dispatch_action = actions.append
-        with mock.patch("os.read", side_effect=[
-                b"tap nav.fi", b"les\ntap nav.control\nignored\n"]):
-            controller._process_touch_events(1)
-            self.assertEqual(actions, [])
-            controller._process_touch_events(2)
-        self.assertEqual(actions, ["nav.files", "nav.control"])
-        self.assertEqual(controller.event_partial, "")
-
-    def test_partial_touch_event_memory_is_bounded(self):
-        controller = base_controller()
-        controller.renderer = type("Renderer", (), {"event_fd": 7})()
-        controller.event_partial = ""
-        with self.assertLogs(level="WARNING") as logs, mock.patch(
-                "os.read", return_value=b"x" * (FEATHER.MAX_TOUCH_EVENT + 1)):
-            controller._process_touch_events(1)
-        self.assertEqual(controller.event_partial, "")
-        self.assertIn("oversized partial touch event", "\n".join(logs.output))
-
     def test_first_cpp_tap_after_dim_wakes_and_dispatches(self):
         controller = base_controller()
-        controller.renderer = type("Renderer", (), {"event_fd": 7})()
-        controller.event_partial = ""
+        controller.renderer = SimpleNamespace(
+            process_events=lambda eventtime: typer_events(lambda wire: wire, "tap nav.files"))
         controller.last_touch_time = 0
         controller.dimmed = True
         controller.params = type("Params", (), {"variables": {"backlight": 65}})()
@@ -6058,8 +6216,7 @@ class TouchEventBridgeTest(unittest.TestCase):
         controller._set_backlight = backlight.append
         actions = []
         controller._dispatch_action = actions.append
-        with mock.patch("os.read", return_value=b"tap nav.files\n"):
-            controller._process_touch_events(1)
+        controller._process_touch_events(1)
         self.assertEqual(backlight, [65])
         self.assertEqual(actions, ["nav.files"])
 
@@ -6069,8 +6226,9 @@ class TouchEventBridgeTest(unittest.TestCase):
         controller.reactor.register_callback = (
             lambda callback, waketime=None: callbacks.append(callback))
         rendered = []
+        lines = [["button nav.control down"], ["button nav.control up", "tap nav.control"]]
         controller.renderer = type("Renderer", (), {
-            "event_fd": 7,
+            "process_events": lambda self, eventtime: typer_events(self.decode_action, *lines.pop(0)),
             "decode_action": lambda self, action: action,
             "flash_button": lambda self, action: rendered.append(("down", action)) or True,
             "restore_button": lambda self, action: rendered.append(("up", action)) or True,
@@ -6079,14 +6237,11 @@ class TouchEventBridgeTest(unittest.TestCase):
         def dispatch(action):
             actions.append(action)
         controller._dispatch_action = dispatch
-        controller.event_partial = ""
         controller.dimmed = False
-        with mock.patch("os.read", return_value=b"button nav.control down\n"):
-            controller._process_touch_events(1)
+        controller._process_touch_events(1)
         self.assertEqual(rendered, [("down", "nav.control")])
         self.assertEqual(actions, [])
-        with mock.patch("os.read", return_value=b"button nav.control up\ntap nav.control\n"):
-            controller._process_touch_events(2)
+        controller._process_touch_events(2)
         self.assertEqual(rendered, [("down", "nav.control"),
                                     ("up", "nav.control")])
         self.assertEqual(actions, ["nav.control"])
@@ -6183,11 +6338,6 @@ class ActionPromptProtocolTest(unittest.TestCase):
         controller._render_dialog = render_dialog
         controller._paint_page = lambda: (
             shown.append(controller.page) if not any(not layer.suspended for layer in controller._ensure_screen_root().layers) else None)
-        def paint_dialog(instance):
-            shown.append(instance.kind)
-            if isinstance(controller.renderer, FEATHER.FeatherRenderer):
-                FEATHER.FeatherScreen._paint_dialog(controller, instance)
-        controller._paint_dialog = paint_dialog
         controller._render_screen = lambda: (
             render_dialog() if controller._current_dialog() is not None
             else show_page(controller.page))
@@ -6206,22 +6356,19 @@ class ActionPromptProtocolTest(unittest.TestCase):
         controller._apply_safety_visibility = lambda page: None
         controller._show_touch_unavailable = lambda: None
         controller._notify_features = lambda *args: None
-        def paint_dialog(instance):
-            shown.append(instance.kind)
-            FEATHER.FeatherScreen._paint_dialog(controller, instance)
-        controller._paint_dialog = paint_dialog
         def paint_page(page):
             if not any(not layer.suspended for layer in controller._ensure_screen_root().layers):
                 shown.append(page)
             controller.renderer.send(controller.renderer.begin_page(page.name))
         controller._render_main_menu = lambda: paint_page(FEATHER.ScreenPage.MAIN_MENU)
-        controller._render_home = lambda: paint_page(FEATHER.ScreenPage.IDLE_HOME)
+        paint_home(controller, lambda: paint_page(FEATHER.ScreenPage.IDLE_HOME))
         controller._render_control_home = lambda: paint_page(FEATHER.ScreenPage.CONTROL_HOME)
-        controller._render_print_page = lambda: paint_page(controller.page)
+        paint_printing(controller, lambda: paint_page(controller.page))
         return controller, shown
 
     def test_prompt_responses_build_show_and_close_dialog(self):
         controller, shown = self.controller()
+        controller.renderer = FEATHER.FeatherRenderer()
 
         controller._handle_gcode_output("\n".join([
             "// action:prompt_begin Choose material",
@@ -6235,7 +6382,6 @@ class ActionPromptProtocolTest(unittest.TestCase):
             "// action:prompt_show",
         ]))
 
-        self.assertEqual(shown, [FEATHER.ScreenDialog.ACTION_PROMPT])
         self.assertIn(FEATHER.ScreenDialog.ACTION_PROMPT,
                       [layer.kind for layer in controller._ensure_screen_root().layers])
         self.assertEqual(controller._find_dialog(FEATHER.ScreenDialog.ACTION_PROMPT).content["title"], "Choose material")
@@ -6244,7 +6390,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
             [button["label"] for button in controller._find_dialog(FEATHER.ScreenDialog.ACTION_PROMPT).content["rows"][0]],
             ["PLA", "PETG"])
         self.assertEqual(
-            controller._find_dialog(FEATHER.ScreenDialog.ACTION_PROMPT).content["footer"][0]["command"],
+            controller._find_dialog(FEATHER.ScreenDialog.ACTION_PROMPT).content["footer"][0]["action"].payload,
             "RESPOND TYPE=command MSG=action:prompt_end")
 
         controller._handle_gcode_output("// action:prompt_end")
@@ -6270,7 +6416,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
 
                 self.assertIsNone(controller._prompt_draft)
                 self.assertIs(controller._current_dialog_instance(), visible)
-                controller._handle_action_prompt_action("prompt.button.0")
+                press(controller, prompt_wire(controller))
                 self.assertEqual(controller.gcode.commands, ["KEEP_A"])
 
     def test_surviving_prompt_close_button_can_end_it_without_a_draft(self):
@@ -6290,14 +6436,15 @@ class ActionPromptProtocolTest(unittest.TestCase):
                     "// action:prompt_show",
                     "// action:prompt_begin B", end)))
                 controller._handle_gcode_output("// action:prompt_end B")
-                self.assertTrue(capture.latest.has_action("prompt.button.0"))
+                button = prompt_wire(controller)
+                self.assertTrue(capture.latest.has_action(button))
                 self.assertIsNone(controller._prompt_draft)
 
-                controller._handle_action_prompt_action("prompt.button.0")
+                press(controller, button)
 
                 self.assertEqual(controller.gcode.commands, [close])
                 self.assertIsNone(controller._current_dialog_instance())
-                self.assertFalse(capture.latest.has_action("prompt.button.0"))
+                self.assertFalse(capture.latest.has_action(button))
 
     def test_unaddressed_end_closes_surviving_prompt_under_a_message(self):
         controller, _ = self.controller_with_navigation()
@@ -6340,25 +6487,25 @@ class ActionPromptProtocolTest(unittest.TestCase):
             "// action:prompt_button_group_end",
             "// action:prompt_footer_button Cancel|CANCEL_SELECTION",
             "// action:prompt_show")))
-        self.assertTrue(capture.latest.has_action("prompt.next"))
+        self.assertTrue(capture.latest.has_action(dialog_ui.NEXT_PAGE.wire_id))
         seen = []
         for _ in range(100):
             frame = capture.latest
             seen.extend(text.value for text in frame.texts
                         if text.font == "JetBrainsMono 8pt" and not text.value.isdigit())
-            self.assertTrue(frame.has_action("prompt.button.2"))
-            if not frame.has_action("prompt.next"):
+            self.assertTrue(frame.has_action(prompt_wire(controller, 2)))
+            if not frame.has_action(dialog_ui.NEXT_PAGE.wire_id):
                 break
-            controller._handle_action_prompt_action("prompt.next")
+            press(controller, dialog_ui.NEXT_PAGE.wire_id)
         else:
             self.fail("Prompt pagination did not reach the final page")
         self.assertEqual(" ".join(seen), instruction.strip())
-        self.assertTrue(frame.has_action("prompt.button.0"))
-        self.assertTrue(frame.has_action("prompt.button.1"))
-        controller._handle_action_prompt_action("prompt.button.1")
+        self.assertTrue(frame.has_action(prompt_wire(controller, 0)))
+        self.assertTrue(frame.has_action(prompt_wire(controller, 1)))
+        press(controller, prompt_wire(controller, 1))
         self.assertEqual(controller.gcode.commands, ["SELECT_PETG"])
-        controller._handle_action_prompt_action("prompt.prev")
-        self.assertTrue(capture.latest.has_action("prompt.next"))
+        press(controller, dialog_ui.PREVIOUS_PAGE.wire_id)
+        self.assertTrue(capture.latest.has_action(dialog_ui.NEXT_PAGE.wire_id))
 
     def test_late_addressed_end_preserves_replacement_with_same_dialog_type(self):
         controller, _ = self.controller_with_navigation()
@@ -6374,6 +6521,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
 
     def test_visible_prompt_survives_print_start_and_returns_to_current_print_page(self):
         controller, shown = self.controller_with_navigation()
+        capture = RenderCapture(controller.renderer)
         controller._handle_gcode_output("\n".join((
             "// action:prompt_begin Timelapse video in progress",
             "// action:prompt_text Wait for video generation",
@@ -6387,7 +6535,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
         self.assertEqual(controller.page, FEATHER.ScreenPage.PAUSED)
         self.assertEqual(controller._current_dialog(),
                          FEATHER.ScreenDialog.ACTION_PROMPT)
-        self.assertEqual(shown, [FEATHER.ScreenDialog.ACTION_PROMPT] * 3)
+        self.assertTrue(capture.latest.has_text("TIMELAPSE VIDEO IN PROGRESS"))
 
         controller.print_stats.status["state"] = "printing"
         controller._change_print_state(FEATHER.PrintState.PRINTING, "printing")
@@ -6397,6 +6545,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
 
     def test_background_navigation_preserves_prompt_until_dismissal(self):
         controller, shown = self.controller_with_navigation()
+        capture = RenderCapture(controller.renderer)
         controller._handle_gcode_output("\n".join((
             "// action:prompt_begin Choose material",
             "// action:prompt_show")))
@@ -6405,7 +6554,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
         controller._show_page(FEATHER.ScreenPage.CONTROL_HOME)
 
         self.assertEqual(controller.page, FEATHER.ScreenPage.CONTROL_HOME)
-        self.assertEqual(shown, [FEATHER.ScreenDialog.ACTION_PROMPT] * 3)
+        self.assertTrue(capture.latest.has_text("CHOOSE MATERIAL"))
 
         controller._handle_gcode_output("// action:prompt_end")
         self.assertEqual(controller.page, FEATHER.ScreenPage.CONTROL_HOME)
@@ -6413,40 +6562,41 @@ class ActionPromptProtocolTest(unittest.TestCase):
 
     def test_same_page_refresh_preserves_the_visible_prompt_without_paint(self):
         controller, shown = self.controller_with_navigation()
+        capture = RenderCapture(controller.renderer)
         controller._handle_gcode_output("\n".join((
             "// action:prompt_begin Choose material",
             "// action:prompt_show")))
         controller._show_page(FEATHER.ScreenPage.CONTROL_HOME)
-        shown.clear()
+        frames = len(capture.frames)
 
         controller._show_page(controller.page)
 
-        self.assertEqual(shown, [])
+        self.assertEqual(len(capture.frames), frames)
         self.assertEqual(controller.page, FEATHER.ScreenPage.CONTROL_HOME)
 
     def test_prompt_dims_existing_page_then_reveals_latest_page_on_close(self):
         controller, _ = self.controller_with_navigation()
         renderer = controller.renderer
+        capture = RenderCapture(renderer)
         renderer.footer("NOZZLE 25C", "IDLE")
-        renderer._batch_queue.get(timeout=0)
+        capture.get()
         controller._render_main_menu = lambda: renderer.send(
             renderer.begin_page("Menu"))
         controller._render_dialog = (
             lambda: FEATHER.FeatherScreen._render_dialog(controller))
-        controller._render_action_prompt = lambda instance: renderer.send(
-            renderer.dialog("Wait", (), (
-                ("prompt.button.0", "OK", "enabled"),)))
         controller._show_page(FEATHER.ScreenPage.MAIN_MENU)
-        renderer._batch_queue.get(timeout=0)
+        capture.get()
         controller._handle_gcode_output("\n".join((
             "// action:prompt_begin Wait",
+            "// action:prompt_footer_button OK",
             "// action:prompt_show")))
 
-        frame = renderer._batch_queue.get(timeout=0)
+        frame = capture.get()
         self.assertIn(renderer.modal_scrim(), frame.commands)
         self.assertTrue(any('"WAIT"' in command for command in frame.commands))
-        self.assertFalse(renderer._footer_drawn)
-        self.assertIsNone(renderer._batch_queue.get(timeout=0))
+        # The scrim covers the footer: it is not drawn over the prompt.
+        renderer.footer("NOZZLE 25C", "IDLE")
+        self.assertIsNone(capture.get())
         self.assertEqual(controller.page, FEATHER.ScreenPage.MAIN_MENU)
         self.assertEqual(controller._current_dialog(),
                          FEATHER.ScreenDialog.ACTION_PROMPT)
@@ -6456,27 +6606,27 @@ class ActionPromptProtocolTest(unittest.TestCase):
                 "nav.move", 20, 80, 200, 60, "MOVE"))
         controller._show_page(FEATHER.ScreenPage.CONTROL_HOME)
 
-        covered = renderer._batch_queue.get(timeout=0)
+        covered = capture.get()
         self.assertTrue(any('"CONTROL MENU"' in command for command in covered.commands))
         self.assertTrue(any('"WAIT"' in command for command in covered.commands))
-        self.assertEqual(set(renderer._buttons), {"prompt.button.0"})
+        self.assertEqual(touchable_actions(renderer), {prompt_wire(controller)})
 
         controller._handle_gcode_output("// action:prompt_end")
 
-        frame = renderer._batch_queue.get(timeout=0)
+        frame = capture.get()
         self.assertTrue(any('"CONTROL MENU"' in command
                             for command in frame.commands))
         self.assertFalse(any('"WAIT"' in command
                              for command in frame.commands))
         self.assertTrue(any('"NOZZLE 25C"' in command
                             for command in frame.commands))
-        self.assertTrue(renderer._footer_drawn)
         self.assertIsNone(controller._current_dialog())
         self.assertEqual(set(renderer._buttons), {"nav.move"})
 
     def test_message_remains_over_new_page_then_reveals_its_actions(self):
         controller, _ = self.controller_with_navigation()
         renderer = controller.renderer
+        capture = RenderCapture(renderer)
         controller._render_dialog = (
             lambda: FEATHER.FeatherScreen._render_dialog(controller))
         controller._render_main_menu = lambda: renderer.send(
@@ -6486,24 +6636,24 @@ class ActionPromptProtocolTest(unittest.TestCase):
                 "nav.move", 20, 80, 200, 60, "MOVE"))
 
         controller._show_page(FEATHER.ScreenPage.MAIN_MENU)
-        first = renderer._batch_queue.get(timeout=0)
+        first = capture.get()
         self.assertTrue(any('"MAIN MENU"' in command
                             for command in first.commands))
         controller._show_message(
             "Page transition check", FEATHER.ScreenPage.MAIN_MENU)
-        covered = renderer._batch_queue.get(timeout=0)
+        covered = capture.get()
         self.assertIn(renderer.modal_scrim(), covered.commands)
         self.assertEqual(controller._current_dialog(),
                          FEATHER.ScreenDialog.MESSAGE)
 
         controller._show_page(FEATHER.ScreenPage.CONTROL_HOME)
-        updated = renderer._batch_queue.get(timeout=0)
+        updated = capture.get()
         self.assertTrue(any('"CONTROL MENU"' in command for command in updated.commands))
         self.assertTrue(any('"Page transition check"' in command for command in updated.commands))
-        self.assertEqual(set(renderer._buttons), {"message.ok"})
+        self.assertEqual(touchable_actions(renderer), {"message.ok"})
 
         controller._close_dialog(FEATHER.ScreenDialog.MESSAGE)
-        revealed = renderer._batch_queue.get(timeout=0)
+        revealed = capture.get()
         self.assertTrue(any('"CONTROL MENU"' in command
                             for command in revealed.commands))
         self.assertFalse(any('"Page transition check"' in command
@@ -6537,8 +6687,10 @@ class ActionPromptProtocolTest(unittest.TestCase):
 
     def test_new_message_replaces_prompt_on_current_page(self):
         controller, shown = self.controller_with_navigation()
+        capture = RenderCapture(controller.renderer)
         controller._handle_gcode_output("\n".join((
             "// action:prompt_begin Wait",
+            "// action:prompt_footer_button OK",
             "// action:prompt_show")))
         controller._show_page(FEATHER.ScreenPage.CONTROL_HOME)
         controller._show_message("Notice", controller.page)
@@ -6548,7 +6700,8 @@ class ActionPromptProtocolTest(unittest.TestCase):
 
         controller._close_dialog(FEATHER.ScreenDialog.MESSAGE)
 
-        self.assertEqual(shown, [FEATHER.ScreenDialog.ACTION_PROMPT])
+        self.assertTrue(capture.latest.has_text("WAIT"))
+        self.assertFalse(capture.latest.has_text("Notice"))
         self.assertEqual(controller.page, FEATHER.ScreenPage.CONTROL_HOME)
         controller._handle_gcode_output("// action:prompt_end")
 
@@ -6559,25 +6712,23 @@ class ActionPromptProtocolTest(unittest.TestCase):
     def test_replacing_prompt_repaints_one_message_over_the_page(self):
         controller, _ = self.controller_with_navigation()
         renderer = controller.renderer
-        controller._render_home = lambda: renderer.send(
-            renderer.begin_page("Home"))
+        capture = RenderCapture(renderer)
+        paint_home(controller, lambda: renderer.send(
+            renderer.begin_page("Home")))
         controller._render_dialog = (
             lambda: FEATHER.FeatherScreen._render_dialog(controller))
-        controller._render_action_prompt = lambda instance: renderer.send(
-            renderer.dialog("First prompt", (), (
-                ("prompt.button.0", "OK", "enabled"),)))
         controller._show_page(FEATHER.ScreenPage.IDLE_HOME)
-        renderer._batch_queue.get(timeout=0)
+        capture.get()
         controller._handle_gcode_output("\n".join((
             "// action:prompt_begin Prompt",
             "// action:prompt_show")))
-        renderer._batch_queue.get(timeout=0)
+        capture.get()
 
         controller._show_message(
             "Second message", FEATHER.ScreenPage.IDLE_HOME,
             title="Replacement")
 
-        frame = renderer._batch_queue.get(timeout=0)
+        frame = capture.get()
         self.assertEqual([layer.kind for layer in controller._ensure_screen_root().layers], [
             FEATHER.ScreenDialog.ACTION_PROMPT, FEATHER.ScreenDialog.MESSAGE])
         self.assertTrue(any('"HOME"' in command for command in frame.commands))
@@ -6585,24 +6736,25 @@ class ActionPromptProtocolTest(unittest.TestCase):
                             for command in frame.commands))
         self.assertFalse(any('"FIRST PROMPT"' in command
                              for command in frame.commands))
-        self.assertIsNone(renderer._batch_queue.get(timeout=0))
+        self.assertIsNone(capture.get())
 
     def test_replacing_large_message_with_small_message_clears_old_panel(self):
         controller, _ = self.controller_with_navigation()
         renderer = controller.renderer
-        controller._render_home = lambda: renderer.send(
-            renderer.begin_page("Home"))
+        capture = RenderCapture(renderer)
+        paint_home(controller, lambda: renderer.send(
+            renderer.begin_page("Home")))
         controller._render_dialog = (
             lambda: FEATHER.FeatherScreen._render_dialog(controller))
         controller._show_page(FEATHER.ScreenPage.IDLE_HOME)
-        renderer._batch_queue.get(timeout=0)
+        capture.get()
 
         controller._show_message("OLD MESSAGE " * 12, controller.page)
-        renderer._batch_queue.get(timeout=0)
+        capture.get()
         previous_generation = renderer.generation
         controller._show_message("New", controller.page)
 
-        frame = renderer._batch_queue.get(timeout=0)
+        frame = capture.get()
         self.assertGreater(renderer.generation, previous_generation)
         self.assertTrue(any('"HOME"' in command for command in frame.commands))
         self.assertTrue(any('"New"' in command for command in frame.commands))
@@ -6611,6 +6763,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
 
     def test_prompt_blocks_page_action_while_page_changes_underneath(self):
         controller = base_controller("printing")
+        controller.renderer = FEATHER.FeatherRenderer()
         controller.page = FEATHER.ScreenPage.PRINTING
         controller._handle_gcode_output("\n".join((
             "// action:prompt_begin Prompt",
@@ -6625,6 +6778,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
 
     def test_prompt_button_can_replace_dialog_with_next_menu(self):
         controller, shown = self.controller()
+        controller.renderer = FEATHER.FeatherRenderer()
         controller._handle_gcode_output("\n".join([
             "// action:prompt_begin First",
             "// action:prompt_button Next|OPEN_NEXT",
@@ -6641,12 +6795,10 @@ class ActionPromptProtocolTest(unittest.TestCase):
             ]))
 
         controller._run_script = run
-        controller._handle_action_prompt_action("prompt.button.0")
+        press(controller, prompt_wire(controller))
 
         self.assertEqual(commands, ["OPEN_NEXT"])
         self.assertEqual(controller._find_dialog(FEATHER.ScreenDialog.ACTION_PROMPT).content["title"], "Second")
-        self.assertEqual(shown, [
-            FEATHER.ScreenDialog.ACTION_PROMPT, FEATHER.ScreenDialog.ACTION_PROMPT])
 
     def test_cold_pull_prompt_uses_its_commands_and_shared_context(self):
         controller, shown = self.controller()
@@ -6667,12 +6819,11 @@ class ActionPromptProtocolTest(unittest.TestCase):
             "// action:prompt_show",
         ]))
 
-        self.assertEqual(shown, [FEATHER.ScreenDialog.ACTION_PROMPT])
         self.assertIn(FEATHER.ScreenDialog.ACTION_PROMPT,
                       [layer.kind for layer in controller._ensure_screen_root().layers])
-        self.assertTrue(rendering.latest.has_action("prompt.button.0"))
+        self.assertTrue(rendering.latest.has_action(prompt_wire(controller)))
 
-        controller._handle_action_prompt_action("prompt.button.0")
+        press(controller, prompt_wire(controller))
         self.assertEqual(commands, [
             "_COLDPULL_LOAD_MATERIAL MATERIAL=PLA TEMP=220 COLD=100 "
             "PROMPT=1"])
@@ -6702,37 +6853,39 @@ class ActionPromptProtocolTest(unittest.TestCase):
         controller, _ = self.controller_with_navigation()
         renderer = controller.renderer
         rendering = RenderCapture(renderer)
+        home_paints = []
+        paint_home(controller, lambda: (
+            home_paints.append(controller.page),
+            renderer.send(renderer.begin_page(controller.page.name))))
         controller._show_page(controller.page)
-        controller._render_home = mock.Mock(wraps=controller._render_home)
+        home_paints.clear()
         controller.extruder = StatusObject({"temperature": 190.0, "target": 100.0})
         controller.operation_context.status.update(
             context_types=("cold_pull",), current_state="COOLING NOZZLE",
             cancel_available=True, cancel_pending=False)
         controller._handle_gcode_output("\n".join((
             "// action:prompt_begin Cold Pull", "// action:prompt_feather_kind cold_pull", "// action:prompt_show")))
-        controller._render_home.assert_not_called()
+        self.assertEqual(home_paints, [])
         self.assertIn(renderer.modal_scrim(), rendering.batches[-1])
-        tap = renderer._wire_action("coldpull.cancel")
         generation = renderer.generation
         controller.extruder.status["temperature"] = 180.0
-        FEATHER.FeatherScreen._render_dialog(controller)
+        refresh_prompt(controller)
         controller.operation_context.status["current_state"] = "PULLING"
-        FEATHER.FeatherScreen._render_dialog(controller)
-        controller._render_home.assert_not_called()
+        refresh_prompt(controller)
+        self.assertEqual(home_paints, [])
         self.assertNotIn(renderer.modal_scrim(), rendering.batches[-1])
         self.assertEqual(renderer.generation, generation)
-        self.assertEqual(renderer.decode_action(tap), "coldpull.cancel")
+        self.assertIn("coldpull.cancel", shown_actions(controller._screen_root))
         self.assertTrue(rendering.latest.has_text("PULLING"))
         self.assertTrue(rendering.latest.has_text("NOZZLE 180 / 100 C"))
         controller.operation_context.status["cancel_pending"] = True
         submitted = len(rendering.frames)
-        FEATHER.FeatherScreen._render_dialog(controller)
+        refresh_prompt(controller)
         self.assertEqual(len(rendering.frames), submitted + 1)
-        controller._render_home.assert_not_called()
-        self.assertIsNone(renderer.decode_action(tap))
-        self.assertNotIn("coldpull.cancel", renderer._buttons)
+        self.assertEqual(home_paints, [])
+        self.assertNotIn("coldpull.cancel", shown_actions(controller._screen_root))
 
-    def test_cold_pull_unchanged_display_skips_output_but_still_recovers(self):
+    def test_cold_pull_unchanged_display_skips_output(self):
         controller, _ = self.controller_with_navigation()
         rendering = RenderCapture(controller.renderer)
         controller.extruder = StatusObject({"temperature": 190.01, "target": 100.01})
@@ -6744,30 +6897,67 @@ class ActionPromptProtocolTest(unittest.TestCase):
         submitted = len(rendering.frames)
         for _ in range(20):
             controller.extruder.status.update(temperature=190.02, target=100.02)
-            FEATHER.FeatherScreen._render_dialog(controller)
+            refresh_prompt(controller)
         self.assertEqual(len(rendering.frames), submitted)
         controller.operation_context.status["revision"] += 1
-        FEATHER.FeatherScreen._render_dialog(controller)
+        refresh_prompt(controller)
         self.assertEqual(len(rendering.frames), submitted)
         controller.extruder.status["temperature"] = 191.2
-        FEATHER.FeatherScreen._render_dialog(controller)
+        refresh_prompt(controller)
         self.assertEqual(len(rendering.frames), submitted + 1)
         self.assertTrue(rendering.latest.has_text("NOZZLE 191 / 100 C"))
         controller.operation_context.status["cancel_available"] = False
-        FEATHER.FeatherScreen._render_dialog(controller)
+        refresh_prompt(controller)
         self.assertFalse(rendering.latest.has_action("coldpull.cancel"))
-        lost = rendering.submitted[-1]
-        controller.renderer._batch_queue.drop_render(lost)
-        FEATHER.FeatherScreen._render_dialog(controller)
-        self.assertEqual(rendering.submitted[-1].kind, "surface")
-        self.assertIn(controller.renderer.modal_scrim(), rendering.batches[-1])
         controller.operation_context.status["cancel_available"] = True
-        FEATHER.FeatherScreen._render_dialog(controller)
+        refresh_prompt(controller)
         fresh = controller.renderer._wire_action("coldpull.cancel")
         self.assertEqual(controller.renderer.decode_action(fresh), "coldpull.cancel")
 
+    def status_prompt_under_a_message(self):
+        controller, _ = self.controller_with_navigation()
+        rendering = RenderCapture(controller.renderer)
+        controller._show_page(controller.page)
+        controller.extruder = StatusObject({"temperature": 190.0, "target": 100.0})
+        controller.operation_context.status.update(
+            context_types=("cold_pull",), current_state="PULLING", cancel_available=False, cancel_pending=False)
+        controller._handle_gcode_output("\n".join((
+            "// action:prompt_begin Cold Pull", "// action:prompt_feather_kind cold_pull", "// action:prompt_show")))
+        controller._show_message("Notice", controller.page)
+        return controller, rendering
+
+    def test_a_covered_status_prompt_comes_back_current(self):
+        controller, rendering = self.status_prompt_under_a_message()
+        for name in ("_service_network", "_update_eco_backlight", "_poll_usb_storage", "_update_operation_context",
+                     "_refresh_emergency_stop"):
+            setattr(controller, name, lambda *args: False)
+        controller._sync_timelapse_wait_page = lambda: None
+        controller._reconcile_pending_action = lambda *args: None
+        controller._update_dashboard = mock.Mock()
+        controller.heater_bed = StatusObject({"temperature": 30, "target": 0})
+        controller.filament_sensor = controller.busy_message = None
+        controller.extruder.status["temperature"] = 150.0
+
+        controller._update_cycle(100)
+        controller._close_dialog(FEATHER.ScreenDialog.MESSAGE)
+
+        self.assertTrue(rendering.latest.has_text("NOZZLE 150 / 100 C"))
+
+    def test_a_cancel_button_that_comes_under_a_message_waits_for_the_prompt_on_top(self):
+        controller, rendering = self.status_prompt_under_a_message()
+        controller.operation_context.status["cancel_available"] = True
+
+        refresh_prompt(controller)
+        self.assertEqual(controller._current_dialog(), FEATHER.ScreenDialog.MESSAGE)
+        controller._close_dialog(FEATHER.ScreenDialog.MESSAGE)
+        self.assertFalse(rendering.latest.has_action("coldpull.cancel"))
+        refresh_prompt(controller)
+
+        self.assertTrue(rendering.latest.has_action("coldpull.cancel"))
+
     def test_cold_pull_prompt_end_closes_cancel_page(self):
         controller, shown = self.controller()
+        controller.renderer = FEATHER.FeatherRenderer()
         controller._handle_gcode_output("\n".join([
             "// action:prompt_begin Cold Pull",
             "// action:prompt_feather_kind cold_pull",
@@ -6803,6 +6993,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
 
     def test_cold_pull_cancel_page_goes_back_to_prompt(self):
         controller, _ = self.controller()
+        controller.renderer = FEATHER.FeatherRenderer()
         controller._handle_gcode_output("\n".join((
             "// action:prompt_begin Cold Pull",
             "// action:prompt_feather_kind cold_pull",
@@ -6824,6 +7015,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
 
     def test_cold_pull_prompt_end_during_m108_does_not_redraw_cancel(self):
         controller, shown = self.controller()
+        controller.renderer = FEATHER.FeatherRenderer()
         controller._handle_gcode_output("\n".join([
             "// action:prompt_begin Cold Pull",
             "// action:prompt_feather_kind cold_pull",
@@ -6851,6 +7043,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
 
     def test_fluidd_cold_pull_cancel_waits_for_prompt_end(self):
         controller, shown = self.controller()
+        controller.renderer = FEATHER.FeatherRenderer()
         controller._handle_gcode_output("\n".join([
             "// action:prompt_begin Cold Pull",
             "// action:prompt_feather_kind cold_pull",
@@ -6870,7 +7063,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
         self.assertIn(FEATHER.ScreenDialog.ACTION_PROMPT,
                       [layer.kind for layer in controller._ensure_screen_root().layers])
         self.assertEqual(controller.page, FEATHER.ScreenPage.IDLE_HOME)
-        self.assertEqual(shown, [FEATHER.ScreenDialog.ACTION_PROMPT])
+        self.assertEqual(shown, [])
 
         controller._handle_gcode_output("// action:prompt_end")
         self.assertEqual(shown[-1], FEATHER.ScreenPage.IDLE_HOME)
@@ -6879,6 +7072,7 @@ class ActionPromptProtocolTest(unittest.TestCase):
 
     def test_cold_pull_message_replaces_prompt_and_survives_prompt_end(self):
         controller, shown = self.controller()
+        controller.renderer = FEATHER.FeatherRenderer()
         controller._handle_gcode_output("\n".join([
             "// action:prompt_begin Cold Pull",
             "// action:prompt_feather_kind cold_pull",

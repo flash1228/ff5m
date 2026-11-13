@@ -29,6 +29,20 @@ python3 -m venv .venv
 .venv/bin/python -m unittest discover -s tests
 ```
 
+The Feather framework (`ui/`) builds every node on the native `feather_engine`
+extension (one limited-API binary per platform for CPython 3.7 and later).
+Install the host build into `.venv` before running the suite; without it,
+importing `ui.layout` fails with an `ImportError` naming the required engine
+ABI. The printer has no installed engine and loads the ARM build shipped as
+`ui/feather_engine.abi3.so`; republish it with `build.sh --publish <this
+checkout>` from `forge-x-private/src/feather_engine` after every engine change.
+The engine keeps declared node values in its own records, not in `__dict__`,
+and reads each node class's hook implementations again whenever the class or
+a base changes, so a test or harness may replace a framework hook on a node
+class with `mock.patch.object` (for example
+`tests/visual_checks/composition_scenes.py`); patching a hook on an instance
+has no effect.
+
 The G-code macro tests use the same Jinja delimiters and config-comment rules
 as Klipper. They render macros against explicit status snapshots and inspect
 the resulting G-code. They do not emulate motion, heaters, or the MCU.
@@ -63,10 +77,38 @@ The component benchmark changes a card width from 300 to 510 pixels on every
 frame. Wrapped text changes height, buttons change columns and stretch to fill
 the available row while keeping a minimum width, and the sample
 rows advance. Each frame runs the page's normal component update and full
-layout pass. The **PYTHON** metric includes state updates, layout, and command
-construction; frame median and p95 measure submission to render receipt, and
-**COMMIT FPS** counts received frame receipts in the last second. The first
-30 frames warm the benchmark before samples enter the rolling window.
+layout pass on the render thread. Both pages are the screen's content: a frame
+is one transaction of the screen that writes the page's values. The **PYTHON**
+metric is that transaction on the reactor, including a class's Python `draw`
+(the render benchmark's cube); **PY P95** reports its p95. Layout and command
+construction run on the render thread and are not part of it. Frame median and
+p95 measure the time of one frame: from its submission, or from the previous
+frame's render receipt when frames overlap. **RENDER FPS** counts successfully
+completed render transactions in the last second. Both benchmarks run without
+an FPS limit. They request `staged` receipts, so rendering can proceed faster
+than physical screen refresh; several rendered transactions can share one
+screen update. With adaptive publication enabled, both copy and page-flip
+candidates remain staged until the presentation deadline; the publisher chooses
+the physical method at that point. Synchronous receipts and copy-only fallback
+still wait for publication. The next frame is written when the frame loop has
+written the previous one to Typer (the `set_sent_handler` callback, with the
+receipt token and dispatch time), so the render thread builds it while Typer
+draws the last; the loop's credits bound the frames in flight. Receipts count
+in order. Stale notifications after cancellation or restart are ignored. The
+first 30 frames warm the benchmark before samples enter the rolling window.
+
+Close both benchmark pages before isolated CPU or native-runtime measurements.
+For complete-pipeline throughput, open the benchmark only after renderer startup
+and calibration have settled. Query `feather_screen=benchmark` through Moonraker
+and compare its `completed_frames` at two `eventtime` values within the same
+active `session`. This counts successful receipts without transferring a
+framebuffer capture. After cancellation or failure the counter is `null`. Compare the same page, raster mode and workload,
+and collect final FPS without profiling hooks; instrumentation can change thread
+scheduling and throughput.
+
+With staged receipts, **TYPER**, **CPU**, and **FLUSH** cover work up to render
+completion. Deferred framebuffer copying and page publication consume CPU after
+that receipt and can still limit overall throughput.
 
 The two benchmarks share receipt timing and stop/restart behavior, but their
 results represent different workloads and should be compared within each page.
@@ -101,7 +143,7 @@ additional clearance, ten matching `CLOSER` actions, temporary Accept, and
 mandatory Discard. It never saves the candidate. PID, input-shaper, and
 extruder calibration are intentionally outside the physical suite.
 
-Each hardware/UI phase is also independently runnable with `SUITE=UI`,
+Each hardware/UI phase is also independently runnable with `SUITE=UI`, `LEAK`,
 `RENDER`, `MOTION`, `HEAT`, `SCREWS`, `MESH`, or `Z`; pass an active material name through
 `MATERIAL=PETG` when needed. Use these control commands while diagnosing a run:
 
@@ -230,6 +272,18 @@ run until its visible states are deliberately covered. The final
 `ui-context-coverage-complete` frame is written only after every context frame
 has succeeded, so a truncated artifact cannot satisfy host-side coverage.
 
+`SUITE=LEAK` is non-physical too: it runs the UI suite's steps twice and fails
+when the second pass leaves the UI holding more than the first left. After a
+garbage collection it compares counts that do not drift: the engine's nodes,
+node images and mirror nodes, the Python node proxies, the framework's shared
+authored-defaults dicts, and the open descriptors of Klipper's Typer child.
+Klipper's own descriptors are recorded but not compared, since they move with
+the connections Klipper serves; RSS is not compared either, since it drifts by
+up to about 1 MB per pass. Both sets of counts and what grew are in the run's
+`leak.json`. The host test
+`ReopenedPagesTest` (`tests/test_feather_memory_report.py`) checks the same
+counts for mod settings pages reopened with other data and every theme.
+
 `SUITE=COMPONENT` is a second non-physical, cold test path used only by the
 extended parity regression. It discovers module-level declarative pages after
 the explicitly requested test has started, renders their default typed state
@@ -290,8 +344,8 @@ screen visible even though the calibration itself has finished.
 The screw page's schematic nut and clockwise/counterclockwise arrows
 are small raw FXI1 resources in `ff5m_ui/assets/calibration/`. Regenerate them locally with
 `.venv/bin/python -m tests.visual_checks.generate_screw_icons`. The generator
-owns the geometry and precomputes horizontal reflection. Runtime caches only
-the three immutable source blobs and replaces their palette before sending
+owns the geometry and precomputes horizontal reflection. The shared
+`ff5m_ui/icons.py` loader caches only immutable source blobs and replaces their palette before sending
 them with the existing binary `image` command. Nut palette slots are
 transparent/bright/dim/panel;
 arrow slots are transparent/current accent.
@@ -299,6 +353,25 @@ No decoded image or per-theme cache is retained in Python. Designer decodes
 the same payload through its generic image renderer. Visual review must
 include a theme change, BASE without an arrow, and both turn directions.
 Both host and printer UI fingerprints include `.fxi1` resources.
+
+Selection buttons use `ff5m_ui/assets/controls/check.fxi1`: a native 24 x 24
+one-bit mask with transparent/foreground palette entries. Regenerate this set
+locally with `.venv/bin/python -m tests.visual_checks.generate_control_icons`.
+`OptionButton` owns the caption and image as complete normal/pressed surfaces;
+native press feedback must retain both. Review an enum choice, a theme choice,
+and a theme change through Designer. Tests cover the binary payload, palette
+updates, resource retry, disabled choices, press/restore, and caption bounds.
+
+`tests.test_parameter_controls` exercises the actual settings page factories at
+800 x 480, 640 x 400, 480 x 480 and 1024 x 600. It checks component and hitbox
+bounds, wrapped descriptions and choice captions, readable keyboard keys,
+complete parameter reachability, and save/cancel after responsive pagination.
+It also guards the pagination cost: opening or paging settings may construct
+parameter controls only for rows visible on the current page. Off-screen row
+heights come from the shared sizing policy, never from throwaway component trees.
+For visual review, render these factories at the requested content bounds and
+replay their drawing operations in Designer; its catalog otherwise indexes
+static pages at the default viewport before applying viewport insets.
 
 The harness validates live page generations and hitboxes before synthetic taps,
 blocks physical non-emergency input plus every persistent Save action during a
@@ -420,7 +493,7 @@ with no operator stop, and `material` re-homes and then purges 100 mm of
 filament above the bed centre - onto the part `print` just left there. Run
 `material` as its own invocation once the bed has been cleared.
 
-The existing individual `ui`, `component`, `render`, `motion`, `heat`,
+The existing individual `ui`, `leak`, `component`, `render`, `motion`, `heat`,
 `screws`, `mesh`, and `z` suites are also available. `full` is intentionally
 not a host-facing alias. Use `--material PLA` only when an explicit profile is
 needed; otherwise material selection remains owned by Feather.
@@ -1235,6 +1308,30 @@ This is not a gap to hide: Forge-X changes early boot, services, printer motion,
 | Camera, screen, remote access | Review mode-specific config routing, process/pipe ownership, port boundaries, user-state ownership, and stock fallback; see [Screen modes and Feather](workflows/screens-and-feather.md) | Enable/disable cleanly between stock, Feather, headless, and affected Guppy modes; verify DHCP/network prerequisites, display status/error output, browser control, fallback, and recovery route |
 
 Use the operator docs as test procedures where applicable—especially [`docs/PRINTING.md`](../docs/PRINTING.md), [`docs/CALIBRATION.md`](../docs/CALIBRATION.md), [`docs/SCREEN.md`](../docs/SCREEN.md), and [`docs/RECOVERY.md`](../docs/RECOVERY.md).
+
+## Main-thread CPU profiles
+
+Use the hidden `_FEATHER_UI_TEST ACTION=PROFILE_START DURATION=10` command to
+record Klipper's main-thread CPU while observing a normal UI workload. The
+duration is bounded to 1–15 seconds. The printer must be idle, with heater
+targets off, no pause or active virtual SD, and no motion. A state change
+cancels recording. UI regression runs and CPU profiles cannot overlap.
+
+`_FEATHER_UI_TEST ACTION=PROFILE_STOP` finishes early; `ACTION=ABORT` also stops
+an active profile. Neither command loads the diagnostic feature when it is
+idle. Read `feather_screen.ui_test.cpu_profile` through Moonraker for the
+current directory, completion reason and save status.
+
+Completed directories under `/data/feather-ui-tests/cpu-profile-*` contain
+standard `profile.pstats`, `functions.json` and `metadata.json`. Copy them to a
+persistent development docs directory outside this checkout, verify checksums,
+then remove only that completed profile directory if cleanup is needed. These
+artifacts contain function metadata and CPU counts, without locals or payloads.
+
+The clock is `time.thread_time`, so waiting is excluded. Use exclusive CPU to
+attribute work: inclusive caller edges may cross greenlet scheduling. Profiling
+adds overhead; use the result to locate hot paths, and collect any throughput
+comparison after recording stops.
 
 ## Required safety gates
 

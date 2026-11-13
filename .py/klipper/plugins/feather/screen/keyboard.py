@@ -92,13 +92,16 @@ class TextKeyboard:
         return len(character) == 1 and 32 <= ord(character) <= 126
 
     def rows(self, symbols=False, shift=False, allowed_characters=None):
-        allowed = (self.printable_ascii if allowed_characters is None
-                   else allowed_characters)
-        return keyboard_rows(symbols, shift, allowed)
+        if allowed_characters is None:
+            return _PRINTABLE_ROWS[bool(symbols), bool(shift)]
+        return keyboard_rows(symbols, shift, allowed_characters)
 
     def render(self, renderer, symbols=False, shift=False,
                allowed_characters=None):
-        commands = []
+        # One batch: the renderer reads its colours and fonts once for
+        # every key.
+        small, large = "JetBrainsMono 8pt", "JetBrainsMono 12pt"
+        keys = []
         rows = self.rows(symbols, shift, allowed_characters)
         for row_index, row in enumerate(rows):
             if not row:
@@ -108,57 +111,25 @@ class TextKeyboard:
             total_width = len(row) * key_width + max(0, len(row) - 1) * gap
             x = (800 - total_width) // 2
             for token, label in row:
-                commands += renderer.button(
-                    KEY_ACTION_PREFIX + token,
-                    x, 181 + row_index * 49, key_width, 42, label,
-                    font="JetBrainsMono 8pt")
+                keys.append((
+                    KEY_ACTION_PREFIX + token, x, 181 + row_index * 49,
+                    key_width, 42, label, "enabled", small))
                 x += key_width + gap
         controls_y = 328
-        commands += renderer.button(
-            KEYBOARD_SHIFT, 25, controls_y, 110, 43, "SHIFT",
-            state="selected" if shift else "enabled",
-            font="JetBrainsMono 8pt")
-        commands += renderer.button(
-            KEYBOARD_SYMBOLS, 145, controls_y, 90, 43,
-            "ABC" if symbols else "123",
-            state="selected" if symbols else "enabled",
-            font="JetBrainsMono 8pt")
-        commands += renderer.button(
-            KEYBOARD_LEFT, 245, controls_y, 60, 43, "<",
-            font="JetBrainsMono 12pt")
-        commands += renderer.button(
-            KEYBOARD_SPACE, 315, controls_y, 200, 43, "SPACE",
-            font="JetBrainsMono 8pt")
-        commands += renderer.button(
-            KEYBOARD_RIGHT, 525, controls_y, 60, 43, ">",
-            font="JetBrainsMono 12pt")
-        commands += renderer.button(
-            KEYBOARD_BACKSPACE, 595, controls_y, 180, 43, "BACKSPACE",
-            font="JetBrainsMono 8pt")
-        return commands
-
-    def render_value(self, renderer, value, cursor, x, y, max_width, color,
-                     masked=False, font="JetBrainsMono 12pt"):
-        value = str(value)
-        cursor = max(0, min(int(cursor), len(value)))
-        displayed = "*" * len(value) if masked else value
-        font = renderer.normalize_font_for_text(font, displayed or " ")
-        advance = renderer.font_advance(font)
-        visible_characters = max(1, (int(max_width) - 2) // advance)
-        start = min(
-            max(0, cursor - visible_characters // 2),
-            max(0, len(displayed) - visible_characters))
-        visible = displayed[start:start + visible_characters]
-        commands = []
-        if visible:
-            commands.append(renderer.text(
-                x, y, visible, color, font, max_width=max_width,
-                truncate=True))
-        caret_x = min(
-            int(x) + int(max_width) - 2,
-            int(x) + (cursor - start) * advance)
-        commands.append(renderer.fill(caret_x, int(y) - 13, 2, 26, color))
-        return commands
+        keys += (
+            (KEYBOARD_SHIFT, 25, controls_y, 110, 43, "SHIFT",
+             "selected" if shift else "enabled", small),
+            (KEYBOARD_SYMBOLS, 145, controls_y, 90, 43,
+             "ABC" if symbols else "123",
+             "selected" if symbols else "enabled", small),
+            (KEYBOARD_LEFT, 245, controls_y, 60, 43, "<", "enabled", large),
+            (KEYBOARD_SPACE, 315, controls_y, 200, 43, "SPACE", "enabled",
+             small),
+            (KEYBOARD_RIGHT, 525, controls_y, 60, 43, ">", "enabled", large),
+            (KEYBOARD_BACKSPACE, 595, controls_y, 180, 43, "BACKSPACE",
+             "enabled", small),
+        )
+        return renderer.buttons(keys)
 
     def apply(self, value, cursor, action, shift=False, symbols=False,
               allowed_characters=None, max_length=None):
@@ -198,4 +169,9 @@ class TextKeyboard:
         return value, cursor, shift, symbols
 
 
+# The four layers of the default filter, built once: a keyboard frame reads them on the reactor.
+_PRINTABLE_ROWS = {
+    (symbols, shift): keyboard_rows(symbols, shift, TextKeyboard.printable_ascii)
+    for symbols in (False, True) for shift in (False, True)
+}
 TEXT_KEYBOARD = TextKeyboard()

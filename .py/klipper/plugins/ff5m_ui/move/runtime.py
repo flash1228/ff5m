@@ -16,12 +16,8 @@ _LAZY_EXPORTS = {
     "STEP_VALUES": ("common", "STEP_VALUES"),
     "JOYSTICK_PAGE": ("joystick.page", "PAGE"),
     "JoystickRef": ("joystick.page", "JoystickRef"),
-    "render_joystick": ("joystick.page", "render"),
-    "update_joystick": ("joystick.page", "update"),
     "STEP_PAGE": ("step.page", "PAGE"),
     "StepRef": ("step.page", "StepRef"),
-    "render_step": ("step.page", "render"),
-    "render_step_status": ("step.page", "update_status"),
 }
 
 

@@ -15,13 +15,21 @@ from tests.test_feather_workflows import base_controller
 from tests.test_feather_model_preview import Session, Reactor
 from tests.test_feather_print_preview import DeferredPreviewWorker
 from tests.test_mod_params import MOD_PARAMS, ROOT
-from tests.feather_render_test_helper import RenderCapture
+from tests.feather_render_test_helper import RenderCapture, touchable_actions
 from feather.features.manager import LazyFeatureManager
 from feather.files import FileEntry
 from feather.settings.mod import visible_parameters
 from ff5m_ui.screen import ScreenPage
 from ui import FeatherRenderer
+from ui.renderer import BinaryCommand
+from feather.previews import decode_fxi1
 import feather_screen as FEATHER
+
+
+def option_action(index):
+    # Imported on use: the lazy-import contract wants the settings controls cold until settings opens.
+    from ff5m_ui.parameter_controls import option_action as action
+    return action(index)
 
 
 class EditorReactor(Reactor):
@@ -111,7 +119,7 @@ class PreviewSettingsTest(unittest.TestCase):
         index = next(index for index, entry in enumerate(feature.parameter_option_entries) if entry.value == name)
         while feature.parameter_options_page_index != index // 4:
             self.tap("mod.options.next" if feature.parameter_options_page_index < index // 4 else "mod.options.prev")
-        self.tap("mod.option.%d" % index)
+        self.tap(option_action(index))
         if apply:
             self.tap("mod.apply")
 
@@ -143,7 +151,8 @@ class PreviewSettingsTest(unittest.TestCase):
         self.assertTrue(self.capture.latest.has_action("nav.back"))
         self.assertTrue(self.capture.latest.has_text(self.manager.params_map["feather_preview_type"].label.upper()))
         cache = next(index for index, key in feature.mod_action_keys.items() if key == "feather_preview_cache")
-        self.assertIn("mod.item.%d" % cache, self.capture.latest.toggles)
+        from ff5m_ui.parameter_controls import parameter_action
+        self.assertIn(parameter_action(feature.mod_action_keys[cache]), self.capture.latest.toggles)
         self.tap("model.print")
         self.assertEqual(self.controller.page, ScreenPage.PREVIEW_SETTINGS)
         self.tap("nav.back")
@@ -158,7 +167,7 @@ class PreviewSettingsTest(unittest.TestCase):
         while True:
             seen.update(feature.mod_action_keys.values())
             for button in self.capture.latest.buttons.values():
-                if button.action.startswith("mod.item."):
+                if button.action.startswith("mod.parameter."):
                     self.assertGreaterEqual(button.bounds.y, 55)
                     self.assertLessEqual(button.bounds.bottom, 442)
             if not self.capture.latest.has_action("mod.next"):
@@ -166,6 +175,51 @@ class PreviewSettingsTest(unittest.TestCase):
             self.tap("mod.next")
         self.assertEqual(seen, {"feather_preview_" + key for key in
                                ("type", "cache", "grid", "yaw", "pitch", "scale", "fit", "fps")})
+
+    def test_option_explanations_fit_beside_the_selected_icon(self):
+        self.open_settings()
+        for suffix in ("grid", "fit", "type"):
+            self.edit(suffix)
+            feature = self.controller.feature_manager.peek("settings")
+            frame = self.capture.latest
+            title = feature.mod_parameter.label.upper()
+            header = next(item for item in frame.texts if item.value == title)
+            self.assertLessEqual(self.controller.renderer.text_width(title, header.font), header.max_width)
+            for index, entry in enumerate(feature.parameter_option_entries):
+                with self.subTest(parameter=suffix, value=entry.value):
+                    self.option(entry.value, apply=False)
+                    frame = self.capture.latest
+                    # The option's input region: the area it takes on the page.
+                    region = next(box for box in frame.hitboxes if box.action == option_action(index))
+                    expected = str(entry.label).upper() + " // " + entry.description.upper()
+                    caption = next(item for item in frame.texts if item.value == expected)
+                    self.assertLessEqual(self.controller.renderer.text_width(expected, caption.font), caption.max_width)
+                    images = [command for command in self.capture.batches[-1] if isinstance(command, BinaryCommand)]
+                    self.assertEqual(len(images), 1)
+                    icon = decode_fxi1(images[0].payload)
+                    self.assertEqual((icon["width"], icon["height"], icon["bpp"]), (24, 24, 1))
+                    self.assertGreaterEqual(region.y, 55)
+                    self.assertLessEqual(region.y + region.height, 442)
+            self.tap("mod.cancel")
+
+    def test_parameter_descriptions_fit_without_truncation_for_every_style(self):
+        feature = self.open_settings()
+        for mode, style in ((mode, style) for mode in ("file", "lab")
+                            for style in ("SOLID", "STACKED", "POINTS", "MODEL_EDGES", "LAYER_LINES")):
+            self.state["mode"] = mode
+            self.style(style)
+            while feature.mod_page:
+                self.tap("mod.prev")
+            while True:
+                frame = self.capture.latest
+                for key in feature.mod_action_keys.values():
+                    with self.subTest(mode=mode, style=style, page=feature.mod_page, parameter=key):
+                        description = self.manager.params_map[key].description
+                        text = next(item for item in frame.texts if item.value == description)
+                        self.assertLessEqual(self.controller.renderer.text_width(description, text.font), text.max_width)
+                if not frame.has_action("mod.next"):
+                    break
+                self.tap("mod.next")
 
     def test_style_selection_uses_the_mod_editor_and_changes_only_on_apply(self):
         self.load_frame()
@@ -337,6 +391,19 @@ class PreviewSettingsTest(unittest.TestCase):
         self.controller._show_page(ScreenPage.FILE_CONFIRM)
         self.assertIsNone(self.controller.model_preview)
         self.assertTrue(session.cancelled)
+
+    def test_a_slow_parameter_update_shows_the_applying_screen_and_nothing_takes_input(self):
+        self.load_frame()
+        feature = self.open_settings()
+        index = next(index for index, key in feature.mod_action_keys.items() if key == "feather_preview_cache")
+        self.controller.reactor.now += 0.3
+        self.controller._dispatch_action("mod.item.%d" % index)
+        self.assertTrue(feature.mod_update_pending)
+
+        feature._show_mod_update_modal(self.controller.reactor.now, feature.mod_update_token)
+
+        self.assertIn("APPLYING CHANGES", "\n".join(self.capture.batches[-1]))
+        self.assertEqual(touchable_actions(self.controller.renderer), set())
 
     def test_leaving_during_a_parameter_update_cannot_reopen_settings(self):
         self.load_frame()

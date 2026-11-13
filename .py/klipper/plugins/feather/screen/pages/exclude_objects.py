@@ -6,6 +6,7 @@
 
 import math
 
+from ff5m_ui import dialogs as dialog_ui
 from ff5m_ui.screen import ScreenDialog, ScreenPage
 from object_exclusion import exclude_command
 
@@ -48,7 +49,7 @@ def bed_object_rect(bounds, bed):
 
 def exclude_values(objects, excluded, bed, selected=None, page=0):
     """Produce one UI snapshot from supplied object definitions, without effects."""
-    from ff5m_ui.exclude_model import ExcludeState
+    from ff5m_ui.exclude_model import ExcludeState, object_style
     selected = selected or set()
     pending = selected - excluded
     page_count = max(1, (len(objects) + OBJECT_ROWS - 1) // OBJECT_ROWS)
@@ -63,8 +64,8 @@ def exclude_values(objects, excluded, bed, selected=None, page=0):
             note += " / NO GEOMETRY"
         items.append(dict(
             name=name, kind="object", label="%02d  %s" % (index + 1, name.replace("_", " ")),
-            note=note, marker=str(index + 1),
-            selected=name in selected, excluded=name in excluded, rectangle=rectangle,
+            note=note, marker=str(index + 1), rectangle=rectangle,
+            **object_style(name in selected, name in excluded),
         ))
     mapped = [item for item in items if item["rectangle"] is not None]
     return {
@@ -86,10 +87,9 @@ class ExcludeObjectsPagesMixin:
         if self._print_controls_ready():
             self._show_dialog(ScreenDialog.PRINT_MORE, content={})
 
-    def _render_print_more(self, instance):
+    def _print_more_page(self, content):
         from ff5m_ui.printing.more import PAGE
-        commands = PAGE.draw(self.renderer)
-        self.renderer.send(commands)
+        return PAGE
 
     def _handle_more_action(self, action):
         if self._current_dialog() != ScreenDialog.PRINT_MORE:
@@ -132,16 +132,17 @@ class ExcludeObjectsPagesMixin:
             pass
         return None
 
-    def _render_exclude_model(self):
+    def _exclude_content(self):
+        from ff5m_ui.exclude_model import PAGE
+        return PAGE, PAGE.title, False
+
+    def _write_exclude_values(self):
         objects, excluded = self._exclude_objects()
         self.exclude_selected = selected = getattr(self, "exclude_selected", set()) & {item["name"] for item in objects}
         page_count = max(1, (len(objects) + OBJECT_ROWS - 1) // OBJECT_ROWS)
         self.exclude_list_page = page = min(getattr(self, "exclude_list_page", 0), page_count - 1)
-        bed = self._exclude_bed()
         from ff5m_ui.exclude_model import PAGE
-        commands = self.renderer.begin_page("Exclude Model")
-        commands += PAGE.draw(self.renderer, exclude_values(objects, excluded, bed, selected, page))
-        self.renderer.send(commands)
+        PAGE.state.update(exclude_values(objects, excluded, self._exclude_bed(), selected, page))
 
     def _check_exclude_selection(self, names, job):
         objects, excluded = self._exclude_objects()
@@ -151,22 +152,22 @@ class ExcludeObjectsPagesMixin:
             raise RuntimeError("The selected models are no longer part of the active print")
         return excluded
 
-    def _handle_exclude_action(self, action):
-        if action == "exclude.confirm":
-            instance = self._current_dialog_instance()
-            if instance is None or "exclude_names" not in instance.content:
-                return
-            names, job = instance.content["exclude_names"], instance.content["exclude_job"]
-            self._close_dialog(instance)
-            excluded = self._check_exclude_selection(names, job)
-            # Validate the complete batch before applying any exclusion. Commands
-            # can yield, so re-observe the job and external exclusions each time.
-            commands = [(name, exclude_command(name)) for name in names if name not in excluded]
-            for name, command in commands:
-                if name not in self._check_exclude_selection(names, job):
-                    self._run_script(command, show_notice=False)
-            self._render_screen()
+    def _exclude_confirmed_models(self):
+        instance = self._current_dialog_instance()
+        if instance is None or "exclude_names" not in instance.content:
             return
+        names, job = instance.content["exclude_names"], instance.content["exclude_job"]
+        self._close_dialog(instance)
+        excluded = self._check_exclude_selection(names, job)
+        # Validate the complete batch before applying any exclusion. Commands
+        # can yield, so re-observe the job and external exclusions each time.
+        commands = [(name, exclude_command(name)) for name in names if name not in excluded]
+        for name, command in commands:
+            if name not in self._check_exclude_selection(names, job):
+                self._run_script(command, show_notice=False)
+        self._render_screen()
+
+    def _handle_exclude_action(self, action):
         if self.page != ScreenPage.EXCLUDE_MODEL:
             return
         objects, excluded = self._exclude_objects()
@@ -198,8 +199,8 @@ class ExcludeObjectsPagesMixin:
                 "message": ("\n".join(name.replace("_", " ") for name in names) + "\n"
                             + ("This model will stop printing." if count == 1 else "These models will stop printing.")
                             + " Other models continue."),
-                "actions": (("message.ok", "GO BACK", "enabled"),
-                            ("exclude.confirm", "EXCLUDE MODEL" if count == 1 else "EXCLUDE MODELS", "danger")),
+                "actions": ((dialog_ui.OK, "GO BACK", "enabled"),
+                            (dialog_ui.EXCLUDE_MODELS, "EXCLUDE MODEL" if count == 1 else "EXCLUDE MODELS", "danger")),
                 "exclude_names": names,
                 "exclude_job": self.virtual_sdcard.file_path(),
             })

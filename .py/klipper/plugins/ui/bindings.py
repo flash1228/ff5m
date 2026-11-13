@@ -8,6 +8,7 @@ import copy
 import inspect
 from enum import Enum
 
+from .engine import BindingResolver, StateStoreBase, portable
 from .identity import StateKey, serialize_key
 from .theme import ThemeColor, ThemeRole
 
@@ -140,7 +141,51 @@ def _json_value(value):
     return value
 
 
+_NOT_PLAIN = object()
+
+
+def _plain_copy(value, seen):
+    kind = type(value)
+    if value is None or kind in (str, int, float, bool):
+        return value
+    if kind not in (list, tuple, dict) or id(value) in seen:
+        return _NOT_PLAIN
+    seen.add(id(value))
+    if kind is dict:
+        result = {}
+        for key, item in value.items():
+            copied = _plain_copy(item, seen)
+            if type(key) is not str or copied is _NOT_PLAIN:
+                return _NOT_PLAIN
+            result[key] = copied
+        return result
+    result = []
+    for item in value:
+        copied = _plain_copy(item, seen)
+        if copied is _NOT_PLAIN:
+            return _NOT_PLAIN
+        result.append(copied)
+    if kind is list:
+        return result
+    # Like deepcopy, a tuple whose items copy to themselves is returned as is.
+    return value if all(a is b for a, b in zip(result, value)) else tuple(result)
+
+
+def _copy_value(value):
+    """Return an isolated copy of a state value, exactly as deepcopy would.
+
+    Trees of exact built-in JSON-like types are copied directly, skipping
+    deepcopy's memo and dispatch. Shared or cyclic containers, whose aliases
+    deepcopy preserves, and every other type keep deepcopy.
+    """
+    copied = _plain_copy(value, set())
+    return copy.deepcopy(value) if copied is _NOT_PLAIN else copied
+
+
 def _validate_portable_collection(value, path="state"):
+    # Valid data is checked without building element paths for diagnostics.
+    if portable(value):
+        return
     if value is None or isinstance(value, (bool, int, float, str)):
         return
     if isinstance(value, (list, tuple)):
@@ -202,7 +247,7 @@ class StateSpec:
     def default_value(self):
         if not self.available:
             raise ValueError("State value has no default")
-        return copy.deepcopy(self.default)
+        return _copy_value(self.default)
 
     def validate(self, value):
         if value is None:
@@ -261,70 +306,47 @@ def state(value_type, default=_UNAVAILABLE, minimum=None, maximum=None,
 def state_spec(key):
     if not isinstance(key, StateKey):
         raise TypeError("State binding key must be a StateKey member")
-    spec = key.value
+    spec = key._value_  # .value is a Python level descriptor
     if not isinstance(spec, StateSpec):
         raise TypeError("StateKey members must be declared with state(...)")
     return spec
 
 
-class StateStore:
-    """Validated state values addressed only by typed ``StateKey`` members."""
+class StateStore(StateStoreBase):
+    """Validated state values addressed only by typed ``StateKey`` members.
 
-    __slots__ = ("_schema", "_values", "_changed_keys")
+    The engine keeps the values, the changed keys and iteration order;
+    reading, membership and ``update`` run there. This class adds the
+    framework's error for undeclared keys, value copies and the cold views.
+    """
+
+    __slots__ = ()
 
     def __init__(self, keys=(), values=None):
-        self._schema = tuple(_unique_keys(keys))
-        self._values = {}
-        self._changed_keys = frozenset()
-        for key in self._schema:
-            spec = state_spec(key)
-            if spec.available:
-                self._values[key] = spec.default_value()
+        schema = _unique_keys(keys)
+        # None: the engine stores a copy of each available default.
+        self._open(schema, schema.specs, None, _UNAVAILABLE)
         if values is not None:
             self.update(values)
 
-    @property
-    def schema(self):
-        return self._schema
-
-    @property
-    def changed_keys(self):
-        """Keys changed since the owning page last completed a render."""
-        return self._changed_keys
-
-    def clear_changes(self):
-        self._changed_keys = frozenset()
-
-    def copy(self):
-        return StateStore(self._schema, self._values)
-
-    def __deepcopy__(self, memo):
-        copied = StateStore(self._schema)
-        copied._values = copy.deepcopy(self._values, memo)
-        copied._changed_keys = self._changed_keys
-        return copied
-
-    def __getitem__(self, key):
+    @staticmethod
+    def _unknown_key(key):
         if not isinstance(key, StateKey):
             raise TypeError("State values must be addressed by StateKey members")
-        if key not in self._schema:
-            raise KeyError("State key is not declared by this page: %s" % key)
-        if key not in self._values:
-            raise KeyError("State value is unavailable: %s" % key)
-        value = self._values[key]
-        return copy.deepcopy(value) if isinstance(value, (list, dict)) else value
+        raise KeyError("State key is not declared by this page: %s" % key)
 
-    def __contains__(self, key):
-        return key in self._values
+    _copy_value = staticmethod(_copy_value)
 
-    def __iter__(self):
-        return iter(self._values)
+    def copy(self):
+        return StateStore(self.schema, self._entries())
 
-    def __len__(self):
-        return len(self._values)
+    def __deepcopy__(self, memo):
+        copied = StateStore(self.schema)
+        copied._restore(copy.deepcopy(self._entries(), memo), self.changed_keys)
+        return copied
 
     def keys(self):
-        return self._values.keys()
+        return dict.fromkeys(self).keys()
 
     def values(self):
         return self.as_dict().values()
@@ -332,57 +354,34 @@ class StateStore:
     def items(self):
         return self.as_dict().items()
 
-    def get(self, key, default=None):
-        try:
-            return self[key]
-        except KeyError:
-            return default
-
-    def update(self, values):
-        if isinstance(values, StateStore):
-            values = tuple(values.items())
-        elif hasattr(values, "items"):
-            values = tuple(values.items())
-        else:
-            values = tuple(values)
-        staged = {}
-        for key, value in values:
-            if not isinstance(key, StateKey):
-                raise TypeError(
-                    "Page state updates must use StateKey members, not %r" % key)
-            if key not in self._schema:
-                raise KeyError("State key is not declared by this page: %s" % key)
-            validated = state_spec(key).validate(value)
-            staged[key] = (copy.deepcopy(validated)
-                           if isinstance(validated, (list, dict)) else validated)
-        changed = frozenset(
-            key for key, value in staged.items()
-            if key not in self._values or self._values[key] != value)
-        self._values.update(staged)
-        self._changed_keys = self._changed_keys.union(changed)
-        return self
-
     def as_dict(self, serialized=False):
         if serialized:
             return dict((serialize_key(key), _json_value(value))
-                        for key, value in self._values.items())
-        return copy.deepcopy(self._values)
+                        for key, value in self._entries())
+        return copy.deepcopy(dict(self._entries()))
 
     def metadata(self):
         result = []
-        for key in self._schema:
+        for key in self.schema:
             item = state_spec(key).as_dict()
             item.update({
                 "key": serialize_key(key),
                 "name": key.name,
-                "value_available": key in self._values,
-                "value": _json_value(self._values.get(key)),
+                "value_available": key in self,
+                "value": _json_value(self._owned(key)) if key in self else None,
             })
             result.append(item)
         return result
 
 
+class _Schema(tuple):
+    """Validated unique state keys; ``specs`` holds their StateSpecs in order."""
+
+
 def _unique_keys(keys):
+    # Pages rebuild their store on every full draw; a validated schema is reused as is.
+    if type(keys) is _Schema:
+        return keys
     result = []
     seen = set()
     for value in tuple(keys or ()):
@@ -391,11 +390,13 @@ def _unique_keys(keys):
         else:
             values = (value,)
         for key in values:
-            state_spec(key)
+            spec = state_spec(key)
             if key not in seen:
-                result.append(key)
+                result.append((key, spec))
                 seen.add(key)
-    return tuple(result)
+    schema = _Schema(key for key, _spec in result)
+    schema.specs = tuple(spec for _key, spec in result)
+    return schema
 
 
 class Binding:
@@ -414,13 +415,28 @@ class Binding:
         raise NotImplementedError
 
 
+def _refuse_write(self, name, value=None):
+    raise AttributeError(
+        "%s is immutable: a template shares it with every item made from it; "
+        "assign a new binding instead" % type(self).__name__)
+
+
+def _itself(self, memo=None):
+    return self
+
+
 class DirectBinding(Binding):
+    """A state value read by key. Immutable, so a template's items share it."""
+
     __slots__ = ("key", "_source")
 
     def __init__(self, key):
         state_spec(key)
-        self.key = key
-        self._source = None
+        object.__setattr__(self, "key", key)
+        object.__setattr__(self, "_source", None)
+
+    __setattr__ = __delattr__ = _refuse_write
+    __copy__ = __deepcopy__ = _itself
 
     @property
     def keys(self):
@@ -434,15 +450,18 @@ class DirectBinding(Binding):
 
 
 class ItemBinding(Binding):
-    """A value resolved from the current data-driven container item."""
+    """A value resolved from the current data-driven container item. Immutable, so a template's items share it."""
 
     __slots__ = ("field", "_source")
 
     def __init__(self, field):
         if not isinstance(field, str) or not field:
             raise TypeError("item() field must be a non-empty string")
-        self.field = field
-        self._source = None
+        object.__setattr__(self, "field", field)
+        object.__setattr__(self, "_source", None)
+
+    __setattr__ = __delattr__ = _refuse_write
+    __copy__ = __deepcopy__ = _itself
 
     @property
     def keys(self):
@@ -456,7 +475,8 @@ class ItemBinding(Binding):
                 self.field)
         if self.field not in current:
             raise KeyError("Template item has no field %r" % self.field)
-        return copy.deepcopy(current[self.field])
+        value = current[self.field]
+        return value if value is None or type(value) in (str, int, float, bool) else _copy_value(value)
 
     def as_dict(self):
         return {"kind": "item", "field": self.field}
@@ -467,13 +487,22 @@ class ItemScope:
 
     __slots__ = ("state", "item")
 
-    def __init__(self, state, current):
+    @staticmethod
+    def _validate_scope(state, current):
         if not isinstance(state, StateStore):
             raise TypeError("ItemScope requires a StateStore")
         if not isinstance(current, dict):
             raise TypeError("Template item scope requires a mapping")
+
+    def __init__(self, state, current):
+        self._validate_scope(state, current)
         self.state = state
         self.item = copy.deepcopy(current)
+
+    @classmethod
+    def _from_snapshot(cls, state, current):
+        """Adopt the already isolated collection item owned by ListView."""
+        return _RESOLVER.item_scope(state, current)
 
     def __getitem__(self, key):
         return self.state[key]
@@ -493,7 +522,9 @@ class ItemScope:
 
 
 class DerivedBinding(Binding):
-    __slots__ = ("function", "inputs", "_source", "expression_source_contract")
+    """Pure function of its inputs, evaluated again only when an input changes."""
+
+    __slots__ = ("function", "inputs", "_source", "expression_source_contract", "_cache")
 
     def __init__(self, function, inputs):
         if not callable(function):
@@ -506,6 +537,7 @@ class DerivedBinding(Binding):
         self.inputs = inputs
         self._source = None
         self.expression_source_contract = None
+        self._cache = None
 
     @property
     def keys(self):
@@ -519,7 +551,9 @@ class DerivedBinding(Binding):
         return tuple(result)
 
     def resolve(self, store):
-        return self.function(*tuple(item.resolve(store) for item in self.inputs))
+        # The engine evaluates the function again only when an input changed;
+        # plain scalar and enum inputs are remembered in _cache.
+        return _RESOLVER.derived_value(self, store)
 
     def as_dict(self):
         return {
@@ -557,13 +591,14 @@ def _validate_callable_arity(function, count):
 
 def bind(key):
     binding = DirectBinding(key)
-    binding._source = _capture_binding(binding, names=("bind",))
+    # The provenance hook needs the binding itself; it completes the binding before anything else sees it.
+    object.__setattr__(binding, "_source", _capture_binding(binding, names=("bind",)))
     return binding
 
 
 def item(field):
     binding = ItemBinding(field)
-    binding._source = _capture_binding(binding, names=("item",))
+    object.__setattr__(binding, "_source", _capture_binding(binding, names=("item",)))
     return binding
 
 
@@ -574,17 +609,19 @@ def derived(function, *inputs):
     return binding
 
 
-def resolve(value, store):
-    if value is None or type(value) in (str, int, float, bool):
-        return value
-    if isinstance(value, Binding):
-        value = value.resolve(store)
-    elif callable(value):
-        raise TypeError(
-            "State callables must use derived(function, bind(...), ...) instead")
-    if isinstance(value, Enum):
-        return value if isinstance(value, (ThemeColor, ThemeRole)) else value.value
-    return value
+# The engine resolves values: literals as they are, bindings resolved (the
+# framework's binding types without calling their methods), theme tokens as
+# themselves and other enum members as their values. signature_value freezes a
+# resolved value for Component's state signature, and item_scope makes
+# ListView's item scopes.
+_RESOLVER = BindingResolver(Binding, DirectBinding, ItemBinding, DerivedBinding,
+                            StateStore, ItemScope, (ThemeColor, ThemeRole), serialize_key)
+resolve = _RESOLVER.resolve
+signature_value = _RESOLVER.signature_value
+# binding_reads(value): (keys, derived), the state keys the bindings within
+# value read (tuples, lists and dict values searched), each once, in the order
+# found, and the derived bindings found outside other derived bindings.
+binding_reads = _RESOLVER.binding_reads
 
 
 def resolve_deep(value, store):
@@ -708,36 +745,7 @@ def binding_metadata(binding, store):
     return result
 
 
-def binding_keys(value):
-    result = []
-    seen = set()
-
-    def visit(item):
-        if isinstance(item, Binding):
-            for key in item.keys:
-                if key not in seen:
-                    result.append(key)
-                    seen.add(key)
-        elif isinstance(item, (tuple, list)):
-            for child in item:
-                visit(child)
-        elif isinstance(item, dict):
-            for child in item.values():
-                visit(child)
-
-    visit(value)
-    return tuple(result)
-
-
 def page_state_keys(root, explicit=()):
-    result = list(_unique_keys(explicit))
-    seen = set(result)
-    for node in root.walk_declarations():
-        for name, value in node.__dict__.items():
-            if name.startswith("_") or name in ("parent", "layout_options"):
-                continue
-            for key in binding_keys(value):
-                if key not in seen:
-                    result.append(key)
-                    seen.add(key)
-    return tuple(result)
+    # The explicit keys, then those the bindings in the declarations' public
+    # fields read (declared fields in the engine record, the rest in __dict__).
+    return _unique_keys(tuple(_unique_keys(explicit)) + _RESOLVER.declared_keys(root.walk_declarations()))

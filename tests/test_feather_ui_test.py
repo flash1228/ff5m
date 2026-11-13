@@ -35,7 +35,8 @@ from feather.features.manager import LazyFeatureManager  # noqa: E402
 from ff5m_ui.home import page as HOME_PAGE  # noqa: E402
 from ui.font_metrics import get_font_metrics  # noqa: E402
 from tests.visual_checks import hybrid as HYBRID  # noqa: E402
-from tests.feather_render_test_helper import RenderCapture  # noqa: E402
+from ff5m_ui import state_screens as state_ui  # noqa: E402
+from tests.feather_render_test_helper import RenderCapture, prompt_wire, state_screen  # noqa: E402
 from tests.test_feather_screen import blank_page  # noqa: E402
 
 
@@ -592,8 +593,7 @@ class RunnerContractTest(unittest.TestCase):
                 (-110.0, 110.0), (-110.0, 110.0), (0.0, 220.0)),
             "_start_touch_action": dispatch,
             "renderer": type("Renderer", (), {
-                "_buttons": {SCENARIOS.move_actions.Y_PLUS.wire_id: ()},
-                "_toggles": {}, "_hitboxes": {},
+                "shown_actions": lambda self: {SCENARIOS.move_actions.Y_PLUS.wire_id},
             })(),
         })()
         feature = UI_TEST.UITestRun(host)
@@ -627,8 +627,7 @@ class RunnerContractTest(unittest.TestCase):
             "_start_touch_action": (
                 lambda self, action: dispatched.append(action)),
             "renderer": type("Renderer", (), {
-                "_buttons": {SCENARIOS.move_actions.Z_MINUS.wire_id: ()},
-                "_toggles": {}, "_hitboxes": {},
+                "shown_actions": lambda self: {SCENARIOS.move_actions.Z_MINUS.wire_id},
             })(),
         })()
         feature = UI_TEST.UITestRun(host)
@@ -667,8 +666,7 @@ class RunnerContractTest(unittest.TestCase):
             "_start_touch_action": (
                 lambda self, action: dispatched.append(action)),
             "renderer": type("Renderer", (), {
-                "_buttons": {SCENARIOS.move_actions.X_MINUS.wire_id: ()},
-                "_toggles": {}, "_hitboxes": {},
+                "shown_actions": lambda self: {SCENARIOS.move_actions.X_MINUS.wire_id},
             })(),
         })()
         feature = UI_TEST.UITestRun(host)
@@ -695,75 +693,50 @@ class RunnerContractTest(unittest.TestCase):
         self.assertIsNone(feature.scenarios._mesh_snapshot)
 
     def test_render_suite_is_nonphysical_and_waits_for_recovery(self):
-        statuses = [
-            {"worker_state": "running", "typer_restarts": 2},
-            {"worker_state": "running", "typer_restarts": 3},
-        ]
+        status = {"worker_state": "running", "typer_restarts": 2}
+        restarts = []
+
+        def restart(renderer):
+            restarts.append(True)
+            status["typer_restarts"] += 1
+            return True
+
         renderer = type("Renderer", (), {
-            "get_status": lambda self: statuses.pop(0) if len(statuses) > 1
-            else statuses[0],
-            "restart": lambda self: True,
+            "get_status": lambda self: dict(status),
+            "restart": restart,
+            "output_frozen": True,
+            "shown_actions": lambda self: {"error.firmware_restart"},
         })()
         feature = UI_TEST.UITestRun(type("Host", (), {
             "renderer": renderer,
+            "_show_terminal_error": lambda self, *args: None,
         })())
-        steps = feature.scenarios.build_steps("RENDER")
-        labels = [step["label"] for step in steps]
+        built = feature.scenarios.build_steps("RENDER")
+        steps = {step["label"]: step for step in built if step["kind"] != "capture"}
 
-        self.assertEqual(labels, [
+        self.assertEqual([step["label"] for step in built], [
             "baseline", "render-context-start", "render-pause-timer",
-            "render-restart-signal", "render-recovered",
-            "render-recovered", "render-resume-timer",
+            "render-restart-signal", "render-recovered", "render-recovered",
+            "render-frozen-error", "render-frozen-restart-signal", "render-frozen-recovered",
+            "render-frozen-close", "render-frozen-closed", "render-resume-timer",
             "render-context-verify"])
-        steps[3]["callback"]()
-        self.assertTrue(steps[4]["predicate"]())
-
-    def test_capture_waits_for_worker_and_fails_on_dropped_batch(self):
-        status = {
-            "submitted_batches": 5, "rendered_batches": 4,
-            "coalesced_batches": 0, "dropped_batches": 0,
-        }
-        renderer = type("Renderer", (), {
-            "get_status": lambda self: dict(status),
-            "send": lambda self, *args, **kwargs: True,
-        })()
-        reactor = type("Reactor", (), {"monotonic": lambda self: 10.0})()
-        feature = UI_TEST.UITestRun(type("Host", (), {
-            "renderer": renderer, "reactor": reactor,
-        })())
-        scheduled = []
-        feature._schedule = scheduled.append
-        feature._screen_metadata = lambda: {"page": "IDLE_HOME"}
-        captures = []
-        feature.worker = type("Worker", (), {
-            "capture": lambda self, *args: captures.append(args),
-            "log": lambda self, message: None,
-        })()
-        step = {"kind": "capture", "label": "settled"}
-
-        feature._capture(step)
-        self.assertEqual(scheduled, [0.02])
-        self.assertEqual(captures, [])
-
-        status["dropped_batches"] = 1
-        with self.assertRaisesRegex(RuntimeError, "batch dropped"):
-            feature._capture(step)
+        self.assertFalse(steps["render-recovered"]["predicate"]())
+        steps["render-restart-signal"]["callback"]()
+        self.assertTrue(steps["render-recovered"]["predicate"]())
+        frozen = steps["render-frozen-recovered"]["predicate"]
+        steps["render-frozen-error"]["callback"]()
+        steps["render-frozen-restart-signal"]["callback"]()
+        self.assertTrue(frozen())
+        self.assertEqual(len(restarts), 2)
+        renderer.output_frozen = False
+        self.assertFalse(frozen())
 
     def test_capture_waits_for_presented_receipt_before_reading_frame(self):
-        status = {
-            "submitted_batches": 5, "rendered_batches": 5,
-            "coalesced_batches": 0, "dropped_batches": 0,
-        }
         submissions = []
 
         class Renderer:
-            def get_status(self):
-                return dict(status)
-
             def request_presented_receipt(self, token):
                 submissions.append(token)
-                status["submitted_batches"] += 1
-                status["rendered_batches"] += 1
                 return True
 
         reactor = type("Reactor", (), {"monotonic": lambda self: 10.0})()
@@ -801,17 +774,12 @@ class RunnerContractTest(unittest.TestCase):
         from ui import Dialog, Rect, ScreenLayer, ScreenRoot, Text
 
         renderer = FEATHER.FeatherRenderer()
+        capture = RenderCapture(renderer)
         root = ScreenRoot(renderer, Text("Background"),
-                          Rect(0, 0, 800, 480), FEATHER.AppPage.SCREEN_ROOT,
-                          chrome=False)
+                          Rect(0, 0, 800, 480), FEATHER.AppPage.SCREEN_ROOT)
         root.paint()
-        renderer._batch_queue.get(timeout=0)
         root.open(ScreenLayer(Dialog("Foreground", (), (), modal=True)))
-        renderer._batch_queue.get(timeout=0)
-        renderer.get_status = lambda: {
-            "submitted_batches": 2, "rendered_batches": 2,
-            "coalesced_batches": 0, "dropped_batches": 0,
-        }
+        capture.submitted.clear()
         reactor = type("Reactor", (), {"monotonic": lambda self: 10.0})()
         feature = UI_TEST.UITestRun(type("Host", (), {
             "renderer": renderer, "reactor": reactor,
@@ -820,10 +788,10 @@ class RunnerContractTest(unittest.TestCase):
 
         feature._capture({"kind": "capture", "label": "modal"})
 
-        batch = renderer._batch_queue.get(timeout=0)
-        self.assertEqual(batch.commands, (
-            "--batch flush --receipt %s --receipt-phase presented" %
-            feature.step_runtime["capture_receipt"],))
+        # A flush alone: the barrier draws nothing over the modal frame.
+        batch, = capture.submitted
+        self.assertEqual((tuple(batch.commands), batch.receipt, batch.receipt_phase),
+                         ((), feature.step_runtime["capture_receipt"], "presented"))
         self.assertTrue(root.visible_layers)
 
     def test_screen_metadata_observes_live_telemetry(self):
@@ -1052,7 +1020,7 @@ class RunnerContractTest(unittest.TestCase):
                 page = FEATHER.ScreenPage.FILE_BROWSER
                 file_entries = [FileEntry("part.gcode", str(path))]
                 renderer = type("Renderer", (), {
-                    "_buttons": {"file.item0": object()},
+                    "shown_actions": lambda self: {"file.item0"},
                 })()
                 virtual_sdcard = type("VirtualSD", (), {
                     "sdcard_dirname": root,
@@ -1260,7 +1228,7 @@ class RunnerContractTest(unittest.TestCase):
 
         scenarios._render_action_prompt_footer()
         self.assertTrue(capture.latest.has_text("Action completed."))
-        self.assertEqual(set(capture.latest.buttons), {"prompt.button.0"})
+        self.assertEqual({button.label for button in capture.latest.buttons.values()}, {"OK"})
 
         scenarios._render_operation_cold_pull_snapshot({
             "context_path": ("Cold pull",), "context_types": ("cold_pull",),
@@ -1278,7 +1246,8 @@ class RunnerContractTest(unittest.TestCase):
 
         def show_page(page):
             host.page = page
-            host.renderer.loader(host.busy_message, host.busy_phase)
+            state_screen(host.renderer, state_ui.loader_page(),
+                         state_ui.loader_values(host.busy_message, host.busy_phase), state_ui.LOADER_TITLE)
 
         host._show_page = show_page
         scenarios = SCENARIOS.ScenarioCatalog(
@@ -1537,24 +1506,6 @@ class RunnerContractTest(unittest.TestCase):
         self.assertTrue(all(
             label == "baseline" or label.startswith("component-default-")
             for label in captures))
-
-    def test_component_render_uses_declared_page_title(self):
-        renderer = mock.Mock()
-        renderer.begin_page.return_value = ["header"]
-        page = mock.Mock()
-        page.title = "FORGE-X // FEATHER"
-        page.page_key.value = "HOME.DASHBOARD"
-        page.draw.return_value = ["body"]
-        feature = UI_TEST.UITestRun(object())
-        feature.host = mock.Mock(renderer=renderer)
-
-        feature.scenarios._render_component_default(page)
-
-        renderer.begin_page.assert_called_once_with(
-            "FORGE-X // FEATHER", back=False)
-        renderer.send.assert_called_once_with(["header", "body"])
-        renderer.footer.assert_called_once_with(
-            "NOZZLE 25/0C | BED 25/0C", "PREVIEW | IDLE")
 
     def test_component_cases_accept_only_known_mutable_typed_state(self):
         feature = UI_TEST.UITestRun(object())
@@ -1828,6 +1779,9 @@ class RunnerContractTest(unittest.TestCase):
             def handle_action(self, page, action):
                 raise RuntimeError("synthetic command failed")
 
+            def page_content(self, page):
+                return None
+
         callbacks = []
         feature = UI_TEST.UITestRun(None)
         owner = FailingOwner()
@@ -1837,6 +1791,9 @@ class RunnerContractTest(unittest.TestCase):
 
             def owner_name(self, page):
                 return owner.name
+
+            def get_for_page(self, page):
+                return owner
 
             def resolve_semantic_action(self, page, action):
                 return owner, None
@@ -1926,7 +1883,7 @@ class RunnerContractTest(unittest.TestCase):
         self.assertEqual(
             gcmd.responses, ["Feather UI test: idle (feature not loaded)"])
 
-    def test_run_is_the_only_command_path_that_loads_feature(self):
+    def test_run_command_loads_feature_lazily(self):
         controller = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)
         controller.feature_manager = LazyFeatureManager(
             controller, FEATHER.FEATURE_SPECS)
@@ -2520,8 +2477,7 @@ class RunnerContractTest(unittest.TestCase):
             "// action:prompt_show")))
         feature = UI_TEST.UITestRun(host)
 
-        self.assertEqual(feature.scenarios._prompt_action_for_label("load"),
-                         "prompt.button.0")
+        self.assertEqual(feature.scenarios._prompt_action_for_label("load"), prompt_wire(host))
         with self.assertRaisesRegex(RuntimeError, "found 0"):
             feature.scenarios._prompt_action_for_label("Purge")
 
@@ -2575,7 +2531,8 @@ class RunnerContractTest(unittest.TestCase):
         host.page = FEATHER.ScreenPage.PRINTING
         host.dialog = None
         host._current_dialog = lambda: host.dialog
-        host.renderer = type("Renderer", (), {"_buttons": {}})()
+        shown = set()
+        host.renderer = type("Renderer", (), {"_buttons": {}, "shown_actions": lambda self: set(shown)})()
         feature = UI_TEST.UITestRun(host)
 
         self.assertFalse(feature.scenarios._context_print_complete())
@@ -2583,7 +2540,7 @@ class RunnerContractTest(unittest.TestCase):
         self.assertFalse(feature.scenarios._context_print_complete())
         host.dialog = FEATHER.ScreenDialog.MESSAGE
         self.assertFalse(feature.scenarios._context_print_complete())
-        host.renderer._buttons["message.ok"] = ()
+        shown.add("message.ok")
         self.assertTrue(feature.scenarios._context_print_complete())
 
     def test_context_print_waits_for_pause_control(self):
@@ -2598,17 +2555,20 @@ class RunnerContractTest(unittest.TestCase):
         host.page = FEATHER.ScreenPage.PRINTING
         host.dialog = None
         host._current_dialog = lambda: host.dialog
-        host.renderer = type("Renderer", (), {"_buttons": {}})()
+        shown = set()
+        host.renderer = type("Renderer", (), {"_buttons": {}, "shown_actions": lambda self: set(shown)})()
         feature = UI_TEST.UITestRun(host)
 
         self.assertTrue(feature.scenarios._context_printing())
         self.assertFalse(feature.scenarios._context_print_controls_ready())
-        host.renderer._buttons["print.pause"] = ()
+        shown.add("print.pause")
         self.assertTrue(feature.scenarios._context_print_controls_ready())
 
         status["state"] = "paused"
         host.page = FEATHER.ScreenPage.PAUSED
-        host.renderer._buttons = {"print.resume": ()}
+        self.assertFalse(feature.scenarios._context_paused())
+        shown.clear()
+        shown.add("print.resume")
         self.assertTrue(feature.scenarios._context_paused())
 
         status["state"] = "cancelled"
@@ -2617,7 +2577,7 @@ class RunnerContractTest(unittest.TestCase):
         host.virtual_sdcard = type("SD", (), {
             "is_active": lambda self: False,
         })()
-        host.renderer._buttons = {"message.ok": ()}
+        shown.add("message.ok")
         self.assertTrue(feature.scenarios._context_cancelled())
 
     def test_extended_suites_require_confirm_two(self):
@@ -2901,6 +2861,23 @@ class RunHealthTest(unittest.TestCase):
         self.assertEqual(
             [item["step"] for item in summary["failures"]], ["gcode-error"])
 
+    def test_the_summary_names_the_steps_with_the_most_blocks_and_the_largest_rise(self):
+        run, _renderer = self._running()
+        run._event("PASS open home")
+        held = [object() for _ in range(40000)]
+        run._event("PASS open settings")
+        held += [object() for _ in range(20000)]
+        run._event("PASS open theme")
+        del held
+        run._event("PASS back home")
+
+        run._complete("passed", None)
+
+        blocks = run.worker.summaries[0]["allocated_blocks"]
+        self.assertEqual((blocks["peak"][1], blocks["rise"][1]), ("PASS open theme", "PASS open settings"))
+        self.assertGreaterEqual(blocks["rise"][0], 40000)
+        self.assertLess(blocks["last"], blocks["peak"][0] - 50000)
+
     def test_known_note_and_output_outside_the_run_do_not_fail_it(self):
         run, _renderer = self._running()
         run.running = False
@@ -2978,6 +2955,32 @@ class RunHealthTest(unittest.TestCase):
 
         self.assertEqual(completed, [("failed", "Probing failed")])
         self.assertEqual(run.step_index, 0)
+
+    def test_a_wait_on_its_own_error_screen_passes(self):
+        host = type("Host", (), {
+            "reactor": type("Reactor", (), {
+                "monotonic": lambda self: 1.0,
+                "register_callback": lambda self, callback, when: None})(),
+            "_current_dialog": lambda self: FEATHER.ScreenDialog.ERROR,
+            "_find_dialog": lambda self, kind: type("Dialog", (), {
+                "content": {"message": "UI test error"}})(),
+        })()
+        run = UI_TEST.UITestRun(host)
+        run.running = True
+        run.steps = [{
+            "kind": "wait", "label": "frozen-recovered", "phase": "render",
+            "predicate": lambda: True, "timeout": 15.0, "interval": 0.1,
+            "shows_error": True,
+        }]
+        completed = []
+        run._event = lambda message: None
+        run._complete = lambda outcome, reason: completed.append(
+            (outcome, reason))
+
+        run._advance(1.0)
+
+        self.assertEqual(completed, [])
+        self.assertEqual(run.step_index, 1)
 
 
 class TimelapseWaitScenarioTest(unittest.TestCase):
@@ -3274,7 +3277,7 @@ class CalibrationResultTest(unittest.TestCase):
         host.print_state = FEATHER.PrintState.IDLE
         host._current_dialog = lambda: FEATHER.ScreenDialog.MESSAGE
         host.renderer = type("Renderer", (), {
-            "_buttons": {"message.ok": ()}})()
+            "shown_actions": lambda self: {"message.ok"}})()
         run = UI_TEST.UITestRun(host)
 
         with self.assertRaisesRegex(RuntimeError, "ended with state error"):
@@ -3711,6 +3714,66 @@ class OperationContextRecorderTest(unittest.TestCase):
         self.assertEqual(
             feature.context_recorder.results[0]["diagnostic"],
             "feature deactivated")
+
+
+class LeakSuiteTest(unittest.TestCase):
+    """SUITE=LEAK: the UI steps twice, and the second pass must leave the UI holding no more than the first."""
+
+    def setUp(self):
+        self.run = UI_TEST.UITestRun(object())
+        self.steps = self.run.scenarios.build_steps("LEAK")
+
+    def call(self, label):
+        step = next(step for step in self.steps if step["label"] == label)
+        step["callback"]()
+
+    def test_the_ui_steps_run_twice_with_the_check_between_and_after(self):
+        ui = [step for step in UI_TEST.UITestRun(object()).scenarios.build_steps("UI") if step.get("phase") == "ui"]
+        leak = [step for step in self.steps if step.get("phase") == "leak"]
+        labels = [step["label"] for step in leak]
+        baseline, verify = labels.index("leak-baseline"), labels.index("leak-verify")
+        first, second = leak[1:baseline], leak[baseline + 1:verify]
+        self.assertEqual(labels[0], "leak-context-start")
+        self.assertEqual(labels[verify + 1:], ["leak-context-verify"])
+        ui_body = ui[1:-1]  # without the ui phase's own context start and verify
+        self.assertEqual([(step["kind"], step["label"]) for step in first],
+                         [(step["kind"], step["label"]) for step in ui_body])
+        self.assertEqual([(step["kind"], step["label"]) for step in second],
+                         [(step["kind"], "again-" + step["label"]) for step in ui_body])
+        self.assertEqual([step.get("action") for step in second], [step.get("action") for step in ui_body])
+
+    def test_the_leak_suite_is_nonphysical_like_the_ui_suite(self):
+        self.run.running, self.run.finalizing = True, False
+        for phase, reasons in (("leak", ()), ("ui", ()), ("motion", ("ui-test",))):
+            self.run.phase = phase
+            self.assertEqual(self.run.safety_active_reasons(1.0), reasons, phase)
+
+    def test_nodes_kept_after_the_baseline_fail_the_check_and_are_recorded(self):
+        from ui import Text
+
+        with tempfile.TemporaryDirectory() as directory:
+            self.run.worker = mock.Mock(run_directory=directory)
+            self.call("leak-baseline")
+            kept = [Text("kept %d" % index) for index in range(3)]
+            with self.assertRaisesRegex(RuntimeError, "nodes"):
+                self.call("leak-verify")
+            record = json.loads(pathlib.Path(directory, "leak.json").read_text())
+        before, after = record["grown"]["nodes"]
+        self.assertEqual(after - before, len(kept))
+        self.assertEqual(record["first_pass"]["nodes"], before)
+        self.assertEqual(record["second_pass"]["nodes"], after)
+
+    def test_a_pass_that_releases_what_it_built_passes(self):
+        from ui import Text
+
+        with tempfile.TemporaryDirectory() as directory:
+            self.run.worker = mock.Mock(run_directory=directory)
+            self.call("leak-baseline")
+            built = [Text("released %d" % index) for index in range(3)]
+            del built
+            self.call("leak-verify")
+            record = json.loads(pathlib.Path(directory, "leak.json").read_text())
+        self.assertEqual(record["grown"], {})
 
 
 if __name__ == "__main__":

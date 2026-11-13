@@ -22,16 +22,10 @@ _LAZY_EXPORTS = {
     "Z_WEIGHT_DANGER": ("constants", "Z_WEIGHT_DANGER"),
     "SAFE_BRIEFING_PAGE": ("safe_briefing.page", "PAGE"),
     "BRIEFING_PAGE": ("safe_briefing.page", "PAGE"),
-    "render_safe_briefing": ("safe_briefing.page", "render"),
     "SAFE_PAGE": ("safe.page", "PAGE"),
-    "render_safe": ("safe.page", "render"),
     "PAPER_PAGE": ("paper.page", "PAGE"),
-    "render_paper": ("paper.page", "render"),
-    "update_paper_gauge": ("paper.page", "update_gauge"),
     "PAPER_BRIEFING_PAGE": ("paper_briefing.page", "PAGE"),
-    "render_paper_briefing": ("paper_briefing.page", "render"),
     "SUMMARY_PAGE": ("summary.page", "PAGE"),
-    "render_summary": ("summary.page", "render"),
 }
 
 

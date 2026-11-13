@@ -33,7 +33,7 @@ HEATERS = importlib.util.module_from_spec(HEATER_SPEC)
 HEATER_SPEC.loader.exec_module(HEATERS)
 
 from tests.test_feather_screen import FEATHER, Reactor  # noqa: E402
-from tests.feather_render_test_helper import RenderCapture, full_render_queue  # noqa: E402
+from tests.feather_render_test_helper import RenderCapture, refused_render, touchable_actions  # noqa: E402
 
 
 class ScenarioController(EXTRUDER_CAL.FeatherExtruderCalibrationMixin,
@@ -54,6 +54,20 @@ class ExtruderCalculationTest(unittest.TestCase):
             EXTRUDER_CAL.feed_change_percent(4.38, candidate), 0)
         self.assertLess(
             EXTRUDER_CAL.feed_change_percent(4.38, 4.5), 0)
+
+    def test_a_half_thousandth_rounds_up_as_written_not_as_stored(self):
+        # 1.001 * 50 / 100 is 0.5005 exactly; 2.0005 and 0.5005 as binary floats lie just below the tie.
+        self.assertEqual(EXTRUDER_CAL.calculate_rotation_distance(1.001, 50), 0.501)
+        self.assertEqual(EXTRUDER_CAL.calculate_rotation_distance("1.001", "50.000"), 0.501)
+        self.assertEqual(EXTRUDER_CAL.round_rotation_distance(2.0005), 2.001)
+        self.assertEqual(EXTRUDER_CAL.round_rotation_distance(2.00049), 2.0)
+        self.assertEqual(EXTRUDER_CAL.calculate_rotation_distance(7.55, 96.25), 7.267)
+
+    def test_feed_change_is_the_relative_difference_in_percent(self):
+        self.assertEqual(EXTRUDER_CAL.feed_change_percent(5, 4), 25.0)
+        self.assertEqual(EXTRUDER_CAL.feed_change_percent(4, 5), -20.0)
+        self.assertEqual(EXTRUDER_CAL.feed_change_percent(4.292, 4.292), 0.0)
+        self.assertAlmostEqual(EXTRUDER_CAL.feed_change_percent(4.38, 4.292), 2.0503261882572227)
 
     def test_measurement_parser_accepts_dot_and_comma(self):
         self.assertEqual(EXTRUDER_CAL.parse_measurement("98.25"), 98.25)
@@ -121,6 +135,22 @@ class UserConfigWriterTest(unittest.TestCase):
         self.assertIn("[heater_bed]\nmax_power: 0.8", updated)
         self.assertEqual(pathlib.Path(backup).read_text(encoding="utf-8"),
                          original)
+
+    def test_the_same_value_spelled_otherwise_is_left_alone(self):
+        original = "[extruder]\nrotation_distance: 4.2920\n"
+        self.write(original)
+        snapshot = EXTRUDER_CAL.inspect_user_cfg(self.path)
+
+        self.assertIsNone(EXTRUDER_CAL.write_user_rotation_distance(self.path, 4.292, snapshot.digest))
+        self.assertEqual(self.path.read_text(encoding="utf-8"), original)
+        self.assertEqual(snapshot.existing_value, 4.292)
+
+    def test_a_value_that_is_no_positive_number_is_refused(self):
+        for value in ("abc", "0", "-4.2", "nan", "inf"):
+            with self.subTest(value=value):
+                self.write("[extruder]\nrotation_distance: %s\n" % value)
+                with self.assertRaisesRegex(EXTRUDER_CAL.UserConfigError, "Invalid rotation_distance"):
+                    EXTRUDER_CAL.inspect_user_cfg(self.path)
 
     def test_adds_key_to_existing_section(self):
         self.write("[extruder]\npressure_advance: 0.03\n\n[fan]\npin: PA1\n")
@@ -885,7 +915,7 @@ class ExtruderCalibrationControllerTest(unittest.TestCase):
         self.assertEqual(len(rendering.frames), frames)
         self.assertFalse(rendering.latest.has_text("70.0"))
         self.assertTrue(rendering.latest.has_text("Cooling message"))
-        self.assertEqual(set(controller.renderer._buttons), {"message.ok"})
+        self.assertEqual(touchable_actions(controller.renderer), {"message.ok"})
 
         controller._close_dialog(FEATHER.ScreenDialog.MESSAGE)
         self.assertTrue(rendering.latest.has_text("70.0"))

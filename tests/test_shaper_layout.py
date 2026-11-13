@@ -34,7 +34,9 @@ class ShaperLayoutTests(unittest.TestCase):
                 view = ShaperResults(bounds)
                 results = {'x': self.result}
                 tree = view.write(results)
-                self.renderer.send(self.renderer.begin_page(tree.title) + tree.draw(self.renderer, tree.state))
+                commands = self.renderer.begin_page(tree.title)
+                commands += tree.draw(self.renderer, tree.state)
+                self.renderer.send(commands)
                 canvas = tree.rect(page.ShaperRef.PLOT)
                 widths.append(canvas.width)
                 self.assertGreater(canvas.height, 100)
@@ -47,7 +49,9 @@ class ShaperLayoutTests(unittest.TestCase):
                 self.assertLess(canvas.bottom, tree.rect(page.ShaperRef.APPLY).y)
                 view.select(ShaperAction('view', 'table'))
                 table = view.write(results)
-                self.renderer.send(self.renderer.begin_page(table.title) + table.draw(self.renderer, table.state))
+                commands = self.renderer.begin_page(table.title)
+                commands += table.draw(self.renderer, table.state)
+                self.renderer.send(commands)
                 targets = [button.bounds for button in self.capture.latest.buttons.values()]
                 for index, area in enumerate(targets):
                     self.assertGreaterEqual(area.width, 44)
@@ -145,9 +149,9 @@ class ShaperLayoutTests(unittest.TestCase):
                 self.renderer.set_theme(theme)
                 tree = deepcopy(start.PAGE)
                 tree.bounds = Rect(0, 56, width, 386)
-                self.renderer.send(self.renderer.begin_page(tree.title) +
-                                   tree.draw(self.renderer, {start.StartState.HAS_LAST: True,
-                                                             start.StartState.SWEEP: sweep}))
+                commands = self.renderer.begin_page(tree.title)
+                commands += tree.draw(self.renderer, {start.StartState.HAS_LAST: True, start.StartState.SWEEP: sweep})
+                self.renderer.send(commands)
                 standard = self.capture.latest.button("cal.shaper.vibrations.standard")
                 sweeping = self.capture.latest.button("cal.shaper.vibrations.sweeping")
                 self.assertEqual((standard.state, sweeping.state),
@@ -188,18 +192,25 @@ class ShaperLayoutTests(unittest.TestCase):
         view.write(data)
         view.select(ShaperAction('view','table'))
         tree = view.write(data)
-        self.renderer.send(self.renderer.begin_page('Compare')+tree.draw(self.renderer,tree.state))
+        commands = self.renderer.begin_page('Compare')
+        commands += tree.draw(self.renderer, tree.state)
+        self.renderer.send(commands)
         self.assertFalse(self.capture.latest.has_action('cal.shaper.method.zvd'))
         for fit in self.result['shapers']:
             self.assertTrue(self.capture.latest.has_action(ShaperAction('method', fit['name']).wire_id))
         self.assertFalse(reflect_page(tree)['diagnostics'])
 
+    def paint_progress(self, status):
+        commands = self.renderer.begin_page(progress.PAGE.title)
+        commands += progress.PAGE.draw(self.renderer, progress.values(status))
+        self.renderer.send(commands)
+
     def test_progress_stage_list_follows_requested_axes_and_cancel_state(self):
         for axes in (('x',),('y',),('x','y')):
             status=dict(job_id=1,state='processing',axis=axes[0],requested_axes=axes,completed_axes=(),
                         frequency=None,freq_start=5.,freq_end=100.,samples=32000,elapsed=40,cancel_requested=False)
-            self.renderer.send(progress.render(self.renderer,status))
+            self.paint_progress(status)
             self.assertTrue(self.capture.latest.has_action('cal.cancel'))
             status['cancel_requested'] = True
-            self.renderer.send(progress.render(self.renderer,status))
+            self.paint_progress(status)
             self.assertFalse(self.capture.latest.has_action('cal.cancel'))

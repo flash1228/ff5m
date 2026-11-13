@@ -14,14 +14,15 @@ from unittest import mock
 PLUGINS = pathlib.Path(__file__).parents[1] / ".py" / "klipper" / "plugins"
 sys.path.insert(0, str(PLUGINS))
 
+from tests.test_feather_screen import FEATHER
 from feather.screen.pages import model_preview as PAGE
 from feather.files import FileEntry
+from feather.screen.controls import FeatherControlsMixin
 from feather.previews import PreviewCancelled
 from ff5m_ui.screen import ScreenPage
-from feather.screen.controls import FeatherControlsMixin
 from ui.render_receipts import RenderReceipt
 from ui import FeatherRenderer
-from tests.feather_render_test_helper import RenderCapture, full_render_queue
+from tests.feather_render_test_helper import RenderCapture, refused_render
 from tests.test_feather_print_preview import DeferredPreviewWorker, PreviewReactor
 
 
@@ -74,6 +75,16 @@ class Session:
 
 
 class Controller(PAGE.ModelPreviewPagesMixin, FeatherControlsMixin):
+    """The page on the product's screen root."""
+    system_shutdown_active = False
+    _ensure_screen_root = FEATHER.FeatherScreen._ensure_screen_root
+    _new_page_surface = FEATHER.FeatherScreen._new_page_surface
+    _paint_page = FEATHER.FeatherScreen._paint_page
+    _screen_content = FEATHER.FeatherScreen._screen_content
+    _write_page_values = FEATHER.FeatherScreen._write_page_values
+    _render_screen = FEATHER.FeatherScreen._render_screen
+    _model_preview_shown = FEATHER.FeatherScreen._model_preview_shown
+
     def __init__(self):
         self.reactor = Reactor()
         self.renderer = Renderer()
@@ -93,6 +104,15 @@ class Controller(PAGE.ModelPreviewPagesMixin, FeatherControlsMixin):
     def _show_page(self, page):
         self.page = page
         self._render_model_preview()
+
+    def _state_screen(self):
+        return None
+
+    def _sync_dialog_layers(self):
+        pass
+
+    def _show_touch_unavailable(self):
+        pass
 
     def _page_paint_allowed(self, *pages):
         return self.page in pages
@@ -341,15 +361,14 @@ class ModelPreviewPacingTest(unittest.TestCase):
         renderer = self.controller.renderer
         buttons = dict(renderer._buttons)
         self.state["rotation"] = True
-        self.tick(self.initial_tick)
+        # The first frame after a whole frame repaints whole: the footer joins it.
+        self.tick(self.tick(self.initial_tick))
         self.assertEqual(renderer._buttons, buttons)
         frame = renderer.capture.latest
         image = self.state["page_tree"].rect(PAGE.common_ui.PreviewRef.IMAGE)
         self.assertTrue(all(shape.bounds.x >= image.right for shape in frame.shapes))
         self.assertTrue(all(text.value.startswith("YAW ") for text in frame.texts))
-        submitted = renderer.capture.submitted[-1]
-        self.assertEqual(submitted.kind, "animation")
-        self.assertIsNotNone(submitted.receipt)
+        self.assertIsNotNone(renderer.capture.submitted[-1].receipt)
 
     def test_all_controls_fit_without_overlap_or_label_truncation(self):
         renderer = self.controller.renderer
@@ -371,7 +390,7 @@ class ModelPreviewPacingTest(unittest.TestCase):
                                      and bounds.y < other.bottom and other.y < bounds.bottom)
 
     def test_rejected_static_frame_is_retried(self):
-        with full_render_queue(self.controller.renderer):
+        with refused_render(self.controller.renderer):
             next_tick = self.tick(self.initial_tick)
         self.assertFalse(self.state["accepted"])
         self.tick(next_tick)

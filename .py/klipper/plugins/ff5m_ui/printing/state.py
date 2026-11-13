@@ -11,7 +11,8 @@ from ui.identity import StateKey
 class PrintingState(StateKey):
     __key_namespace__ = "ui.pages.printing.state.PrintingState"
     FILENAME = state(str, default="Unknown", category="job")
-    STATUS = state(str, default="", category="job")
+    # The status as a path's parts, outermost first.
+    STATUS = state(tuple, default=(), category="job")
     PROGRESS = state(int, default=0, minimum=0, maximum=100,
                      unit="percent", category="job")
     ELAPSED = state(str, default="--:--:--", category="job")
@@ -25,4 +26,8 @@ class PrintingState(StateKey):
     PREVIEW_STATUS = state(
         str, default="none", choices=("none", "loading", "ready", "failed"),
         category="preview")
+    # The ready preview's FXI1 rasters, (x, y, blob) inside the preview box.
+    PREVIEW_BANDS = state(tuple, default=(), category="preview")
+    # The loading animation's current disc.
+    LOADER_RADIUS = state(int, default=7, category="preview")
 

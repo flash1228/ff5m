@@ -29,8 +29,8 @@ from ff5m_ui.shaper import progress as progress_ui
 from ui import FeatherRenderer, ThemeColor
 from tests.test_forge_shaper import make_plugin, plugin, FakeCommand
 from tests.test_shaper_plot import raster_pixels
-from tests.feather_render_test_helper import RenderCapture
-from tests.test_feather_workflows import base_controller, composed_controller_surface
+from tests.feather_render_test_helper import RenderCapture, accepted_by_loop
+from tests.test_feather_workflows import base_controller, composed_controller_surface, feature_on_screen
 from tests.gcode_macro_harness import MacroActionError, MacroExecution
 from feather.previews import decode_fxi1
 
@@ -42,6 +42,19 @@ def row_texts(frame, bounds):
     """Capture rendered cells independently of their wording."""
     return tuple(text for text in frame.texts
                  if bounds.x <= text.x < bounds.right and bounds.y <= text.y < bounds.bottom)
+
+
+def show_feature_page(feature, page):
+    """Paint page as the screen does: the tree and values the feature gives, or its painter."""
+    content = feature.page_content(page)
+    if content is None:
+        feature.render(page)
+        return
+    tree, title, back = content
+    feature.write_page_values(page)
+    commands = feature.renderer.begin_page(title, back=back)
+    commands += tree.draw(feature.renderer, tree.state)
+    feature.renderer.send(commands)
 
 
 def pending_config(host, native):
@@ -86,7 +99,9 @@ class ShaperInspectionTests(unittest.TestCase):
 
     def paint(self):
         page = self.view.write(self.results, self.selections)
-        self.renderer.send(self.renderer.begin_page(page.title, back=page.show_back) + page.draw(self.renderer, page.state))
+        commands = self.renderer.begin_page(page.title, back=page.show_back)
+        commands += page.draw(self.renderer, page.state)
+        self.renderer.send(commands)
 
     def select_current(self):
         fit = next(f for f in self.results[self.view.axis]['shapers'] if f['name'] == self.view.method)
@@ -119,15 +134,42 @@ class ShaperInspectionTests(unittest.TestCase):
         self.assertEqual(self.view.axis, "x")
         self.assertFalse(self.capture.latest.has_action("cal.shaper.axis.y"))
 
+    def test_new_results_open_on_the_graph(self):
+        self.paint()
+        self.view.select(ShaperAction("view", "table"))
+        self.paint()
+        tree = self.view.page_for(self.results)
+        commands = self.renderer.begin_page(tree.title)
+        commands += tree.draw(self.renderer, tree.state)
+        self.renderer.send(commands)
+        self.assertTrue(self.capture.latest.has_action('cal.shaper.method.ei'))
+        new_results = copy.deepcopy(self.results)
+        tree = self.view.page_for(new_results)
+        self.view.write(new_results)
+        commands = self.renderer.begin_page(tree.title)
+        commands += tree.draw(self.renderer, tree.state)
+        self.renderer.send(commands)
+        self.assertTrue(self.capture.latest.has_action('cal.shaper.view.table'))
+        self.assertFalse(self.capture.latest.has_action('cal.shaper.method.ei'))
+
+    def test_a_pressed_table_row_shows_the_pressed_face_over_its_cells(self):
+        self.paint()
+        self.view.select(ShaperAction("view", "table"))
+        self.paint()
+        self.renderer.flash_button("cal.shaper.method.ei")
+        drawn = "\n".join(str(command) for command in self.capture.batches[-1])
+        self.assertIn("-c " + self.renderer.color(FeatherRenderer.BUTTON_COLORS["pressed"][0]), drawn)
+        self.assertIn("EI", drawn)
+
     def test_feature_renders_real_result_and_only_apply_routes_a_setting_command(self):
         host = base_controller()
         host.renderer = self.renderer
         native = opened_result(self.results)
         pending = pending_config(host, native)
-        host._render_screen = lambda: feature.render(ScreenPage.CALIBRATION_RESULT)
+        host._render_screen = host._paint_page_values = lambda: show_feature_page(feature, ScreenPage.CALIBRATION_RESULT)
         feature = CalibrationFeature(host)
         feature.calibration_kind = "shaper"
-        feature.render(ScreenPage.CALIBRATION_RESULT)
+        show_feature_page(feature, ScreenPage.CALIBRATION_RESULT)
         feature.handle_semantic_action(ScreenPage.CALIBRATION_RESULT, ShaperAction("view", "table"))
         action = feature.resolve_semantic_action(ScreenPage.CALIBRATION_RESULT, "cal.shaper.method.ei")
         self.assertTrue(feature.handle_semantic_action(ScreenPage.CALIBRATION_RESULT, action))
@@ -298,13 +340,9 @@ class ShaperInspectionTests(unittest.TestCase):
 
     def test_actual_result_fits_release_queue_and_every_binary_transport_frame(self):
         self.paint()
-        commands = self.renderer.begin_page('Input shaper',back=True) + self.view.page.draw(self.renderer,self.view.page.state)
-        transport = FeatherRenderer()
-        self.assertTrue(transport.send(commands))
-        self.assertLessEqual(transport._serialized_size(commands), 65536)
-        frames = transport._encode_frames(commands)
-        self.assertTrue(frames)
-        self.assertLessEqual(max(map(len,frames)),8192)
+        commands = self.renderer.begin_page('Input shaper', back=True)
+        commands += self.view.page.draw(self.renderer, self.view.page.state)
+        self.assertTrue(accepted_by_loop(commands, max_batch=65536))
 
     def test_changed_data_updates_pixels_and_repeated_axis_switches_keep_the_right_graph(self):
         self.paint()
@@ -380,7 +418,7 @@ class ShaperInspectionTests(unittest.TestCase):
         pending_config(host, native)
         feature = CalibrationFeature(host)
         feature.calibration_kind = 'shaper'
-        feature.render(ScreenPage.CALIBRATION_RESULT)
+        show_feature_page(feature, ScreenPage.CALIBRATION_RESULT)
         feature.shaper.view.select(ShaperAction('method', 'zvd'))
         for route in ('apply', 'save'):
             self.assertFalse(feature.handle_semantic_action(ScreenPage.CALIBRATION_RESULT, ShaperAction(route)))
@@ -432,10 +470,10 @@ class ShaperWorkflowTests(unittest.TestCase):
         self.pending = pending_config(self.host, self.native)
         self.feature = CalibrationFeature(self.host)
         self.feature.calibration_kind = "shaper"
-        self.host._render_screen = lambda: self.feature.render(self.host.page)
+        self.host._render_screen = self.host._paint_page_values = lambda: show_feature_page(self.feature, self.host.page)
         def show(page):
             self.host.page = page
-            self.feature.render(page)
+            show_feature_page(self.feature, page)
         self.host._show_page = show
 
     def compose_dialogs(self):
@@ -445,7 +483,7 @@ class ShaperWorkflowTests(unittest.TestCase):
         self.host.feature_manager._instances['calibration'] = self.feature
         self.host._restart_klipper = mock.Mock()
         self.host.page = ScreenPage.CALIBRATION_RESULT
-        self.capture = composed_controller_surface(self.host, lambda: self.feature.render(self.host.page))
+        self.capture = composed_controller_surface(self.host, lambda: show_feature_page(self.feature, self.host.page))
         self.host._render_screen()
 
     def press(self, action):
@@ -471,7 +509,7 @@ class ShaperWorkflowTests(unittest.TestCase):
             self.native.revision += 1
         self.native.restore_saved = mock.Mock(side_effect=restore)
         self.host.page = ScreenPage.CALIBRATION_CONFIRM
-        self.feature.render(self.host.page)
+        show_feature_page(self.feature, self.host.page)
         self.assertTrue(self.capture.latest.has_action('cal.shaper.last'))
         action = self.feature.resolve_semantic_action(self.host.page, 'cal.shaper.last')
         with mock.patch('subprocess.Popen', side_effect=AssertionError('Started acquisition')):
@@ -487,10 +525,22 @@ class ShaperWorkflowTests(unittest.TestCase):
         self.assertTrue(self.capture.latest.has_action('cal.shaper.apply'))
         self.assertEqual(self.host.gcode.commands, [])
 
+    def test_history_lists_the_saved_records(self):
+        self.native.get_history = lambda: [dict(id=name, saved_at=1., axes=['x'], latest=False) for name in ('a', 'b')]
+        self.host._show_page(ScreenPage.CALIBRATION_CONFIRM)
+        self.assertTrue(self.feature.handle_semantic_action(self.host.page, ShaperAction('last')))
+        self.assertTrue(self.capture.latest.has_action('cal.shaper.record.1'))
+
+    def test_progress_without_a_running_job_is_left_to_the_painter(self):
+        self.native.busy = False
+        self.assertIsNone(self.feature.page_content(ScreenPage.CALIBRATION_PROGRESS))
+        self.native.busy, self.native.job.id = True, 4
+        self.assertIsNotNone(self.feature.page_content(ScreenPage.CALIBRATION_PROGRESS))
+
     def test_last_result_button_is_disabled_without_a_saved_result(self):
         self.native.get_history = lambda: []
         self.host.page = ScreenPage.CALIBRATION_CONFIRM
-        self.feature.render(self.host.page)
+        show_feature_page(self.feature, self.host.page)
         self.assertFalse(self.capture.latest.has_action('cal.shaper.last'))
         self.assertFalse(self.feature.handle_semantic_action(self.host.page, ShaperAction('last')))
         self.assertEqual(self.host.gcode.commands, [])
@@ -569,7 +619,7 @@ class ShaperWorkflowTests(unittest.TestCase):
         self.feature._prepare_calibration_progress()
         self.native.busy, self.native.job.id = True, 4
         self.host.page = ScreenPage.CALIBRATION_PROGRESS
-        self.feature.render(self.host.page)
+        show_feature_page(self.feature, self.host.page)
         self.assertTrue(self.capture.latest.has_action('cal.cancel'))
         for state, axis, completed in (("processing", "x", ()), ("measuring", "y", ("x",)),
                                        ("processing", "y", ("x",))):
@@ -593,11 +643,11 @@ class ShaperWorkflowTests(unittest.TestCase):
         self.assertTrue(self.feature.shaper.view.can_save)
 
     def test_stale_previous_result_is_hidden_after_legacy_or_failed_run(self):
-        self.feature.render(ScreenPage.CALIBRATION_RESULT)
+        show_feature_page(self.feature, ScreenPage.CALIBRATION_RESULT)
         self.assertIsNotNone(self.feature.shaper.view)
         self.feature._prepare_calibration_progress()
         self.assertIsNone(self.feature.shaper.view)
-        self.feature.render(ScreenPage.CALIBRATION_RESULT)
+        show_feature_page(self.feature, ScreenPage.CALIBRATION_RESULT)
         self.assertIsNone(self.feature.shaper.view)
         self.assertIsNone(self.feature.resolve_semantic_action(ScreenPage.CALIBRATION_RESULT, "cal.shaper.apply"))
 
@@ -626,7 +676,7 @@ class ShaperWorkflowTests(unittest.TestCase):
         self.compose_dialogs()
         self.assertTrue(self.capture.latest.has_action('cal.shaper.save'))
         self.feature.shaper.release_view()
-        self.feature.render(ScreenPage.CALIBRATION_RESULT)
+        show_feature_page(self.feature, ScreenPage.CALIBRATION_RESULT)
         self.assertEqual(self.feature.shaper.view.selections, {'y': {'name': 'mzv', 'freq': 55.2}})
         self.feature.handle_semantic_action(ScreenPage.CALIBRATION_RESULT, ShaperAction('save'))
         self.pending['input_shaper']['shaper_freq_y'] = '56.0'
@@ -642,7 +692,7 @@ class ShaperWorkflowTests(unittest.TestCase):
         self.feature.handle_semantic_action(ScreenPage.CALIBRATION_RESULT, ShaperAction('apply'))
         configfile = types.SimpleNamespace(get_status=lambda now: {'save_config_pending_items': {}})
         self.host.printer.lookup_object = lambda name, default=None: configfile if name == 'configfile' else self.native
-        self.feature.render(ScreenPage.CALIBRATION_RESULT)
+        show_feature_page(self.feature, ScreenPage.CALIBRATION_RESULT)
         self.assertFalse(self.feature.shaper.view.can_save)
         self.assertFalse(self.capture.latest.has_action('cal.shaper.save'))
 
@@ -664,39 +714,46 @@ class ShaperWorkflowTests(unittest.TestCase):
         self.host._dispatch_action('shaper.save.confirm')
         self.host._restart_klipper.assert_called_once_with('SAVE_CONFIG')
 
+    def show_on_the_real_screen(self):
+        """The result page through the controller's own screen over a real renderer."""
+        for method in ("_show_page", "_paint_page_values"):
+            self.host.__dict__.pop(method, None)
+        self.feature, self.capture = feature_on_screen(self.host, "calibration")
+        self.feature.calibration_kind = "shaper"
+        self.host.page = ScreenPage.CALIBRATION_RESULT
+        self.host._render_screen()
+
     def test_table_method_selection_updates_rows_without_rebuilding_the_page(self):
-        self.host._show_page(ScreenPage.CALIBRATION_RESULT)
+        self.show_on_the_real_screen()
         self.feature.handle_semantic_action(ScreenPage.CALIBRATION_RESULT, ShaperAction('view', 'table'))
-        row = self.capture.latest.button('cal.shaper.method.ei').bounds
-        cells = row_texts(self.capture.latest, row)
-        unrelated = self.capture.latest.button('cal.shaper.method.zv').bounds
-        self.assertTrue(cells)
-        with mock.patch.object(self.host.renderer, 'begin_page', side_effect=AssertionError('Full repaint')):
-            self.feature.handle_semantic_action(ScreenPage.CALIBRATION_RESULT, ShaperAction('method', 'ei'))
+        previous = self.feature.shaper.view.method
+        self.assertNotEqual(previous, 'ei')
+        unrelated = next(method for method in ('zv', 'mzv', '2hump_ei') if method != previous)
+        generation = self.host.renderer.generation
+        shown = len(self.capture.batches)
+
+        self.feature.handle_semantic_action(ScreenPage.CALIBRATION_RESULT, ShaperAction('method', 'ei'))
+
         self.assertEqual(self.feature.shaper.view.method, 'ei')
-        self.assertEqual(row_texts(self.capture.latest, row), cells)
-        self.assertFalse(row_texts(self.capture.latest, unrelated))
-        self.host.renderer.flash_button('cal.shaper.method.ei')
-        self.assertEqual(row_texts(self.capture.latest, row), cells)
-        self.host.renderer.restore_button('cal.shaper.method.ei')
-        self.assertEqual(row_texts(self.capture.latest, row), cells)
+        drawn = "\n".join(str(command) for batch in self.capture.batches[shown:] for command in batch)
+        self.assertIn('cal.shaper.method.ei', drawn)
+        self.assertIn('cal.shaper.method.' + previous, drawn)
+        row = self.feature.shaper.view.page.rect('shaper.row.' + unrelated)
+        self.assertNotIn('--batch fill -p %d %d -s' % (row.x, row.y), drawn)
+        self.assertEqual(self.host.renderer.generation, generation)
         self.assertEqual(self.host.gcode.commands, [])
 
     def test_table_no_op_axis_selection_keeps_touch_generation_and_row_feedback(self):
-        self.host._show_page(ScreenPage.CALIBRATION_RESULT)
+        self.show_on_the_real_screen()
         self.feature.handle_semantic_action(ScreenPage.CALIBRATION_RESULT, ShaperAction('view', 'table'))
         generation = self.host.renderer.generation
-        row = self.capture.latest.button('cal.shaper.method.ei').bounds
-        cells = row_texts(self.capture.latest, row)
-        self.assertTrue(cells)
         for _ in range(4):
+            shown = len(self.capture.batches)
             self.feature.handle_semantic_action(ScreenPage.CALIBRATION_RESULT, ShaperAction('axis', 'x'))
+            self.assertEqual(self.capture.batches[shown:], [])
             self.assertEqual(self.host.renderer.generation, generation)
             self.assertEqual(self.host.renderer.decode_action('%d:cal.shaper.method.ei' % generation),
                              'cal.shaper.method.ei')
-            self.host.renderer.flash_button('cal.shaper.method.ei')
-            self.host.renderer.restore_button('cal.shaper.method.ei')
-            self.assertEqual(row_texts(self.capture.latest, row), cells)
 
     def test_back_from_unchanged_saved_results_releases_view_and_returns_to_shaper_start(self):
         self.open_saved_result()
@@ -810,7 +867,7 @@ class ShaperWorkflowTests(unittest.TestCase):
         for destination in (ScreenPage.CALIBRATION_HOME, ScreenPage.CONTROL_HOME,
                             ScreenPage.CALIBRATION_PROGRESS, ScreenPage.PRINTING):
             with self.subTest(destination=destination):
-                self.feature.render(ScreenPage.CALIBRATION_RESULT)
+                show_feature_page(self.feature, ScreenPage.CALIBRATION_RESULT)
                 plot = self.feature.shaper.view.plot
                 self.assertTrue(plot.commands)
                 self.feature.on_page_changed(ScreenPage.CALIBRATION_RESULT, ScreenPage.CALIBRATION_RESULT)
@@ -821,7 +878,7 @@ class ShaperWorkflowTests(unittest.TestCase):
                 self.assertIs(self.native.record.results, saved)
 
     def test_deactivation_clears_graph_cache_even_if_the_view_is_still_referenced(self):
-        self.feature.render(ScreenPage.CALIBRATION_RESULT)
+        show_feature_page(self.feature, ScreenPage.CALIBRATION_RESULT)
         plot = self.feature.shaper.view.plot
         self.assertTrue(plot.commands)
         self.feature.deactivate()
@@ -846,7 +903,10 @@ class ShaperWorkflowTests(unittest.TestCase):
         snapshot = progress_ui.snapshot(status)
         self.assertEqual(snapshot['elapsed'], 61)
         self.assertEqual(snapshot['requested_axes'], ('y',))
-        self.host.renderer.send(progress_ui.render(self.host.renderer, snapshot))
+        renderer = self.host.renderer
+        commands = renderer.begin_page(progress_ui.PAGE.title)
+        commands += progress_ui.PAGE.draw(renderer, progress_ui.values(snapshot))
+        renderer.send(commands)
         self.assertTrue(self.capture.latest.has_action('cal.cancel'))
 
 

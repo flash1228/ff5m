@@ -4,7 +4,6 @@
 ##
 ## This file may be distributed under the terms of the GNU GPLv3 license
 
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 import hashlib
 import logging
 import math
@@ -15,16 +14,16 @@ import tempfile
 import time
 
 from ui import NumericInputSpec, ThemeColor
+from feather.calibration.rounding import round_thousandths, written_fraction
 from ff5m_ui.screen import ScreenPage
 from feather.materials import adaptive_grid_columns, render_material_selector
 
 
 USER_CFG_PATH = "/opt/config/mod_data/user.cfg"
-EXPECTED_DISTANCE = Decimal("100")
-SUSPICIOUS_DEVIATION = Decimal("20")
-ROTATION_QUANTUM = Decimal("0.001")
+EXPECTED_DISTANCE = 100
+SUSPICIOUS_DEVIATION = 20
 MEASUREMENT_INPUT = NumericInputSpec(
-    "decimal", minimum=Decimal("0.001"), max_length=10,
+    "decimal", minimum=0.001, max_length=10,
     fraction_digits=3)
 
 _SECTION_RE = re.compile(r"^\s*\[([^\]]+)\]\s*(?:[;#].*)?$")
@@ -42,14 +41,21 @@ class ConcurrentUserConfigEdit(UserConfigError):
     pass
 
 
-def _decimal(value):
+def _positive(value):
     try:
-        result = Decimal(str(value))
-    except (InvalidOperation, ValueError):
+        result = float(value)
+    except (TypeError, ValueError):
         raise ValueError("Enter a positive measurement")
-    if not result.is_finite() or result <= 0:
+    if not math.isfinite(result) or result <= 0:
         raise ValueError("Enter a positive measurement")
     return result
+
+
+def _usable_rotation(rounded):
+    if rounded <= 0:
+        raise ValueError(
+            "This measurement gives an unusable rotation distance")
+    return rounded
 
 
 def parse_measurement(value):
@@ -60,34 +66,32 @@ def parse_measurement(value):
         MEASUREMENT_INPUT.parse(text)
     except ValueError:
         raise ValueError("Enter a positive number in millimeters")
-    return float(_decimal(text))
+    return _positive(text)
 
 
+# Values are rounded as they are written (4.3845, not its binary float) with a
+# half up, so the exact decimals of the inputs are used; see rounding.py.
 def round_rotation_distance(value):
-    rounded = _decimal(value).quantize(
-        ROTATION_QUANTUM, rounding=ROUND_HALF_UP)
-    if rounded <= 0:
-        raise ValueError(
-            "This measurement gives an unusable rotation distance")
-    return float(rounded)
+    return _usable_rotation(round_thousandths(*written_fraction(_positive(value))))
 
 
 def calculate_rotation_distance(current, measured):
-    current_value = _decimal(current)
-    measured_value = _decimal(measured)
-    return round_rotation_distance(
-        current_value * measured_value / EXPECTED_DISTANCE)
+    _, current_numerator, current_denominator = written_fraction(_positive(current))
+    _, measured_numerator, measured_denominator = written_fraction(_positive(measured))
+    return _usable_rotation(round_thousandths(
+        False, current_numerator * measured_numerator,
+        current_denominator * measured_denominator * EXPECTED_DISTANCE))
 
 
 def feed_change_percent(current, candidate):
-    current_value = _decimal(current)
-    candidate_value = _decimal(candidate)
-    return float((current_value / candidate_value - Decimal("1")) * 100)
+    _, current_numerator, current_denominator = written_fraction(_positive(current))
+    _, candidate_numerator, candidate_denominator = written_fraction(_positive(candidate))
+    return (100 * (current_numerator * candidate_denominator - candidate_numerator * current_denominator)
+            / (current_denominator * candidate_numerator))
 
 
 def measurement_is_suspicious(measured):
-    measured_value = _decimal(measured)
-    return abs(measured_value - EXPECTED_DISTANCE) > SUSPICIOUS_DEVIATION
+    return abs(_positive(measured) - EXPECTED_DISTANCE) > SUSPICIOUS_DEVIATION
 
 
 class UserConfigSnapshot:
@@ -148,7 +152,7 @@ def inspect_user_cfg(path=USER_CFG_PATH):
                 "Ambiguous rotation_distance line in user.cfg")
         key_indices.append(index)
         try:
-            existing_value = _decimal(key_match.group(2))
+            existing_value = _positive(key_match.group(2))
         except ValueError:
             raise UserConfigError(
                 "Invalid rotation_distance value in user.cfg")
@@ -181,8 +185,8 @@ def render_user_cfg(snapshot, value):
     lines = list(snapshot.lines)
     if snapshot.key_index is not None:
         match = _ROTATION_RE.match(lines[snapshot.key_index])
-        requested = Decimal(value_text)
-        if snapshot.existing_value == requested:
+        # Klipper reads the value as a float: 4.2920 is the same value as 4.292.
+        if snapshot.existing_value == float(value_text):
             return snapshot.raw
         line_ending = match.group(4) or ""
         new_active = match.group(1) + value_text + line_ending
@@ -296,8 +300,7 @@ def write_user_rotation_distance(path, value, expected_digest):
         replaced = True
         _fsync_directory(directory)
         verified = inspect_user_cfg(path)
-        expected = Decimal("%.3f" % round_rotation_distance(value))
-        if verified.existing_value != expected:
+        if verified.existing_value != round_rotation_distance(value):
             raise UserConfigError(
                 "Saved user.cfg did not contain the requested value")
         return backup
@@ -380,7 +383,7 @@ class ExtruderCalibrationSession:
         self.clear()
         self.user_cfg_path = path
         self.active = True
-        self.original_rotation = float(_decimal(rotation_distance))
+        self.original_rotation = _positive(rotation_distance)
         self.current_rotation = self.original_rotation
 
     def set_measurement(self, text):

@@ -16,8 +16,11 @@ home_state = LazyModule("ff5m_ui.home.state")
 
 
 class HomePagesMixin:
-    def _render_home(self):
-        return home_page.render(self)
+    def _home_content(self):
+        return home_page.PAGE, home_page.PAGE_TITLE, False
+
+    def _write_dashboard(self, eventtime):
+        return home_page.write(self, eventtime)
 
     def _render_main_menu(self):
         self._component_benchmark_taps = 0

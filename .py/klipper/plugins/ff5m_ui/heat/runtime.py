@@ -20,14 +20,6 @@ def get_page(materials=()):
     return page
 
 
-def render(renderer, materials, values):
-    return get_page(materials).draw(renderer, values)
-
-
-def update(renderer, materials, values):
-    return get_page(materials).update(renderer, values)
-
-
 def __getattr__(name):
     return resolve_lazy_export(
         globals(), name, _LAZY_EXPORTS, __package__)
@@ -35,5 +27,5 @@ def __getattr__(name):
 
 __all__ = (
     "HeatCommand", "HeatRef", "HeatState", "LEGACY_ACTIONS",
-    "get_page", "render", "update",
+    "get_page",
 )

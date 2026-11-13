@@ -85,6 +85,15 @@ def _packbits(data):
     return bytes(output)
 
 
+def command_bytes(command):
+    """Size of one drawing command: its text plus the raster a binary command carries.
+
+    Only binary commands have a payload. A renderer that draws rasters as
+    objects of its own, as the Designer preview does, has none to count.
+    """
+    return len(command) + len(getattr(command, "payload", b"")) + 64
+
+
 def _image_commands(renderer, bounds, pixels, width, painted):
     # Group final colors into opaque one-bit masks. Transparent background means
     # this works even when Typer alpha blending is disabled. PackBits keeps sparse
@@ -230,7 +239,7 @@ def plot_commands(renderer, bounds, series, x_max=200., y_max=1., line_width=1):
     # retaining the same geometry and width, rather than dropping the whole page.
     for steps in (8, 4, 2, 1):
         strokes = _stroke_commands(renderer, bounds, series, x_max, y_max, line_width, steps)
-        if sum(len(c) + len(c.payload) + 64 for c in strokes) <= 48*1024:
+        if sum(command_bytes(c) for c in strokes) <= 48*1024:
             commands.extend(strokes)
             break
     else:

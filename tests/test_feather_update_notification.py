@@ -93,6 +93,7 @@ class Host:
         self.print_active = False
         self.operation_active = False
         self.busy_message = None
+        self.rendered = []
         self.messages = []
         self.params = type("Params", (), {"variables": {
             "mod_check_update": True,
@@ -106,6 +107,9 @@ class Host:
 
     def _update_notification_safe(self, _eventtime):
         return not (self.print_active or self.operation_active)
+
+    def _render_screen(self):
+        self.rendered.append(self.busy_message)
 
     def _show_page(self, page):
         old_page = self.page
@@ -698,6 +702,7 @@ class ForgeXUpdateNotificationTest(unittest.TestCase):
             token=self.notification.install_token,
             state="progress", message="Receiving objects: 42%"))
         self.assertEqual(self.host.busy_message, "Receiving objects: 42%")
+        self.assertEqual(self.host.rendered[-1], "Receiving objects: 42%")
         self.assertTrue(self.notification.installing)
 
     def test_update_start_timeout_restores_retryable_dialog(self):
@@ -832,12 +837,7 @@ class ForgeXUpdateNotificationTest(unittest.TestCase):
         self.request_and_respond()
         self.notification.handle_action("update.install")
 
-        with (mock.patch.object(
-                self.host.renderer, "loader",
-                wraps=self.host.renderer.loader) as loader,
-              mock.patch.object(
-                  self.host.renderer, "dialog",
-                  wraps=self.host.renderer.dialog) as dialog):
+        with mock.patch.object(self.host.renderer, "dialog", wraps=self.host.renderer.dialog) as dialog:
             self.notification.handle_update_progress(WebRequest(
                 token=self.notification.install_token,
                 state="complete", message="Update Finished..."))
@@ -849,7 +849,6 @@ class ForgeXUpdateNotificationTest(unittest.TestCase):
         self.assertFalse(self.notification.install_confirmed)
         self.assertTrue(self.notification.restart_notice)
         self.assertIsNone(self.host.busy_message)
-        loader.assert_not_called()
         dialog.assert_called_once()
         frame = RenderFrame(self.host.draw_batches[-1], self.host.renderer)
         self.assertEqual(frame.text("UPDATE COMPLETE").font, "JetBrainsMono Bold 16pt")

@@ -10,7 +10,7 @@ import os
 import threading
 import time
 
-from ui import ThemeColor
+from ui import ThemeColor, TouchEvent
 from ui.lazy import LazyModule
 from ui.render_receipts import ReceiptTracker
 from ff5m_ui.screen import ScreenPage
@@ -43,6 +43,15 @@ def _preview_rect():
     # Exercise the raster size available to the actual print page.
     return (40, 118, min(512, max(16, box.width - 2 * pad)),
             min(512, max(16, box.height - 2 * pad)))
+
+
+def _places(page, mode):
+    """The nodes the preview works with and where they lie, by ref. The shown page has no layout of its own while
+    the frame loop arranges it, and these places do not move with its values, so its first layout answers."""
+    refs = common_ui.PreviewRef
+    page.prepare_layout()
+    return {ref: (page.node(ref), page.rect(ref))
+            for ref in ((refs.IMAGE,) if mode == "lab" else (refs.IMAGE, refs.YAW_PAD, refs.TILT_PAD))}
 
 
 class ModelPreviewPagesMixin:
@@ -143,9 +152,7 @@ class ModelPreviewPagesMixin:
             if error is not None:
                 logging.info("[feather_screen] file details unavailable: %s", error)
             if self._model_preview_paint_allowed(ScreenPage.PRINT_PREVIEW):
-                self.renderer.send(state["page_tree"].update_refs(
-                    self.renderer, self._selected_model_preview_values(state), (common_ui.PreviewRef.INFO,)),
-                    kind="state", key="file-preview-info")
+                self._paint_model_preview(state, self._selected_model_preview_values(state))
             self.reactor.update_timer(state["render_timer"], self.reactor.monotonic())
 
         if self.file_worker is None or not self.file_worker.submit(
@@ -176,11 +183,12 @@ class ModelPreviewPagesMixin:
         now = self.reactor.monotonic()
         self._model_preview_serial = getattr(self, "_model_preview_serial", 0) + 1
         _x, _y, width, height = _preview_rect()
+        page = (preview_ui.create_page(width, height) if mode == "lab" else
+                print_preview_ui.create_page(before_print=mode == "file"))
         self.model_preview = {
-            "page_tree": (preview_ui.create_page(width, height) if mode == "lab" else
-                          print_preview_ui.create_page(before_print=mode == "file")),
+            "page_tree": page, "places": _places(page, mode),
             "mode": mode, "cancel": threading.Event(), "file_info": None,
-            "serial": self._model_preview_serial, "frame_number": 0,
+            "serial": self._model_preview_serial, "frame_number": 0, "writes": {},
             "path": entry.path, "settings": settings, "yaw": settings[2], "pitch": settings[3],
             "scale": settings[7],
             "touch_action": None, "touch_at": now,
@@ -239,7 +247,7 @@ class ModelPreviewPagesMixin:
         stats = self.print_stats.get_status(eventtime)
         progress, values = self._current_print_progress_values(eventtime, stats)
         result = _progress_state(progress, values)
-        result[printing_ui.PrintingState.STATUS] = self._display_status_text(eventtime)
+        result[printing_ui.PrintingState.STATUS] = self._display_status_parts(eventtime)
         return result
 
     def _selected_model_preview_values(self, state):
@@ -270,10 +278,7 @@ class ModelPreviewPagesMixin:
             return
         if not self._model_preview_paint_allowed(ScreenPage.PRINT_PREVIEW):
             return
-        commands = state["page_tree"].update_refs(
-            self.renderer, self._print_model_preview_values(eventtime), (common_ui.PreviewRef.INFO,))
-        if commands:
-            self.renderer.send(commands, kind="state", key="print-preview-info")
+        self._paint_model_preview(state, self._print_model_preview_values(eventtime))
 
     def _model_preview_camera_values(self, state):
         keys = common_ui.PreviewState
@@ -287,40 +292,33 @@ class ModelPreviewPagesMixin:
         if state["cursor_redraw"]:
             self._render_model_preview()
             return
-        commands = state["page_tree"].update_refs(
-            self.renderer, self._model_preview_camera_values(state),
-            (common_ui.PreviewRef.YAW_PAD, common_ui.PreviewRef.TILT_PAD))
-        if not commands:
+        values = self._model_preview_camera_values(state)
+        shown = state["page_tree"].state
+        if all(shown[key] == value for key, value in values.items()):
             return
         state["cursor_number"] += 1
         token = "mpc:%d:%d:%d" % (state["serial"], state["generation"], state["cursor_number"])
         state["cursor_receipt"].expect(token, self.reactor.monotonic())
-        if not self.renderer.send(commands, kind="state", receipt=token):
+        if not self._paint_model_preview(state, values, token):
             self._render_model_preview()
 
-    def _coalesce_model_preview_moves(self, lines):
+    def _coalesce_model_preview_moves(self, events):
         # Repainting every queued sample can prevent frame completions and
         # timers from running. Keep gesture edges and other events in order.
         pending, pending_action = None, None
-        for line in lines:
+        for event in events:
             action = None
-            if line.startswith("touch ") and getattr(self, "page", None) == ScreenPage.PRINT_PREVIEW:
-                fields = line.split()
-                if len(fields) == 5 and fields[0] == "touch" and fields[2] == "move":
-                    try:
-                        int(fields[3]), int(fields[4])
-                    except ValueError:
-                        pass
-                    else:
-                        if self.renderer.decode_action(fields[1]) in ("model.yaw_joystick", "model.pitch_joystick"):
-                            action = fields[1]
+            if (isinstance(event, TouchEvent) and event.phase == "move"
+                    and getattr(self, "page", None) == ScreenPage.PRINT_PREVIEW
+                    and event.action in ("model.yaw_joystick", "model.pitch_joystick")):
+                action = event.wire
             if pending is not None and action != pending_action:
                 yield pending
                 pending = None
             if action is None:
-                yield line
+                yield event
             else:
-                pending, pending_action = line, action
+                pending, pending_action = event, action
         if pending is not None:
             yield pending
 
@@ -338,9 +336,8 @@ class ModelPreviewPagesMixin:
         if phase != "begin" and state["touch_action"] != action:
             return True
         yaw = action == "model.yaw_joystick"
-        page = state["page_tree"]
-        ref = common_ui.PreviewRef.YAW_PAD if yaw else common_ui.PreviewRef.TILT_PAD
-        state["yaw" if yaw else "pitch"] = page.node(ref).value_at(x, y, page.rect(ref), page.state)
+        slider, bounds = state["places"][common_ui.PreviewRef.YAW_PAD if yaw else common_ui.PreviewRef.TILT_PAD]
+        state["yaw" if yaw else "pitch"] = slider.value_at(x, y, bounds, state["page_tree"].state)
         state["touch_action"] = None if phase == "end" else action
         state["touch_at"] = now
         self._model_preview_cursor_commands(state)
@@ -351,24 +348,35 @@ class ModelPreviewPagesMixin:
             self.reactor.update_timer(state["render_timer"], now)
         return True
 
-    def _model_preview_frame_commands(self, state):
-        page = state["page_tree"]
-        keys, refs = common_ui.PreviewState, common_ui.PreviewRef
-        values = {keys.BANDS: state["blob"] or (), keys.ERROR: state["error"] or ""}
-        targets = [refs.IMAGE]
+    def _model_preview_frame_values(self, state):
+        keys = common_ui.PreviewState
+        placeholder = "" if state["blob"] else "FAILED" if state["error"] else "PREPARING..."
+        values = {keys.BANDS: state["blob"] or (), keys.PLACEHOLDER: placeholder}
         if state["mode"] != "lab":
-            targets.append(refs.ERROR)
+            values[keys.ERROR] = state["error"] or ""
         if state["mode"] == "file":
             values.update(self._selected_model_preview_values(state))
-            targets.append(refs.INFO)
         if state["mode"] == "lab" and self.reactor.monotonic() >= state["status_at"]:
             values.update(self._model_preview_status_values(state))
-            targets.append(refs.STATUS)
-            page.node(refs.STATUS).invalidate()
-        # Uncached benchmarks must submit even a pixel-identical generated frame.
-        # This also retries the full raster after queue rejection or failed receipts.
-        page.node(refs.IMAGE).invalidate()
-        return page.update_refs(self.renderer, values, targets)
+        return values
+
+    def _paint_model_preview(self, state, values, receipt=None):
+        """One frame of the page showing values; False when it was refused."""
+        state["writes"].update(values)
+        return self._ensure_screen_root().paint(receipt=receipt)
+
+    def _write_model_preview_values(self, due):
+        """Inside the screen's transaction: the values waiting for it, all of them when a render asked."""
+        state = self.model_preview
+        values = self._model_preview_values(state) if due else {}
+        values.update(state["writes"])
+        state["writes"].clear()
+        page = state["page_tree"]
+        page.state.update(values)
+        if common_ui.PreviewState.BANDS in values:
+            # Uncached benchmarks must submit even a pixel-identical generated frame.
+            # This also retries the full raster after queue rejection or failed receipts.
+            state["places"][common_ui.PreviewRef.IMAGE][0].invalidate()
 
     def _model_preview_metrics_values(self, state):
         child = "--" if state["child_cpu"] is None else "%.0f%%" % state["child_cpu"]
@@ -380,18 +388,15 @@ class ModelPreviewPagesMixin:
                 state["error"] or "REACTOR LAG AVG %.1f / MAX %.1f MS" % state["lag"],
         }
 
-    def _render_model_preview(self):
-        state = self.model_preview
-        if state is None:
-            return
-        # Rebuilding pixels after queue pressure must not cancel a held drag.
-        state["cursor_receipt"].cancel()
+    def _model_preview_content(self):
+        """The page the screen shows: its tree, title and back button."""
+        title = preview_ui.TITLE if self.model_preview["mode"] == "lab" else print_preview_ui.TITLE
+        return self.model_preview["page_tree"], title, True
+
+    def _model_preview_values(self, state):
         keys = common_ui.PreviewState
-        values = {
-            keys.FILENAME: os.path.basename(state["path"]),
-            keys.BANDS: state["blob"] or (), keys.ERROR: state["error"] or "",
-            keys.SCALE: state["scale"],
-        }
+        values = self._model_preview_frame_values(state)
+        values.update({keys.FILENAME: os.path.basename(state["path"]), keys.SCALE: state["scale"]})
         if state["mode"] == "lab":
             values[keys.STYLE] = state["settings"][0]
         values.update(self._model_preview_status_values(state))
@@ -402,10 +407,15 @@ class ModelPreviewPagesMixin:
         else:
             values.update({keys.CACHE: state["use_cache"], keys.ROTATION: state["rotation"], keys.BUILD: state["build"]})
             values.update(self._model_preview_metrics_values(state))
-        title = preview_ui.TITLE if state["mode"] == "lab" else print_preview_ui.TITLE
-        commands = self.renderer.begin_page(title, back=True)
-        commands += state["page_tree"].draw(self.renderer, values)
-        state["cursor_redraw"] = not self.renderer.send(commands)
+        return values
+
+    def _render_model_preview(self):
+        state = self.model_preview
+        if state is None:
+            return
+        # Rebuilding pixels after queue pressure must not cancel a held drag.
+        state["cursor_receipt"].cancel()
+        state["cursor_redraw"] = not self._render_screen()
 
     def _restart_model_preview_session(self, state):
         state["generation"] += 1
@@ -536,7 +546,7 @@ class ModelPreviewPagesMixin:
             state["animation_at"] = now
         session = state.get("session")
         if session is None:
-            image = state["page_tree"].rect(common_ui.PreviewRef.IMAGE)
+            image = state["places"][common_ui.PreviewRef.IMAGE][1]
             width, height = image.width, image.height
             session = model_runtime.ModelPreview(state["path"], settings, width, height, threading.Event(),
                                    use_cache=state["use_cache"])
@@ -600,8 +610,7 @@ class ModelPreviewPagesMixin:
             if self._model_preview_paint_allowed(*PREVIEW_PAGES):
                 state["frame_number"] += 1
                 token = "mpl:%d:%d:%d" % (state["serial"], generation, state["frame_number"])
-                state["accepted"] = self.renderer.send(self._model_preview_frame_commands(state),
-                                   kind="animation", key="model-preview-frame", receipt=token)
+                state["accepted"] = self._paint_model_preview(state, self._model_preview_frame_values(state), token)
                 if state["accepted"] is False:
                     state["render_key"] = None
                     state["status_at"] = 0
@@ -645,12 +654,7 @@ class ModelPreviewPagesMixin:
             state["metrics_at"], state["thread_cpu"], state["frames"] = now, cpu, 0
             state["lag_sum"], state["lag_max"], state["lag_count"] = 0.0, 0.0, 0
             if self._model_preview_paint_allowed(ScreenPage.MODEL_PREVIEW):
-                page = state["page_tree"]
-                page.node(common_ui.PreviewRef.METRICS).invalidate()
-                self.renderer.send(page.update_refs(
-                    self.renderer, self._model_preview_metrics_values(state),
-                    (common_ui.PreviewRef.METRICS,)),
-                    kind="state", key="model-preview-metrics")
+                self._paint_model_preview(state, self._model_preview_metrics_values(state))
         # Skip overdue ticks instead of flooding the reactor after a stall.
         state["monitor_at"] += max(1, math.floor((now - state["monitor_at"]) / MONITOR_PERIOD) + 1) * MONITOR_PERIOD
         return state["monitor_at"]

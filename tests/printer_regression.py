@@ -39,7 +39,7 @@ ROOT = pathlib.Path(__file__).parents[1]
 DEFAULT_ARTIFACT_ROOT = ROOT / "tests" / "artifacts" / "printer-runs"
 ACTIVE_MARKER = ARTIFACT_ROOT + "/active.json"
 SAFE_RUN_ID = re.compile(
-    r"^\d{8}-\d{6}-\d{6}-(full|ui|component|render|motion|heat|"
+    r"^\d{8}-\d{6}-\d{6}-(full|ui|leak|component|render|motion|heat|"
     r"screws|mesh|z|context_print|context_material)$")
 SAFE_MATERIAL = re.compile(r"^[A-Za-z0-9_.-]{1,64}$")
 
@@ -54,6 +54,8 @@ SUITES = {
         "physical": True,
     },
     "ui": {"printer_suite": "UI", "confirm": 1, "physical": False},
+    # The UI steps twice; fails when the second pass leaves the UI holding more (leak.json).
+    "leak": {"printer_suite": "LEAK", "confirm": 1, "physical": False},
     "component": {
         "printer_suite": "COMPONENT", "confirm": 1, "physical": False,
     },
@@ -84,7 +86,7 @@ MATERIAL_SUITES = frozenset((
 ARTIFACT_LINKS = (
     "summary.json", "manifest.json", "environment.json", "run.log",
     "printer.log", "temperatures.csv", "positions.csv",
-    "reactor.csv", "artifact_timing.csv", "operation_context.json",
+    "reactor.csv", "artifact_timing.csv", "operation_context.json", "leak.json",
 )
 TELEMETRY_FILE = "telemetry.jsonl"
 RESOURCE_FILE = "resources.tsv"

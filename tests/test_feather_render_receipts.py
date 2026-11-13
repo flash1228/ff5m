@@ -4,7 +4,6 @@ import pathlib
 import sys
 import unittest
 from types import SimpleNamespace
-from unittest import mock
 
 
 PLUGINS = pathlib.Path(__file__).parents[1] / ".py" / "klipper" / "plugins"
@@ -12,33 +11,13 @@ sys.path.insert(0, str(PLUGINS))
 
 import feather_screen  # noqa: E402
 from ui import (  # noqa: E402
-    ReceiptTracker, RenderReceipt, parse_render_receipt,
-    validate_render_receipt_token,
+    ReceiptTracker, RenderReceipt, validate_render_receipt_token,
 )
+from tests.feather_render_test_helper import typer_events  # noqa: E402
 
 
 class RenderReceiptProtocolTest(unittest.TestCase):
-    def test_parser_accepts_success_and_failed_receipts(self):
-        self.assertEqual(
-            parse_render_receipt("render 7:142 ok 18420 17610 820"),
-            RenderReceipt("7:142", True, 18420, 17610, 820))
-        self.assertEqual(
-            parse_render_receipt("render 7:143 failed 630 590 0"),
-            RenderReceipt("7:143", False, 630, 590, 0))
-
-    def test_parser_rejects_malformed_or_inconsistent_receipts(self):
-        invalid = (
-            "tap nav.back",
-            "render",
-            "render bad token ok 1 1 1",
-            "render 1:2 pending 1 1 1",
-            "render 1:2 ok -1 1 0",
-            "render 1:2 ok 10 8 11",
-            "render 1:2 ok ten 8 1",
-        )
-        self.assertTrue(all(parse_render_receipt(line) is None
-                            for line in invalid))
-
+    # The engine parses Typer's receipt lines (its test_frame_loop).
     def test_token_validation_matches_typer_wire_contract(self):
         self.assertEqual(validate_render_receipt_token("session-1.frame:2"),
                          "session-1.frame:2")
@@ -51,17 +30,14 @@ class ScreenReceiptRoutingTest(unittest.TestCase):
     def test_event_fifo_receipt_is_routed_without_touch_dispatch(self):
         screen = feather_screen.FeatherScreen.__new__(
             feather_screen.FeatherScreen)
-        screen.renderer = SimpleNamespace(event_fd=7)
-        screen.event_partial = ""
+        screen.renderer = SimpleNamespace(
+            process_events=lambda eventtime: typer_events(lambda wire: wire, "render 3:5 ok 1200 900 100"))
         notifications = []
         screen.feature_manager = SimpleNamespace(
             peek=lambda name: None,
             notify=lambda *args: notifications.append(args))
 
-        with mock.patch(
-                "feather_screen.os.read",
-                return_value=b"render 3:5 ok 1200 900 100\n"):
-            screen._process_touch_events(42.0)
+        screen._process_touch_events(42.0)
 
         self.assertEqual(len(notifications), 1)
         hook, receipt, eventtime = notifications[0]

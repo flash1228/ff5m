@@ -6,11 +6,16 @@
 
 from enum import Enum
 
-from .layout import Insets, LAYOUT_SCHEMA, Node
-from .properties import Invalidation, inheritable_style_properties
-from .source import (
-    capture_construction, construction_metadata, style_property_provenance,
-)
+from .engine import StyleApplier, style_rules_match
+from .layout import Insets, LAYOUT_SCHEMA, Node, ParamRef, trace_construction
+from .lazy import LazyModule
+from .properties import inheritable_style_properties
+
+
+# Provenance is Designer's: a running page neither records nor reads it, so
+# source loads with the first reflection. Construction is traced through
+# layout's trace_construction, a no-op until an imported source installs its hooks.
+_source = LazyModule("source", package=__package__)
 
 
 def _style_id(value):
@@ -33,31 +38,6 @@ def _inheritable_specs():
     return inheritable_style_properties()
 
 
-def _layout_value(node, name):
-    options = node.layout_options
-    if name == "margin":
-        value = options.margin
-        return (value.left, value.top, value.right, value.bottom)
-    if name == "padding":
-        value = options.padding
-        return (value.left, value.top, value.right, value.bottom)
-    if name == "offset":
-        return (options.offset_x, options.offset_y)
-    return getattr(options, name)
-
-
-def _set_layout_value(node, name, value):
-    options = node.layout_options
-    if name == "margin":
-        options.margin = value if isinstance(value, Insets) else Insets(*value)
-    elif name == "padding":
-        options.padding = value if isinstance(value, Insets) else Insets(*value)
-    elif name == "offset":
-        options.offset = value
-    else:
-        setattr(options, name, value)
-
-
 def _copy_rule_value(value):
     # Rule values are portable data: copy their mutable containers so a later
     # in-place edit is observed as a change. Other values are compared as-is.
@@ -68,6 +48,12 @@ def _copy_rule_value(value):
     if type(value) is tuple:
         return tuple(_copy_rule_value(item) for item in value)
     return value
+
+
+# The engine's stylesheet pass, given the framework's types, Node's size
+# normalization and the styleable layout fields in schema order.
+_APPLIER = StyleApplier(Enum, Insets, ParamRef, Node._size_value,
+                        tuple(spec.name for spec in LAYOUT_SCHEMA if spec.styleable))
 
 
 class Style:
@@ -84,7 +70,7 @@ class Style:
         self.target = target
         self.based_on = based_on
         self.properties = dict(properties)
-        self._source = capture_construction(self, names=("Style",))
+        self._source = trace_construction(self, names=("Style",))
 
 
 class StyleSheet:
@@ -98,7 +84,7 @@ class StyleSheet:
             raise ValueError("Style wire identities must be unique")
         self.styles = tuple(styles)
         self._by_id = dict((_style_id(value.id), value) for value in styles)
-        self._source = capture_construction(self, names=("StyleSheet",))
+        self._source = trace_construction(self, names=("StyleSheet",))
         self._validate()
 
     def _validate(self):
@@ -155,14 +141,20 @@ class StyleSheet:
             visit(style)
 
     def rules_snapshot(self):
-        """Copy the mutable rule state that one style pass consumes."""
-        return tuple((style, style.target, style.based_on, _copy_rule_value(style.properties))
-                     for style in self.styles)
+        """Copy the mutable rule state that one style pass consumes.
+
+        The pages that share this sheet share one copy while the rules still
+        match it; a snapshot is only read.
+        """
+        last = self.__dict__.get("_last_snapshot")
+        if last is None or not self.rules_match(last):
+            last = self._last_snapshot = tuple(
+                (style, style.target, style.based_on, _copy_rule_value(style.properties)) for style in self.styles)
+        return last
 
     def rules_match(self, snapshot):
         """Re-observe the live rules against a snapshot, including in-place value edits."""
-        return snapshot == tuple((style, style.target, style.based_on, style.properties)
-                                 for style in self.styles)
+        return style_rules_match(snapshot, self.styles)
 
     def get(self, style_id):
         key = _style_id(style_id)
@@ -171,181 +163,36 @@ class StyleSheet:
         except KeyError:
             raise ValueError("Unknown style: %s" % key) from None
 
-    def _chain(self, style_id):
-        result = []
-        current = self.get(style_id)
-        while current is not None:
-            result.append(current)
-            current = (None if current.based_on is None
-                       else self.get(current.based_on))
-        result.reverse()
-        return tuple(result)
-
     @staticmethod
     def _origin(kind, style=None, property_name=None, inherited_from=None):
         result = {"kind": kind}
         if style is not None:
             result["style"] = _style_id(style.id)
-            result["style_source"] = construction_metadata(style)
+            result["style_source"] = _source.construction_metadata(style)
             if property_name is not None:
-                result["style_property_source"] = style_property_provenance(
+                result["style_property_source"] = _source.style_property_provenance(
                     style, property_name, style.properties.get(property_name))
         if inherited_from is not None:
             result["inherited_from"] = inherited_from
         return result
 
-    def _style_values(self, node, component, layout, inheritable):
-        values = {}
-        context = {}
-        if node._style_id is None:
-            return values, context
-        style = self.get(node._style_id)
-        if style.target is not None and not isinstance(node, style.target):
-            raise TypeError(
-                "Style %s targets %s, not %s" %
-                (_style_id(style.id), style.target.__name__, type(node).__name__))
-        for item in self._chain(node._style_id):
-            for name, value in item.properties.items():
-                spec = component.get(name)
-                if spec is not None and spec.styleable:
-                    values[name] = (value, item)
-                    if spec.inheritable:
-                        context[name] = (value, item)
-                    continue
-                layout_spec = layout.get(name)
-                if layout_spec is not None and layout_spec.styleable and item.target is not None:
-                    values["layout:" + name] = (value, item)
-                    continue
-                if name in inheritable:
-                    context[name] = (value, item)
-        return values, context
+    def apply(self, root, provenance=True):
+        """Compute and apply the stylesheet using CSS-free RFC precedence.
 
-    def apply(self, root):
-        """Compute and apply the stylesheet using CSS-free RFC precedence."""
+        With provenance, every node records where each styleable value came
+        from and what it falls back to (reflection reads them); without, the
+        same values are applied and nothing is recorded, as a running page
+        needs.
+        """
         if not isinstance(root, Node):
             raise TypeError("StyleSheet root must be a Node")
-
-        # Reuse reflection and style resolution within this pass only. A later
-        # pass still observes mutable styles, schemas and authoring provenance.
-        layout_specs = _layout_specs()
-        layout_names = tuple(name for name, spec in layout_specs.items() if spec.styleable)
-        inheritable = _inheritable_specs()
-        component_specs = {}
-        resolved_styles = {}
-        origins = {}
-
-        def style_origin(style, property_name):
-            key = (style.id, property_name)
-            if key not in origins:
-                origins[key] = self._origin("style", style, property_name)
-            return dict(origins[key])
-
-        def visit(node, inherited):
-            node_type = type(node)
-            if node_type not in component_specs:
-                component_specs[node_type] = {
-                    name: spec for name, spec in _component_specs(node_type).items()
-                    if spec.styleable}
-            specs = component_specs[node_type]
-            key = (node_type, node._style_id)
-            if key not in resolved_styles:
-                values, context_values = self._style_values(node, specs, layout_specs, inheritable)
-                # Declared inheritable properties publish their final value and
-                # origin below, after explicit-property precedence is applied.
-                context_values = {
-                    name: value for name, value in context_values.items()
-                    if name not in specs or not specs[name].inheritable}
-                resolved_styles[key] = (values, context_values)
-            style_values, style_context = resolved_styles[key]
-            node._computed_property_origins = {}
-            node._computed_layout_origins = {}
-            node._computed_property_fallbacks = {}
-            node._computed_layout_fallbacks = {}
-
-            context = dict(inherited)
-            for name, (value, style) in style_context.items():
-                context[name] = (value, style_origin(style, name))
-
-            for name, spec in specs.items():
-                current = spec.value_from(node)
-                baseline = node._authoring_property_defaults.get(name, current)
-                inherited_value = inherited.get(name) if spec.inheritable else None
-                if name in style_values:
-                    desired, style = style_values[name]
-                elif inherited_value is not None:
-                    desired = inherited_value[0]
-                else:
-                    desired = baseline
-                if name in style_values or inherited_value is not None:
-                    node._computed_property_fallbacks[name] = desired
-                if name in node._explicit_properties:
-                    desired = current
-                    property_origin = {"kind": "explicit"}
-                else:
-                    if name in style_values:
-                        property_origin = style_origin(style, name)
-                    elif inherited_value is not None:
-                        property_origin = {"kind": "inherited", "inherited_from": inherited_value[1]}
-                    else:
-                        property_origin = {"kind": "default"}
-                    if current != desired:
-                        spec.set_on(node, desired)
-                        if hasattr(node, "_measurement"):
-                            node._measurement = None
-                        node.invalidate(
-                            Dirty.LAYOUT if spec.invalidation != Invalidation.PAINT
-                            else Dirty.PAINT)
-                node._computed_property_origins[name] = property_origin
-                if spec.inheritable:
-                    context[name] = (desired, property_origin)
-
-            for name in layout_names:
-                styled = style_values.get("layout:" + name)
-                explicit = name in node._explicit_layout
-                # Explicit values stay untouched. Only a styled fallback needs
-                # normalization for the editor's reset-to-style operation.
-                if explicit and styled is None:
-                    node._computed_layout_origins[name] = {"kind": "explicit"}
-                    continue
-                current = _layout_value(node, name)
-                baseline_value = node._authoring_layout_defaults.get(name, current)
-                if isinstance(baseline_value, Insets):
-                    baseline = (baseline_value.left, baseline_value.top,
-                                baseline_value.right, baseline_value.bottom)
-                else:
-                    baseline = baseline_value
-                desired = baseline
-                if styled is not None:
-                    desired, style = styled
-                # Compare and store runtime layout values, just as fluent
-                # modifiers do ("fill" is represented by None).
-                if name in ("width", "height"):
-                    desired = node._size_value(desired)
-                elif name in ("margin", "padding"):
-                    desired = tuple(desired)
-                if styled is not None:
-                    node._computed_layout_fallbacks[name] = desired
-                if explicit:
-                    property_origin = {"kind": "explicit"}
-                else:
-                    property_origin = (style_origin(style, name) if styled is not None
-                                       else {"kind": "default"})
-                    if current != desired:
-                        _set_layout_value(node, name, desired)
-                        node.invalidate(Dirty.LAYOUT)
-                node._computed_layout_origins[name] = property_origin
-
-            for child in node.render_children():
-                visit(child, context)
-
-        # Dirty is imported lazily to keep the public style module independent
-        # from the implementation order in layout.py.
-        from .layout import Dirty
-        visit(root, {})
+        # The engine resolves styles and origins within this pass only. A later
+        # pass still observes mutable styles and authoring provenance.
+        _APPLIER.apply(self, root, _inheritable_specs(), provenance)
 
     def as_dict(self):
         return {
-            "source": construction_metadata(self),
+            "source": _source.construction_metadata(self),
             "styles": [self.style_metadata(value) for value in self.styles],
         }
 
@@ -374,7 +221,7 @@ class StyleSheet:
             "layout_properties": layout_values,
             "context_properties": context_values,
             "property_sources": dict((
-                name, style_property_provenance(style, name, value))
+                name, _source.style_property_provenance(style, name, value))
                 for name, value in style.properties.items()),
-            "source": construction_metadata(style),
+            "source": _source.construction_metadata(style),
         }

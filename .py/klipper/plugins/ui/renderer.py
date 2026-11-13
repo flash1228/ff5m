@@ -13,60 +13,139 @@ from collections import namedtuple
 from contextlib import contextmanager
 
 from .actions import Action, DismissToast, action_wire_id
+from .engine import (
+    NATIVE_METHODS, BinaryCommand, CommandBatch, CommandList, FrameLoop, RendererBase, dialog_layout, quote, renderer_normalize_font,
+    renderer_normalize_font_for_text, renderer_text_width, status_dialog_layout,
+)
 from .font_metrics import (
     get_font_metrics, load_runtime_metrics, set_font_metrics,
 )
+from .footer import Footer, FooterState, footer_content
 from .layout_helpers import (
-    DIALOG_BODY_FONT, DIALOG_BODY_Y, DIALOG_BUTTON_BOTTOM,
+    CONTENT_BOTTOM, FOOTER_HEIGHT, FOOTER_Y, FRAME_HEIGHT, FRAME_WIDTH, FRAME_X, FRAME_Y, HEADER_BOTTOM,
+    SCREEN_HEIGHT, SCREEN_WIDTH,
+    DIALOG_BODY_FONT, DIALOG_BODY_HALF_HEIGHT, DIALOG_BODY_Y, DIALOG_BUTTON_BOTTOM,
+    DIALOG_BUTTON_COMPACT_FONT, DIALOG_BUTTON_FONT, DIALOG_BUTTON_MEDIUM_FONT,
     DIALOG_MIN_HEIGHT, DIALOG_MIN_WIDTH,
     DIALOG_BUTTON_HEIGHT, DIALOG_BUTTON_GAP, DIALOG_COMPACT_BUTTON_BOTTOM,
-    DIALOG_LINE_SPACING, DIALOG_PAGER_RESERVE, DIALOG_TITLE_FONT,
-    DIALOG_TITLE_TOP, DIALOG_TOP, DIALOG_BOTTOM_INSET,
+    DIALOG_COMPACT_GAP, DIALOG_COMPACT_TITLE_TOP, DIALOG_GROUP_BUTTON_BOTTOM,
+    DIALOG_LINE_SPACING, DIALOG_MULTILINE_GAP, DIALOG_ONE_LINE_GAP,
+    DIALOG_PAGER_ABOVE_BODY, DIALOG_PAGER_MIN_HEIGHT, DIALOG_PAGER_RESERVE, DIALOG_PAGER_RIGHT, DIALOG_TITLE_FONT,
+    DIALOG_TITLE_LINE_SPACING, DIALOG_TITLE_TOP, DIALOG_TOP, DIALOG_BOTTOM_INSET,
     DIALOG_STATUS_FONT, DIALOG_STATUS_GAP,
-    dialog_horizontal_bounds, dialog_vertical_bounds, dialog_pager_bounds,
-    dialog_button_layout, dialog_button_rows, layout_dialog_body,
-    layout_title_only_dialog,
+    dialog_pager_bounds,
 )
 from .numeric_input import NumericInputSpec
-from .render_receipts import validate_render_receipt_token
+from .render_receipts import RenderReceipt, validate_render_receipt_token
 from .theme import ThemeColor, ThemeRole, resolve_theme
 from .theme_catalog import (
     DEFAULT_THEME, FALLBACK_THEME, THEME_DIRECTORY, USER_THEME_DIRECTORY,
     ThemeCatalog, normalize_theme_name,
 )
-from .render_worker import (
-    MAX_BATCH_BYTES, MAX_BATCHES, RenderBatch, RenderBatchQueue,
-    TyperRenderWorker,
-)
 
 
 Hitbox = namedtuple("Hitbox", "action x y width height continuous layer")
+# One batch for the frame loop; a restarted Typer gets none of those it did not acknowledge.
+RenderSubmission = namedtuple("RenderSubmission", "commands receipt receipt_phase")
+# Typer's input events as process_events() returns them. action is the logical action when the wire action's
+# generation is the visible surface's, else None; wire is the action as Typer reported it.
+TapEvent = namedtuple("TapEvent", "action wire")
+# phase: "begin", "move" or "end"; x and y as Typer reported them.
+TouchEvent = namedtuple("TouchEvent", "action wire phase x y")
+ButtonEvent = namedtuple("ButtonEvent", "action wire pressed")
+TouchDeviceEvent = namedtuple("TouchDeviceEvent", "available")
+
+
+def screen_failed(message):
+    """A chrome frame that could not be built natively (a class overriding a
+    hook) is a bug: it is logged and nothing is drawn."""
+    logging.warning("[feather_screen] a screen frame was not drawn: %s", message)
+
+
+# The fonts and constants of the engine's dialog layout, in dialog_layout's order; the renderer's paddings and
+# the screen size follow them.
+_DIALOG_POLICY = (
+    DIALOG_TITLE_FONT, DIALOG_BODY_FONT, DIALOG_BUTTON_FONT, DIALOG_BUTTON_MEDIUM_FONT, DIALOG_BUTTON_COMPACT_FONT,
+    DIALOG_TOP, DIALOG_BOTTOM_INSET, DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT, DIALOG_TITLE_TOP, DIALOG_BODY_Y,
+    DIALOG_LINE_SPACING, DIALOG_BODY_HALF_HEIGHT, DIALOG_PAGER_RESERVE, DIALOG_TITLE_LINE_SPACING,
+    DIALOG_BUTTON_HEIGHT, DIALOG_BUTTON_GAP, DIALOG_BUTTON_BOTTOM, DIALOG_ONE_LINE_GAP, DIALOG_MULTILINE_GAP,
+    DIALOG_GROUP_BUTTON_BOTTOM, DIALOG_COMPACT_TITLE_TOP, DIALOG_COMPACT_GAP, DIALOG_COMPACT_BUTTON_BOTTOM,
+    DIALOG_PAGER_MIN_HEIGHT,
+)
+
+
+# 70%-opaque black: what a layer's backdrop dims the screen beneath it with (ScreenLayer.backdrop).
+BACKDROP_COLOR = "B3000000"
+
+
+def _dialog_policy(renderer_class):
+    """The dialog policy of a renderer class: _DIALOG_POLICY, its paddings and the screen size, then the rows a modal
+    dialog's surround spans, where a paginated dialog's page arrows stand, the backdrop colour and a status dialog's
+    font and gap. The engine lays dialogs out by it and draws them (and layers' backdrops) in a screen's build."""
+    return _DIALOG_POLICY + (
+        renderer_class.DIALOG_TEXT_PADDING, renderer_class.BUTTON_TEXT_PADDING, SCREEN_WIDTH, SCREEN_HEIGHT,
+        HEADER_BOTTOM + 1, CONTENT_BOTTOM, DIALOG_PAGER_RIGHT, DIALOG_PAGER_ABOVE_BODY, BACKDROP_COLOR,
+        DIALOG_STATUS_FONT, DIALOG_STATUS_GAP)
 
 
 DRAW_PIPE = "/tmp/typer"
 EVENT_PIPE = "/tmp/feather-events"
 TOUCH_DEVICE = "/dev/input/fgx_touch"
 TYPER_BINARY = "/root/printer_data/bin/typer"
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 480
-FRAME_X = 8
-FRAME_Y = 4
-FRAME_WIDTH = 784
-FRAME_HEIGHT = 472
-HEADER_BOTTOM = 55
-FOOTER_Y = 444
-FOOTER_HEIGHT = 32
-CONTENT_BOTTOM = FOOTER_Y - 2
+
+
+class PageChromeContract:
+    """Framework-owned geometry of the page chrome painted around content.
+
+    ``begin_page`` paints a header above ``HEADER_BOTTOM`` and a persistent
+    footer below ``CONTENT_BOTTOM``. Authoring tools place new page content
+    inside ``content_bounds`` so that it does not overlap that chrome.
+    """
+
+    __slots__ = ("strategy", "content_insets")
+
+    def __init__(self, strategy, content_insets):
+        self.strategy = str(strategy)
+        left, top, right, bottom = (int(value) for value in content_insets)
+        if min(left, top, right, bottom) < 0:
+            raise ValueError("Page content insets must be non-negative")
+        self.content_insets = (left, top, right, bottom)
+
+    def content_bounds(self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT):
+        left, top, right, bottom = self.content_insets
+        width, height = int(width), int(height)
+        if width - left - right <= 0 or height - top - bottom <= 0:
+            raise ValueError("Viewport is smaller than the page chrome")
+        return (left, top, width - left - right, height - top - bottom)
+
+    def as_dict(self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT):
+        return {
+            "strategy": self.strategy,
+            "content_insets": list(self.content_insets),
+            "content_bounds": list(self.content_bounds(width, height)),
+        }
+
+
+PAGE_CHROME_CONTRACT = PageChromeContract(
+    "core.page_chrome",
+    (12, HEADER_BOTTOM + 9, 12, SCREEN_HEIGHT - CONTENT_BOTTOM + 4))
 BUSY_NOTICE_X = 622
 BUSY_NOTICE_Y = 9
 BUSY_NOTICE_WIDTH = 160
 BUSY_NOTICE_HEIGHT = 38
+# What one send() may carry: one transaction must hold the largest frame the
+# screen shows, a full 800x480 picture at 4 bits per pixel (192,000 bytes, as
+# bands of at most MAX_ATOMIC_DRAW) with a page around it. It only checks a
+# batch: nothing is allocated for it, and the frame loop writes a transaction
+# one frame at a time.
+MAX_BATCH_BYTES = 256 * 1024
 MAX_PENDING_DRAW = MAX_BATCH_BYTES
 # Historical public name retained for compatibility.  This is a bounded
 # logical transport-frame size, not a Linux FIFO atomic-write guarantee:
-# 8 KiB may exceed PIPE_BUF.  Correctness depends on TyperRenderWorker being
-# the sole draw-FIFO writer and completing partial writes in _write_frame().
+# 8 KiB may exceed PIPE_BUF.  Correctness depends on the frame loop being the
+# sole draw-FIFO writer and completing partial writes.
 MAX_ATOMIC_DRAW = 8 * 1024
+PRESENT_GUARD_US = 3000
 
 _ButtonSpec = namedtuple(
     "ButtonSpec",
@@ -76,21 +155,65 @@ _ButtonSpec = namedtuple(
 )
 
 
-class BinaryCommand(str):
-    """A Typer command whose payload follows its transport header."""
-
-    __slots__ = ("payload",)
-
-    def __new__(cls, command, payload):
-        if not isinstance(payload, bytes):
-            raise TypeError("binary command payload must be immutable bytes")
-        value = str.__new__(cls, command)
-        value.payload = payload
-        return value
+# BinaryCommand, a Typer command whose payload follows its transport header,
+# is the engine's type: the engine also makes the binary commands a recorded
+# output keeps.
 
 
-class FeatherRenderer:
+def _immutable_commands(commands):
+    """Freeze a batch: binary commands as they are, everything else as text."""
+    if isinstance(commands, CommandBatch):
+        return commands
+    return CommandBatch(commands, BinaryCommand)
+
+
+_NATIVE = NATIVE_METHODS["renderer"]
+
+
+class FeatherRenderer(RendererBase):
     """Translate small UI primitives into typer display-list commands."""
+
+    # The engine draws the primitives. They read the renderer's palette,
+    # surface, button and hitbox state, and call each other through the
+    # instance, so a subclass or instance attribute may replace any of them.
+    color = _NATIVE["color"]
+    fill = _NATIVE["fill"]
+    stroke = _NATIVE["stroke"]
+    panel = _NATIVE["panel"]
+    text = _NATIVE["text"]
+    composite_button = _NATIVE["composite_button"]
+    button = _NATIVE["button"]
+    buttons = _NATIVE["buttons"]
+    # Button layouts other than a centred label, and the geometric up/down
+    # arrow button.
+    _button_colors = _NATIVE["_button_colors"]
+    _button_commands = _NATIVE["_button_commands"]
+    arrow_button = _NATIVE["arrow_button"]
+    _arrow_button_commands = _NATIVE["_arrow_button_commands"]
+    _wire_action = _NATIVE["_wire_action"]
+    # Input regions: action_hitbox registers one and returns its command,
+    # button_hitbox skips inactive buttons, and redraw_page_hitboxes replays
+    # the page chrome's regions without painting.
+    _hitbox = _NATIVE["_hitbox"]
+    clear_hitboxes = _NATIVE["clear_hitboxes"]
+    action_hitbox = _NATIVE["action_hitbox"]
+    button_hitbox = _NATIVE["button_hitbox"]
+    _wake_hitbox = _NATIVE["_wake_hitbox"]
+    redraw_page_hitboxes = _NATIVE["redraw_page_hitboxes"]
+    # Framework values the native primitives use.
+    _action_type = Action
+    _button_spec = _ButtonSpec
+    _literal_types = (ThemeColor, ThemeRole)
+    _font_metrics = staticmethod(get_font_metrics)
+    _default_background = ThemeColor.BACKGROUND
+    _default_foreground = ThemeColor.PRIMARY
+    _default_panel = ThemeColor.PANEL
+    _default_subtitle = ThemeColor.DIM
+    # Page chrome bounds. The wake region covers the screen and is registered
+    # before every control, which Typer gives precedence where they overlap.
+    _wake_bounds = (0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
+    _back_bounds = (14, 7, 146, 46)
+    _header_action_bounds = (648, 7, 132, 46)
 
     BUTTON_COLORS = {
         "primary": (ThemeRole.ACCENT_BACKGROUND, ThemeRole.ACCENT_BORDER,
@@ -109,6 +232,8 @@ class FeatherRenderer:
         "busy": (ThemeRole.BUTTON_BACKGROUND, ThemeColor.WARNING,
                  ThemeColor.WARNING),
         "pressed": (ThemeColor.PRESSED_BACKGROUND, ThemeColor.BRIGHT, ThemeColor.BRIGHT),
+        "toggle": (ThemeColor.PANEL, ThemeColor.PRIMARY, ThemeColor.PRIMARY),
+        "toggle-disabled": (ThemeColor.PANEL, ThemeColor.MUTED, ThemeColor.DIM),
         "keypad": (ThemeRole.ACCENT_BACKGROUND, ThemeRole.ACCENT_BORDER,
                    ThemeRole.ACCENT_TEXT),
         "keypad_aux": (ThemeColor.PANEL, ThemeColor.SECONDARY,
@@ -120,9 +245,19 @@ class FeatherRenderer:
     BUTTON_TEXT_PADDING = 16
     HINT_TEXT_PADDING = 20
     DIALOG_TEXT_PADDING = 28
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls._dialog_policy = _dialog_policy(cls)
+
     def __init__(self, debug=False, theme_directories=None, blending=True,
-                 raster_acceleration="scalar"):
+                 raster_acceleration="scalar", ram_composition=False):
+        # The persistent status strip; the frame owner's screen holds it beside the page.
+        self._footer = Footer(self._footer_content, self._footer_state)
+        # The screen composition root (configure_frame_owner); a theme change below asks it to redraw.
+        self._frame_owner = None
         self.debug = debug
+        self.ram_composition = bool(ram_composition)
         self.blending = bool(blending)
         self.raster_acceleration = str(raster_acceleration).strip().lower()
         if self.raster_acceleration not in ("scalar", "neon"):
@@ -139,20 +274,18 @@ class FeatherRenderer:
         self._palette = resolve_theme(FALLBACK_THEME)
         self.reload_themes()
         self.event_fd = None
-        self._last_footer = None
-        self._footer_values = None
-        self._footer_drawn = False
         self._reset_interactions()
         self._generation = 0
-        self._batch_queue = RenderBatchQueue(MAX_BATCHES, MAX_BATCH_BYTES)
-        self._worker = None
-        self._timing_sink = None
-        self._async_scheduler = None
+        # The native frame loop that owns Typer; made by the first start().
+        self._loop = None
+        # Its pacing until it exists; see the synced property.
+        self._synced = True
+        self._sent_handler = None
         self._event_fd_handler = None
         self._restart_handler = None
-        self._redraw_handler = None
-        self._recovering_output = False
-        self._last_submitted_generation = -1
+        # Screen frames the loop could not draw, and the last one's reason: a bug, reported in the status.
+        self._screen_errors = 0
+        self._screen_error = ""
         self._next_batch_kind = None
         self._next_batch_key = None
         self._composite_commands = None
@@ -162,210 +295,268 @@ class FeatherRenderer:
         self._busy_label = None
         self._header_action = None
         self._menu_suppressed = False
-        self._loader_active = False
         self._output_frozen = False
-        self._output_held = False
         self._font_manifest_loaded = False
         self._semantic_page_id = None
         self._page_title = ""
         self._page_back = False
         self._prepared_surface = None
-        self._frame_owner = None
-        self._preserve_input = False
+        # Set while the frame owner's painters run (painters()).
         self._retain_background = False
         self._dialog_bounds = ()
 
     def configure_frame_owner(self, owner):
-        """Route every ordinary submission through the screen composition root."""
+        """Route every ordinary submission through the screen composition root;
+        while the frame loop runs, it draws the owner's screen."""
         self._frame_owner = owner
+        if self.active:
+            self._loop.attach(owner.frames)
 
+    # The engine keeps the input (generation, buttons, regions, pressed
+    # buttons and the menu button's suppression) with its own snapshot; these
+    # are the other surface fields.
     _SURFACE_FIELDS = (
-        "_generation", "_buttons", "_toggles", "_hitboxes", "_pressed_buttons",
-        "_page_title", "_page_back", "_semantic_page_id", "_loader_active",
-        "_menu_suppressed", "_footer_drawn", "_last_footer", "_header_action",
-        "_overlay_hitboxes", "_dialog_bounds",
+        "_toggles", "_page_title", "_page_back", "_semantic_page_id",
+        "_header_action",
     )
+    # Surface fields mutated in place; the snapshot copies them. Every other
+    # field is replaced on change, so the snapshot shares its value.
+    _SURFACE_CONTAINERS = ("_toggles",)
 
     @property
     def render_allowed(self):
-        return not (self._output_frozen or self._output_held)
+        return not self._output_frozen
 
-    def _prepare_surface(self):
-        if not self.render_allowed:
-            return False
-        if self._prepared_surface is None:
-            self._prepared_surface = {
-                name: (value.copy() if isinstance(value, (dict, set, list)) else value)
-                for name in self._SURFACE_FIELDS
-                for value in (getattr(self, name),)
-            }
-        return True
+    # Whether the renderer may draw; the first call of a surface keeps the
+    # visible surface fields and snapshots the input.
+    _prepare_surface = _NATIVE["_prepare_surface"]
 
     def _finish_surface(self, accepted):
         previous = self._prepared_surface
         self._prepared_surface = None
-        if previous is not None and not accepted:
-            for name, value in previous.items():
-                setattr(self, name, value)
+        if previous is None:
+            return
+        if accepted:
+            self._drop_input_snapshot()
+            return
+        for name, value in previous.items():
+            setattr(self, name, value)
+        self._restore_input()
 
     def discard_surface(self):
         """Roll back a prepared surface that was not submitted."""
         self._finish_surface(False)
 
-    def _visible_value(self, name):
-        if self._prepared_surface is not None:
-            return self._prepared_surface[name]
-        return getattr(self, name)
+    def keep_surface(self):
+        """Keep a prepared surface: the frame owner's frame that drew it was accepted."""
+        self._finish_surface(True)
 
-    def configure_worker(self, async_scheduler, event_fd_handler,
-                         restart_handler=None, redraw_handler=None):
-        """Connect worker callbacks before its deferred reactor start."""
-        self._async_scheduler = async_scheduler
+    def configure_worker(self, event_fd_handler, restart_handler=None):
+        """Connect the reactor before start().
+
+        event_fd_handler(old_fd, new_fd) registers the descriptor that is
+        readable while process_events() has work (new_fd None: unregister
+        old_fd); restart_handler() repaints after Typer started again.
+        """
         self._event_fd_handler = event_fd_handler
         self._restart_handler = restart_handler
-        self._redraw_handler = redraw_handler
 
     @property
     def active(self):
-        return self._worker is not None and self._worker.active
+        return self._loop is not None and self._loop.running
+
+    @property
+    def synced(self):
+        """Whether frames follow the display's presentation (the default).
+
+        False (unthrottled) paces frames only by Typer's commits, so frames
+        the display never shows are still built: what a render benchmark
+        measures.
+        """
+        return self._synced
+
+    @synced.setter
+    def synced(self, value):
+        self._synced = bool(value)
+        if self._loop is not None:
+            self._loop.synced = self._synced
 
     @property
     def output_frozen(self):
         return self._output_frozen
 
+    def shown_actions(self):
+        """The logical actions of the visible surface's input: what Typer holds
+        of the screen while its frames draw the panel (the loop's builds
+        included), else what this renderer's painters registered."""
+        shown = self._frame_owner.shown_input() if self._frame_owner is not None else None
+        if shown is None:
+            actions = set(self._visible_input("_buttons"))
+            actions.update(action for name in ("_hitboxes", "_overlay_hitboxes")
+                           for action, _spec in self._visible_input(name))
+        else:
+            actions = set(shown["buttons"])
+            actions.update(region[0] for layer in ("base", "overlay") for region in shown[layer])
+        return actions
+
     @property
     def touch_warning_allowed(self):
         """Whether the visible surface has controls worth protecting."""
-        actions = set(self._visible_value("_buttons"))
-        actions.update(action for action, _spec in self._visible_value("_hitboxes")
-                       if action != "global.wake")
-        return not self._visible_value("_loader_active") and bool(actions)
+        actions = self.shown_actions()
+        actions.discard("global.wake")
+        return bool(actions)
 
     def discard_pending_output(self):
-        """Drop every untouched batch before a final lifecycle screen."""
-        self._batch_queue.discard_all()
+        """Drop every unwritten batch before a final lifecycle screen."""
+        if self._loop is not None:
+            self._loop.discard()
 
     def freeze_output(self):
         """Keep the last submitted safety screen as the sole display owner."""
         self._output_frozen = True
+        self.cover_footer()
 
     def thaw_output(self):
+        # The frozen safety screen is the composition's: the next paint draws what changed.
         self._output_frozen = False
 
-    def hold_output(self):
-        """Suppress framebuffer writes without stopping renderer lifecycle."""
-        self._output_held = True
+    def redraw_display(self):
+        """Another owner drew on the panel (a frozen safety screen, Forge-X's redraw
+        request): the frame owner draws all of it at its next paint."""
+        if self._frame_owner is not None:
+            self._frame_owner.surface_cleared()
 
-    def release_output(self):
-        self._output_held = False
-
-    def clear_display(self, key="display-clear"):
-        """Replace every framebuffer pixel before a new display owner draws."""
-        self._footer_drawn = False
-        return self.send([
-            self.clear_hitboxes("base"),
-            self.clear_hitboxes("overlay"),
-            "--batch clear -c %s" % self.color(ThemeColor.BACKGROUND),
-        ], kind="critical", key=key)
-
-    @staticmethod
-    def quote(value):
-        value = str(value)
-        if (value != "--end" and "\r" not in value and "\n" not in value
-                and "\\" not in value and '"' not in value):
-            return '"%s"' % value
-        value = value.replace("\r\n", "\n").replace("\r", "\n")
-        # A line containing only the pipe sentinel would terminate the frame
-        # before Typer tokenizes the quoted text. Keep the visible content and
-        # make that reserved line harmless without flattening real line breaks.
-        value = "\n".join(
-            " --end" if line == "--end" else line
-            for line in value.split("\n"))
-        value = value.replace("\\", "\\\\").replace('"', '\\"')
-        return '"%s"' % value
+    # str(value) as one double-quoted Typer token: line breaks become "\n", a
+    # line holding only the frame sentinel "--end" gets a leading space, and
+    # backslashes and quotes are escaped.
+    quote = staticmethod(quote)
 
     def start(self):
-        """Start only the daemon worker; Typer is launched in that thread."""
+        """Start the frame loop, which launches Typer on its own thread.
+
+        Until then batches are admitted without being written, so a screen
+        that another owner holds (a boot screen) is a renderer not started
+        yet: start() is its release.
+        """
         self._output_frozen = False
-        if self._worker is not None:
-            return self._worker.start()
-        if self._async_scheduler is None or self._event_fd_handler is None:
-            raise RuntimeError("Typer worker callbacks are not configured")
-
-        def load_fonts():
-            if not self._font_manifest_loaded:
-                set_font_metrics(load_runtime_metrics(TYPER_BINARY))
-                self._font_manifest_loaded = True
-
-        self._worker = TyperRenderWorker(
-            self._batch_queue, self._encode_frames, self.debug,
-            (TYPER_BINARY, DRAW_PIPE, EVENT_PIPE, TOUCH_DEVICE),
-            self._async_scheduler, self._worker_event_fd_changed,
-            self._worker_restarted, load_fonts, blending=self.blending,
-            raster_acceleration=self.raster_acceleration)
-        self._worker.timing_sink = self._timing_sink
-        started = self._worker.start()
+        if self._event_fd_handler is None:
+            raise RuntimeError("frame loop callbacks are not configured")
+        if self.active:
+            return False
+        if not self._font_manifest_loaded:
+            set_font_metrics(load_runtime_metrics(TYPER_BINARY))
+            self._font_manifest_loaded = True
+        if self._loop is None:
+            self._loop = FrameLoop(
+                DRAW_PIPE, EVENT_PIPE, "typer", max_frame=MAX_ATOMIC_DRAW,
+                max_batch=MAX_BATCH_BYTES, synced=self._synced)
+        started = self._loop.start(self._typer_arguments())
+        self.event_fd = self._loop.fileno()
+        self._event_fd_handler(None, self.event_fd)
         self._busy_label = None
-        self._last_footer = None
-        self._footer_drawn = False
-        # Typer's double buffer initially contains whatever was left in the
-        # framebuffer. Clear the complete panel before the first partial page
-        # render so neither the persistent footer nor the outer margins can
-        # expose pixels from the previous screen owner.
-        self.clear_display("worker-clear")
+        if self._frame_owner is not None:
+            # Typer's double buffer initially holds whatever the framebuffer did: the owner's next paint draws all
+            # of its screen, whose first frame fills the screen's bounds first.
+            self._loop.attach(self._frame_owner.frames)
+            self._frame_owner.surface_cleared()
         return started
 
-    def _worker_event_fd_changed(self, old_fd, new_fd):
-        self.event_fd = new_fd
-        self._event_fd_handler(old_fd, new_fd)
-
-    def _worker_restarted(self):
-        if self._restart_handler is not None:
-            self._restart_handler()
+    def _typer_arguments(self):
+        arguments = [TYPER_BINARY]
+        if self.debug:
+            arguments.append("--debug")
+        arguments += ["--deferred-page-publish", "auto",
+                      "--present-guard-us", str(PRESENT_GUARD_US)]
+        if self.blending:
+            arguments.append("--blending")
+        if self.raster_acceleration != "scalar":
+            arguments += ["--raster-acceleration", self.raster_acceleration]
+        if self.ram_composition:
+            # Opt-in: Typer composes in an extra 1.5 MB RAM image, trading
+            # scarce printer memory for fewer uncached framebuffer reads.
+            arguments.append("--ram-composition")
+        arguments += ["--double-buffered", "--touch-device", TOUCH_DEVICE,
+                      "--event-pipe", EVENT_PIPE, "batch", "--pipe", DRAW_PIPE]
+        return arguments
 
     def stop(self):
-        """Signal shutdown without waiting for worker or Typer."""
-        if self._worker is not None:
-            self._worker.request_stop()
+        """Write what is pending, stop the frame loop and leave Typer showing the last screen."""
+        if self.active:
+            self._loop.stop()
+            # A stopped loop draws nothing: the owner's frames are built where it paints again.
+            self._loop.attach(None)
+            self._event_fd_handler(self.event_fd, None)
+            self.event_fd = None
         self._busy_label = None
-        self._last_footer = None
-        self._footer_drawn = False
         self._output_frozen = False
 
     def restart(self):
-        if self._worker is not None:
-            return self._worker.request_restart()
-        return False
+        return self._loop is not None and self._loop.restart()
 
-    def set_timing_sink(self, sink):
-        """Send worker render timings to an optional diagnostic consumer."""
-        self._timing_sink = sink
-        if self._worker is not None:
-            self._worker.timing_sink = sink
+    def set_sent_handler(self, callback):
+        """Notify on the reactor after a receipt-bearing batch is fully written.
+
+        This is transport completion, not render completion or presentation.
+        Consumers must ignore tokens from cancelled or superseded operations.
+        """
+        self._sent_handler = callback
+
+    def process_events(self, eventtime):
+        """On the reactor, once event_fd is readable: deliver the frame loop's
+        sent and restart notices and return Typer's events in order: TapEvent,
+        TouchEvent, ButtonEvent, TouchDeviceEvent and RenderReceipt. The loop
+        decoded each action against the input it wrote last, so an action is
+        None for a region Typer no longer holds."""
+        events = []
+        for event in self._loop.take():
+            kind = event[0]
+            if kind == "tap":
+                events.append(TapEvent(event[2], event[1]))
+            elif kind == "touch":
+                events.append(TouchEvent(event[5], *event[1:5]))
+            elif kind == "button":
+                events.append(ButtonEvent(event[3], event[1], event[2]))
+            elif kind == "touch-device":
+                events.append(TouchDeviceEvent(event[1]))
+            elif kind == "receipt":
+                events.append(RenderReceipt(*event[1:]))
+            elif kind == "invalid":
+                logging.warning("[feather_screen] invalid Typer event discarded: %r", event[1][:256])
+            elif kind == "sent":
+                if self._sent_handler is not None:
+                    self._sent_handler(event[1], eventtime)
+            elif kind == "screen-error":
+                self._screen_errors += 1
+                self._screen_error = event[1]
+                screen_failed(event[1])
+            else:
+                logging.warning("[feather_screen] typer restarted (last error: %s)",
+                                self._loop.status()["last_error"] or "none")
+                if self._frame_owner is not None:
+                    self._frame_owner.restarted()
+                if self._restart_handler is not None:
+                    self._restart_handler()
+        return events
 
     @contextmanager
-    def compose(self, preserve_input=False, retain_background=False):
-        """Submit consecutive ordinary draws as one admitted frame."""
+    def compose(self):
+        """Submit consecutive ordinary draws as one admitted frame (the legacy
+        page route; a frame owner's screen submits its own frames)."""
         if self._composite_commands is not None:
             raise RuntimeError("render composition is already active")
-        self._composite_commands = []
+        self._composite_commands = CommandList()
         self._composite_kind = None
         self._composite_key = None
         self._composite_receipt = None
-        self._preserve_input = bool(preserve_input)
-        self._retain_background = bool(retain_background)
         self._prepare_surface()
         self._dialog_bounds = ()
-        frame = {"accepted": False, "input_changed": False, "background_changed": False}
         try:
-            yield frame
+            yield
         except BaseException:
             self._composite_commands = None
             self._composite_kind = None
             self._composite_key = None
             self._composite_receipt = None
-            self._preserve_input = False
-            self._retain_background = False
             self._finish_surface(False)
             raise
         commands = self._composite_commands
@@ -376,68 +567,40 @@ class FeatherRenderer:
         self._composite_kind = None
         self._composite_key = None
         self._composite_receipt = None
-        self._preserve_input = False
-        self._retain_background = False
-        previous = self._prepared_surface
-        if (commands and retain_background and previous is not None
-                and (not self._dialog_bounds
-                     or self._dialog_bounds != previous["_dialog_bounds"]
-                     or self._header_action != previous["_header_action"])):
-            frame["background_changed"] = True
-            requested_header = self._header_action
-            self._finish_surface(False)
-            self._prepare_surface()
-            self._header_action = requested_header
-            return
-        if commands and preserve_input and previous is not None:
-            if self._input_signature() != self._input_signature(previous):
-                # Replace only input IDs after building pixels once. These
-                # final resets remove IDs embedded in the earlier draw commands.
-                frame["input_changed"] = True
-                # Input replacement is a prerequisite for later pixel-only updates.
-                key = None
-                self._generation += 1
-                self._pressed_buttons.clear()
-                commands.extend(self._input_commands())
-                if kind is None:
-                    kind = "state"
-            else:
-                self._pressed_buttons = previous["_pressed_buttons"].copy()
         if commands:
-            frame["accepted"] = self.send(commands, kind=kind, key=key, receipt=receipt)
+            if receipt is None:
+                self.send(commands, kind=kind, key=key)
+            else:
+                self.send(commands, kind=kind, key=key, receipt=receipt[0], receipt_phase=receipt[1])
         else:
             self._finish_surface(False)
 
+    @contextmanager
+    def painters(self, retain_background=False):
+        """One pass of the frame owner's painters over its screen's frame:
+        retaining_background tells them whether the frame keeps the pixels
+        under them, and dialog_bounds collects the dialogs they draw."""
+        self._retain_background = bool(retain_background)
+        self._dialog_bounds = ()
+        try:
+            yield
+        finally:
+            self._retain_background = False
+
     @property
-    def header_action_changed(self):
-        """Whether a staged header control needs its old pixels restored."""
-        return (self._prepared_surface is not None
-                and self._header_action != self._prepared_surface["_header_action"])
+    def dialog_bounds(self):
+        """The bounds of the dialogs drawn since the painters' pass or the composition began."""
+        return self._dialog_bounds
 
     @property
     def retaining_background(self):
         """The current foreground pass must leave retained backdrop pixels intact."""
         return self._retain_background
 
-    def _input_signature(self, values=None):
-        value = (lambda name: getattr(self, name)) if values is None else values.__getitem__
-        return tuple(value("_hitboxes")), tuple(value("_overlay_hitboxes"))
-
-    def _input_commands(self):
-        commands = [self.clear_hitboxes("base"), self.clear_hitboxes("overlay")]
-        for action, spec in self._hitboxes:
-            commands.append(self._hitbox(self._wire_action(action), *spec[:4],
-                                        continuous=spec[4]))
-        for action, spec in self._overlay_hitboxes:
-            commands.append(self._hitbox(self._wire_action(action), *spec[:4],
-                                        continuous=spec[4], layer="overlay"))
-        return commands
-
     @contextmanager
     def collect(self):
-        """Adapt an imperative painter into one node's ordered command list."""
-        if self._composite_commands is None:
-            raise RuntimeError("command collection requires a composed frame")
+        """Adapt an imperative painter into one node's ordered command list:
+        what it sends meanwhile is collected, not submitted."""
         previous = self._composite_commands
         commands = self._composite_commands = []
         try:
@@ -446,13 +609,8 @@ class FeatherRenderer:
             self._composite_commands = previous
 
     def send(self, commands, kind=None, key=None, generation=None,
-             receipt=None, button_feedback=False):
+             receipt=None, button_feedback=False, receipt_phase="presented"):
         """Publish one immutable batch; registered buttons can respond while frozen."""
-        if self._output_held:
-            self._next_batch_kind = None
-            self._next_batch_key = None
-            self._finish_surface(False)
-            return False
         if self._output_frozen and not button_feedback:
             self._finish_surface(False)
             return False
@@ -460,11 +618,9 @@ class FeatherRenderer:
             if self._composite_commands is None and not button_feedback:
                 self._finish_surface(False)
             return False
-        immutable = tuple(
-            command if isinstance(command, BinaryCommand) else str(command)
-            for command in commands)
-        batch_generation = ((self.generation if button_feedback else self._generation)
-                            if generation is None else int(generation))
+        if receipt_phase != "presented" and (receipt_phase != "staged" or receipt is None):
+            raise ValueError("staged receipts require a token; unknown receipt phase")
+        immutable = _immutable_commands(commands)
         if kind is None and self._next_batch_kind is not None:
             kind, key = self._next_batch_kind, self._next_batch_key
         self._next_batch_kind = None
@@ -474,62 +630,51 @@ class FeatherRenderer:
                 raise ValueError("this render batch cannot be composed")
             if receipt is not None:
                 token = validate_render_receipt_token(receipt)
-                if self._composite_receipt not in (None, token):
-                    raise ValueError("a composed frame can have only one receipt")
-                self._composite_receipt = token
+                request = (token, receipt_phase)
+                if self._composite_receipt not in (None, request):
+                    raise ValueError("a composed frame can have only one receipt and phase")
+                self._composite_receipt = request
             self._composite_commands.extend(immutable)
-            if (kind == "critical"
-                    or (kind == "surface" and self._composite_kind != "critical")
-                    or (kind == "state" and self._composite_kind is None)):
+            if kind == "surface" or (kind == "state" and self._composite_kind is None):
                 self._composite_kind = kind
                 self._composite_key = key
             return True
         owner = self._frame_owner
         if owner is not None and not owner.painting and not button_feedback:
+            if receipt_phase != "presented":
+                return owner.submit(
+                    immutable, kind=kind, key=key, generation=generation,
+                    receipt=receipt, receipt_phase=receipt_phase)
             return owner.submit(
                 immutable, kind=kind, key=key, generation=generation,
                 receipt=receipt)
-        if kind is None:
-            kind = ("surface" if batch_generation !=
-                    self._last_submitted_generation else "state")
-        if kind not in ("critical", "surface", "state", "animation"):
+        if kind not in (None, "surface", "state", "animation"):
             self._finish_surface(False)
             raise ValueError("unknown render batch kind: %s" % kind)
         try:
             receipt = (None if receipt is None else
                        validate_render_receipt_token(receipt))
-            serialized_size = self._serialized_size(immutable, receipt)
+            accepted = self._submit(RenderSubmission(immutable, receipt, receipt_phase))
         except ValueError as exc:
             logging.warning("[feather_screen] rejected render batch: %s", exc)
-            self._batch_queue.reject_submission()
-            self._finish_surface(False)
-            return False
-        batch = RenderBatch(
-            immutable, kind, key, batch_generation, serialized_size, None,
-            receipt)
-        try:
-            accepted = self._batch_queue.put_nowait(batch)
+            accepted = False
         except BaseException:
             if not button_feedback:
                 self._finish_surface(False)
             raise
         if not button_feedback:
             self._finish_surface(accepted)
-        if accepted:
-            self._last_submitted_generation = max(
-                self._last_submitted_generation, batch_generation)
-        if (self._batch_queue.needs_redraw and self._redraw_handler is not None
-                and not self._recovering_output):
-            # A discarded delta breaks later damage restoration. Rebuild from
-            # current product state, even when this was the gesture's final frame.
-            self._recovering_output = True
-            self._last_submitted_generation = -1
-            self.invalidate_footer()
-            try:
-                self._redraw_handler()
-            finally:
-                self._recovering_output = False
         return accepted
+
+    def _submit(self, submission):
+        """Hand a batch to the frame loop. Before the first start() Typer does
+        not run and start() clears the whole panel, so the batch is admitted
+        without being written; after stop() it is refused."""
+        if self._loop is None:
+            return True
+        if not self._loop.running:
+            return False
+        return self._loop.submit(submission.commands, receipt=submission.receipt, phase=submission.receipt_phase)
 
     def prioritize_next_batch(self, kind, key=None):
         """Classify the following legacy one-argument send() call."""
@@ -545,108 +690,41 @@ class FeatherRenderer:
         if not self.render_allowed:
             return False
         token = validate_render_receipt_token(token)
-        # A protocol-only barrier can pass the modal frame owner safely.
-        return self.send(
-            ("--batch flush --receipt %s --receipt-phase presented" % token,),
-            kind="state", key="presented-receipt", button_feedback=True)
+        # A flush alone: a protocol-only barrier passes the modal frame owner.
+        return self._submit(RenderSubmission(_immutable_commands(()), token, "presented"))
 
     def get_status(self):
-        if self._worker is None:
-            status = self._batch_queue.snapshot()
-            status.update({
-                "worker_state": "stopped", "typer_restarts": 0,
-                "worker_last_error": "",
-            })
-        else:
-            status = self._worker.snapshot()
-        status["semantic_page_id"] = self._semantic_page_id
-        return status
+        loop = (self._loop.status() if self._loop is not None else
+                {"state": "stopped", "last_error": "", "restarts": 0,
+                 "submissions": 0, "transactions": 0, "pending": 0,
+                 "in_flight": 0, "dropped_events": 0})
+        return {
+            "worker_state": loop["state"],
+            "worker_last_error": loop["last_error"],
+            "typer_restarts": loop["restarts"],
+            "submitted_batches": loop["submissions"],
+            "transactions": loop["transactions"],
+            "pending_batches": loop["pending"],
+            "in_flight": loop["in_flight"],
+            "dropped_events": loop["dropped_events"],
+            "screen_errors": self._screen_errors,
+            "screen_error": self._screen_error,
+            "semantic_page_id": self._semantic_page_id,
+        }
 
-    def set_semantic_page(self, page_id):
-        self._semantic_page_id = str(page_id)
+    set_semantic_page = _NATIVE["set_semantic_page"]
 
-    @staticmethod
-    def _serialized_size(commands, receipt=None):
-        """Return a conservative queue weight without building frames."""
-        receipt = (None if receipt is None else
-                   validate_render_receipt_token(receipt))
-        if not commands:
-            return 0
-        return 32 + len(receipt or "") + sum(
-            (len(command.payload) + len(command)
-             if isinstance(command, BinaryCommand)
-             else len(command) if command.isascii()
-             else len(command.encode("utf-8"))) + 64
-            for command in commands)
-
-    @staticmethod
-    def _encode_frames(commands, receipt=None):
-        receipt = (None if receipt is None else
-                   validate_render_receipt_token(receipt))
-        final_command = "--batch flush"
-        if receipt is not None:
-            final_command += " --receipt " + receipt
-        intermediate_suffix = b"--end\n"
-        final_suffix = (final_command + "\n--end\n").encode("utf-8")
-        frames = []
-        current = bytearray()
-
-        def emit_text(suffix):
-            if current:
-                frames.append(bytearray(current) + suffix)
-                current.clear()
-
-        for command in commands:
-            if isinstance(command, BinaryCommand):
-                emit_text(intermediate_suffix)
-                header = ("--binary %d %s\n" % (
-                    len(command.payload), str(command))).encode("utf-8")
-                frame = bytearray(header)
-                frame.extend(command.payload)
-                if len(frame) > MAX_ATOMIC_DRAW:
-                    raise ValueError(
-                        "single Typer binary command exceeds MAX_ATOMIC_DRAW")
-                frames.append(frame)
-                continue
-
-            line = (str(command) + "\n").encode("utf-8")
-            if len(line) + len(final_suffix) > MAX_ATOMIC_DRAW:
-                raise ValueError(
-                    "single Typer command exceeds MAX_ATOMIC_DRAW")
-            if current and len(current) + len(line) + len(final_suffix) > \
-                    MAX_ATOMIC_DRAW:
-                emit_text(intermediate_suffix)
-            current.extend(line)
-
-        if current:
-            emit_text(final_suffix)
-        elif frames:
-            frames.append(bytearray(final_suffix))
-
-        return frames
-
-    def decode_action(self, action):
-        """Reject taps emitted for a page that has already been replaced."""
-        prefix, separator, logical = str(action).partition(":")
-        if not separator:
-            return action  # Compatibility with tests and older typer builds.
-        try:
-            generation = int(prefix)
-        except ValueError:
-            return None
-        return logical if generation == self._visible_value("_generation") else None
-
-    def _wire_action(self, action):
-        logical = action_wire_id(action) if isinstance(action, Action) else str(action)
-        return "%d:%s" % (self._generation, logical)
+    # decode_action(action) is the engine's: the logical action of a tap when
+    # its generation is the visible surface's, so taps emitted for a page that
+    # has already been replaced are refused (None).
 
     @property
     def generation(self):
-        return self._visible_value("_generation")
+        return self._visible_input("_generation")
 
     def invalidate_input_generation(self):
         """Prepare a new input generation for a replacement surface."""
-        if self._prepare_surface() and not self._preserve_input:
+        if self._prepare_surface():
             self._generation += 1
 
     @property
@@ -662,10 +740,8 @@ class FeatherRenderer:
         if self._theme_name not in self._themes:
             self._theme_name = DEFAULT_THEME
         self._palette = self._themes[self._theme_name]
-        if (self._theme_name != previous_name
-                or self._palette != previous_palette):
-            self._last_footer = None
-            self._footer_drawn = False
+        if self._theme_name != previous_name or self._palette != previous_palette:
+            self._theme_changed()
         return tuple(self._themes)
 
     def reload_themes(self):
@@ -704,44 +780,21 @@ class FeatherRenderer:
         self._theme_name = normalized
         self._palette = self._themes[normalized]
         if changed:
-            # The footer normally survives page redraws and is skipped while
-            # its values stay unchanged. A palette change is also a content
-            # change, so force begin_page() to repaint it in the new colors.
-            self._last_footer = None
-            self._footer_drawn = False
+            self._theme_changed()
         return changed
 
-    def color(self, value):
-        return self._palette.resolve(value)
-
-    def fill(self, x, y, width, height, color=ThemeColor.BACKGROUND):
-        return "--batch fill -p %d %d -s %d %d -c %s" % (
-            x, y, width, height, self.color(color))
+    def _theme_changed(self):
+        # Every pixel on the panel has the old colors: the next paint draws all of
+        # it, and the footer waits for the next page.
+        self.cover_footer()
+        self.redraw_display()
 
     def modal_scrim(self):
         """Darken the retained framebuffer with 70%-opaque black."""
-        return "--batch fill -p 0 0 -s %d %d -c B3000000" % (
-            SCREEN_WIDTH, SCREEN_HEIGHT)
+        return "--batch fill -p 0 0 -s %d %d -c %s" % (SCREEN_WIDTH, SCREEN_HEIGHT, BACKDROP_COLOR)
 
-    def image(self, x, y, blob, format="fxi1"):
-        if format != "fxi1":
-            raise ValueError("unsupported image format: %s" % format)
-        return BinaryCommand(
-            "--batch image -p %d %d --format fxi1" % (int(x), int(y)),
-            blob)
-
-    def stroke(self, x, y, width, height, color=ThemeColor.PRIMARY, line_width=2):
-        return "--batch stroke -p %d %d -s %d %d -c %s -lw %d -sd inner" % (
-            x, y, width, height, self.color(color), line_width)
-
-    def panel(self, x, y, width, height, border=ThemeColor.PRIMARY,
-              background=ThemeColor.PANEL, line_width=2):
-        """Draw a reusable filled panel with an optional inner border."""
-        commands = [self.fill(x, y, width, height, background)]
-        if border is not None and line_width > 0:
-            commands.append(
-                self.stroke(x, y, width, height, border, line_width))
-        return commands
+    # image(x, y, blob, format="fxi1"): an FXI1 raster at (x, y), the blob as the command's payload.
+    image = _NATIVE["image"]
 
     def filled_circle(self, center_x, center_y, radius, color=ThemeColor.PRIMARY):
         """Draw a compact filled circle using horizontal one-pixel spans."""
@@ -789,6 +842,32 @@ class FeatherRenderer:
         commands.append(self.text(
             x + 18, y + 21, str(title).upper(), ThemeColor.PRIMARY,
             "JetBrainsMono 8pt", "left", "middle"))
+        return commands
+
+    def text_field(self, x, y, max_width, value, cursor, color=ThemeColor.PRIMARY,
+                   masked=False, font="JetBrainsMono 12pt"):
+        """Draw the part of a typed value around its cursor that fits
+        max_width, left at y, and a caret at the cursor. The face must be
+        monospaced: its one advance places the window and the caret."""
+        value = str(value)
+        cursor = max(0, min(int(cursor), len(value)))
+        displayed = "*" * len(value) if masked else value
+        font = self.normalize_font_for_text(font, displayed or " ")
+        advance = self.font_advance(font)
+        visible_characters = max(1, (int(max_width) - 2) // advance)
+        start = min(
+            max(0, cursor - visible_characters // 2),
+            max(0, len(displayed) - visible_characters))
+        visible = displayed[start:start + visible_characters]
+        commands = []
+        if visible:
+            commands.append(self.text(
+                x, y, visible, color, font, max_width=max_width,
+                truncate=True))
+        caret_x = min(
+            int(x) + int(max_width) - 2,
+            int(x) + (cursor - start) * advance)
+        commands.append(self.fill(caret_x, int(y) - 13, 2, 26, color))
         return commands
 
     def numeric_keypad(self, x, y, width, height, title, value, actions,
@@ -923,12 +1002,38 @@ class FeatherRenderer:
     def metric_row(self, x, y, width, label, value, unit="",
                    label_color=ThemeColor.PRIMARY, value_color=ThemeColor.TEXT,
                    label_font="JetBrainsMono 8pt", value_font="JetBrainsMono 8pt"):
-        """Draw a compact label/value/unit row for status cards."""
+        """Draw a compact label/value/unit row for status cards.
+
+        When the label and the value do not fit side by side, each gets a
+        share of the row and Typer truncates the text that exceeds it with an
+        ellipsis: the longer text is shortened first, both when neither fits
+        in half the row.
+        """
+        value_right = width - (34 if unit else 0)
+        label, value = str(label), str(value)
+        metrics = get_font_metrics()
+        label_width = metrics.text_width(label, label_font)
+        value_width = metrics.text_width(value, value_font)
+        available = max(2, value_right - 4)  # 4 px apart
+        label_limit = value_limit = None
+        if label_width + value_width > available:
+            half = available // 2
+            if label_width <= half:
+                value_limit = available - label_width
+            elif value_width <= half:
+                label_limit = available - value_width
+            else:
+                label_limit, value_limit = half, available - half
+
+        def row_text(text_x, text, color, font, align, limit):
+            if limit is None:
+                return self.text(text_x, y, text, color, font, align, "middle")
+            return self.text(text_x, y, text, color, font, align, "middle",
+                             max_width=limit, truncate=True)
+
         commands = [
-            self.text(x, y, label, label_color, label_font,
-                      "left", "middle"),
-            self.text(x + width - (34 if unit else 0), y, value, value_color,
-                      value_font, "right", "middle"),
+            row_text(x, label, label_color, label_font, "left", label_limit),
+            row_text(x + value_right, value, value_color, value_font, "right", value_limit),
         ]
         if unit:
             commands.append(self.text(
@@ -1022,47 +1127,11 @@ class FeatherRenderer:
             ]
         return commands
 
-    def text(self, x, y, value, color=ThemeColor.PRIMARY,
-             font="JetBrainsMono 12pt", h_align="left", v_align="middle",
-             max_width=None, max_height=None, wrap=False, truncate=False,
-             proportional=False):
-        value = str(value)
-        font = self.normalize_font_for_text(font, value)
-        if (wrap or truncate) and (max_width is None or int(max_width) <= 0):
-            raise ValueError("wrap and truncate require max_width")
-        if wrap and (max_height is None or int(max_height) <= 0):
-            raise ValueError("wrap requires max_height")
-        # argparse treats a text value beginning with '-' as another option.
-        # Keep the protective space out of the visible alignment calculation,
-        # otherwise centered labels such as -Y appear half a glyph off-center.
-        if value.startswith("-"):
-            value = " " + value
-            advance = get_font_metrics().metric(font).character_advance(" ")
-            if h_align == "center":
-                x -= advance // 2
-            elif h_align == "left":
-                x -= advance
-        command = "--batch text -p %d %d -c %s -f %s -ha %s -va %s" % (
-            x, y, self.color(color), self.quote(font), h_align, v_align)
-        if max_width is not None:
-            command += " --max-width %d" % int(max_width)
-        if max_height is not None:
-            command += " --max-height %d" % int(max_height)
-        if wrap:
-            command += " --wrap"
-        if truncate:
-            command += " --truncate"
-        return command + " -t %s" % self.quote(value)
-
-    @classmethod
-    def normalize_font(cls, font, allow_proportional=False):
-        """Map UI font requests to sizes actually compiled into typer."""
-        return get_font_metrics().normalize_font(font, allow_proportional)
-
-    @classmethod
-    def normalize_font_for_text(cls, font, value):
-        """Use the requested face when it covers the rendered text."""
-        return get_font_metrics().normalize_for_text(font, value)
+    # normalize_font(font, allow_proportional=False) maps UI font requests to sizes compiled into typer;
+    # normalize_font_for_text(font, value) uses the requested face when it covers the rendered text. Both
+    # measure on the engine catalog of _font_metrics().
+    normalize_font = classmethod(renderer_normalize_font)
+    normalize_font_for_text = classmethod(renderer_normalize_font_for_text)
 
     @classmethod
     def font_advance(cls, font):
@@ -1071,29 +1140,8 @@ class FeatherRenderer:
             raise ValueError("font is not monospaced: %s" % metric.name)
         return metric.advance_x
 
-    @classmethod
-    def text_width(cls, value, font):
-        """Return the exact monospaced advance used by typer for ASCII UI text."""
-        return get_font_metrics().text_width(value, font)
-
-    @staticmethod
-    def _hitbox(action, x, y, width, height, continuous=False, layer="base"):
-        layer = str(layer).lower()
-        if layer not in ("base", "overlay"):
-            raise ValueError("unknown hitbox layer: %s" % layer)
-        command = "--batch hitbox --id %s -p %d %d -s %d %d" % (
-            action, x, y, width, height)
-        if continuous:
-            command += " --continuous"
-        command += " --layer %s" % layer
-        return command
-
-    @staticmethod
-    def clear_hitboxes(layer="base"):
-        layer = str(layer).lower()
-        if layer not in ("base", "overlay"):
-            raise ValueError("unknown hitbox layer: %s" % layer)
-        return "--batch clear-hitboxes --layer " + layer
+    # text_width(value, font): the advance typer draws value with.
+    text_width = classmethod(renderer_text_width)
 
     @property
     def hitboxes(self):
@@ -1103,106 +1151,81 @@ class FeatherRenderer:
                                             ("overlay", self._overlay_hitboxes))
                      for action, spec in entries)
 
-    @staticmethod
-    def _register_hitbox(entries, action, spec):
-        # Repainting the same region updates it; distinct regions stay ordered.
-        for index, (previous_action, previous_spec) in enumerate(entries):
-            if previous_action == action and previous_spec[:4] == spec[:4]:
-                entries[index] = (action, spec)
-                return
-        entries.append((action, spec))
-
-    @staticmethod
-    def _unregister_hitbox(entries, action, bounds):
-        entries[:] = [entry for entry in entries
-                      if entry[0] != action or entry[1][:4] != bounds]
-
-    @property
-    def needs_redraw(self):
-        return self._batch_queue.needs_redraw
-
-    def action_hitbox(self, action, x, y, width, height, continuous=False):
-        if not self._prepare_surface():
-            return ""
-        logical_action = (
-            action_wire_id(action) if isinstance(action, Action) else str(action))
-        self._register_hitbox(self._hitboxes, logical_action,
-                              (x, y, width, height, bool(continuous)))
-        return self._hitbox(self._wire_action(action), x, y, width, height,
-                           continuous)
-
-    def button_hitbox(self, action, x, y, width, height, active=True):
-        logical_action = action_wire_id(action) if isinstance(action, Action) else str(action)
-        if (not active or
-                (logical_action == "nav.menu" and
-                 (self._busy_label is not None or self._header_action is not None))):
-            return ()
-        return self.action_hitbox(action, x, y, width, height)
-
     def overlay_hitbox(self, action, x, y, width, height, continuous=False):
         if not self._prepare_surface():
             return ""
         logical = action_wire_id(action) if isinstance(action, Action) else str(action)
-        self._register_hitbox(self._overlay_hitboxes, logical,
-                              (x, y, width, height, bool(continuous)))
+        self._register_region(logical, x, y, width, height, continuous, overlay=True)
         return self._hitbox(
             self._wire_action(action), x, y, width, height,
             continuous, layer="overlay")
 
     def _toggle_commands(self, x, y, width, height, thumb_x, enabled):
-        border = ThemeColor.PRIMARY if enabled else ThemeColor.MUTED
-        thumb_color = ThemeColor.PRIMARY if enabled else ThemeColor.DIM
+        background, border, thumb_color = self.BUTTON_COLORS["toggle" if enabled else "toggle-disabled"]
         inset = 5
         thumb_size = max(1, height - 2 * inset)
         return [
-            self.fill(x, y, width, height, ThemeColor.PANEL),
+            self.fill(x, y, width, height, background),
             self.stroke(x, y, width, height, border, 2),
             self.fill(thumb_x, y + inset, thumb_size, thumb_size, thumb_color),
         ]
 
-    def toggle(self, action, x, y, width, height, active, enabled=True):
-        """Draw a rectangular switch with a centered square thumb and no text."""
+    @staticmethod
+    def _toggle_places(x, width, height):
+        """The thumb's x, off and on: centered in each half."""
+        thumb_size = max(1, height - 10)
+        half = width // 2
+        margin = (half - thumb_size) // 2
+        return x + margin, x + half + margin
+
+    def toggle(self, action, x, y, width, height, active, enabled=True, progress=None):
+        """Draw a rectangular switch with a centered square thumb and no text;
+        moving to active, progress (0 to 1) of the way from the other side."""
         if not self._prepare_surface():
             return []
         logical_action = action_wire_id(action) if isinstance(action, Action) else str(action)
-        inset = 5
-        thumb_size = max(1, height - 2 * inset)
-        half = width // 2
-        left = x + (half - thumb_size) // 2
-        right = x + half + (half - thumb_size) // 2
-        thumb_x = right if active else left
-        self._toggles[logical_action] = (
-            x, y, width, height, bool(active), enabled, left, right)
-        commands = self._toggle_commands(
-            x, y, width, height, thumb_x, enabled)
+        left, right = self._toggle_places(x, width, height)
+        start, finish = (left, right) if active else (right, left)
+        thumb_x = finish if progress is None else start + math.floor((finish - start) * progress)
+        commands = self._toggle_commands(x, y, width, height, thumb_x, enabled)
         if enabled:
             commands.append(self.action_hitbox(action, x, y, width, height))
         else:
-            self._unregister_hitbox(self._hitboxes, logical_action, (x, y, width, height))
+            self._unregister_region(logical_action, x, y, width, height)
         return commands
+
+    def _shown_region(self, action):
+        """The rectangle of action's input on the visible surface, None without one."""
+        shown = self._frame_owner.shown_input() if self._frame_owner is not None else None
+        if shown is None:
+            regions = ((name, *spec[:4]) for entries in ("_hitboxes", "_overlay_hitboxes")
+                       for name, spec in self._visible_input(entries))
+        else:
+            regions = (region for layer in ("base", "overlay") for region in shown[layer])
+        return next((tuple(region[1:5]) for region in regions if region[0] == action), None)
 
     def animate_toggle(self, action, active, scheduler, duration=0.12):
         if not self.render_allowed:
             return False
-        spec = self._toggles.get(action)
-        if spec is None or not spec[5]:
+        # A disabled toggle has no input; one already moving there keeps moving.
+        region = self._shown_region(action)
+        if region is None or self._toggles.get(action) == bool(active):
             return False
-        x, y, width, height, current, enabled, left, right = spec
-        if current == bool(active):
-            return False
+        x, y, width, height = region
+        left, right = self._toggle_places(x, width, height)
         start, finish = (left, right) if active else (right, left)
         generation = self._generation
         frames = 4
-        self._toggles[action] = (x, y, width, height, bool(active), enabled,
-                                 left, right)
+        self._toggles[action] = bool(active)
 
         def draw_frame(_eventtime, index):
+            if index == frames:
+                self._toggles.pop(action, None)
             if self._generation != generation:
                 return
             thumb_x = start + (finish - start) * index // frames
             self.prioritize_next_batch("animation", "toggle:%s" % action)
-            self.send(self._toggle_commands(
-                x, y, width, height, thumb_x, enabled))
+            self.send(self._toggle_commands(x, y, width, height, thumb_x, True))
 
         draw_frame(None, 1)
         for index in range(2, frames + 1):
@@ -1212,6 +1235,13 @@ class FeatherRenderer:
         return True
 
     def block_input(self):
+        """Leave only the wake region of the page's input until the next page
+        draws: a save in progress takes no other tap. The screen's frame owner
+        blocks the input of a tree it draws."""
+        owner = self._frame_owner
+        if owner is not None and owner.block_input():
+            self._reset_interactions()
+            return None
         if not self._prepare_surface():
             return None
         self._reset_interactions()
@@ -1228,159 +1258,6 @@ class FeatherRenderer:
         self._overlay_hitboxes = []
         self._pressed_buttons = set()
 
-    def _wake_hitbox(self):
-        # Typer gives later overlapping hitboxes precedence.  Register the
-        # background first so an otherwise empty-area tap is observable while
-        # every real button added afterwards keeps its normal action.
-        return self.action_hitbox(
-            "global.wake", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
-
-    def _button_colors(self, state, accent=None):
-        colors = list(self.BUTTON_COLORS[state])
-        if accent is not None and state not in (
-                "disabled", "danger", "busy", "pressed"):
-            colors[1] = accent
-            colors[2] = accent
-        return tuple(colors)
-
-    def composite_button(self, action, x, y, width, height, label, state, font,
-                         include_hitbox=True, accent=None):
-        background, border, text_color = (
-            self.color(color) for color in self._button_colors(state, accent))
-        display_label = str(label)
-        if display_label.startswith("-"):
-            display_label = " " + display_label
-        max_width = max(1, width - 2 * self.BUTTON_TEXT_PADDING)
-        command = ("--batch button -p %d %d -s %d %d --background %s "
-                   "--border %s --text-color %s -lw 2 -f %s "
-                   "--max-width %d --truncate -t %s" %
-                   (x, y, width, height, background, border, text_color,
-                    self.quote(self.normalize_font_for_text(
-                        font, display_label)),
-                    max_width, self.quote(display_label)))
-        if include_hitbox and state not in ("disabled", "busy"):
-            command += " --id %s --layer base" % action
-        return [command]
-
-    def _button_commands(self, action, x, y, width, height, label, state,
-                         font, subtitle=None, include_hitbox=True,
-                         layout="center", subtitle_font="JetBrainsMono 8pt",
-                         subtitle_color=ThemeColor.DIM, accent=None):
-        if isinstance(subtitle, (tuple, list)):
-            subtitle_lines = tuple(
-                str(line) for line in subtitle if str(line).strip())[:2]
-        elif subtitle is None or not str(subtitle).strip():
-            subtitle_lines = ()
-        else:
-            subtitle_lines = (str(subtitle),)
-        subtitle = subtitle_lines or None
-        background, border, text_color = self._button_colors(state, accent)
-        if layout == "center" and subtitle is None:
-            return self.composite_button(
-                action, x, y, width, height, label, state, font,
-                include_hitbox, accent)
-        commands = [
-            self.fill(x, y, width, height, background),
-            self.stroke(x, y, width, height, border, 2),
-        ]
-        if layout == "row":
-            commands.append(self.text(x + 24, y + height // 2, label,
-                                      text_color, font, "left", "middle"))
-            if subtitle is not None:
-                lines = subtitle if isinstance(subtitle, (tuple, list)) else (subtitle,)
-                start_y = y + height // 2 - (13 if len(lines) > 1 else 0)
-                subtitle_x = x + min(285, max(24, width // 2 - 15))
-                subtitle_width = max(1, x + width - 58 - subtitle_x)
-                for index, line in enumerate(lines[:2]):
-                    commands.append(self.text(
-                        subtitle_x, start_y + index * 26, line,
-                        subtitle_color, subtitle_font, "left", "middle",
-                        max_width=subtitle_width, truncate=True))
-            commands.append(self.text(x + width - 24, y + height // 2, ">",
-                                      text_color, "JetBrainsMono 16pt",
-                                      "right", "middle"))
-        else:
-            label_y = y + height // 2 if subtitle is None else y + height // 2 - 14
-            commands.append(self.text(x + width // 2, label_y, label,
-                                      text_color, font, "center", "middle",
-                                      max_width=width - 2 * self.BUTTON_TEXT_PADDING,
-                                      truncate=True))
-            if subtitle is not None:
-                start_y = y + height // 2 + (18 if len(subtitle) > 1 else 24)
-                for index, line in enumerate(subtitle):
-                    commands.append(self.text(
-                        x + width // 2, start_y + index * 18, line,
-                        subtitle_color, subtitle_font, "center", "middle"))
-        if include_hitbox and state not in ("disabled", "busy"):
-            commands.append(self._hitbox(action, x, y, width, height))
-        return commands
-
-    def _arrow_button_commands(self, action, x, y, width, height, direction,
-                               state, include_hitbox=True):
-        """Draw a full geometric arrow without relying on font glyphs."""
-        background, border, arrow_color = self._button_colors(state)
-        commands = [
-            self.fill(x, y, width, height, background),
-            self.stroke(x, y, width, height, border, 2),
-        ]
-        center_x = x + width // 2
-        center_y = y + height // 2
-        if direction == "up":
-            commands.append(self.fill(
-                center_x - 3, center_y - 1, 7, 12, arrow_color))
-            widths = (3, 7, 11, 15, 19)
-            head_y = center_y - 11
-        elif direction == "down":
-            commands.append(self.fill(
-                center_x - 3, center_y - 11, 7, 12, arrow_color))
-            widths = (19, 15, 11, 7, 3)
-            head_y = center_y + 1
-        else:
-            raise ValueError("Arrow direction must be 'up' or 'down'")
-        for index, arrow_width in enumerate(widths):
-            commands.append(self.fill(
-                center_x - arrow_width // 2, head_y + index * 2,
-                arrow_width, 2, arrow_color))
-        if include_hitbox and state not in ("disabled", "busy"):
-            commands.append(self._hitbox(action, x, y, width, height))
-        return commands
-
-    def button(self, action, x, y, width, height, label, active=None,
-               state="enabled", font="JetBrainsMono 12pt", subtitle=None,
-               layout="center", subtitle_font="JetBrainsMono 8pt",
-               subtitle_color=ThemeColor.DIM, accent=None):
-        if not self._prepare_surface():
-            return []
-        logical_action = action_wire_id(action) if isinstance(action, Action) else str(action)
-        self._pressed_buttons.discard(logical_action)
-        # active is retained for compatibility with the first Feather release.
-        if active is not None:
-            state = "enabled" if active else "disabled"
-        if state not in self.BUTTON_COLORS:
-            state = "enabled"
-        if layout == "center":
-            font = self.normalize_font_for_text(font, label)
-        if state not in ("disabled", "busy"):
-            self._buttons[logical_action] = _ButtonSpec(
-                x, y, width, height, label, state, font, subtitle, layout,
-                subtitle_font, subtitle_color, accent, None)
-        if (logical_action == "nav.menu"
-                and (self._busy_label is not None
-                     or self._header_action is not None)):
-            self._menu_suppressed = True
-            return []
-        if logical_action == "nav.menu":
-            self._menu_suppressed = False
-        if state not in ("disabled", "busy"):
-            self._register_hitbox(self._hitboxes, logical_action, (x, y, width, height, False))
-        else:
-            self._buttons.pop(logical_action, None)
-            self._unregister_hitbox(self._hitboxes, logical_action, (x, y, width, height))
-        return self._button_commands(self._wire_action(action), x, y, width,
-                                     height, label, state, font, subtitle,
-                                     True, layout, subtitle_font,
-                                     subtitle_color, accent)
-
     def button_surface(self, action, x, y, width, height,
                        normal_commands, pressed_commands):
         """Register complete normal and pressed surfaces for a rich button."""
@@ -1390,39 +1267,12 @@ class FeatherRenderer:
             action_wire_id(action) if isinstance(action, Action) else str(action))
         normal = tuple(normal_commands)
         pressed = tuple(pressed_commands)
-        self._buttons[logical_action] = _ButtonSpec(
+        self._set_button(logical_action, _ButtonSpec(
             x, y, width, height, "", "enabled", None,
-            None, "surface", None, None, None, (normal, pressed))
+            None, "surface", None, None, None, (normal, pressed)))
         surface = pressed if logical_action in self._pressed_buttons else normal
         return list(surface) + [
             self.action_hitbox(action, x, y, width, height)]
-
-    def arrow_button(self, action, x, y, width, height, direction,
-                     active=None, state="enabled"):
-        """Build an up/down button with a geometric, theme-aware arrow."""
-        if not self._prepare_surface():
-            return []
-        logical_action = (action_wire_id(action)
-                          if isinstance(action, Action) else str(action))
-        self._pressed_buttons.discard(logical_action)
-        if active is not None:
-            state = "enabled" if active else "disabled"
-        if state not in self.BUTTON_COLORS:
-            state = "enabled"
-        direction = str(direction).lower()
-        if direction not in ("up", "down"):
-            raise ValueError("Arrow direction must be 'up' or 'down'")
-        if state not in ("disabled", "busy"):
-            self._buttons[logical_action] = _ButtonSpec(
-                x, y, width, height, direction, state, None, None,
-                "arrow-" + direction, None, None, None, None)
-        if state not in ("disabled", "busy"):
-            self._register_hitbox(self._hitboxes, logical_action, (x, y, width, height, False))
-        else:
-            self._buttons.pop(logical_action, None)
-            self._unregister_hitbox(self._hitboxes, logical_action, (x, y, width, height))
-        return self._arrow_button_commands(
-            self._wire_action(action), x, y, width, height, direction, state)
 
     def _begin_dialog(self, bounds, modal):
         self._dialog_bounds = bounds if modal else self._dialog_bounds + bounds
@@ -1472,45 +1322,11 @@ class FeatherRenderer:
             "info": ThemeColor.PRIMARY,
         }
         border = tones.get(tone, ThemeColor.PRIMARY)
-        lines = tuple(lines)
-        button_specs = tuple(buttons)
         button_groups = tuple(tuple(group) for group in button_groups if group)
-        if modal and not custom_body:
-            height = max(height, DIALOG_MIN_HEIGHT)
-            x, width = dialog_horizontal_bounds(
-                width, title, (item[1] for item in button_specs + tuple(
-                    button for group in button_groups for button in group)),
-                measure_text=self.text_width, body_lines=lines,
-                text_padding=self.DIALOG_TEXT_PADDING,
-                button_groups=button_groups,
-                group_button_padding=self.BUTTON_TEXT_PADDING)
-            y = (SCREEN_HEIGHT - height) // 2
-        footer_rows = dialog_button_rows(
-            button_specs, width, measure_text=self.text_width,
-            normalize_font=self.normalize_font, padding=self.BUTTON_TEXT_PADDING)
-        footer_height = (len(footer_rows) * DIALOG_BUTTON_HEIGHT
-                         + max(0, len(footer_rows) - 1) * DIALOG_BUTTON_GAP)
-        # More than two persistent rows leave too little room for the body and
-        # its page controls. Keep these actions reachable in the paged body.
-        if len(footer_rows) > 2:
-            button_groups += footer_rows
-            footer_rows, footer_height = (), 0
-        y, height, visible_lines, visible_groups, page, page_count = layout_dialog_body(
-            lines, button_groups, y, width, height, bool(footer_rows), page=page,
-            text_padding=self.DIALOG_TEXT_PADDING, screen_height=SCREEN_HEIGHT,
-            footer_height=footer_height, measure_text=self.text_width,
-            normalize_font=self.normalize_font, button_padding=self.BUTTON_TEXT_PADDING)
-        title_only = (not custom_body and not button_groups
-                      and not any(str(line).strip() for line in visible_lines))
-        if title_only:
-            y, height, title_rows = layout_title_only_dialog(
-                title, y, width, height, bool(footer_rows),
-                text_padding=self.DIALOG_TEXT_PADDING,
-                screen_height=SCREEN_HEIGHT, footer_height=footer_height)
-        else:
-            title_rows = ((str(title).upper(), y + DIALOG_TITLE_TOP
-                           + get_font_metrics().metric(
-                               DIALOG_TITLE_FONT).glyph_height // 2),)
+        x, y, width, height, title_rows, visible_lines, page, page_count, has_footer, footer_height, rows = (
+            dialog_layout(
+                self, self._dialog_policy, title, tuple(lines), tuple(buttons), button_groups, x, y, width, height, modal and not custom_body,
+                custom_body, page))
         if page_count > 1 and (page_actions is None or len(page_actions) != 2):
             raise ValueError("Overflowing dialog requires previous and next actions")
         outer_x = max(0, x - 8)
@@ -1543,21 +1359,8 @@ class FeatherRenderer:
         if page_count > 1:
             commands += self.dialog_pager(
                 page, page_count, page_actions, x, y, width, height,
-                has_buttons=bool(footer_rows), footer_height=footer_height)
-        button_y = y + height - DIALOG_BUTTON_BOTTOM - footer_height
-        if title_only:
-            button_y = y + height - (DIALOG_COMPACT_BUTTON_BOTTOM
-                                     if len(title_rows) == 1 else 22)
-            button_y -= footer_height
-        rows = tuple((group, y + offset, width - pager_reserve)
-                     for group, offset in visible_groups)
-        rows += tuple((row, button_y + index * (
-            DIALOG_BUTTON_HEIGHT + DIALOG_BUTTON_GAP), width)
-            for index, row in enumerate(footer_rows))
-        for specs, row_y, row_width in rows:
-            font, bounds = dialog_button_layout(
-                specs, x, row_y, row_width, measure_text=self.text_width,
-                normalize_font=self.normalize_font, padding=self.BUTTON_TEXT_PADDING)
+                has_buttons=has_footer, footer_height=footer_height)
+        for specs, font, bounds in rows:
             for (action, label, state), target in zip(specs, bounds):
                 commands += self.button(
                     action, *target, label, state=state, font=font)
@@ -1576,54 +1379,16 @@ class FeatherRenderer:
         instructions that need pagination or more than two rows of actions.
         """
         buttons = tuple(buttons)
-        screen_width = getattr(self, "screen_width", SCREEN_WIDTH)
-        screen_height = getattr(self, "screen_height", SCREEN_HEIGHT)
-        x, width = dialog_horizontal_bounds(
-            width, title, (button[1] for button in buttons),
-            measure_text=self.text_width, screen_width=screen_width)
-        footer_rows = dialog_button_rows(
-            buttons, width, measure_text=self.text_width,
-            normalize_font=self.normalize_font, padding=self.BUTTON_TEXT_PADDING)
-        if len(footer_rows) > 2:
-            raise ValueError("Status dialog needs a paginated dialog for more than two action rows")
-        footer_height = (len(footer_rows) * DIALOG_BUTTON_HEIGHT
-                         + max(0, len(footer_rows) - 1) * DIALOG_BUTTON_GAP)
-
-        text_width = width - 2 * self.DIALOG_TEXT_PADDING
-        metrics = get_font_metrics()
-        slots = []
-        for value, font, color, wrap in (
+        texts = tuple(
+            (str(value), font, color, wrap)
+            for value, font, color, wrap in (
                 (detail, DIALOG_STATUS_FONT, ThemeColor.TEXT, False),
                 (description, DIALOG_BODY_FONT, ThemeColor.TEXT, True),
-                (note, DIALOG_STATUS_FONT, note_color, False)):
-            if value is None or not str(value).strip():
-                continue
-            value = str(value)
-            font = self.normalize_font_for_text(font, value)
-            text_height = metrics.text_height(value, font, max_width=text_width, wrap=wrap)
-            slots.append((value, font, color, wrap, text_height))
-
-        title_bottom = DIALOG_TITLE_TOP + metrics.metric(DIALOG_TITLE_FONT).glyph_height
-        bottom_space = DIALOG_BUTTON_BOTTOM + footer_height
-        if footer_rows:
-            bottom_space += DIALOG_STATUS_GAP
-        body_limit = (screen_height - DIALOG_TOP - DIALOG_BOTTOM_INSET
-                      - title_bottom - DIALOG_STATUS_GAP - bottom_space)
-        body_height = sum(slot[4] for slot in slots) + DIALOG_STATUS_GAP * max(0, len(slots) - 1)
-        for index, (value, font, color, wrap, text_height) in enumerate(slots):
-            if wrap and body_height > body_limit:
-                available = text_height - (body_height - body_limit)
-                if available >= metrics.metric(font).glyph_height:
-                    slots[index] = (value, font, color, wrap, available)
-                    body_height = body_limit
-        if body_height > body_limit:
-            raise ValueError("Status dialog content does not fit; use a paginated dialog")
-
-        height = max(DIALOG_MIN_HEIGHT, int(height))
-        y, height = dialog_vertical_bounds(
-            (screen_height - height) // 2, height, 0, bool(footer_rows),
-            screen_height, minimum_height=title_bottom + DIALOG_STATUS_GAP + body_height + bottom_space,
-            footer_height=footer_height)
+                (note, DIALOG_STATUS_FONT, note_color, False))
+            if value is not None and str(value).strip())
+        x, y, width, height, rows = status_dialog_layout(
+            self, self._dialog_policy, title, buttons, tuple((text[0], text[3]) for text in texts),
+            int(width), int(height))
         commands = self.dialog(
             title, (), buttons, x=x, y=y, width=width, height=height,
             tone=tone, modal=modal, custom_body=True,
@@ -1631,14 +1396,10 @@ class FeatherRenderer:
         if not commands:
             return commands
 
-        body_top = y + title_bottom + DIALOG_STATUS_GAP
-        body_bottom = y + height - bottom_space
-        cursor = body_top + (body_bottom - body_top - body_height) // 2
-        for value, font, color, wrap, text_height in slots:
+        for (value, font, color, wrap), (text_height, text_y) in zip(texts, rows):
             commands.append(self.text(
-                x + width // 2, cursor + text_height // 2, value, color, font, "center", "middle",
-                max_width=text_width, max_height=text_height, wrap=wrap, truncate=True))
-            cursor += text_height + DIALOG_STATUS_GAP
+                x + width // 2, text_y, value, color, font, "center", "middle",
+                max_width=width - 2 * self.DIALOG_TEXT_PADDING, max_height=text_height, wrap=wrap, truncate=True))
         return commands
 
     def dialog_pager(self, page, page_count, actions, x, y, width, height,
@@ -1670,10 +1431,10 @@ class FeatherRenderer:
         return commands
 
     def flash_button(self, action):
-        spec = self._visible_value("_buttons").get(action)
+        spec = self._visible_input("_buttons").get(action)
         if spec is None:
             return False
-        self._visible_value("_pressed_buttons").add(action)
+        self._press(action, visible=True)
         self.prioritize_next_batch("animation", "button:%s" % action)
         if spec.layout == "surface":
             self.send(spec.surfaces[1], button_feedback=True)
@@ -1690,11 +1451,10 @@ class FeatherRenderer:
         return True
 
     def restore_button(self, action):
-        spec = self._visible_value("_buttons").get(action)
+        spec = self._visible_input("_buttons").get(action)
+        self._press(action, False, visible=True)
         if spec is None:
-            self._visible_value("_pressed_buttons").discard(action)
             return False
-        self._visible_value("_pressed_buttons").discard(action)
         self.prioritize_next_batch("state", "button:%s" % action)
         if spec.layout == "surface":
             self.send(spec.surfaces[0], button_feedback=True)
@@ -1725,8 +1485,8 @@ class FeatherRenderer:
             old_wire_id = (action_wire_id(old_action)
                            if isinstance(old_action, Action)
                            else str(old_action))
-            self._buttons.pop(old_wire_id, None)
-            self._pressed_buttons.discard(old_wire_id)
+            self._pop_button(old_wire_id)
+            self._press(old_wire_id, False)
         return True
 
     def _header_action_commands(self):
@@ -1734,25 +1494,11 @@ class FeatherRenderer:
             return []
         action, label, state, font = self._header_action
         return self.button(
-            action, 648, 7, 132, 46, label, state=state, font=font)
+            action, *self._header_action_bounds, label, state=state, font=font)
 
     def redraw_page(self):
         """Rebuild interactions and pixels through the normal page lifecycle."""
         return self.begin_page(self._page_title, back=self._page_back)
-
-    def redraw_page_hitboxes(self):
-        """Rebuild base input after isolated layout changes without painting pixels."""
-        if not self._prepare_surface():
-            return []
-        self._hitboxes = []
-        commands = [self.clear_hitboxes("base"), self._wake_hitbox()]
-        if self._page_back:
-            commands.append(self.action_hitbox("nav.back", 14, 7, 146, 46))
-        if self._header_action is not None:
-            action, _label, state, _font = self._header_action
-            if state not in ("disabled", "busy"):
-                commands.append(self.action_hitbox(action, 648, 7, 132, 46))
-        return commands
 
     @contextmanager
     def rebuild_page_input(self):
@@ -1761,34 +1507,40 @@ class FeatherRenderer:
         self.redraw_page_hitboxes()
         commands = []
         yield commands
-        active = {action for action, _spec in self._hitboxes + self._overlay_hitboxes}
-        self._buttons = {action: spec for action, spec in self._buttons.items() if action in active}
+        active = self._keep_input()
         self._toggles = {action: spec for action, spec in self._toggles.items() if action in active}
-        self._pressed_buttons.intersection_update(active)
         # Paint commands may contain old IDs. Final replay replaces all of
         # them, including retained overlay regions, with this generation.
         commands.extend(self._input_commands())
         self.prioritize_next_batch("state")
 
-    def begin_page(self, title, back=False):
+    def show_page(self, title, back=False):
+        """A page starts on the panel: its title and back, the footer beside it, and
+        a new input generation without the previous page's interactions. begin_page
+        draws its chrome too; a page's slot in a screen tree draws its own header.
+        False when the surface cannot be prepared."""
         if not self._prepare_surface():
-            return []
+            return False
         self._page_title = title
         self._page_back = back
-        self._loader_active = False
+        # The page is on the panel: the footer shows beside it.
+        self._footer.show()
         self._semantic_page_id = None
-        # Pressure recovery keeps the same page and its active touch gesture.
-        if not self._recovering_output:
-            self.invalidate_input_generation()
+        self.invalidate_input_generation()
         self._reset_interactions()
         self._menu_suppressed = False
+        return True
+
+    def begin_page(self, title, back=False):
+        if not self.show_page(title, back):
+            return []
         show_header_action = self._header_action is not None
         commands = [
             self.clear_hitboxes("base"),
             self.clear_hitboxes("overlay"),
             self._wake_hitbox(),
             # Preserve the footer framebuffer. It is a persistent status area
-            # and is updated independently only when one of its values changes.
+            # that the frame loop draws on its own when one of its values changes.
             self.fill(0, 0, SCREEN_WIDTH, FOOTER_Y - 2, ThemeColor.BACKGROUND),
             # Keep the dirty rectangle above the persistent footer. A full
             # height outer stroke would make TextDrawer.flush() copy the whole
@@ -1799,7 +1551,7 @@ class FeatherRenderer:
             self.fill(10, 6, 780, HEADER_BOTTOM - 6, ThemeRole.HEADER_BACKGROUND),
         ]
         if back:
-            commands += self.button("nav.back", 14, 7, 146, 46, "< BACK",
+            commands += self.button("nav.back", *self._back_bounds, "< BACK",
                                     font="JetBrainsMono Bold 8pt")
         title = str(title).upper()
         title_width = 440 if back or show_header_action or self._busy_label is not None else 740
@@ -1827,49 +1579,40 @@ class FeatherRenderer:
             ]
         if show_header_action:
             commands += self._header_action_commands()
-        if self._footer_values is not None and not self._footer_drawn:
-            commands += self._footer_commands(self._footer_values)
-            self._last_footer = self._footer_values
-            self._footer_drawn = True
         return commands
 
-    def _footer_commands(self, values):
-        left, right = values
-        return [
-            # The footer is a persistent framebuffer region. Clear its full
-            # extent before drawing the inner panel so startup overlays and
-            # previous themes cannot survive in the outer gutters or bottom
-            # rows. Space outside the framed panel follows the page background.
-            self.fill(
-                0, FOOTER_Y - 2, SCREEN_WIDTH,
-                SCREEN_HEIGHT - (FOOTER_Y - 2), ThemeColor.BACKGROUND),
-            self.fill(10, FOOTER_Y, 780, FOOTER_HEIGHT - 1, ThemeColor.PANEL),
-            self.stroke(FRAME_X, FOOTER_Y - 2, FRAME_WIDTH,
-                        SCREEN_HEIGHT - (FOOTER_Y - 2) - 4, ThemeColor.BORDER, 1),
-            self.text(20, FOOTER_Y + 16, left, ThemeColor.PRIMARY,
-                      "JetBrainsMono 8pt", max_width=380, truncate=True),
-            self.text(780, FOOTER_Y + 16, right, ThemeColor.PRIMARY,
-                      "JetBrainsMono 8pt", "right", max_width=340,
-                      truncate=True),
-        ]
+    def _footer_content(self):
+        """The footer's tree in footer.FOOTER_BOUNDS, reading the values
+        _footer_state gives. A product overrides both to draw its own strip;
+        the state always holds footer.FooterState's LEFT and RIGHT."""
+        return footer_content()
 
-    def footer(self, left, right, paint=True):
-        values = (str(left), str(right))
-        self._footer_values = values
-        if not paint:
-            return
-        if self._footer_drawn and values == self._last_footer:
-            return
-        if not self._prepare_surface():
-            return
-        self._last_footer = values
-        self._footer_drawn = True
-        self.prioritize_next_batch("state", "footer")
-        self.send(self._footer_commands(values))
+    def _footer_state(self, left, right):
+        return {FooterState.LEFT: left, FooterState.RIGHT: right}
 
-    def invalidate_footer(self):
-        """Require the next page frame to restore the persistent footer."""
-        self._footer_drawn = False
+    @property
+    def footer_chrome(self):
+        """The footer (footer.Footer) the frame owner's screen places beside the page."""
+        return self._footer
+
+    def footer(self, left, right):
+        """Show the status texts; the frame owner's composition draws them."""
+        self._footer.write((str(left), str(right)), self._frame_owner)
+
+    def cover_footer(self):
+        # Its area belongs to something else until the next page shows it.
+        self._footer.hide()
+
+    def submit_frame(self, commands, receipt=None, receipt_phase="presented"):
+        """Submit a frame the frame owner's screen built; it is not composed again."""
+        if receipt_phase != "presented" and (receipt_phase != "staged" or receipt is None):
+            raise ValueError("staged receipts require a token; unknown receipt phase")
+        receipt = None if receipt is None else validate_render_receipt_token(receipt)
+        try:
+            return self._submit(RenderSubmission(_immutable_commands(commands), receipt, receipt_phase))
+        except ValueError as exc:
+            logging.warning("[feather_screen] rejected render batch: %s", exc)
+            return False
 
     def toast(self, message):
         height = 44
@@ -1892,12 +1635,18 @@ class FeatherRenderer:
         self.prioritize_next_batch("state", "toast-hitbox")
         self.send([self.clear_hitboxes("overlay")])
 
+    def _header_drawn(self):
+        """Whether the frame owner's tree draws the header (a page's slot), which
+        then shows the busy label; otherwise the page drew it with begin_page."""
+        owner = self._frame_owner
+        return owner is not None and owner.header_changed()
+
     def busy_notice(self, label="PLEASE WAIT"):
         label = str(label).upper()
         if label == self._busy_label:
             return
         self._busy_label = label
-        if self._header_action is not None:
+        if self._header_action is not None or self._header_drawn():
             return
         self.send([
             self.fill(BUSY_NOTICE_X, BUSY_NOTICE_Y,
@@ -1917,7 +1666,7 @@ class FeatherRenderer:
         if self._busy_label is None:
             return
         self._busy_label = None
-        if self._header_action is not None:
+        if self._header_action is not None or self._header_drawn():
             return
         commands = [
             self.fill(BUSY_NOTICE_X, BUSY_NOTICE_Y,
@@ -1933,135 +1682,8 @@ class FeatherRenderer:
             self._menu_suppressed = False
         self.send(commands)
 
-    def loader(self, message, phase=0):
-        """Replace the page with a non-interactive yielding-operation view."""
-        if not self._prepare_surface():
-            return None
-        # A loader is a new interaction surface, not a partial repaint. Bump
-        # the generation so already queued Back/page events cannot target the
-        # page underneath it.
-        first_frame = not self._loader_active
-        if first_frame:
-            self.invalidate_input_generation()
-            self._loader_active = True
-        preserve_header_action = self._header_action is not None
-        self._reset_interactions()
-        commands = [
-            self.clear_hitboxes("base"),
-            self.clear_hitboxes("overlay"),
-            self._wake_hitbox(),
-            # Clear the header too: leaving the old Back button painted made
-            # it look usable even though its hitbox had been removed.
-            self.fill(0, 0, SCREEN_WIDTH, CONTENT_BOTTOM, ThemeColor.BACKGROUND),
-            self.stroke(FRAME_X, FRAME_Y, FRAME_WIDTH,
-                        FOOTER_Y - FRAME_Y - 1, ThemeRole.HEADER_BORDER, 1),
-            self.fill(10, 6, 780, HEADER_BOTTOM - 6, ThemeRole.HEADER_BACKGROUND),
-            self.text(400, 29, "OPERATION IN PROGRESS", ThemeRole.HEADER_TEXT,
-                      "JetBrainsMono 12pt", "center", "middle",
-                      max_width=440, truncate=True),
-            self.fill(18, HEADER_BOTTOM, 764, 1, ThemeRole.HEADER_BORDER),
-            self.fill(18, FOOTER_Y - 2, 764, 1, ThemeColor.BORDER),
-            # Bottom-aligned so a second line grows into the free band under
-            # the header; below it there is no room. 93 px = two lines.
-            self.text(400, 215, message, ThemeColor.TEXT, "JetBrainsMono Bold 16pt",
-                      "center", "bottom", max_width=704, max_height=93,
-                      wrap=True, truncate=True),
-            self.text(400, 235, "PLEASE WAIT", ThemeColor.DIM, "JetBrainsMono 12pt",
-                      "center", "middle"),
-        ]
-        for index in range(5):
-            color = ThemeColor.PRIMARY if index == phase % 5 else ThemeColor.MUTED
-            commands.append(self.fill(290 + index * 48, 280, 32, 12, color))
-        if preserve_header_action:
-            commands += self._header_action_commands()
-        self.prioritize_next_batch(
-            "surface" if first_frame else "animation", "loader")
-        self.send(commands)
 
-    def startup_modal(self, title, detail, phase=0, critical=False):
-        """Draw a pre-ready loading modal and its pulse frame."""
-        if not self._prepare_surface():
-            return None
-        # This full-screen modal owns the framebuffer until the host is ready.
-        # Invalidate animations scheduled by the page underneath it so a late
-        # toggle/button frame cannot be painted over the restart screen.
-        self.invalidate_input_generation()
-        self._loader_active = True
-        self._reset_interactions()
-        commands = [
-            self.clear_hitboxes("base"),
-            self.clear_hitboxes("overlay"),
-            self._wake_hitbox(),
-            self.fill(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, ThemeColor.OVERLAY),
-        ]
-        commands += self.panel(
-            150, 120, 500, 250, border=ThemeColor.PRIMARY,
-            background=ThemeColor.PANEL, line_width=2)
-        commands += [
-            self.text(400, 170, str(title), ThemeColor.PRIMARY,
-                      "JetBrainsMono Bold 16pt", "center", "middle"),
-        ]
-        commands += self.startup_pulse(phase)
-        commands += [
-            self.text(400, 300, "PLEASE WAIT", ThemeColor.TEXT,
-                      "JetBrainsMono 12pt", "center", "middle"),
-            self.text(400, 335, str(detail), ThemeColor.DIM,
-                      "JetBrainsMono 8pt", "center", "middle"),
-        ]
-        self.prioritize_next_batch(
-            "critical" if critical else "surface", "startup")
-        self.send(commands)
-
-    def startup_pulse(self, phase=0):
-        """Redraw only the animated startup indicator's small dirty area."""
-        pulse = (8, 12, 16, 12)[int(phase) % 4]
-        commands = [self.fill(374, 206, 53, 53, ThemeColor.PANEL)]
-        commands += self.filled_circle(400, 232, pulse, ThemeColor.SECONDARY)
-        return commands
-
-    def touch_unavailable_modal(self):
-        """Replace an interactive surface until touch input reconnects."""
-        if not self._prepare_surface():
-            return None
-        self.invalidate_input_generation()
-        self._footer_drawn = False
-        commands = self.dialog(
-            "Touch input unavailable", (), (),
-            x=110, y=110, width=580, height=270, tone="warning",
-            preserve_header_action=False, custom_body=True)
-        commands.append(self.text(
-            400, 245,
-            "THE TOUCH DEVICE IS NOT AVAILABLE. "
-            "WAITING FOR AUTOMATIC RECONNECTION.",
-            ThemeColor.TEXT, "JetBrainsMono 12pt", "center", "middle",
-            max_width=524, max_height=108, wrap=True, truncate=True))
-        self.prioritize_next_batch("critical", "touch-unavailable")
-        self.send(commands)
-
-    def applying_modal(self, message="APPLYING CHANGES"):
-        """Dim the page and draw a non-interactive modal progress panel."""
-        if not self._prepare_surface():
-            return None
-        self.invalidate_input_generation()
-        self._loader_active = True
-        self._reset_interactions()
-        commands = [
-            self.clear_hitboxes("base"),
-            self.clear_hitboxes("overlay"),
-            self._wake_hitbox(),
-            self.fill(0, HEADER_BOTTOM + 1, SCREEN_WIDTH,
-                      CONTENT_BOTTOM - HEADER_BOTTOM - 1, ThemeColor.OVERLAY),
-        ]
-        commands += self.panel(160, 145, 480, 180)
-        commands += [
-            self.text(400, 205, str(message).upper(), ThemeColor.TEXT,
-                      "JetBrainsMono Bold 16pt", "center", "middle"),
-            self.text(400, 260, "PLEASE WAIT", ThemeColor.DIM,
-                      "JetBrainsMono 12pt", "center", "middle"),
-            self.fill(310, 292, 180, 8, ThemeColor.PRIMARY),
-        ]
-        self.prioritize_next_batch("surface", "applying-modal")
-        self.send(commands)
+FeatherRenderer._dialog_policy = _dialog_policy(FeatherRenderer)
 
 
 def rectangles_overlap(first, second):

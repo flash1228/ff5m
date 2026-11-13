@@ -148,7 +148,7 @@ class ModParameterTest(unittest.TestCase):
 
     def test_committed_status_bar_event_repaints_without_waiting_for_a_status_tick(self):
         from tests.test_feather_screen import FEATHER, DeferredReactor, StatusObject
-        from tests.feather_render_test_helper import RenderCapture
+        from tests.feather_render_test_helper import RenderCapture, page_screen
         controller = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)
         controller.print_state = FEATHER.PrintState.IDLE
         controller.params = self.manager
@@ -170,6 +170,7 @@ class ModParameterTest(unittest.TestCase):
         self.manager.printer.send_event = send_event
         self.manager.changes_gcode_present = False
         controller._refresh_status_bar()
+        page_screen(controller.renderer).paint()
         self.assertTrue(capture.latest.has_text('CPU --%'))
         self.manager.set_value('feather_status_bar', 'COLORFUL')
         self.assertTrue(capture.latest.has_text('CPU --%'))

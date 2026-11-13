@@ -28,21 +28,8 @@ def get_action_page(from_pause=False):
     return page
 
 
-def render_material(renderer, profiles):
-    return get_material_page(profiles).draw(renderer, {})
-
-
-def render_action(renderer, from_pause, values):
-    return get_action_page(from_pause).draw(renderer, values)
-
-
-def update_action(renderer, from_pause, values):
-    return get_action_page(from_pause).update(renderer, values)
-
-
 __all__ = (
     "FilamentCommand", "FilamentState", "LEGACY_ACTIONS",
-    "get_material_page", "get_action_page", "render_material",
-    "render_action", "update_action",
+    "get_material_page", "get_action_page",
 )
 

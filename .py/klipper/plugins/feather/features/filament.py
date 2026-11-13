@@ -94,21 +94,29 @@ class FilamentFeature(FeatureHostProxy):
                 self._host.filament_from_pause)
         return None
 
-    def render(self, page):
-        if page == ScreenPage.FILAMENT_MATERIAL:
-            commands = self._host.renderer.begin_page(
-                "Select material", back=True)
-            commands += filament_ui.render_material(
-                self._host.renderer, self._profiles())
+    def on_page_changed(self, old_page, new_page):
+        # The action page shown anew gets all of its values written: it may be
+        # the other page of from_pause, which holds older ones.
+        if new_page != old_page:
             self._last_signature = None
-        else:
-            _status, values, self._last_signature = self._values(
-                self._host.reactor.monotonic())
-            commands = self._host.renderer.begin_page(
-                "Filament - %s" % self._host.filament_material, back=True)
-            commands += filament_ui.render_action(
-                self._host.renderer, self._host.filament_from_pause, values)
-        self._host.renderer.send(commands)
+
+    def page_content(self, page):
+        if page == ScreenPage.FILAMENT_MATERIAL:
+            return (filament_ui.get_material_page(self._profiles()),
+                    "Select material", True)
+        if page == ScreenPage.FILAMENT_ACTION:
+            return (filament_ui.get_action_page(self._host.filament_from_pause),
+                    "Filament - %s" % self._host.filament_material, True)
+        return None
+
+    def write_page_values(self, page):
+        if page != ScreenPage.FILAMENT_ACTION:
+            return
+        _status, values, signature = self._values(self._host.reactor.monotonic())
+        if signature == self._last_signature:
+            return
+        self._last_signature = signature
+        filament_ui.get_action_page(self._host.filament_from_pause).state.update(values)
 
     def allows_action(self, page, action):
         return action == "nav.back"
@@ -165,17 +173,12 @@ class FilamentFeature(FeatureHostProxy):
         if self._host.page not in PAGES:
             self._leave_workflow(best_effort=True)
             return
-        status, values, signature = self._values(eventtime)
+        status, _values, signature = self._values(eventtime)
         self._sync_cooling_fan(status)
         if not self._host._page_paint_allowed(ScreenPage.FILAMENT_ACTION):
             return
-        if signature == self._last_signature:
-            return
-        self._last_signature = signature
-        commands = filament_ui.update_action(
-            self._host.renderer, self._host.filament_from_pause, values)
-        if commands:
-            self._host.renderer.send(commands)
+        if signature != self._last_signature:
+            self._host._paint_page_values()
 
     def deactivate(self):
         self._leave_workflow(best_effort=True)

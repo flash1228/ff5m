@@ -7,7 +7,7 @@
 from feather.network.pages import FeatherNetworkPagesMixin
 
 from .action_prompt import ActionPromptPagesMixin
-from .files import FILE_ROWS, FileBrowserPagesMixin
+from .files import FileBrowserPagesMixin
 from .exclude_objects import ExcludeObjectsPagesMixin
 from .home import HomePagesMixin
 from .mod_editor import ModEditorPagesMixin
@@ -35,7 +35,6 @@ class FeatherPagesMixin(
 
 __all__ = (
     "ActionPromptPagesMixin",
-    "FILE_ROWS",
     "FeatherPagesMixin",
     "FileBrowserPagesMixin",
     "HomePagesMixin",

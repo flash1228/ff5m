@@ -9,7 +9,8 @@ import shlex
 import unittest
 
 from tests.gcode_macro_harness import load_macro, render_macro
-from tests.feather_render_test_helper import RenderCapture
+from ff5m_ui import dialogs as dialog_ui
+from tests.feather_render_test_helper import RenderCapture, press, refresh_prompt
 from tests.test_feather_screen import (
     FEATHER, GCodeRecorder, Reactor, StatusObject, blank_page,
 )
@@ -59,7 +60,7 @@ class MaterialDialogTest(unittest.TestCase):
                     if button.label == label)
 
     def tap(self, label):
-        self.screen._handle_action_prompt_action(self.visible_action(label))
+        press(self.screen, self.visible_action(label))
 
     def assert_content_fits_dialog(self):
         frame = self.capture.latest
@@ -115,17 +116,17 @@ class MaterialDialogTest(unittest.TestCase):
                 ("_LOAD_MATERIAL_SELECT", "heating", "_LOAD_MATERIAL_END")):
             with self.subTest(macro=macro):
                 self.show_macro_prompt(macro)
-                self.assertFalse(self.capture.latest.has_action("prompt.next"))
-                self.assertFalse(self.capture.latest.has_action("prompt.prev"))
+                self.assertFalse(self.capture.latest.has_action(dialog_ui.NEXT_PAGE.wire_id))
+                self.assertFalse(self.capture.latest.has_action(dialog_ui.PREVIOUS_PAGE.wire_id))
                 labels = set()
                 for _ in range(10):
                     frame = self.capture.latest
                     labels.update(button.label for button in frame.buttons.values())
                     self.assertIn("Cancel", {button.label for button in frame.buttons.values()})
                     self.assert_content_fits_dialog()
-                    if not frame.has_action("prompt.next"):
+                    if not frame.has_action(dialog_ui.NEXT_PAGE.wire_id):
                         break
-                    self.screen._handle_action_prompt_action("prompt.next")
+                    press(self.screen, dialog_ui.NEXT_PAGE.wire_id)
                 else:
                     self.fail("selector pagination did not finish")
                 config = self.printer["gcode_macro _MATERIAL_CONFIG"]
@@ -167,16 +168,16 @@ class MaterialDialogTest(unittest.TestCase):
         self.assertFalse(self.screen.gcode.commands)
 
         count = len(self.capture.frames)
-        self.screen._render_dialog()
+        refresh_prompt(self.screen)
         self.assertEqual(len(self.capture.frames), count)
         self.screen.extruder.status["temperature"] = 200.
         self.operation["cancel_pending"] = True
-        self.screen._render_dialog()
+        refresh_prompt(self.screen)
         text = " ".join(item.value for item in self.capture.latest.texts)
         self.assertIn("NOZZLE 200 / 250 C", text)
         self.assertFalse(self.capture.latest.has_action("coldpull.cancel"))
         self.operation["cancel_available"] = False
-        self.screen._render_dialog()
+        refresh_prompt(self.screen)
         self.assertFalse(self.capture.latest.has_action("coldpull.cancel"))
 
     def test_cold_pull_status_is_large_and_separate_from_temperature_on_every_stage(self):
@@ -186,7 +187,7 @@ class MaterialDialogTest(unittest.TestCase):
         for stage in ("HOMING", "HEATING NOZZLE", "EXTRUDING", "COOLING NOZZLE", "PULLING"):
             with self.subTest(stage=stage):
                 self.operation["current_state"] = stage
-                self.screen._render_dialog()
+                refresh_prompt(self.screen)
                 frame = self.capture.latest
                 status = frame.text(stage)
                 temperature = frame.text("NOZZLE 130 / 250 C")
@@ -223,10 +224,10 @@ class MaterialDialogTest(unittest.TestCase):
         self.assertEqual(self.capture.batches[-1].count(scrim), 1)
         generation = self.screen.renderer.generation
         count = len(self.capture.batches)
-        self.screen._render_dialog()
+        refresh_prompt(self.screen)
         self.assertEqual(len(self.capture.batches), count)
         self.screen.extruder.status["temperature"] = 200.0
-        self.screen._render_dialog()
+        refresh_prompt(self.screen)
         self.assertTrue(self.capture.latest.has_text("NOZZLE 200 / 250 C"))
         self.assertNotIn(scrim, self.capture.batches[-1])
         self.assertEqual(self.screen.renderer.generation, generation)
@@ -243,7 +244,7 @@ class MaterialDialogTest(unittest.TestCase):
                "// action:prompt_footer_button Cancel|CLEANUP",
                "// action:prompt_footer_button Help|HELP",
                "// action:prompt_show"]))
-        self.assertTrue(self.capture.latest.has_action("prompt.next"))
+        self.assertTrue(self.capture.latest.has_action(dialog_ui.NEXT_PAGE.wire_id))
         texts, labels = [], set()
         for _ in range(20):
             frame = self.capture.latest
@@ -253,18 +254,18 @@ class MaterialDialogTest(unittest.TestCase):
             texts.extend(text.value for text in frame.texts
                          if text.font == "JetBrainsMono 8pt" and not text.value.isdigit())
             labels.update(button.label for button in frame.buttons.values())
-            if not frame.has_action("prompt.next"):
+            if not frame.has_action(dialog_ui.NEXT_PAGE.wire_id):
                 break
-            self.screen._handle_action_prompt_action("prompt.next")
+            press(self.screen, dialog_ui.NEXT_PAGE.wire_id)
         else:
             self.fail("instruction pagination did not finish")
         self.assertEqual(" ".join(texts), " ".join(instructions))
         self.assertTrue({"PLA", "PETG", "ABS", "NYLON"}.issubset(labels))
         self.tap("Help")
         self.assertEqual(self.screen.gcode.commands[-1], "HELP")
-        self.assertTrue(frame.has_action("prompt.prev"))
-        self.screen._handle_action_prompt_action("prompt.prev")
-        self.assertTrue(self.capture.latest.has_action("prompt.next"))
+        self.assertTrue(frame.has_action(dialog_ui.PREVIOUS_PAGE.wire_id))
+        press(self.screen, dialog_ui.PREVIOUS_PAGE.wire_id)
+        self.assertTrue(self.capture.latest.has_action(dialog_ui.NEXT_PAGE.wire_id))
 
 
 if __name__ == "__main__":

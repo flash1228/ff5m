@@ -6,16 +6,18 @@
 
 import copy
 from enum import Enum
+from operator import methodcaller
 
 from .theme import ThemeColor, ThemeRole
 
 from .actions import Action, action_wire_id, validate_action
-from .bindings import resolve, resolve_deep
+from .bindings import DerivedBinding, DirectBinding, ItemBinding, resolve, resolve_deep
+from .bindings import signature_value as _signature_value
+from .engine import NATIVE_METHODS as _NATIVE
 from .font_metrics import get_font_metrics
-from .identity import serialize_key
 from .layout import (
-    CreationContract, CreationIdentityContract, CreationSourceContract, Dirty,
-    Insets, Node, Rect, _command_list, _SINGLE_CHILD_STRUCTURE, subdivision_positions,
+    CreationContract, CreationIdentityContract, CreationSourceContract,
+    Insets, Node, Rect, _command_list, _SINGLE_CHILD_STRUCTURE, _UNSET, _storage_name, subdivision_positions,
 )
 from .numeric_input import NumericInputSpec
 from .properties import (
@@ -83,20 +85,15 @@ def _frozen(value):
     return value
 
 
-def _signature_value(value, state):
-    # Most properties are literals. Resolve and freeze containers in one pass,
-    # without allocating an intermediate dict/list for every frame.
-    if value is None or type(value) in (str, int, float, bool):
-        return value
-    value = resolve(value, state)
-    if isinstance(value, Enum):
-        return serialize_key(value)
-    if isinstance(value, dict):
-        return tuple(sorted((key, _signature_value(item, state))
-                            for key, item in value.items()))
-    if isinstance(value, (tuple, list)):
-        return tuple(_signature_value(item, state) for item in value)
-    return value
+def _signature_fields(component):
+    """Declared storage whose values form the automatic state signature."""
+    names = []
+    for spec in component.property_schema:
+        name = _storage_name(spec)
+        if name is not None and name not in names:
+            names.append(name)
+    names.extend(name for name in component.render_fields if name not in names)
+    return tuple(names)
 
 
 class ButtonStyle:
@@ -113,42 +110,47 @@ class Component(Node):
     """Renderable leaf with automatic state-binding change detection."""
 
     paints_pixels = True
+    # Draw inputs that are not editable properties. Together with the
+    # property storage they are the declared render data of the class.
+    render_fields = ()
+    signature_fields = ()
+    # Action accessors store their validated values in the node record.
+    record_fields = ("action", "active_action")
+    # What the engine's native draws resolve without calling Node's _resolve:
+    # theme tokens stay as they are, direct bindings read the state, derived
+    # bindings read the result the page's state keeps while their inputs are
+    # unchanged (as resolve() gives it; a class replacing _resolve sets
+    # _derived_binding to None), item bindings read the row of the template
+    # item, and actions are read by their wire ids.
+    _direct_binding = DirectBinding
+    _derived_binding = DerivedBinding
+    _item_binding = ItemBinding
+    _literal_types = (ThemeColor, ThemeRole)
+    _action_type = Action
 
-    def interaction_signature(self, state):
-        return None
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls.signature_fields = _signature_fields(cls)
 
-    def update(self, state, initialize=False):
-        previous = getattr(self, "_last_interaction_signature", None)
-        current = self.interaction_signature(state)
-        super().update(state, initialize)
-        self._last_interaction_signature = current
-        if not initialize and previous != current:
-            self.invalidate_actions()
+    # None: controls replace it with what decides their input.
+    interaction_signature = _NATIVE["component"]["interaction_signature"]
+    # The node's update; a changed interaction signature invalidates the page's input.
+    update = _NATIVE["component"]["update"]
 
     def _replace_actions(self, name, value):
-        previous = self.__dict__.get(name)
-        if name in self.__dict__ and previous == value:
+        previous = self._get_field(name, _UNSET)
+        if previous is not _UNSET and previous == value:
             return
-        self.__dict__[name] = value
+        self._set_field(name, value)
         self.invalidate_actions()
 
-    @property
-    def action(self):
-        return self.__dict__.get("action")
-
-    @action.setter
-    def action(self, value):
+    def _set_action(self, value):
         if not isinstance(value, Action):
             raise TypeError("%s action must be a semantic Action" % type(self).__name__)
         validate_action(value)
         self._replace_actions("action", value)
 
-    @property
-    def active_action(self):
-        return self.__dict__.get("active_action")
-
-    @active_action.setter
-    def active_action(self, value):
+    def _set_active_action(self, value):
         if value is not None and not isinstance(value, Action):
             raise TypeError("active_action must be a semantic Action or None")
         if value is not None:
@@ -158,19 +160,17 @@ class Component(Node):
         # every cursor sample and again when painting the same sample.
         self._active_action_wire_id = None if value is None else action_wire_id(value)
 
-    def state_signature(self, state):
-        # Cache field selection only. Values, bindings and nested containers
-        # remain live; adding/removing even one attribute refreshes the list.
-        keys = tuple(self.__dict__)
-        cached = getattr(self, "_signature_fields", None)
-        if cached is None or cached[0] != keys:
-            fields = tuple(name for name in keys if not name.startswith("_")
-                           and name not in ("key", "layout_options", "parent"))
-            self._signature_fields = (keys, fields)
-        else:
-            fields = cached[1]
-        return tuple((name, _signature_value(self.__dict__[name], state))
-                     for name in fields)
+    # The getters read the engine's slot (None when unset) without running Python code, so the engine's
+    # walks over the page read actions natively.
+    action = property(methodcaller("_get_field", "action", None), _set_action)
+    active_action = property(methodcaller("_get_field", "active_action", None), _set_active_action)
+
+    # Only declared render data feeds the signature: a (name, frozen value)
+    # pair for each of signature_fields. An update compares it in the engine,
+    # which freezes plain values, theme tokens, actions and direct bindings
+    # itself and asks _signature_value for the rest.
+    state_signature = _NATIVE["component"]["state_signature"]
+    _signature_value = staticmethod(_signature_value)
 
 
 class Fill(Component):
@@ -181,16 +181,13 @@ class Fill(Component):
         super().__init__(key=key)
         self.color = color
 
-    def draw(self, renderer, state, bounds):
-        return renderer.fill(*bounds, color=resolve(self.color, state))
-
-    def opaque_background(self, state, bounds, target):
-        del bounds
-        del target
-        return resolve(self.color, state)
+    draw = _NATIVE["fill"]["draw"]
+    # The resolved color, which covers the bounds.
+    opaque_background = _NATIVE["fill"]["opaque_background"]
 
 
 class Stroke(Component):
+    _paints_outline = True
     property_schema = property_schema(
         _color("color"),
         _number("line_width", 2, minimum=1, maximum=12))
@@ -200,10 +197,61 @@ class Stroke(Component):
         self.color = color
         self.line_width = line_width
 
-    def draw(self, renderer, state, bounds):
-        return renderer.stroke(
-            *bounds, color=resolve(self.color, state),
-            line_width=resolve(self.line_width, state))
+    draw = _NATIVE["stroke"]["draw"]
+
+
+class ProgressBar(Component):
+    """A percentage, clamped to 0-100, as a fill inside an inset track."""
+
+    covers_bounds = True
+    property_schema = property_schema(
+        _number("value", 0, minimum=0, maximum=100, group="Content", live=True),
+        _color("color", group="Appearance", styleable=True),
+        _color("border", ThemeColor.BORDER, group="Appearance", styleable=True),
+        _color("background", ThemeColor.BACKGROUND, group="Appearance", styleable=True),
+        _number("line_width", 2, minimum=1, maximum=12, group="Appearance", styleable=True))
+
+    def __init__(self, value, color=ThemeColor.PRIMARY, border=ThemeColor.BORDER,
+                 background=ThemeColor.BACKGROUND, line_width=2, key=None):
+        super().__init__(key=key)
+        self.value = value
+        self.color = color
+        self.border = border
+        self.background = background
+        self.line_width = line_width
+
+    draw = _NATIVE["progress_bar"]["draw"]
+
+
+class Image(Component):
+    """FXI1 rasters, each band (x, y, blob) at its offset inside the bounds.
+
+    The bands are data a worker made; the engine draws them on the render
+    thread."""
+
+    property_schema = property_schema(
+        _property("bands", (tuple, list), (), kind="auto", group="Content", live=True))
+
+    def __init__(self, bands=(), key=None):
+        super().__init__(key=key)
+        self.bands = bands
+
+    draw = _NATIVE["image"]["draw"]
+
+
+class Disc(Component):
+    """A filled circle of radius (at least 1) centred in the bounds."""
+
+    property_schema = property_schema(
+        _number("radius", 8, minimum=1, maximum=240, group="Content", live=True),
+        _color("color", group="Appearance", styleable=True))
+
+    def __init__(self, radius, color=ThemeColor.PRIMARY, key=None):
+        super().__init__(key=key)
+        self.radius = radius
+        self.color = color
+
+    draw = _NATIVE["disc"]["draw"]
 
 
 class Panel(Component):
@@ -220,24 +268,11 @@ class Panel(Component):
         self.background = background
         self.line_width = line_width
 
-    def draw(self, renderer, state, bounds):
-        return renderer.panel(
-            *bounds, border=resolve(self.border, state),
-            background=resolve(self.background, state),
-            line_width=resolve(self.line_width, state))
+    draw = _NATIVE["panel"]["draw"]
 
-    def opaque_background(self, state, bounds, target):
-        border = resolve(self.border, state)
-        line_width = int(resolve(self.line_width, state))
-        if (border is not None and line_width > 0
-                and (bounds.width < line_width * 2
-                     or bounds.height < line_width * 2)):
-            return None
-        interior = (bounds if border is None or line_width <= 0 else
-                    bounds.inset(line_width))
-        if interior.contains(target):
-            return resolve(self.background, state)
-        return None
+    # The resolved background when the target lies within the border's
+    # interior; None when the border fills the bounds.
+    opaque_background = _NATIVE["panel"]["opaque_background"]
 
 
 class Frame(Component):
@@ -249,6 +284,7 @@ class Frame(Component):
         source=CreationSourceContract(
             "core.keyword_call", identity=CreationIdentityContract()))
     structure_contract = _SINGLE_CHILD_STRUCTURE
+    record_fields = ("child",)
     property_schema = property_schema(
         _color("border", ThemeColor.PRIMARY, styleable=True),
         _color("background", ThemeColor.PANEL, styleable=True),
@@ -265,12 +301,9 @@ class Frame(Component):
         self.line_width = line_width
         self._adopt(child)
 
-    def _arrange(self, bounds, result):
-        if self.child is not None:
-            self.child.arrange(bounds, result)
-
-    def render_children(self):
-        return () if self.child is None else (self.child,)
+    # The child takes the whole content bounds.
+    _arrange = _NATIVE["single_child"]["_arrange"]
+    render_children = _NATIVE["single_child"]["render_children"]
 
     def replace_preview_children(self, children, placements=None):
         del placements
@@ -280,24 +313,28 @@ class Frame(Component):
         self.child = children[0] if children else None
         self._adopt(self.child)
 
-    def draw(self, renderer, state, bounds):
-        return renderer.panel(
-            *bounds, border=resolve(self.border, state),
-            background=resolve(self.background, state),
-            line_width=resolve(self.line_width, state))
+    draw = _NATIVE["panel"]["draw"]
 
-    def opaque_background(self, state, bounds, target):
-        border = resolve(self.border, state)
-        line_width = int(resolve(self.line_width, state))
-        if (border is not None and line_width > 0
-                and (bounds.width < line_width * 2
-                     or bounds.height < line_width * 2)):
-            return None
-        interior = (bounds if border is None or line_width <= 0 else
-                    bounds.inset(line_width))
-        if interior.contains(target):
-            return resolve(self.background, state)
-        return None
+    # The resolved background when the target lies within the border's
+    # interior; None when the border fills the bounds.
+    opaque_background = _NATIVE["panel"]["opaque_background"]
+
+
+class PlacedFrame(Frame):
+    """A Frame at normalized fractions of its slot: ``rectangle`` is (x, y, width, height)."""
+
+    property_schema = property_schema(*Frame.property_schema, PropertySpec(
+        "rectangle", (list, tuple), default=(0, 0, 1, 1),
+        editor=EditorSpec("collection_binding", label="Normalized bounds", group="Data"),
+        bindings=("item", "derived"), invalidation=Invalidation.LAYOUT,
+        source=SourceSpec(name="rectangle")))
+
+    _box = _NATIVE["placed_frame"]["_box"]
+
+    def __init__(self, child=None, border=ThemeColor.PRIMARY, background=ThemeColor.BACKGROUND,
+                 line_width=2, key=None, *, rectangle=(0, 0, 1, 1)):
+        super().__init__(child, border, background, line_width, key)
+        self.rectangle = rectangle
 
 
 class Popup(Frame):
@@ -315,13 +352,15 @@ class Popup(Frame):
         self.action = action
         self.preserve_header_action = preserve_header_action
 
-    def blocks_input(self, state):
-        return True
+    blocks_input = _NATIVE["modal"]["blocks_input"]
 
     def interaction_signature(self, state):
         return resolve(self.preserve_header_action, state)
 
-    def draw(self, renderer, state, bounds):
+    # In a screen's build the core draws it: its action's region over the screen, then its panel.
+    draw = _NATIVE["popup"]["draw"]
+
+    def _popup_commands(self, renderer, state, bounds):
         return renderer.popup(
             resolve(self.action, state), *bounds,
             border=resolve(self.border, state), background=resolve(self.background, state),
@@ -388,38 +427,19 @@ class Button(Component):
         if name == "button_style" and isinstance(value, ButtonStyle):
             if self.font is None and value.font is not None:
                 self.font = value.font
+            # A new dict: the engine reads a field's containers as of their last assignment.
             if value.layout is not None and "layout" not in self.kwargs:
-                self.kwargs["layout"] = value.layout
+                self.kwargs = dict(self.kwargs, layout=value.layout)
 
-    def preferred_extent(self, direction, cross_extent=None):
-        if direction == "vertical":
-            return 48 + self.layout_options.padding.vertical
-        return None
+    # Vertically 48 px with padding; no size horizontally, and no content size.
+    preferred_extent = _NATIVE["button"]["preferred_extent"]
+    content_extent = _NATIVE["button"]["content_extent"]
 
-    def content_extent(self, direction, cross_extent=None):
-        return None
-
-    def interaction_signature(self, state):
-        active = resolve(self.kwargs.get("active"), state)
-        if active is not None:
-            return bool(active)
-        return resolve(self.state, state) not in ("disabled", "busy")
-
-    def draw(self, renderer, state, bounds):
-        kwargs = dict(
-            (name, resolve(value, state))
-            for name, value in self.kwargs.items())
-        kwargs["state"] = resolve(self.state, state)
-        if self.font is not None:
-            kwargs["font"] = resolve(self.font, state)
-        return renderer.button(
-            resolve(self.action, state), *bounds,
-            resolve(self.label, state), **kwargs)
-
-    def interaction_commands(self, renderer, state, bounds):
-        return renderer.button_hitbox(
-            resolve(self.action, state), *bounds,
-            active=self.interaction_signature(state))
+    # Active by the resolved active keyword when given, else unless the state
+    # is disabled or busy; the replay is renderer.button_hitbox.
+    interaction_signature = _NATIVE["button"]["interaction_signature"]
+    draw = _NATIVE["button"]["draw"]
+    interaction_commands = _NATIVE["button"]["interaction_commands"]
 
 
 class ArrowButton(Component):
@@ -443,19 +463,18 @@ class ArrowButton(Component):
         self.direction = direction
         self.state = state
 
-    def interaction_signature(self, state):
-        return resolve(self.state, state) not in ("disabled", "busy")
+    # Active unless the state is disabled or busy; the replay is
+    # renderer.action_hitbox while active.
+    interaction_signature = _NATIVE["arrow_button"]["interaction_signature"]
+    interaction_commands = _NATIVE["arrow_button"]["interaction_commands"]
+    # The core draws it in a screen's build; _arrow_commands is its draw outside the core.
+    draw = _NATIVE["arrow_button"]["draw"]
 
-    def draw(self, renderer, state, bounds):
+    def _arrow_commands(self, renderer, state, bounds):
         return renderer.arrow_button(
             resolve(self.action, state), *bounds,
             direction=resolve(self.direction, state),
             state=resolve(self.state, state))
-
-    def interaction_commands(self, renderer, state, bounds):
-        if not self.interaction_signature(state):
-            return ()
-        return renderer.action_hitbox(resolve(self.action, state), *bounds)
 
 
 class ToggleSwitch(Component):
@@ -467,27 +486,68 @@ class ToggleSwitch(Component):
             "action", Action, None, kind="semantic_action",
             group="Behavior", bindings=(), live=False),
         _property("active", bool, False, kind="checkbox", group="Behavior"),
-        _property("enabled", bool, True, kind="checkbox", group="Behavior"))
+        _property("enabled", bool, True, kind="checkbox", group="Behavior"),
+        _property("progress", (int, float), None, kind="number", nullable=True, group="Behavior"))
 
-    def __init__(self, action, active=False, enabled=True, key=None):
+    def __init__(self, action, active=False, enabled=True, progress=None, key=None):
         super().__init__(key=key)
         self.action = action
         self.active = active
         self.enabled = enabled
+        # Moving to active: the part of the way from the other side (0 to 1); None at rest.
+        self.progress = progress
 
-    def interaction_signature(self, state):
-        return bool(resolve(self.enabled, state))
+    # Active while enabled; the replay is renderer.action_hitbox while active.
+    interaction_signature = _NATIVE["toggle_switch"]["interaction_signature"]
+    interaction_commands = _NATIVE["toggle_switch"]["interaction_commands"]
+    draw = _NATIVE["toggle_switch"]["draw"]
 
-    def draw(self, renderer, state, bounds):
+    def _toggle_commands(self, renderer, state, bounds):
         return renderer.toggle(
             resolve(self.action, state), *bounds,
             active=resolve(self.active, state),
-            enabled=resolve(self.enabled, state))
+            enabled=resolve(self.enabled, state), progress=resolve(self.progress, state))
 
-    def interaction_commands(self, renderer, state, bounds):
-        if not self.interaction_signature(state):
-            return ()
-        return renderer.action_hitbox(resolve(self.action, state), *bounds)
+
+class ButtonSurface(Component):
+    """A control drawn as two complete faces, each any subtree: normal, and
+    pressed while it is held down. A change in either repaints the control.
+
+    In a screen's build the engine keeps both faces drawn, so a press shows
+    without Python; a disabled surface shows its normal face and has no input."""
+
+    covers_bounds = True
+    _repaints_whole = True
+    record_fields = ("children",)
+    property_schema = property_schema(
+        _property(
+            "action", Action, None, kind="semantic_action",
+            group="Behavior", bindings=(), live=False),
+        _property("enabled", bool, True, kind="checkbox", group="Behavior"))
+
+    def __init__(self, action, normal, pressed, enabled=True, key=None):
+        super().__init__(key=key)
+        self.action = action
+        self.enabled = enabled
+        self.children = (normal, pressed)
+        self._adopt(normal, pressed)
+        self.repaint_boundary()
+
+    # Both faces take the whole bounds; only one of them shows.
+    _arrange = _NATIVE["overlay"]["_arrange"]
+    render_children = _NATIVE["overlay"]["render_children"]
+    interaction_signature = _NATIVE["toggle_switch"]["interaction_signature"]
+    interaction_commands = _NATIVE["toggle_switch"]["interaction_commands"]
+    render = _NATIVE["button_surface"]["render"]
+
+    def _surface_commands(self, renderer, state, layout):
+        normal, pressed = self.children
+        normal_commands = normal.render(renderer, state, layout)
+        if not resolve(self.enabled, state):
+            return normal_commands
+        return renderer.button_surface(
+            resolve(self.action, state), *layout.rect(self), normal_commands,
+            pressed.render(renderer, state, layout))
 
 
 class Hitbox(Component):
@@ -505,16 +565,17 @@ class Hitbox(Component):
         self.action = action
         self.continuous = continuous
 
-    def draw(self, renderer, state, bounds):
-        return renderer.action_hitbox(
-            resolve(self.action, state), *bounds,
-            continuous=resolve(self.continuous, state))
-
-    def interaction_commands(self, renderer, state, bounds):
-        return self.draw(renderer, state, bounds)
+    # The engine's: renderer.action_hitbox(action, *bounds,
+    # continuous=continuous), both resolved; the replay is the draw.
+    draw = _NATIVE["hitbox"]["draw"]
+    interaction_commands = _NATIVE["hitbox"]["interaction_commands"]
 
 
 class Text(Component):
+    owns_relayout = True
+    # The measurement the engine's Text hooks read; the engine keeps their
+    # caches and the arranged width.
+    record_fields = ("_measurement", "_measurement_state")
     property_schema = property_schema(
         _property(
             "value", (str, int, float), "", kind="textarea",
@@ -573,185 +634,79 @@ class Text(Component):
         elif name == "text_color" and self.color is None:
             self.color = value
 
-    def _resolve_measurement(self, state=None):
-        value = self.value
-        font = self.font
-        maximum_width = self.kwargs.get("max_width")
-        maximum_height = self.kwargs.get("max_height")
-        wrap = self.kwargs.get("wrap", False)
-        if state is not None:
-            value = resolve(value, state)
-            font = resolve(font, state) if font is not None else None
-            maximum_width = resolve(maximum_width, state)
-            maximum_height = resolve(maximum_height, state)
-            wrap = resolve(wrap, state)
-        if not isinstance(value, (str, int, float)):
-            value = None
-        font = font if isinstance(font, str) else "JetBrainsMono 8pt"
-        if not isinstance(maximum_width, (int, float)):
-            maximum_width = None
-        if not isinstance(maximum_height, (int, float)):
-            maximum_height = None
-        return value, font, maximum_width, maximum_height, bool(wrap)
+    # (value, font, max_width, max_height, wrap), resolved with the state when
+    # given; the engine's measurement hooks read it.
+    _resolve_measurement = _NATIVE["text"]["_resolve_measurement"]
 
-    def _content_width(self):
-        if self._measurement is None:
-            self._measurement = self._resolve_measurement(self._measurement_state)
-        metrics = get_font_metrics()
-        key = (self._measurement, self.layout_options.padding.horizontal,
-               metrics.cache_key)
-        cached = getattr(self, "_width_measurement", None)
-        if cached is not None and cached[0] == key:
-            return cached[1]
-        value, font, maximum, _maximum_height, _wrap = self._measurement
-        if value is None:
-            return None
-        width = metrics.text_width(value, font)
-        if maximum is not None:
-            width = min(width, int(maximum))
-        result = max(1, width + self.layout_options.padding.horizontal)
-        self._width_measurement = (key, result)
-        return result
+    # The measurement hooks and their caches live in the engine; update() asks
+    # them too.
+    _font_metrics = staticmethod(get_font_metrics)
+    _content_width = _NATIVE["text"]["_content_width"]
+    _content_height = _NATIVE["text"]["_content_height"]
+    preferred_extent = _NATIVE["text"]["preferred_extent"]
+    content_extent = _NATIVE["text"]["content_extent"]
+    auto_gap_extent = _NATIVE["text"]["auto_gap_extent"]
 
-    def _content_height(self, cross_extent=None, dynamic_minimum=False):
-        metrics = get_font_metrics()
-        if self._measurement is None:
-            self._measurement = self._resolve_measurement(self._measurement_state)
-        # Layout asks the same leaf for its natural size through several
-        # ancestors. Keep only the latest query, keyed by all size inputs.
-        wrapped = self._measurement[4]
-        key = (self._measurement, cross_extent if wrapped else None,
-               dynamic_minimum if wrapped or self._measurement[0] is None else False,
-               self.layout_options.width if wrapped else None, self.layout_options.padding.horizontal,
-               self.layout_options.padding.vertical, metrics.cache_key)
-        cached = getattr(self, "_height_measurement", None)
-        if cached is not None and cached[0] == key:
-            return cached[1]
-        value, font, maximum_width, maximum, wrap = self._measurement
-        metric = metrics.metric(font)
-        width = None
-        if wrap:
-            width = maximum_width
-            if width is None:
-                width = (self.layout_options.width
-                         if isinstance(self.layout_options.width, int)
-                         and not isinstance(self.layout_options.width, bool)
-                         else cross_extent)
-            if width is None and not dynamic_minimum:
-                return None
-            if width is not None:
-                width = max(1, int(width) - self.layout_options.padding.horizontal)
-        if value is not None:
-            text_height = metrics.text_height(
-                value, font, max_width=width, wrap=wrap and width is not None)
-        elif dynamic_minimum:
-            text_height = metric.glyph_height
-        else:
-            return None
-        height = text_height + self.layout_options.padding.vertical
-        if maximum is not None:
-            height = min(height, int(maximum))
-        result = max(metric.glyph_height, height)
-        self._height_measurement = (key, result)
-        return result
+    # Records the assigned width with padding: wrapping depends on it, including after prepare_layout.
+    _arrange = _NATIVE["text"]["_arrange"]
+    # The width last arranged at, with padding; None before the first arrange.
+    _arranged_width = property(_NATIVE["text"]["_arranged_width"])
+    # Whether the height was measured since the node was created.
+    _height_measured = property(_NATIVE["text"]["_height_measured"])
 
-    def preferred_extent(self, direction, cross_extent=None):
-        if direction == "horizontal":
-            return self._content_width()
-        if direction == "vertical":
-            return self._content_height(cross_extent, dynamic_minimum=True)
-        return None
+    # Resolves the measurement again when the size depends on it, runs the
+    # component's update and invalidates the layout when the content size moved.
+    update = _NATIVE["text"]["update"]
 
-    def content_extent(self, direction, cross_extent=None):
-        if direction == "horizontal":
-            return self._content_width()
-        if direction == "vertical":
-            return self._content_height(
-                cross_extent, dynamic_minimum=True)
-        return None
+    # _display_value(state, bounds, font) formats the painted text within its
+    # bounds without changing source state; subclasses may override it.
+    _display_value = _NATIVE["text"]["_display_value"]
+    draw = _NATIVE["text"]["draw"]
 
-    def auto_gap_extent(self, direction, cross_extent=None):
-        if direction != "vertical" or not self.kwargs.get("wrap", False):
-            return None
-        return self._content_height(cross_extent)
+    # _fitting_font(value, font, bounds, options): the font of the family that
+    # fits value within the bounds and the text limits.
+    _fitting_font = _NATIVE["text"]["_fitting_font"]
 
-    def _arrange(self, bounds, result):
-        # Wrapping depends on the assigned width, including after prepare_layout.
-        self._arranged_width = bounds.width + self.layout_options.padding.horizontal
 
-    def update(self, state, initialize=False):
-        previous = self._measurement
-        content_width = self.layout_options.width == "content"
-        content_height = self.layout_options.height == "content"
-        # Intrinsic containers may request a fill-sized leaf's natural height.
-        intrinsic_height = (self.layout_options.height is None
-                            and getattr(self, "_height_measurement", None) is not None)
-        measure = (initialize or content_width or content_height or intrinsic_height
-                   or self.kwargs.get("wrap", False)
-                   or (previous is not None and previous[4]))
-        current = self._resolve_measurement(state) if measure else None
-        size_changed = False
-        if not initialize and measure and previous != current:
-            cross_extent = getattr(self, "_arranged_width", None)
-            previous_size = (
-                self._content_width() if content_width else None,
-                self._content_height(cross_extent, dynamic_minimum=True)
-                if content_height or intrinsic_height else None)
-            self._measurement = current
-            current_size = (
-                self._content_width() if content_width else None,
-                self._content_height(cross_extent, dynamic_minimum=True)
-                if content_height or intrinsic_height else None)
-            size_changed = previous_size != current_size
+class PathText(Text):
+    """A path's parts on one line: joined by the separator, or, when they do not
+    fit the width (at most max_width), with the fewest parts dropped where
+    trim_at says (start, middle or end) and trim in their place. A trimmed text
+    loses the spaces at its ends, so an empty trim leaves the separator at the cut;
+    what still does not fit is truncated."""
 
-        self._measurement_state = state
-        self._measurement = current
-        super().update(state, initialize)
-        if size_changed:
-            self.invalidate(Dirty.LAYOUT)
+    property_schema = property_schema(
+        _property(
+            "value", (tuple, list, str), (), kind="text_lines",
+            group="Content", live=True, invalidation=Invalidation.LAYOUT),
+        *(spec for spec in copy.deepcopy(Text.property_schema)
+          if spec.name not in ("value", "wrap", "truncate", "fit", "max_height")),
+        _text("separator", " -> ", group="Text layout", invalidation=Invalidation.LAYOUT),
+        _select("trim_at", ("start", "middle", "end"), "start", group="Text layout"),
+        _text("trim", "...", group="Text layout"))
 
-    def _display_value(self, state, bounds, font):
-        """Format painted text within its bounds without changing source state."""
-        return resolve(self.value, state)
+    def __init__(self, value=(), separator=" -> ", trim_at="start", trim="...",
+                 color=ThemeColor.PRIMARY, font=None, horizontal="center",
+                 vertical="center", max_width=None, key=None):
+        # Read by the measurement Text's constructor resolves.
+        self.separator = separator
+        self.trim_at = trim_at
+        self.trim = trim
+        # Truncation cuts what dropping parts cannot shorten.
+        kwargs = {"truncate": True}
+        if max_width is not None:
+            kwargs["max_width"] = max_width
+        super().__init__(value, color, font, horizontal, vertical, key=key, **kwargs)
 
-    def draw(self, renderer, state, bounds):
-        horizontal = resolve(self.horizontal, state)
-        vertical = resolve(self.vertical, state)
-        if horizontal == "left":
-            x = bounds.x
-        elif horizontal == "right":
-            x = bounds.right
-        else:
-            x = bounds.center_x
-        if vertical == "top":
-            y = bounds.y
-        elif vertical == "bottom":
-            y = bounds.bottom
-        else:
-            y = bounds.center_y
-        renderer_vertical = "middle" if vertical == "center" else vertical
-        kwargs = dict(
-            (name, resolve(value, state))
-            for name, value in self.kwargs.items())
-        if kwargs.get("wrap"):
-            kwargs.setdefault("max_width", max(1, bounds.width))
-            kwargs.setdefault("max_height", max(1, bounds.height))
-        elif kwargs.get("truncate"):
-            kwargs.setdefault("max_width", max(1, bounds.width))
-        font = (resolve(self.font, state) if self.font is not None
-                else "JetBrainsMono 8pt")
-        value = self._display_value(state, bounds, font)
-        if kwargs.pop("fit", False):
-            font = get_font_metrics().fitting_font(
-                value, font, min(bounds.width, kwargs.get("max_width") or bounds.width),
-                min(bounds.height, kwargs.get("max_height") or bounds.height),
-                wrap=bool(kwargs.get("wrap")))
-        return renderer.text(
-            x, y, value, resolve(self.color, state),
-            font, horizontal, renderer_vertical, **kwargs)
+    _resolve_measurement = _NATIVE["path_text"]["_resolve_measurement"]
+    _display_value = _NATIVE["path_text"]["_display_value"]
+    draw = _NATIVE["path_text"]["draw"]
 
 
 class Metric(Component):
+    owns_relayout = True
+    # The content the engine's extent reads, as _content() returns it.
+    record_fields = ("_measurement",)
     property_schema = property_schema(
         _text("label", group="Content", live=True),
         _text("value", group="Content", live=True),
@@ -773,7 +728,7 @@ class Metric(Component):
         self.value = value
         self.unit = unit
         self.kwargs = kwargs
-        self._measurement_state = None
+        self._measurement = self._content()
 
     def _content(self, state=None):
         values = (self.label, self.value, self.unit,
@@ -792,27 +747,39 @@ class Metric(Component):
         gap = gap if isinstance(gap, (int, float)) else 0
         return label, value + (" " + unit if unit else ""), orientation, label_font, value_font, gap
 
-    def preferred_extent(self, direction, cross_extent=None):
-        label, value, orientation, label_font, value_font, gap = self._content(self._measurement_state)
-        if orientation != "vertical":
-            return None
-        metrics = get_font_metrics()
-        if direction == "horizontal":
-            return max(metrics.text_width(label, label_font), metrics.text_width(value, value_font)) + \
-                self.layout_options.padding.horizontal
-        if direction == "vertical":
-            return (metrics.metric(label_font).glyph_height + metrics.metric(value_font).glyph_height
-                    + gap + self.layout_options.padding.vertical)
-        return None
+    def _resolve_measurement(self, state=None):
+        return self._content(state)
+
+    # A vertical metric: the wider line horizontally, both lines and the gap
+    # vertically, with padding; None for a horizontal metric.
+    _font_metrics = staticmethod(get_font_metrics)
+    preferred_extent = _NATIVE["metric"]["preferred_extent"]
+
+    def _extents(self):
+        # The value sets the width only when the width follows the content; the
+        # height follows the fonts and the gap.
+        content_width = self.layout_options.width == "content"
+        return (self.preferred_extent("horizontal") if content_width else None,
+                self.preferred_extent("vertical"))
 
     def update(self, state, initialize=False):
-        before = self._content(self._measurement_state)
-        self._measurement_state = state
+        # A new value relayouts the metric only when it changes its size.
+        previous = self._measurement
+        current = self._content(state)
+        size_changed = False
+        if not initialize and previous != current:
+            previous_size = self._extents()
+            self._measurement = current
+            size_changed = self._extents() != previous_size
+        self._measurement = current
         super().update(state, initialize)
-        if before != self._content(state) and self._content(state)[2] == "vertical":
+        if size_changed:
             self.invalidate_layout()
 
-    def draw(self, renderer, state, bounds):
+    # The engine draws what it can spell; _metric_commands draws the rest.
+    draw = _NATIVE["metric"]["draw"]
+
+    def _metric_commands(self, renderer, state, bounds):
         kwargs = dict((name, resolve(value, state)) for name, value in self.kwargs.items())
         orientation = kwargs.pop("orientation", "horizontal")
         label_font = kwargs.pop("label_font", "JetBrainsMono 8pt")
@@ -838,10 +805,11 @@ class NumericKeypad(Component):
     """Reusable numeric entry window; the surrounding page owns its chrome."""
 
     covers_bounds = True
+    render_fields = ("actions",)
 
     @property
     def actions(self):
-        return dict(self.__dict__["actions"])
+        return dict(self._get_field("actions"))
 
     @actions.setter
     def actions(self, value):
@@ -857,7 +825,7 @@ class NumericKeypad(Component):
     @property
     def buttons(self):
         return tuple((action, name, "enabled")
-                     for name, action in self.__dict__["actions"].items())
+                     for name, action in self._get_field("actions").items())
 
     property_schema = property_schema(
         _text("title", group="Content", live=True),
@@ -888,6 +856,11 @@ class NumericKeypad(Component):
                  input_border=ThemeColor.SECONDARY,
                  value_color=ThemeColor.BRIGHT, key=None):
         super().__init__(key=key)
+        if isinstance(mode, NumericInputSpec):
+            # Kept as the plain fields the engine reads.
+            fields = mode.as_fields()
+            mode, minimum, maximum = fields["mode"], fields["minimum"], fields["maximum"]
+            max_length, fraction_digits = fields["max_length"], fields["fraction_digits"]
         self.title = title
         self.subtitle = subtitle
         self.value = value
@@ -906,11 +879,8 @@ class NumericKeypad(Component):
         self.value_color = value_color
 
     def _input_spec(self, state):
-        mode = resolve(self.mode, state)
-        if isinstance(mode, NumericInputSpec):
-            return mode
         return NumericInputSpec(
-            mode, resolve(self.minimum, state), resolve(self.maximum, state),
+            resolve(self.mode, state), resolve(self.minimum, state), resolve(self.maximum, state),
             resolve(self.max_length, state), resolve(self.fraction_digits, state))
 
     def interaction_signature(self, state):
@@ -918,7 +888,12 @@ class NumericKeypad(Component):
         return (spec.allows_decimal, spec.allows_negative,
                 spec.is_valid(resolve(self.value, state)))
 
-    def draw(self, renderer, state, bounds):
+    # In a screen's build the core draws it as renderer.numeric_keypad does;
+    # its repaint writes only the value and the keys whose state changed.
+    draw = _NATIVE["numeric_keypad"]["draw"]
+    render_dirty = _NATIVE["numeric_keypad"]["render_dirty"]
+
+    def _keypad_commands(self, renderer, state, bounds):
         return renderer.numeric_keypad(
             *bounds, resolve(self.title, state), resolve(self.value, state),
             resolve_deep(self.actions, state),
@@ -931,6 +906,38 @@ class NumericKeypad(Component):
             subtitle_color=resolve(self.subtitle_color, state),
             input_border=resolve(self.input_border, state),
             value_color=resolve(self.value_color, state))
+
+
+class TextField(Component):
+    """A typed value with its caret: the part around the cursor that fits the
+    width, in one monospaced face, left at the middle."""
+
+    property_schema = property_schema(
+        _text("value", group="Content", live=True),
+        _number("cursor", 0, minimum=0, group="Content"),
+        _property("masked", bool, False, kind="checkbox", group="Content"),
+        _property(
+            "font", str, "JetBrainsMono 12pt", kind="select",
+            group="Typography", catalog="fonts"),
+        _color("color", group="Appearance"))
+
+    def __init__(self, value="", cursor=0, masked=False, font="JetBrainsMono 12pt",
+                 color=ThemeColor.PRIMARY, key=None):
+        super().__init__(key=key)
+        self.value = value
+        self.cursor = cursor
+        self.masked = masked
+        self.font = font
+        self.color = color
+
+    # In a screen's build the core draws it as renderer.text_field does.
+    draw = _NATIVE["text_field"]["draw"]
+
+    def _text_field_commands(self, renderer, state, bounds):
+        return renderer.text_field(
+            bounds.x, bounds.center_y, bounds.width, resolve(self.value, state),
+            resolve(self.cursor, state), resolve(self.color, state),
+            masked=resolve(self.masked, state), font=resolve(self.font, state))
 
 
 class DotGrid(Component):
@@ -996,6 +1003,7 @@ class SliderKnob(Component):
     """
 
     restores_background = True
+    render_fields = ("position", "active_action")
     property_schema = property_schema(
         _select("axis", ("xy", "x", "z"), "xy", group="Behavior", bindings=()),
         _number("value", None, integer=False, nullable=True, group="Value"),
@@ -1013,7 +1021,7 @@ class SliderKnob(Component):
         _color("background", ThemeColor.PANEL, group="Appearance"))
 
     def __init__(self, axis="xy", position=None, active_action=None,
-                 surface_ref=None, edge_padding=0, size=25, color=ThemeColor.PRIMARY,
+                 edge_padding=0, size=25, color=ThemeColor.PRIMARY,
                  background=ThemeColor.PANEL, dirty_margin=2, key=None, *,
                  value=None, minimum=0.0, maximum=1.0, glyph="bars", track="auto", track_color=None):
         super().__init__(key=key)
@@ -1031,7 +1039,6 @@ class SliderKnob(Component):
         self.axis = axis
         self.position = position
         self.active_action = active_action
-        self.surface_ref = surface_ref
         self.edge_padding = edge_padding
         self.size = size
         self.color = color
@@ -1056,26 +1063,6 @@ class SliderKnob(Component):
             action.value if isinstance(action, Enum) else action)
         return (x, y) if action == expected else None
 
-    def state_signature(self, state):
-        return (
-            self.axis, resolve(self.value, state),
-            resolve(self.minimum, state), resolve(self.maximum, state),
-            self.glyph, self.track, resolve(self.track_color, state),
-            _frozen(self._position(state)),
-            self.active_action,
-            self.surface_ref,
-            int(resolve(self.edge_padding, state)),
-            self._normalized_size(resolve(self.size, state)),
-            resolve(self.color, state),
-            resolve(self.background, state),
-            int(resolve(self.dirty_margin, state)),
-        )
-
-    def _movement_bounds(self, layout, bounds):
-        if self.axis == "xy" and self.surface_ref is not None:
-            return layout.rect(self.surface_ref)
-        return bounds
-
     def _scalar_centers(self, state, bounds, size=None):
         size = self._normalized_size(resolve(self.size, state)) if size is None else size
         edge = int(resolve(self.edge_padding, state))
@@ -1084,7 +1071,7 @@ class SliderKnob(Component):
         start, end = origin + size // 2 + edge, origin + extent - (size - size // 2) - edge
         return (center, center, center) if start > end else (start, center, end)
 
-    def _geometry(self, state, bounds, layout):
+    def _geometry(self, state, bounds):
         size = self._normalized_size(resolve(self.size, state))
         dirty_margin = int(resolve(self.dirty_margin, state))
         position = self._position(state)
@@ -1106,14 +1093,11 @@ class SliderKnob(Component):
             else:
                 y = coordinate
         elif position is not None:
-            movement = self._movement_bounds(layout, bounds)
             half = size // 2 + dirty_margin
             if self.axis == "xy":
                 raw_x, raw_y = position
-                x = max(movement.x + half,
-                        min(movement.right - half, int(raw_x)))
-                y = max(movement.y + half,
-                        min(movement.bottom - half, int(raw_y)))
+                x = max(bounds.x + half, min(bounds.right - half, int(raw_x)))
+                y = max(bounds.y + half, min(bounds.bottom - half, int(raw_y)))
             elif self.axis == "x":
                 raw_x, _raw_y = position
                 edge = half + int(resolve(self.edge_padding, state))
@@ -1127,31 +1111,33 @@ class SliderKnob(Component):
         return (x, y, size, resolve(self.color, state), self.axis, self.glyph,
                 resolve(self.background, state), self.track, resolve(self.track_color, state))
 
-    def render(self, renderer, state, layout):
-        bounds = layout.rect(self)
-        geometry = self._geometry(state, bounds, layout)
+    # The engine draws the knob and restores only what it covered; a frame it cannot read comes back here.
+    draw = _NATIVE["slider_knob"]["draw"]
+    render_dirty = _NATIVE["slider_knob"]["render_dirty"]
+
+    def _knob_commands(self, renderer, state, bounds):
+        geometry = self._geometry(state, bounds)
         self._drawn_geometry = geometry
         x, y, size, color, axis, *_appearance = geometry
         return renderer.joystick_knob(x, y, axis, size, color,
                                       glyph=self.glyph, background=resolve(self.background, state))
 
-    def render_dirty(self, renderer, state, layout):
+    def _knob_repair(self, renderer, state, layout):
         bounds = layout.rect(self)
         previous = self._drawn_geometry
-        current = self._geometry(state, bounds, layout)
+        current = self._geometry(state, bounds)
         if previous == current:
             return []
         if previous is None:
-            return self.render(renderer, state, layout)
-        commands = self._restore_previous(
-            renderer, state, bounds, layout, previous)
+            return self._knob_commands(renderer, state, bounds)
+        commands = self._restore_previous(renderer, state, bounds, previous)
         x, y, size, color, axis, *_appearance = current
         commands += renderer.joystick_knob(x, y, axis, size, color,
                                            glyph=self.glyph, background=resolve(self.background, state))
         self._drawn_geometry = current
         return commands
 
-    def _restore_previous(self, renderer, state, bounds, layout, geometry):
+    def _restore_previous(self, renderer, state, bounds, geometry):
         x, y, size, _color, axis, *_appearance = geometry
         half = size // 2 + int(resolve(self.dirty_margin, state))
         patch = Rect(x - half, y - half, half * 2 + 1, half * 2 + 1)
@@ -1172,19 +1158,7 @@ class SliderKnob(Component):
         commands = [renderer.fill(
             patch.x, patch.y, patch.width, patch.height, background)]
         if track == "grid":
-            grid = self._movement_bounds(layout, bounds)
-            columns, rows, grid_color = 11, 7, ThemeColor.MUTED
-            if self.surface_ref is not None:
-                try:
-                    surface = layout.node(self.surface_ref)
-                except KeyError:
-                    surface = None
-                if isinstance(surface, DotGrid):
-                    columns = int(resolve(surface.columns, state))
-                    rows = int(resolve(surface.rows, state))
-                    grid_color = resolve(surface.color, state)
-            return commands + self._restore_xy(
-                renderer, grid, patch, color, columns, rows, grid_color)
+            return commands + self._restore_xy(renderer, bounds, patch, color, 11, 7, ThemeColor.MUTED)
         if track == "frame":
             return commands + self._restore_z(renderer, bounds, patch, color)
         if track == "line":
@@ -1351,12 +1325,9 @@ class Slider(SliderKnob):
                       for spec in self.property_schema if spec.name not in ("position", "value")),
                 (padding.left, padding.top, padding.right, padding.bottom))
 
-    def state_signature(self, state):
-        return super().state_signature(state), self._surface_signature(state)
-
-    def _geometry(self, state, bounds, layout):
+    def _geometry(self, state, bounds):
         self.active_action = self.action if self.position is not None else None
-        return super()._geometry(state, self.track_bounds(bounds), layout)
+        return super()._geometry(state, self.track_bounds(bounds))
 
     def _scale_commands(self, renderer, state, bounds, clip=None):
         if not resolve(self.scale, state):
@@ -1365,18 +1336,23 @@ class Slider(SliderKnob):
                               tick_color=self.scale_color, center_color=self.color, axis=self.axis)
         return scale.draw(renderer, state, self.track_bounds(bounds), clip=clip)
 
-    def _restore_previous(self, renderer, state, bounds, layout, geometry):
-        commands = super()._restore_previous(renderer, state, self.track_bounds(bounds), layout, geometry)
+    def _restore_previous(self, renderer, state, bounds, geometry):
+        commands = super()._restore_previous(renderer, state, self.track_bounds(bounds), geometry)
         x, y, size, *_appearance = geometry
         half = size // 2 + int(resolve(self.dirty_margin, state))
         patch = Rect(x - half, y - half, 2 * half + 1, 2 * half + 1)
         return commands + self._scale_commands(renderer, state, bounds, patch)
 
-    def interaction_commands(self, renderer, state, bounds):
+    # The engine draws the slider and restores only what its knob covered;
+    # a frame it cannot read comes back to _slider_commands and _slider_repair.
+    draw = _NATIVE["slider"]["draw"]
+    interaction_commands = _NATIVE["slider"]["interaction_commands"]
+    render_dirty = _NATIVE["slider"]["render_dirty"]
+
+    def _slider_hitbox(self, renderer, state, bounds):
         return renderer.action_hitbox(self.action, *self.touch_bounds(bounds), continuous=True)
 
-    def render(self, renderer, state, layout):
-        bounds = layout.rect(self)
+    def _slider_commands(self, renderer, state, bounds):
         color = resolve(self.track_color, state) or resolve(self.color, state)
         background = resolve(self.background, state)
         commands = (renderer.panel(*bounds, border=resolve(self.frame_color, state), background=background, line_width=1)
@@ -1401,15 +1377,15 @@ class Slider(SliderKnob):
                     Rect(track.center_x - 1, track.y, 2, track.height))
             commands.append(renderer.fill(*rail, color))
         commands += self._scale_commands(renderer, state, bounds)
-        commands += super().render(renderer, state, layout)
-        commands += _command_list(self.interaction_commands(renderer, state, bounds))
+        commands += self._knob_commands(renderer, state, bounds)
+        commands += _command_list(self._slider_hitbox(renderer, state, bounds))
         self._drawn_surface = self._surface_signature(state), bounds
         return commands
 
-    def render_dirty(self, renderer, state, layout):
+    def _slider_repair(self, renderer, state, layout):
         if self._drawn_surface != (self._surface_signature(state), layout.rect(self)):
             return self.render(renderer, state, layout)
-        return super().render_dirty(renderer, state, layout)
+        return self._knob_repair(renderer, state, layout)
 
 
 class VerticalScale(Component):
@@ -1503,7 +1479,9 @@ class ScrollIndicator(Component):
         self.track_color = track_color
         self.thumb_color = thumb_color
 
-    def draw(self, renderer, state, bounds):
+    draw = _NATIVE["scroll_indicator"]["draw"]
+
+    def _scroll_commands(self, renderer, state, bounds):
         count = max(1, int(resolve(self.count, state)))
         position = max(0, min(count - 1, int(resolve(self.position, state))))
         line_width = max(1, int(resolve(self.line_width, state)))
@@ -1539,6 +1517,7 @@ class VerticalGauge(Component):
     """State-bound vertical gauge with a stable unavailable presentation."""
 
     covers_bounds = True
+    render_fields = ("gauge",)
 
     def __init__(self, gauge, title="LOAD", unavailable_title="FORCE",
                  unavailable_value="N/A", danger_above=None, key=None):
@@ -1549,7 +1528,10 @@ class VerticalGauge(Component):
         self.unavailable_value = unavailable_value
         self.danger_above = danger_above
 
-    def draw(self, renderer, state, bounds):
+    # The engine draws the gauge; _gauge_commands draws what it leaves to Python.
+    draw = _NATIVE["vertical_gauge"]["draw"]
+
+    def _gauge_commands(self, renderer, state, bounds):
         gauge = resolve_deep(self.gauge, state)
         if gauge is None:
             commands = renderer.panel(
@@ -1579,6 +1561,8 @@ class VerticalGauge(Component):
 
 
 class Dialog(Component):
+    render_fields = ("kwargs",)
+
     def blocks_input(self, state):
         return bool(resolve(self.modal, state))
 
@@ -1592,7 +1576,7 @@ class Dialog(Component):
 
     @property
     def page_actions(self):
-        return copy.deepcopy(self.__dict__["page_actions"])
+        return copy.deepcopy(self._get_field("page_actions"))
 
     @page_actions.setter
     def page_actions(self, value):
@@ -1606,7 +1590,7 @@ class Dialog(Component):
 
     @property
     def buttons(self):
-        return copy.deepcopy(self.__dict__["buttons"])
+        return copy.deepcopy(self._get_field("buttons"))
 
     @buttons.setter
     def buttons(self, value):
@@ -1622,7 +1606,7 @@ class Dialog(Component):
 
     @property
     def button_groups(self):
-        return copy.deepcopy(self.__dict__["button_groups"])
+        return copy.deepcopy(self._get_field("button_groups"))
 
     @button_groups.setter
     def button_groups(self, value):
@@ -1639,6 +1623,12 @@ class Dialog(Component):
             if buttons:
                 groups.append(tuple(buttons))
         self._replace_actions("button_groups", tuple(groups))
+
+    @property
+    def preserve_header_action(self):
+        """Whether the dialog keeps the header action over itself, as the renderer's modal dialog does by default. The
+        screen reads it for a dialog that is a layer's root: the modal value (or its binding) unless switched off."""
+        return self.kwargs.get("preserve_header_action", True) and self.modal
 
     covers_bounds = True
     property_schema = property_schema(
@@ -1675,7 +1665,10 @@ class Dialog(Component):
         self.page_actions = page_actions
         self.kwargs = kwargs
 
-    def draw(self, renderer, state, bounds):
+    # In a screen's build the core draws the dialog (a pager or a redrawn header action stays the renderer's).
+    draw = _NATIVE["dialog"]["draw"]
+
+    def _dialog_commands(self, renderer, state, bounds):
         kwargs = dict(
             (name, resolve(value, state))
             for name, value in self.kwargs.items())
@@ -1687,6 +1680,37 @@ class Dialog(Component):
             modal=resolve(self.modal, state), page=resolve(self.page, state),
             page_actions=self.page_actions or None,
             button_groups=resolve_deep(self.button_groups, state), **kwargs)
+
+
+class StatusDialog(Dialog):
+    """A dialog whose body is a status: an optional value, a wrapped explanation and a note, as the renderer's
+    status_dialog lays them out. Empty ones take no space."""
+
+    property_schema = tuple(
+        spec for spec in Dialog.property_schema
+        if spec.name not in ("lines", "button_groups", "page", "page_actions")) + property_schema(
+        _property("detail", (str, int, float), None, kind="text", nullable=True, group="Content"),
+        _property("description", (str, int, float), None, kind="text", nullable=True, group="Content"),
+        _property("note", (str, int, float), None, kind="text", nullable=True, group="Content"),
+        _color("note_color", ThemeColor.TEXT, group="Appearance"))
+
+    def __init__(self, title, detail=None, buttons=(), tone="warning", modal=False, description=None, note=None,
+                 note_color=ThemeColor.TEXT, key=None, **kwargs):
+        super().__init__(title, (), buttons, tone, modal, key=key, **kwargs)
+        self.detail = detail
+        self.description = description
+        self.note = note
+        self.note_color = note_color
+
+    def _dialog_commands(self, renderer, state, bounds):
+        kwargs = dict(
+            (name, resolve(value, state))
+            for name, value in self.kwargs.items())
+        return renderer.status_dialog(
+            resolve(self.title, state), resolve(self.detail, state), resolve_deep(self.buttons, state),
+            description=resolve(self.description, state), note=resolve(self.note, state),
+            note_color=resolve(self.note_color, state), tone=resolve(self.tone, state),
+            width=bounds.width, height=bounds.height, modal=resolve(self.modal, state), **kwargs)
 
 
 def _creation_field(spec, required=False):
@@ -1747,6 +1771,7 @@ _publish_property_source_positions(
     maximum=6, max_length=7, fraction_digits=8, confirm_label=9,
     border=10, background=11, title_color=12, subtitle_color=13,
     input_border=14, value_color=15)
+_publish_property_source_positions(TextField, value=0, cursor=1, masked=2, font=3, color=4)
 _publish_property_source_positions(DotGrid, columns=0, rows=1, color=2)
 _publish_property_source_positions(CornerMarks, length=0, color=1)
 _publish_property_source_positions(Crosshair, color=0)
@@ -1765,6 +1790,8 @@ _publish_property_source_positions(
 _publish_property_source_positions(
     Dialog, title=0, lines=1, buttons=2, tone=3, modal=4, page=5,
     page_actions=6)
+_publish_property_source_positions(
+    StatusDialog, title=0, detail=1, buttons=2, tone=3, modal=4)
 
 
 _publish_creation(Fill, ("color",), required=("color",))
@@ -1805,6 +1832,7 @@ _publish_creation(Crosshair, ("color",))
 _publish_creation(SliderKnob, ("axis", "value", "minimum", "maximum", "glyph", "track",
                                "track_color", "edge_padding", "size", "color", "background", "dirty_margin"))
 _publish_creation(VerticalScale, ("axis", "tick_gap", "depth", "tick_color", "center_color"))
+_publish_creation(TextField, ("value", "cursor", "masked", "font", "color"))
 _publish_creation(ScrollIndicator, (
     "position", "count", "minimum_thumb", "line_width", "track_color",
     "thumb_color"))

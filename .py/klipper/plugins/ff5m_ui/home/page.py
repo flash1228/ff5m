@@ -125,12 +125,12 @@ def create_page():
     nozzle_target = bind(HomeState.NOZZLE_TARGET)
     bed_target = bind(HomeState.BED_TARGET)
     root = Overlay(
-        Overlay(
-            Fill(ThemeRole.HEADER_BACKGROUND),
+        Frame(
             Text(
                 bind(HomeState.CLOCK), color=ThemeRole.HEADER_TEXT,
                 font=CLOCK_FONT, horizontal="left", max_width=132, truncate=True,
             ).size(132, 44).offset(10, 0),
+            background=ThemeRole.HEADER_BACKGROUND, line_width=0,
         ).size(142, 46).offset(18, 8).repaint_boundary().ref(HomeRef.CLOCK),
         Button(MENU, "MENU").style(UiStyle.BUTTON_BOLD_8)
         .size(132, 38).offset(650, 11).ref(HomeRef.MENU),
@@ -191,26 +191,18 @@ def create_page():
 PAGE = create_page()
 
 
-def render(host):
-    eventtime = host.reactor.monotonic()
+def write(host, eventtime):
+    """Write the dashboard into the page when it changed; return whether it did."""
     current = collect_dashboard(host, eventtime)
-    commands = host.renderer.begin_page(PAGE_TITLE)
-    commands += PAGE.draw(host.renderer, dashboard_values(current))
-    host.renderer.send(commands)
+    if current == host._last_dashboard:
+        return False
     host._last_dashboard = current
+    PAGE.state.update(dashboard_values(current))
+    return True
 
 
 def update(host, eventtime):
     if host.page != ScreenPage.IDLE_HOME:
         return
-    current = collect_dashboard(host, eventtime)
-    if current == host._last_dashboard:
-        return
-    previous = host._last_dashboard
-    host._last_dashboard = current
-    if previous is None:
-        commands = PAGE.draw(host.renderer, dashboard_values(current))
-    else:
-        commands = PAGE.update(host.renderer, dashboard_values(current))
-    if commands:
-        host.renderer.send(commands)
+    if collect_dashboard(host, eventtime) != host._last_dashboard:
+        host._paint_page_values()

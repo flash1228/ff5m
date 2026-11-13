@@ -7,6 +7,7 @@
 import math
 
 from ui.lazy import LazyModule
+from ff5m_ui import dialogs as dialog_ui
 from ff5m_ui.screen import ScreenDialog, ScreenPage
 from ff5m_ui.shaper.actions import ShaperAction
 from ff5m_ui.shaper.state import APPLICABLE_METHODS
@@ -45,7 +46,7 @@ def confirmation_dialog(kind, selections):
     if kind == "save":
         lines.extend(("", "Klipper will restart after saving."))
         return "SAVE INPUT SHAPERS?", "\n".join(lines), (
-            ("message.ok", "CANCEL", "enabled"), ("shaper.save.confirm", "SAVE & RESTART", "warning"))
+            (dialog_ui.OK, "CANCEL", "enabled"), (dialog_ui.SAVE_SHAPER, "SAVE & RESTART", "warning"))
     if kind != "leave":
         raise ValueError("Unknown shaper confirmation: %s" % kind)
     if selections:
@@ -53,10 +54,10 @@ def confirmation_dialog(kind, selections):
         lines.append("A Klipper restart will discard them.")
     else:
         lines.append("No shaper selected.")
-    actions = [("shaper.leave.confirm", "EXIT", "enabled")]
+    actions = [(dialog_ui.LEAVE_SHAPER, "EXIT", "enabled")]
     if selections:
-        actions.append(("shaper.save.confirm", "SAVE & RESTART", "warning"))
-    actions.append(("message.ok", "STAY", "enabled"))
+        actions.append((dialog_ui.SAVE_SHAPER, "SAVE & RESTART", "warning"))
+    actions.append((dialog_ui.OK, "STAY", "enabled"))
     return "LEAVE SHAPER RESULTS?", "\n".join(lines), tuple(actions)
 
 
@@ -137,13 +138,40 @@ class ShaperSession:
         self.release_view()
         self.history = self.last_progress = None
 
-    def render_start(self):
-        renderer = self.feature.renderer
-        if self.history is not None:
-            renderer.send(history_ui.render(renderer, self.history))
-            return
-        entries = self.plugin.get_history()
-        renderer.send(start_ui.render(renderer, entries[0] if entries else None, self.sweep))
+    def page_content(self, page):
+        """The shaper page the screen shows for page, or None for the painter."""
+        tree = self._shown_tree(page)
+        return None if tree is None else (tree, tree.title, tree.show_back)
+
+    def _shown_tree(self, page):
+        if page == ScreenPage.CALIBRATION_CONFIRM:
+            return history_ui.PAGE if self.history is not None else start_ui.PAGE
+        if page == ScreenPage.CALIBRATION_PROGRESS and self._progress() is not None:
+            return progress_ui.PAGE
+        if page == ScreenPage.CALIBRATION_RESULT:
+            plugin = self._result_plugin()
+            if plugin is not None:
+                if self.view is None:
+                    self.view = results_ui.ShaperResults()
+                return self.view.page_for(plugin.record.results)
+        return None
+
+    def write_page_values(self, page):
+        if page == ScreenPage.CALIBRATION_CONFIRM:
+            if self.history is not None:
+                history_ui.PAGE.state.update({history_ui.HistoryState.ENTRIES: self.history})
+            else:
+                entries = self.plugin.get_history()
+                start_ui.PAGE.state.update(start_ui.values(entries[0] if entries else None, self.sweep))
+        elif page == ScreenPage.CALIBRATION_PROGRESS:
+            status = self._progress()
+            if status is not None:
+                progress_ui.PAGE.state.update(progress_ui.values(status))
+                self.last_progress = status
+        elif page == ScreenPage.CALIBRATION_RESULT:
+            plugin = self._result_plugin()
+            if plugin is not None:
+                self._write_view(plugin)
 
     def _progress(self):
         plugin = self.plugin
@@ -151,24 +179,12 @@ class ShaperSession:
             return progress_ui.snapshot(plugin.get_status(self.feature.reactor.monotonic()))
         return None
 
-    def _paint_progress(self, status):
-        renderer = self.feature.renderer
-        renderer.send(progress_ui.render(renderer, status))
-        self.last_progress = status
-
-    def render_progress(self):
-        status = self._progress()
-        if status is None:
-            return False
-        self._paint_progress(status)
-        return True
-
     def update_progress(self):
         status = self._progress()
         if status is None:
             return False
         if status != self.last_progress:
-            self._paint_progress(status)
+            self.feature._paint_page_values()
         return True
 
     def _result_plugin(self):
@@ -191,22 +207,10 @@ class ShaperSession:
         plugin = self._result_plugin() if self.view is not None else None
         return plugin if plugin is not None and self.view.results is plugin.record.results else None
 
-    def render_result(self):
-        plugin = self._result_plugin()
-        if plugin is None:
-            return False
-        if self.view is None:
-            self.view = results_ui.ShaperResults()
-        page = self._write_view(plugin)
-        renderer = self.feature.renderer
-        commands = renderer.begin_page(page.title, back=page.show_back)
-        commands.extend(page.draw(renderer, page.state))
-        renderer.send(commands)
-        return True
-
     def update_result(self):
+        """Show selections staged outside the page (the console's FORGE_SHAPER_APPLY)."""
         if self._viewed_plugin() is not None and self.view.selections != self.selections:
-            self.render_result()
+            self.feature._paint_page_values()
 
     def resolve(self, page, wire_id):
         if page == ScreenPage.CALIBRATION_CONFIRM:
@@ -277,14 +281,7 @@ class ShaperSession:
             feature._run_script("FORGE_SHAPER_APPLY AXIS=%s SHAPER=%s" % (view.axis, view.method))
         elif not view.select(action):
             return False
-        elif (view.show_table and action.route in ("method", "step", "axis")
-              and view.table_page is not None and view.table_page.initialized):
-            # Update the table rows in place; a full repaint would reset touch feedback.
-            page, renderer = self._write_view(plugin), feature.renderer
-            with renderer.compose(preserve_input=True):
-                renderer.send(page.update(renderer, page.state))
-            return True
-        feature._render_screen()
+        feature._paint_page_values()
         return True
 
     def back(self, page):

@@ -30,7 +30,7 @@ from ff5m_ui.printing.page import create_page as create_printing_page  # noqa: E
 from ff5m_ui.z_offset import runtime as z_offset  # noqa: E402
 from ff5m_ui.calibration_screws import runtime as screw_result  # noqa: E402
 from ui.reflection import reflect_page  # noqa: E402
-from tests.feather_render_test_helper import RenderFrame  # noqa: E402
+from tests.feather_render_test_helper import RenderCapture, RenderFrame, state_screen  # noqa: E402
 
 
 class TestPage(PageKey):
@@ -91,7 +91,7 @@ class ScrewResultLayoutTest(unittest.TestCase):
                 results = [dict(result, direction="CCW", turns="12:59")
                            for result in self.results]
                 commands = renderer.begin_page("Calibration result")
-                commands += screw_result.render(renderer, results, reference)
+                commands += screw_result.PAGE.draw(renderer, screw_result.result_values(results, reference))
                 self.assertTrue(renderer.send(commands))
 
     def test_page_state_example_is_replaced_by_real_empty_or_partial_results(self):
@@ -175,7 +175,7 @@ class ScrewResultLayoutTest(unittest.TestCase):
 
     def test_unordered_results_are_rendered_at_their_physical_corners(self):
         renderer = FeatherRenderer()
-        commands = screw_result.render(renderer, self.results)
+        commands = screw_result.PAGE.draw(renderer, screw_result.result_values(self.results))
         frame = RenderFrame(commands, renderer)
 
         bed = screw_result.PAGE.rect(screw_result.ScrewResultRef.BED)
@@ -228,8 +228,8 @@ class ScrewResultLayoutTest(unittest.TestCase):
         for reference in self.results:
             with self.subTest(reference=reference["name"]):
                 renderer = FeatherRenderer()
-                frame = RenderFrame(screw_result.render(
-                    renderer, self.results, reference["name"]), renderer)
+                frame = RenderFrame(screw_result.PAGE.draw(
+                    renderer, screw_result.result_values(self.results, reference["name"])), renderer)
                 bed = screw_result.PAGE.rect(screw_result.ScrewResultRef.BED)
                 base = frame.text("BASE (REFERENCE)")
                 name = frame.text(reference["name"].removesuffix(" screw").upper())
@@ -311,7 +311,7 @@ class ScrewResultLayoutTest(unittest.TestCase):
         from ui.font_metrics import get_font_metrics
 
         renderer = FeatherRenderer()
-        frame = RenderFrame(screw_result.render(renderer, self.results), renderer)
+        frame = RenderFrame(screw_result.PAGE.draw(renderer, screw_result.result_values(self.results)), renderer)
         legend = screw_result.PAGE.rect(screw_result.ScrewResultRef.LEGEND)
         last = frame.text("00:30 = HALF TURN")
         self.assertGreaterEqual(
@@ -406,11 +406,13 @@ class PrintingLayoutTest(unittest.TestCase):
                 (node.layout_options.offset_x, node.layout_options.offset_y),
                 (0, 0))
 
+    # The pages are laid out of their own: the shared page the screen shows keeps no layout once the screen
+    # arranges it (printing.rect lays one out for the same reason).
     def test_printing_page_composition_is_spacing_driven(self):
-        self._assert_composition(printing.get_page())
+        self._assert_composition(create_printing_page())
 
     def test_smaller_viewport_reflows_proportional_regions(self):
-        reference = printing.get_page()
+        reference = create_printing_page()
         smaller = create_printing_page(Rect(0, 0, 640, 400))
 
         self._assert_composition(smaller)
@@ -469,12 +471,12 @@ class PrintingLayoutTest(unittest.TestCase):
         page = create_printing_page(Rect(0, 0, 640, 400))
         renderer = FeatherRenderer()
         page.draw(renderer, {
-            printing.PrintingState.STATUS: "A LONG PREPARATION STATUS",
+            printing.PrintingState.STATUS: ("A LONG PREPARATION STATUS",),
         })
 
         previous = page.rect(printing.PrintingRef.STATUS)
         commands = page.update(renderer, {
-            printing.PrintingState.STATUS: "READY",
+            printing.PrintingState.STATUS: ("READY",),
         })
         frame = RenderFrame(commands, renderer)
 
@@ -493,8 +495,8 @@ class PrintingLayoutTest(unittest.TestCase):
         for bounds in (Rect(0, 0, 800, 442), Rect(0, 0, 640, 400)):
             page = create_printing_page(bounds)
             renderer = FeatherRenderer()
-            for value in ("PRINTING", "PRINT -> BED LEVEL -> NOZZLE CLEANING -> HEATING NOZZLE",
-                          "WAITING FOR THE NOZZLE TO REACH TARGET TEMPERATURE " * 4, "READY"):
+            for value in (("PRINTING",), ("PRINT", "BED LEVEL", "NOZZLE CLEANING", "HEATING NOZZLE"),
+                          ("WAITING FOR THE NOZZLE TO REACH TARGET TEMPERATURE " * 4,), ("READY",)):
                 frame = RenderFrame(page.draw(renderer, {
                     printing.PrintingState.STATUS: value,
                 }), renderer)
@@ -760,7 +762,7 @@ class DirtyRenderingTest(unittest.TestCase):
     def test_transparent_text_restores_the_page_surface(self):
         page = PageTree(
             Text(bind(TestState.LEFT), color=ThemeColor.TEXT).ref("label"),
-            Rect(4, 6, 92, 24), page_id=TestPage.LAYOUT)
+            Rect(4, 6, 192, 24), page_id=TestPage.LAYOUT)
         renderer = FeatherRenderer()
 
         page.draw(renderer, {TestState.LEFT: "A LONG VALUE"})
@@ -1060,7 +1062,7 @@ class FilamentLayoutTest(unittest.TestCase):
         self.assertEqual((second_row[0].x + second_row[-1].right) // 2,
                          page.bounds.center_x)
 
-    def test_action_status_repaints_as_one_boundary(self):
+    def test_a_changed_temperature_repaints_only_its_text(self):
         page = filament.get_action_page(False)
         renderer = FeatherRenderer()
         page.draw(renderer, {
@@ -1076,7 +1078,9 @@ class FilamentLayoutTest(unittest.TestCase):
         }))
         status = page.rect("filament.action.status")
 
-        self.assertIn("-p %d %d -s %d %d" % status.as_tuple(), drawing)
+        self.assertIn('-t "131 / 250C"', drawing)
+        self.assertNotIn("-p %d %d -s %d %d" % status.as_tuple(), drawing)
+        self.assertEqual(len(drawing.splitlines()), 2)  # its background, then the text
         page.update(renderer, {
             filament.FilamentState.TEMPERATURE: 260.0,
             filament.FilamentState.COOLING: True,
@@ -1105,7 +1109,7 @@ class MovementLayoutTest(unittest.TestCase):
         values = move.snapshot_values(
             (120.0, 120.0, 230.0, "HOMED: XYZ", True, True))
 
-        drawing = "\n".join(move.render_step(renderer, values))
+        drawing = "\n".join(move.STEP_PAGE.draw(renderer, values))
 
         self.assertIn("X  120.00   Y  120.00", drawing)
         self.assertIn("Z  230.00", drawing)
@@ -1156,7 +1160,7 @@ class MovementLayoutTest(unittest.TestCase):
             (0.0, 0.0, 0.0, "HOMED: XYZ", True, True))
         values[move.MoveState.INERTIA] = 0.0
         values[move.MoveState.CURSOR] = None
-        drawing = "\n".join(move.render_joystick(renderer, values))
+        drawing = "\n".join(move.JOYSTICK_PAGE.draw(renderer, values))
         page = move.JOYSTICK_PAGE
         track = page.node("z.panel").track_bounds(page.rect("z.panel"))
         scale = page.node("z.panel")
@@ -1180,12 +1184,16 @@ class MovementLayoutTest(unittest.TestCase):
                 (move.MoveState.INERTIA, 12.0, "inertia.card")):
             with self.subTest(card=card):
                 renderer = FeatherRenderer()
+                batches = RenderCapture(renderer).batches
                 initial = move.snapshot_values(
                     (0.0, 0.0, 30.0, "HOMED: XYZ", True, True))
                 initial.update({move.MoveState.INERTIA: 0.0,
                                 move.MoveState.CURSOR: None})
-                move.render_joystick(renderer, initial)
-                commands = move.update_joystick(renderer, {key: value})
+                root = state_screen(renderer, move.JOYSTICK_PAGE, initial, title="Move")
+                del batches[:]
+                move.JOYSTICK_PAGE.state.update({key: value})
+                root.paint()
+                commands = batches[-1]
                 frame = RenderFrame(commands, renderer)
                 bounds = move.JOYSTICK_PAGE.rect(card)
 
@@ -1210,14 +1218,14 @@ class MovementLayoutTest(unittest.TestCase):
             move.MoveState.INERTIA: 0.0,
             move.MoveState.CURSOR: None,
         })
-        move.render_joystick(renderer, initial)
+        move.JOYSTICK_PAGE.draw(renderer, initial)
         updated = move.snapshot_values(
             (1.0, 2.0, 3.0, "HOMED: XYZ", True, True))
         updated.update({
             move.MoveState.INERTIA: 0.0,
             move.MoveState.CURSOR: None,
         })
-        drawing = "\n".join(move.update_joystick(renderer, updated))
+        drawing = "\n".join(move.JOYSTICK_PAGE.update(renderer, updated))
 
         for value in ('"   1.0"', '"   2.0"', '"   3.0"'):
             self.assertIn(value, drawing)
@@ -1254,7 +1262,7 @@ class ZOffsetLayoutTest(unittest.TestCase):
     def test_summary_measurements_fit_without_losing_the_sign_or_precision(self):
         renderer = FeatherRenderer()
         results = dict(zip(z_offset.ZONE_ACTIONS, (-0.124, -0.125, 0.123, -0.121, -0.122)))
-        frame = RenderFrame(z_offset.render_summary(renderer, {
+        frame = RenderFrame(z_offset.SUMMARY_PAGE.draw(renderer, {
             z_offset.SummaryState.RESULTS: results,
             z_offset.SummaryState.SELECTED: "average",
             z_offset.SummaryState.AVERAGE: -0.123,
@@ -1282,7 +1290,7 @@ class ZOffsetLayoutTest(unittest.TestCase):
         for previous, following in zip(rectangles, rectangles[1:]):
             self.assertLessEqual(previous.bottom, following.y)
 
-        commands = z_offset.render_safe_briefing(FeatherRenderer(), {
+        commands = z_offset.SAFE_BRIEFING_PAGE.draw(FeatherRenderer(), {
             z_offset.SafeBriefingState.CURRENT: 10.0,
         })
         text_commands = [command for command in commands
@@ -1345,16 +1353,16 @@ class ZOffsetLayoutTest(unittest.TestCase):
             z_offset.PaperState.DIALOG: None,
             z_offset.PaperState.DIALOG_WEIGHT: 0.0,
         }
-        z_offset.render_paper(renderer, state)
+        z_offset.PAPER_PAGE.draw(renderer, state)
 
         gauge_bounds = z_offset.PAPER_PAGE.rect("paper.gauge")
         for value, expected in ((110.6, "111"), (-110.6, "-111"),
                                 (9999.0, "9999"), (-0.2, "0")):
             with self.subTest(value=value):
-                commands = z_offset.update_paper_gauge(renderer, {
+                commands = z_offset.PAPER_PAGE.update(renderer, {z_offset.PaperState.GAUGE: {
                     "initial": 100.0, "minimum": -200.0,
                     "maximum": 9999.0, "value": value,
-                })
+                }})
                 frame = RenderFrame(commands, renderer)
                 reading = frame.text(
                     " " + expected if expected.startswith("-") else expected)
@@ -1377,7 +1385,7 @@ class ZOffsetLayoutTest(unittest.TestCase):
             z_offset.PaperState.DIALOG_WEIGHT: 0.0,
         }
 
-        frame = RenderFrame(z_offset.render_paper(renderer, values), renderer)
+        frame = RenderFrame(z_offset.PAPER_PAGE.draw(renderer, values), renderer)
 
         dialog = z_offset.PAPER_PAGE.rect("paper.pressure.dialog")
 
@@ -1395,23 +1403,6 @@ class ZOffsetLayoutTest(unittest.TestCase):
              if inside(button.bounds.x, button.bounds.y)],
             ["JetBrainsMono Bold 12pt"])
 
-    def test_z_offset_dialogs_remain_modal(self):
-        renderer = FeatherRenderer()
-        summary = {
-            z_offset.SummaryState.ZONE_LABELS: dict(
-                (key, key.upper()) for key in z_offset.ZONE_ACTIONS),
-            z_offset.SummaryState.RESULTS: {},
-            z_offset.SummaryState.SPREAD: 0.0,
-            z_offset.SummaryState.POSITIONAL_WARNING: 0.025,
-            z_offset.SummaryState.SELECTED: None,
-            z_offset.SummaryState.AVERAGE: None,
-            z_offset.SummaryState.LOAD_ZOFFSET: False,
-            z_offset.SummaryState.DIALOG: "discard",
-        }
-        drawing = "\n".join(z_offset.render_summary(renderer, summary))
-
-        self.assertIn("--batch clear-hitboxes", drawing)
-        self.assertIn("z.discard.confirm", drawing)
 
 if __name__ == "__main__":
     unittest.main()

@@ -220,11 +220,3 @@ def _content():
 PAGE = Page(
     _content(), CONTENT, page_id=PAGE_ID, styles=UI_STYLES,
     component_templates=(VALUE_CARD,))
-
-
-def render(renderer, values):
-    return PAGE.draw(renderer, values)
-
-
-def update_gauge(renderer, gauge):
-    return PAGE.update(renderer, {PaperState.GAUGE: gauge})

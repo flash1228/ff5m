@@ -11,9 +11,10 @@ from unittest import mock
 
 from tests.feather_exclude_test_helper import hit_at, make_screen, tap
 from feather.screen.pages.exclude_objects import bed_object_rect, object_action, polygon_bounds
+from ff5m_ui import dialogs as dialog_ui
 from ff5m_ui.exclude_model import PAGE
 from ff5m_ui.screen import ScreenDialog, ScreenPage
-from tests.feather_render_test_helper import full_render_queue
+from tests.feather_render_test_helper import refused_render, shown_hitboxes
 from ui import ThemeColor
 from ui.font_metrics import get_font_metrics
 
@@ -69,10 +70,11 @@ class ExcludeObjectsTest(unittest.TestCase):
         self.assertIsNone(self.screen._current_dialog())
 
     def test_rejected_popup_frame_preserves_print_controls_until_retry(self):
-        with full_render_queue(self.screen.renderer):
+        with refused_render(self.screen.renderer):
             tap(self.screen, "print.more")
         self.assertIsNone(self.screen._current_dialog())
-        self.assertTrue(any(r.action == "print.cancel" for r in self.screen.renderer.hitboxes))
+        # The last frame the loop took still shows the print controls.
+        self.assertTrue(self.screen.capture.latest.has_action("print.cancel"))
         self.screen._render_screen()
         self.assertEqual(self.screen._current_dialog(), ScreenDialog.PRINT_MORE)
 
@@ -80,7 +82,7 @@ class ExcludeObjectsTest(unittest.TestCase):
         self.open_objects()
         frame = self.screen.capture.latest
         for item in self.screen.objects.status["objects"]:
-            row = max((region for region in self.screen.renderer.hitboxes
+            row = max((region for region in shown_hitboxes(self.screen.renderer)
                        if region.action == object_action(item["name"])), key=lambda region: region.x)
             texts = [t for t in frame.texts if row.x <= t.x < row.x + row.width
                      and row.y <= t.y < row.y + row.height]
@@ -100,7 +102,7 @@ class ExcludeObjectsTest(unittest.TestCase):
                                                          for i in range(count)]
                 self.open_objects()
                 for page in range((count + 2) // 3):
-                    rows = sorted((r for r in self.screen.renderer.hitboxes
+                    rows = sorted((r for r in shown_hitboxes(self.screen.renderer)
                                    if r.action.startswith("exclude.select.")
                                    and r.x > PAGE.layout["exclude.bed"].right), key=lambda r: r.y)
                     self.assertEqual(len(rows), min(3, count - page * 3))
@@ -126,7 +128,7 @@ class ExcludeObjectsTest(unittest.TestCase):
         self.open_objects()
         bed = PAGE.layout["exclude.bed"]
         for name, fraction, left, top in (("Half_Bed", .5, 0, .5), ("Quarter_Bed", .25, .75, 0)):
-            region = min((r for r in self.screen.renderer.hitboxes if r.action == object_action(name)),
+            region = min((r for r in shown_hitboxes(self.screen.renderer) if r.action == object_action(name)),
                          key=lambda r: r.x)
             self.assertAlmostEqual(region.width, bed.width * fraction, delta=1)
             self.assertAlmostEqual(region.height, bed.height * fraction, delta=1)
@@ -146,7 +148,7 @@ class ExcludeObjectsTest(unittest.TestCase):
                 self.open_objects()
                 self.assertTrue(self.screen.capture.latest.has_text("Geometry unavailable"))
                 for model in self.screen.objects.status["objects"]:
-                    regions = [r for r in self.screen.renderer.hitboxes
+                    regions = [r for r in shown_hitboxes(self.screen.renderer)
                                if r.action == object_action(model["name"])]
                     self.assertEqual(len(regions), 1)
 
@@ -159,7 +161,7 @@ class ExcludeObjectsTest(unittest.TestCase):
     def test_excluded_card_is_gray_and_both_pick_regions_remain_active(self):
         self.open_objects()
         action = object_action("Cable_Clip")
-        regions = [region for region in self.screen.renderer.hitboxes if region.action == action]
+        regions = [region for region in shown_hitboxes(self.screen.renderer) if region.action == action]
         self.assertEqual(len(regions), 2)
         card = max(regions, key=lambda region: region.x)
         bounds = (card.x, card.y, card.width, card.height)
@@ -174,7 +176,7 @@ class ExcludeObjectsTest(unittest.TestCase):
 
     def test_bed_and_list_share_selection_and_page_follows_bed_pick(self):
         self.open_objects()
-        regions = [r for r in self.screen.renderer.hitboxes if r.action == object_action("Gear_Cover")]
+        regions = [r for r in shown_hitboxes(self.screen.renderer) if r.action == object_action("Gear_Cover")]
         self.assertEqual(len(regions), 2)
         bed, row = sorted(regions, key=lambda r: r.x)
         tap(self.screen, hit_at(self.screen, bed.x + bed.width // 2, bed.y + bed.height // 2))
@@ -237,7 +239,7 @@ class ExcludeObjectsTest(unittest.TestCase):
         self.open_objects()
         self.assertTrue(self.screen.capture.latest.has_text("Geometry unavailable"))
         self.assertTrue(self.screen.capture.latest.has_text("TAP TO SELECT / NO GEOMETRY"))
-        regions = [r for r in self.screen.renderer.hitboxes if r.action == object_action("Unknown_Size")]
+        regions = [r for r in shown_hitboxes(self.screen.renderer) if r.action == object_action("Unknown_Size")]
         self.assertEqual(len(regions), 1)
         tap(self.screen, object_action("Unknown_Size"))
         self.assertTrue(self.screen.capture.latest.has_action("exclude.request"))
@@ -275,10 +277,10 @@ class ExcludeObjectsTest(unittest.TestCase):
 
     def test_multiple_selection_from_map_and_list_confirms_the_whole_set(self):
         self.open_objects()
-        bed = min((r for r in self.screen.renderer.hitboxes
+        bed = min((r for r in shown_hitboxes(self.screen.renderer)
                    if r.action == object_action("Gear_Cover")), key=lambda r: r.x)
         tap(self.screen, hit_at(self.screen, bed.x + bed.width // 2, bed.y + bed.height // 2))
-        row = max((r for r in self.screen.renderer.hitboxes
+        row = max((r for r in shown_hitboxes(self.screen.renderer)
                    if r.action == object_action("Bracket_Main")), key=lambda r: r.x)
         tap(self.screen, hit_at(self.screen, row.x + 20, row.y + 20))
         self.assertEqual(self.screen.exclude_selected, {"Gear_Cover", "Bracket_Main"})
@@ -323,12 +325,12 @@ class ExcludeObjectsTest(unittest.TestCase):
             tap(self.screen, object_action(name))
         self.assertEqual(self.screen.capture.latest.button("exclude.request").label, "EXCLUDE SELECTED (12)")
         tap(self.screen, "exclude.request")
-        self.assertTrue(self.screen.capture.latest.has_action("message.next"))
+        self.assertTrue(self.screen.capture.latest.has_action(dialog_ui.NEXT_PAGE.wire_id))
         for _ in range(20):
-            if not self.screen.capture.latest.has_action("message.next"):
+            if not self.screen.capture.latest.has_action(dialog_ui.NEXT_PAGE.wire_id):
                 break
-            tap(self.screen, "message.next")
-        self.assertFalse(self.screen.capture.latest.has_action("message.next"))
+            tap(self.screen, dialog_ui.NEXT_PAGE.wire_id)
+        self.assertFalse(self.screen.capture.latest.has_action(dialog_ui.NEXT_PAGE.wire_id))
         self.assertEqual(self.screen.gcode.commands, [])
         tap(self.screen, "exclude.confirm")
         self.assertEqual(self.screen.gcode.parameters, [{"NAME": name} for name in names])
@@ -439,7 +441,7 @@ class ExcludeObjectsTest(unittest.TestCase):
         self.open_objects()
         label = next(text for text in self.screen.capture.latest.texts if text.value == "4")
         self.assertEqual(label.font, "JetBrainsMono Bold 8pt")
-        region = next(region for region in self.screen.renderer.hitboxes
+        region = next(region for region in shown_hitboxes(self.screen.renderer)
                       if region.action == object_action("Tiny_Pin"))
         tap(self.screen, hit_at(self.screen, region.x + region.width // 2,
                                region.y + region.height // 2))
@@ -452,10 +454,24 @@ class ExcludeObjectsTest(unittest.TestCase):
         tap(self.screen, object_action("Gear_Cover"))
         commands = self.screen.capture.batches[-1]
         for name, color in (("Bracket_Main", ThemeColor.PRIMARY), ("Gear_Cover", ThemeColor.SECONDARY)):
-            for region in (r for r in self.screen.renderer.hitboxes if r.action == object_action(name)):
+            for region in (r for r in shown_hitboxes(self.screen.renderer) if r.action == object_action(name)):
                 bounds = region.x, region.y, region.width, region.height
                 width = 4 if region.x < 370 and name == "Gear_Cover" else 2
                 self.assertIn(self.screen.renderer.stroke(*bounds, color=color, line_width=width), commands)
+
+    def test_selection_changes_the_name_color_and_deselect_restores_it(self):
+        self.open_objects()
+        name = "Gear_Cover"
+
+        def name_color():
+            texts = self.screen.capture.latest.texts
+            return next(text.color for text in texts if text.value.endswith("Gear Cover"))
+
+        self.assertEqual(name_color(), self.screen.renderer.color(ThemeColor.PRIMARY))
+        tap(self.screen, object_action(name))
+        self.assertEqual(name_color(), self.screen.renderer.color(ThemeColor.SECONDARY))
+        tap(self.screen, object_action(name))
+        self.assertEqual(name_color(), self.screen.renderer.color(ThemeColor.PRIMARY))
 
     def test_native_visual_snapshots_restore_inputs_and_issue_no_gcode(self):
         from feather_ui_test.scenarios import ScenarioCatalog

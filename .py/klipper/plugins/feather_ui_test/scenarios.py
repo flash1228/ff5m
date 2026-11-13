@@ -12,15 +12,17 @@ import math
 import os
 import re
 from contextlib import contextmanager
-from decimal import Decimal
 from types import SimpleNamespace
 
+from ff5m_ui import dialogs as dialog_ui
 from ff5m_ui.screen import ScreenDialog, ScreenPage
 from ff5m_ui.print_state import PrintState
 from ff5m_ui.move import actions as move_actions
 from ff5m_ui.z_offset import actions as z_actions
 from feather.files import FileEntry
 from timelapse_state import TimelapsePhase
+from ui import StateStore
+from . import memory
 from .context_fixtures import (
     CONTEXT_TYPES, VISUAL_CONTEXTS, visual_context_cases,
 )
@@ -80,6 +82,8 @@ class ScenarioCatalog:
         self.heat_initial = None
         self.heat_stable_since = None
         self._mesh_snapshot = None
+        # The component suite's shown page and its case state, as (page, state).
+        self._component = None
         self.ui_filament_target = None
         self._ui_last_job_original = None
         self._ui_file_view_original = None
@@ -88,6 +92,8 @@ class ScenarioCatalog:
         # The render suite restarts Typer on purpose; any other restart during
         # a run is a renderer failure.
         self.renderer_restarts_requested = 0
+        self.frozen_restart_before = None
+        self.frozen_error_shown = False
 
     @property
     def host(self):
@@ -131,6 +137,7 @@ class ScenarioCatalog:
                   if suite == "FULL" else [suite.lower()])
         builders = {
             "ui": self._steps_ui,
+            "leak": self._steps_leak,
             "component": self._steps_component,
             "render": self._steps_render,
             "motion": self._steps_motion,
@@ -201,10 +208,11 @@ class ScenarioCatalog:
                       "page": page, "label": button_label})
 
     @staticmethod
-    def _add_wait(steps, label, predicate, timeout, interval=0.5):
+    def _add_wait(steps, label, predicate, timeout, interval=0.5, shows_error=False):
+        """``shows_error``: the step waits on an error screen it showed itself."""
         steps.append({"kind": "wait", "label": label,
                       "predicate": predicate, "timeout": timeout,
-                      "interval": interval})
+                      "interval": interval, "shows_error": shows_error})
 
     @staticmethod
     def _add_capture(steps, label):
@@ -220,6 +228,30 @@ class ScenarioCatalog:
         steps.append({
             "kind": "capture", "label": label, "case_id": case_id,
         })
+
+    def _steps_leak(self, steps):
+        """The UI steps twice. The first pass builds every page for the first time and fills its caches; the second
+        reopens the same pages and must leave the UI holding no more than the first left (memory.LEAK_COUNTERS)."""
+        self._steps_ui(steps)
+        self._add_call(steps, "leak-baseline", self._record_leak_baseline, delay=0.0)
+        first = len(steps)
+        self._steps_ui(steps)
+        for step in steps[first:]:
+            step["label"] = "again-" + step["label"]
+        self._add_call(steps, "leak-verify", self._verify_no_leak, delay=0.0)
+
+    def _record_leak_baseline(self):
+        self._leak_baseline = memory.leak_counters()
+
+    def _verify_no_leak(self):
+        after = memory.leak_counters()
+        grown = memory.leak_growth(self._leak_baseline, after)
+        path = os.path.join(self.run.worker.run_directory, "leak.json")
+        with open(path, "w", encoding="utf-8") as stream:
+            json.dump({"first_pass": self._leak_baseline, "second_pass": after, "grown": grown}, stream, indent=1)
+        if grown:
+            raise RuntimeError("The second UI pass left more than the first: %s" % ", ".join(
+                "%s %s -> %s" % (name, values[0], values[1]) for name, values in sorted(grown.items())))
 
     def _steps_ui(self, steps):
         self._add_call(steps, "ui-pause-timer", self._pause_ui_timer)
@@ -570,19 +602,30 @@ class ScenarioCatalog:
             steps, "component-resume-timer", self._resume_ui_timer)
 
     def _render_component_default(self, page):
-        title = self._component_title(page)
-        commands = self.host.renderer.begin_page(title, back=False)
-        commands += page.draw(self.host.renderer, {})
-        self.host.renderer.send(commands)
-        self._render_component_footer()
+        self._show_component(page, {})
 
     def _render_component_case(self, case):
-        page = case["page"]
-        title = self._component_title(page)
-        commands = self.host.renderer.begin_page(title, back=False)
-        commands += page.draw(self.host.renderer, case["state"])
-        self.host.renderer.send(commands)
+        self._show_component(case["page"], case["state"])
+
+    def _show_component(self, page, state):
+        """Show page on the preview page as the screen's content, in state over
+        its declared defaults; a page the screen cannot draw fails the run."""
+        self._component = (page, state)
         self._render_component_footer()
+        self._show(ScreenPage.UI_TEST_PREVIEW)
+
+    def preview_content(self):
+        """The preview page's content as (tree, title, back), or None."""
+        if self._component is None:
+            return None
+        page = self._component[0]
+        return page, self._component_title(page), False
+
+    def write_preview_values(self):
+        """Inside the screen's transaction: the shown page's state."""
+        if self._component is not None:
+            page, state = self._component
+            page.state.update(StateStore(page.state_schema, state).as_dict())
 
     @staticmethod
     def _component_title(page):
@@ -670,7 +713,7 @@ class ScenarioCatalog:
             "last_job_name", "print_state", "print_stats", "virtual_sdcard",
             "_current_material", "_print_progress", "_print_time_values",
             "_operation_context_status", "_operation_context_text",
-            "_last_dashboard",
+            "_last_dashboard", "page",
         )
         original = dict((name, getattr(host, name)) for name in names)
         try:
@@ -702,18 +745,21 @@ class ScenarioCatalog:
                 lambda eventtime=None, status=None:
                 "PRINT -> CALIBRATING AND PREPARING PRINT SURFACE")
             host._last_dashboard = None
-            host._render_home()
+            host.page = ScreenPage.IDLE_HOME
+            host._render_screen()
         finally:
             for name, value in original.items():
                 setattr(host, name, value)
+            # The page keeps the filled values; the next show writes the dashboard.
+            host._last_dashboard = None
 
     def _render_file_loading_snapshot(self):
         with _temporary_attributes(self.host, {
-                "file_scan_loading": False,
-                "file_scan_source": None,
+                "file_scan_loading": True,
+                "file_scan_source": self.host.file_source,
                 "file_scan_phase": 0,
         }):
-            self.host._render_file_loading("internal")
+            self._show(ScreenPage.FILE_BROWSER)
 
     def _render_file_view(self, view):
         if self._ui_file_view_original is None:
@@ -800,7 +846,7 @@ class ScenarioCatalog:
             session.set_measurement("96.250")
             session.file_snapshot = UserConfigSnapshot(
                 session.user_cfg_path, b"", None, [], None, None,
-                Decimal("7.550"))
+                7.55)
         elif phase == "saved":
             session.current_rotation = 7.267
 
@@ -878,7 +924,8 @@ class ScenarioCatalog:
             self._show(ScreenPage.MOD_VALUE)
 
     def _render_applying_changes(self):
-        self.host.renderer.applying_modal()
+        with _temporary_attributes(self.host.feature_manager.get("settings"), {"mod_update_modal_visible": True}):
+            self._show(ScreenPage.MOD_SETTINGS)
 
     def _render_populated_benchmark(self):
         from ff5m_ui.benchmark.page import PAGE
@@ -896,9 +943,9 @@ class ScenarioCatalog:
             BenchmarkState.CPU_MS: 2.1,
             BenchmarkState.FLUSH_MS: 3.4,
             BenchmarkState.PYTHON_MS: 1.8,
-            BenchmarkState.FPS_LOSS_PERCENT: 0.3,
+            BenchmarkState.PYTHON_P95_MS: 2.3,
             BenchmarkState.RASTER: "NEON",
-            BenchmarkState.STATUS: "TARGET 60 FPS",
+            BenchmarkState.STATUS: "UNLIMITED",
         }
         self._render_component_case({"page": PAGE, "state": values})
 
@@ -960,7 +1007,7 @@ class ScenarioCatalog:
     def _render_single_action_message(self):
         self._show(ScreenDialog.MESSAGE, content={
             "message": "Moonraker returned an error. Check the printer connection.",
-            "actions": (("message.ok", "OK", "enabled"),), "title": None,
+            "actions": ((dialog_ui.OK, "OK", "enabled"),), "title": None,
         })
 
     def _open_navigation_message(self):
@@ -1052,31 +1099,31 @@ class ScenarioCatalog:
         }[kind]
         self._show(ScreenDialog.MESSAGE, content={
             "title": title, "message": message,
-            "actions": (("message.ok", "OK", "enabled"),),
+            "actions": ((dialog_ui.OK, "OK", "enabled"),),
         })
 
     def _render_action_prompt_footer(self):
-        button = {"action": "prompt.button.0", "label": "OK", "state": "enabled",
-                  "command": "RESPOND TYPE=command MSG=action:prompt_end"}
+        button = {"action": dialog_ui.prompt_action("RESPOND TYPE=command MSG=action:prompt_end"),
+                  "label": "OK", "state": "enabled"}
         self._show(ScreenDialog.ACTION_PROMPT, content={
             "title": "Printer command", "text": ["Action completed."], "rows": [],
-            "footer": [button], "buttons": {button["action"]: button}, "group": None,
+            "footer": [button], "buttons": [button], "group": None,
             "kind": None,
         })
 
     def _render_two_action_message(self):
         self._show(ScreenDialog.MESSAGE, content={
             "message": "The saved Wi-Fi password was rejected.", "title": None,
-            "actions": (("message.ok", "CANCEL", "enabled"),
-                        ("net.reset.saved", "RESET PASSWORD", "warning")),
+            "actions": ((dialog_ui.OK, "CANCEL", "enabled"),
+                        (dialog_ui.RESET_WIFI_PASSWORD, "RESET PASSWORD", "warning")),
         })
 
     def _render_mesh_save_message(self):
         self._show(ScreenDialog.MESSAGE, content={
             "message": ("THE NEW AUTO BED MESH IS ACTIVE FOR THIS SESSION. "
                         "SAVE IT TO PRINTER.CFG? KLIPPER WILL RESTART."), "title": None,
-            "actions": (("mesh.save", "SAVE & RESTART", "enabled"),
-                        ("message.ok", "LATER", "enabled")),
+            "actions": ((dialog_ui.SAVE_MESH, "SAVE & RESTART", "enabled"),
+                        (dialog_ui.OK, "LATER", "enabled")),
         })
 
     def _render_preparing_print(self):
@@ -1332,7 +1379,7 @@ class ScenarioCatalog:
         }):
             self._show(ScreenDialog.ACTION_PROMPT, content={
                 "title": "Cold Pull", "text": [], "rows": [], "footer": [],
-                "buttons": {}, "group": None, "kind": "cold_pull",
+                "buttons": [], "group": None, "kind": "cold_pull",
             })
 
     def _render_cancel_snapshot(self, kind):
@@ -1443,16 +1490,12 @@ class ScenarioCatalog:
             self._show(ScreenPage.UPDATE_NOTIFICATION)
 
     def _render_lifecycle_snapshot(self, kind):
-        title, detail, critical = {
-            "startup": (
-                "INITIALIZING KLIPPER", "INITIALIZING PRINTER SERVICES", False),
-            "restart": (
-                "INITIALIZING KLIPPER",
-                "RESTART IN PROGRESS - DISPLAY MAY PAUSE", True),
-            "shutdown": ("FORGE-X", "SHUTTING DOWN", True),
-        }[kind]
-        self.host.renderer.startup_modal(
-            title, detail, phase=2, critical=critical)
+        with _temporary_attributes(self.host, {
+                "startup": {"restart_pending": True, "startup_restarting": False, "startup_phase": 2},
+                "restart": {"restart_pending": True, "startup_restarting": True, "startup_phase": 2},
+                "shutdown": {"system_shutdown_active": True},
+        }[kind]):
+            self.host._render_screen()
 
     def _render_touch_unavailable(self):
         self._show(ScreenDialog.TOUCH_UNAVAILABLE, content={})
@@ -1505,6 +1548,19 @@ class ScenarioCatalog:
             lambda: self._renderer_recovered(before, before_error),
             15.0, 0.1)
         self._add_capture(steps, "render-recovered")
+        # A frozen safety screen is drawn again, with its buttons, by a restarted Typer. A capture
+        # needs a presentation barrier, which a frozen output refuses: the input Typer holds,
+        # written with the frame, is the check.
+        self._add_call(steps, "render-frozen-error", self._show_frozen_error)
+        self._add_call(steps, "render-frozen-restart-signal", self._request_frozen_restart)
+        self._add_wait(
+            steps, "render-frozen-recovered",
+            lambda: (self._renderer_recovered(self.frozen_restart_before, before_error)
+                     and self.host.renderer.output_frozen
+                     and "error.firmware_restart" in self.host.renderer.shown_actions()),
+            15.0, 0.1, shows_error=True)
+        self._add_call(steps, "render-frozen-close", self._close_frozen_error)
+        self._add_capture(steps, "render-frozen-closed")
         self._add_call(steps, "render-resume-timer", self._resume_ui_timer)
 
     def _request_renderer_restart(self, before):
@@ -1517,6 +1573,22 @@ class ScenarioCatalog:
         return (status["worker_state"] == "running"
                 and status["typer_restarts"] > before
                 and status.get("worker_last_error", "") == before_error)
+
+    def _show_frozen_error(self):
+        """The final error screen of a stopped Klipper, shown without stopping it."""
+        self.frozen_error_shown = True
+        self.host._show_terminal_error(
+            "UI test: frozen safety screen", "shutdown", "firmware_restart")
+
+    def _request_frozen_restart(self):
+        self.frozen_restart_before = self.host.renderer.get_status()["typer_restarts"]
+        self._request_renderer_restart(self.frozen_restart_before)
+
+    def _close_frozen_error(self):
+        self.frozen_error_shown = False
+        self.host.renderer.thaw_output()
+        self.host._close_dialog(self.host._find_dialog(ScreenDialog.ERROR))
+        self.host._show_page(self.host.page)
 
     def _steps_heat(self, steps):
         self._add_call(steps, "heat-open", lambda: self._show(ScreenPage.CONTROL_HEAT))
@@ -1800,7 +1872,7 @@ class ScenarioCatalog:
         instance = self.host._find_dialog(ScreenDialog.ACTION_PROMPT)
         prompt = instance.content if instance is not None else {}
         matches = [
-            action for action, button in prompt.get("buttons", {}).items()
+            button["action"].wire_id for button in prompt.get("buttons", ())
             if str(button.get("label", "")).casefold()
             == str(label).casefold()
         ]
@@ -1862,13 +1934,13 @@ class ScenarioCatalog:
 
     def _context_print_controls_ready(self):
         return (self._context_printing()
-                and "print.pause" in self.host.renderer._buttons)
+                and "print.pause" in self.host.renderer.shown_actions())
 
     def _context_paused(self):
         state = str(self.host.print_stats.get_status(
             self.reactor.monotonic()).get("state", "")).lower()
         return (state == "paused" and self.host.page == ScreenPage.PAUSED
-                and "print.resume" in self.host.renderer._buttons)
+                and "print.resume" in self.host.renderer.shown_actions())
 
     def _context_print_complete(self):
         state = str(self.host.print_stats.get_status(
@@ -1880,7 +1952,7 @@ class ScenarioCatalog:
                 and not self.host.virtual_sdcard.is_active()
                 and self.host.print_state == PrintState.IDLE
                 and self.host._current_dialog() == ScreenDialog.MESSAGE
-                and "message.ok" in self.host.renderer._buttons)
+                and "message.ok" in self.host.renderer.shown_actions())
 
     def _context_cancelled(self):
         state = str(self.host.print_stats.get_status(
@@ -1889,7 +1961,7 @@ class ScenarioCatalog:
                 and not self.host.virtual_sdcard.is_active()
                 and self.host.print_state == PrintState.IDLE
                 and self.host._current_dialog() == ScreenDialog.MESSAGE
-                and "message.ok" in self.host.renderer._buttons)
+                and "message.ok" in self.host.renderer.shown_actions())
 
     def _context_idle_timeout(self):
         status = self.host.idle_timeout.get_status(
@@ -1947,9 +2019,11 @@ class ScenarioCatalog:
                 raise RuntimeError("Unable to show page %s" % page.name)
 
     def _render_calibration_variants(self):
-        calibration = self.host.feature_manager.get("calibration")
-        if "cal.next" in self.host.renderer._buttons:
-            calibration._handle_calibration_action("cal.next")
+        # nav.calibration opens the catalog's first page, so a next page is
+        # always there to show.
+        if "cal.next" not in self.host.renderer.shown_actions():
+            raise RuntimeError("Calibration catalog has no next page")
+        self.host.feature_manager.get("calibration")._handle_calibration_action("cal.next")
 
     def _open_calibration_home(self):
         calibration = self.host.feature_manager.get("calibration")
@@ -1961,11 +2035,14 @@ class ScenarioCatalog:
 
     def _open_safe_file_confirm(self):
         entries = list(getattr(self.host, "file_entries", ()))
+        # The frame loop draws the file browser, so its rows are only in the
+        # input Typer holds of the screen.
+        shown = self.host.renderer.shown_actions()
         for index, entry in enumerate(entries[:5]):
             if entry.directory:
                 continue
             action = "file.item%d" % index
-            if action not in self.host.renderer._buttons:
+            if action not in shown:
                 continue
             if not entry.path:
                 raise RuntimeError("Selected UI test file has no path")
@@ -2029,6 +2106,8 @@ class ScenarioCatalog:
             self.host._update, self.reactor.NOW)
 
     def restore_synthetic_state(self):
+        if self.frozen_error_shown:
+            self._close_frozen_error()
         if self._ui_file_view_original is not None:
             self.host.file_view = self._ui_file_view_original
         self._ui_file_view_original = None
@@ -2104,7 +2183,8 @@ class ScenarioCatalog:
                 (self.ui_filament_target, target))
 
     def _dismiss_move_caution(self):
-        buttons = self.host.renderer._buttons
+        # The frame loop draws the Move page, caution included.
+        buttons = self.host.renderer.shown_actions()
         for action in (move_actions.CAUTION_AUTO.wire_id,
                        move_actions.CAUTION_DISMISS.wire_id,
                        move_actions.CAUTION_UNLOAD.wire_id):
@@ -2262,7 +2342,7 @@ class ScenarioCatalog:
         if not all(math.isfinite(float(value))
                    for row in matrix for value in row):
             raise RuntimeError("Mesh contains a non-finite value")
-        if "cal.mesh.discard" not in self.host.renderer._buttons:
+        if "cal.mesh.discard" not in self.host.renderer.shown_actions():
             raise RuntimeError("Mesh result has no DON'T SAVE action")
         self.test_results["mesh"] = matrix
 

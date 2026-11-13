@@ -9,26 +9,25 @@ import os
 import time
 import threading
 
-from ui import ThemeColor, ThemeRole
-from ui.layout_helpers import centered_button_row
+from ui import ThemeColor
+from ui.lazy import LazyModule
 from ff5m_ui.screen import ScreenPage
 
 from feather.files import FileEntry, FileTaskSuperseded, scan_gcode_files
 from feather.previews import (
     PREVIEW_MASK_SIZE, PreviewCancelled, colorize_preview, load_preview,
 )
-from feather.screen.pagination import Pagination, pagination_footer
+from feather.screen.pagination import Pagination
 
 
-FILE_ROWS = 5
-FILE_TILES = 3
 FILE_PRELOAD_LIMIT = 15
 FILE_CACHE_TTL = 5.0
-FILE_TILE_X = (22, 280, 538)
-FILE_TILE_Y = 68
-FILE_TILE_WIDTH = 240
-FILE_TILE_HEIGHT = 306
-FILE_TILE_IMAGE_Y = 78
+# The browser and the pages that return to it with its list. Outside them a list older than FILE_CACHE_TTL is
+# released: the next visit would scan again anyway, so keeping it would only hold memory that grows with the files.
+FILE_FLOW_PAGES = frozenset((
+    ScreenPage.FILE_BROWSER, ScreenPage.FILE_CONFIRM, ScreenPage.PRINT_PREVIEW, ScreenPage.MODEL_PREVIEW))
+file_browser_ui = LazyModule("ff5m_ui.file_browser")
+file_confirm_ui = LazyModule("ff5m_ui.file_confirm")
 
 
 class FileBrowserPagesMixin:
@@ -37,7 +36,7 @@ class FileBrowserPagesMixin:
         return view if view in ("list", "tiles") else "list"
 
     def _file_page_size(self):
-        return FILE_TILES if self.file_view == "tiles" else FILE_ROWS
+        return len(file_browser_ui.TILES if self.file_view == "tiles" else file_browser_ui.ROWS)
 
     def _normalize_file_source(self):
         source = self.file_source
@@ -103,6 +102,24 @@ class FileBrowserPagesMixin:
             cache.pop(source, None)
             loaded_at.pop(source, None)
 
+    def _drop_file_entries(self):
+        """Forget every scanned list and the scan in flight: the next browser shows a fresh scan."""
+        self._invalidate_file_entries()
+        self.file_entries = []
+        self.file_scan_token = getattr(self, "file_scan_token", 0) + 1
+        self.file_scan_loading = False
+        self.file_scan_source = None
+
+    def _release_stale_file_entries(self):
+        """Outside the file pages, forget the lists a visit would scan again (see FILE_FLOW_PAGES)."""
+        cache = getattr(self, "file_entry_cache", None)
+        if not cache or self.page in FILE_FLOW_PAGES:
+            return
+        for source in tuple(cache):
+            self._expire_file_entries_if_stale(source)
+        if not cache:
+            self.file_entries = []
+
     def _expire_file_entries_if_stale(self, source):
         cache = self.file_entry_cache
         if source not in cache:
@@ -115,16 +132,19 @@ class FileBrowserPagesMixin:
             return True
         return False
 
-    def _render_file_loading(self, source):
-        self.file_scan_loading = True
-        self.file_scan_source = source
-        self.file_scan_phase = 0
-        self._paint_file_loading(source)
+    def _file_scan_shown(self):
+        """Whether the browser shows its source's scan: the loader covers the page."""
+        return (getattr(self, "file_scan_loading", False) and self.page == ScreenPage.FILE_BROWSER
+                and self.file_scan_source == self.file_source)
 
-    def _paint_file_loading(self, source):
-        label = ("LOADING USB FILES..." if source == "usb"
-                 else "LOADING PRINT FILES...")
-        self.renderer.loader(label, self.file_scan_phase)
+    def _file_loading_label(self):
+        return "LOADING USB FILES..." if self.file_scan_source == "usb" else "LOADING PRINT FILES..."
+
+    def _ensure_file_entries(self):
+        """The screen is about to show the browser: without entries for its source, their scan starts."""
+        source = self._normalize_file_source()
+        if source not in self.file_entry_cache:
+            self._start_file_scan(source)
 
     def _start_file_scan(self, source):
         self._cancel_file_preview()
@@ -134,7 +154,9 @@ class FileBrowserPagesMixin:
             return
         self.file_scan_token += 1
         token = self.file_scan_token
-        self._render_file_loading(source)
+        self.file_scan_loading = True
+        self.file_scan_source = source
+        self.file_scan_phase = 0
         task = self._build_file_scan_task(source)
         submitted = self.file_worker.submit(
             task, lambda entries, error:
@@ -200,11 +222,9 @@ class FileBrowserPagesMixin:
 
     def _render_file_browser(self):
         source = self._normalize_file_source()
-        if self.file_scan_loading and self.file_scan_source == source:
-            self._paint_file_loading(source)
-            return
-        if source not in self.file_entry_cache:
-            self._start_file_scan(source)
+        if self._file_scan_shown() or source not in self.file_entry_cache:
+            # The screen starts the scan and shows the loader.
+            self._render_screen()
             return
         self.file_entries = self.file_entry_cache[source]
         self._render_file_entries()
@@ -216,47 +236,30 @@ class FileBrowserPagesMixin:
         pagination = Pagination(
             self.file_entries, self.file_page, self._file_page_size())
         self.file_page = pagination.page
-        usb_page = self.file_source == "usb"
-        title = ("Preview files" if getattr(self, "model_preview_file_select", False)
-                 else "USB files" if usb_page else "Print files")
-        commands = self.renderer.begin_page(title, back=True)
-        commands.append(self.renderer.action_hitbox(
-            "file.model_preview.tap", 170, 7, 370, 46))
-        commands += self._file_view_commands()
-        rows = pagination.visible
+        self._render_screen()
         if self.file_view == "tiles":
-            commands += self._render_file_tiles(rows)
-        else:
-            for index, entry in enumerate(rows):
-                y = 62 + index * 65
-                commands += self.renderer.button(
-                    "file.item%d" % index, 30, y, 740, 56,
-                    (entry.name + "  >" if entry.directory else entry.name),
-                    font="JetBrainsMono 12pt")
-        commands += pagination_footer(
-            self.renderer, pagination, "file.prev", "file.next")
-        if not rows:
-            commands.append(self.renderer.text(
-                400, 230, "No G-code files", ThemeColor.DIM,
-                "Roboto 16pt", "center", "middle"))
-        self.renderer.send(commands)
-        if self.file_view == "tiles":
-            self._start_next_file_preview(rows)
+            self._start_next_file_preview(pagination.visible)
 
-    def _file_view_commands(self):
-        view = self.file_view
-        commands = self.renderer.button(
-            "file.view.list", 548, 7, 70, 46, "LIST",
-            state="selected" if view == "list" else "enabled",
-            font="Roboto Bold 8pt")
-        commands += self.renderer.button(
-            "file.view.tiles", 622, 7, 74, 46, "GRID",
-            state="selected" if view == "tiles" else "enabled",
-            font="Roboto Bold 8pt")
-        commands += self.renderer.button(
-            "file.refresh", 700, 7, 86, 46, "SCAN",
-            font="Roboto Bold 8pt")
-        return commands
+    def _file_browser_page(self):
+        pages = self.__dict__.setdefault("_file_pages", {})
+        if self.file_view not in pages:
+            pages[self.file_view] = (file_browser_ui.create_tile_page(PREVIEW_MASK_SIZE) if self.file_view == "tiles"
+                                     else file_browser_ui.create_list_page())
+        return pages[self.file_view]
+
+    def _file_browser_content(self):
+        title = ("Preview files" if getattr(self, "model_preview_file_select", False)
+                 else "USB files" if self.file_source == "usb" else "Print files")
+        return self._file_browser_page(), title, True
+
+    def _write_file_browser_values(self):
+        pagination = Pagination(self.file_entries, self.file_page, self._file_page_size())
+        if self.file_view == "tiles":
+            values = file_browser_ui.tile_values(
+                pagination, tuple(self._file_tile_view(entry) for entry in pagination.visible))
+        else:
+            values = file_browser_ui.list_values(pagination)
+        self._file_browser_page().state.update(values)
 
     def _file_preview_key(self, entry):
         width, height = PREVIEW_MASK_SIZE
@@ -381,101 +384,18 @@ class FileBrowserPagesMixin:
                 and not self.file_scan_loading):
             pagination = Pagination(
                 self.file_entries, self.file_page, self._file_page_size())
-            for index, entry in enumerate(pagination.visible):
-                if self._file_preview_key(entry) == request["key"]:
-                    self.renderer.prioritize_next_batch(
-                        "state", "file-preview:%s" % request["key"][0])
-                    self.renderer.send(self._file_tile_surface(index, entry))
-                    break
+            if any(self._file_preview_key(entry) == request["key"] for entry in pagination.visible):
+                self._paint_page_values()
             self._start_next_file_preview(pagination.visible)
 
-    def _render_file_tiles(self, entries):
-        image_width, image_height = PREVIEW_MASK_SIZE
-        commands = []
-        for index, entry in enumerate(entries):
-            commands += self._file_tile_surface(
-                index, entry, image_width, image_height)
-        return commands
-
-    def _file_tile_surface(self, index, entry, image_width=None,
-                           image_height=None):
-        if image_width is None or image_height is None:
-            image_width, image_height = PREVIEW_MASK_SIZE
-        x = FILE_TILE_X[index]
-        found, blob = ((True, None) if entry.directory else
-                       self._cached_file_preview(entry))
-        normal = self._file_tile_commands(
-            entry, x, image_width, image_height, found, blob, False)
-        pressed = self._file_tile_commands(
-            entry, x, image_width, image_height, found, blob, True)
-        return self.renderer.button_surface(
-            "file.item%d" % index, x, FILE_TILE_Y,
-            FILE_TILE_WIDTH, FILE_TILE_HEIGHT, normal, pressed)
-
-    def _file_tile_commands(self, entry, x, image_width, image_height,
-                            found, blob, pressed):
-        background = (ThemeColor.PRESSED_BACKGROUND if pressed
-                      else ThemeRole.BUTTON_BACKGROUND)
-        border = (ThemeColor.BRIGHT if pressed
-                  else ThemeRole.BUTTON_BORDER)
-        commands = self.renderer.panel(
-            x, FILE_TILE_Y, FILE_TILE_WIDTH, FILE_TILE_HEIGHT,
-            border=border, background=background,
-            line_width=3 if pressed else 2)
-        image_x = x + (FILE_TILE_WIDTH - image_width) // 2
-        if found and blob is not None:
-            commands.append(self.renderer.image(
-                image_x, FILE_TILE_IMAGE_Y, blob, format="fxi1"))
-        elif not found:
-            commands += self.renderer.panel(
-                image_x, FILE_TILE_IMAGE_Y, image_width, image_height,
-                border=ThemeColor.BORDER, background=ThemeColor.PANEL,
-                line_width=1)
-            commands.append(self.renderer.text(
-                x + FILE_TILE_WIDTH // 2,
-                FILE_TILE_IMAGE_Y + image_height // 2,
-                "LOADING...", ThemeColor.DIM, "JetBrainsMono 8pt",
-                "center", "middle"))
-        elif entry.directory:
-            commands += self._file_directory_tile(
-                x, FILE_TILE_IMAGE_Y, image_height)
-        else:
-            commands.append(self.renderer.text(
-                x + FILE_TILE_WIDTH // 2,
-                FILE_TILE_IMAGE_Y + image_height // 2,
-                "NO PREVIEW", ThemeColor.DIM, "JetBrainsMono 8pt",
-                "center", "middle"))
-
-        label = (entry.name if entry.directory else
-                 os.path.splitext(entry.name)[0])
-        commands.append(self.renderer.text(
-            x + 14, 266, label, ThemeColor.BRIGHT,
-            "Roboto Bold 12pt", "left", "top",
-            max_width=FILE_TILE_WIDTH - 28, max_height=68,
-            wrap=True, truncate=True))
-        detail = ("OPEN" if entry.directory else
-                  self._format_size(entry.size))
-        commands.append(self.renderer.text(
-            x + 14, 352, detail, ThemeColor.DIM,
-            "JetBrainsMono 8pt", "left", "middle",
-            max_width=FILE_TILE_WIDTH - 28, truncate=True))
-        return commands
-
-    def _file_directory_tile(self, x, y, height):
-        folder_width = 112
-        folder_height = 72
-        folder_x = x + (FILE_TILE_WIDTH - folder_width) // 2
-        folder_y = y + (height - folder_height) // 2 + 6
-        return [
-            self.renderer.fill(
-                folder_x, folder_y, 48, 14, ThemeColor.PRIMARY),
-            self.renderer.fill(
-                folder_x, folder_y + 12, folder_width, folder_height - 12,
-                ThemeColor.PANEL),
-            self.renderer.stroke(
-                folder_x, folder_y + 12, folder_width, folder_height - 12,
-                ThemeColor.PRIMARY, 2),
-        ]
+    def _file_tile_view(self, entry):
+        label = entry.name if entry.directory else os.path.splitext(entry.name)[0]
+        detail = "OPEN" if entry.directory else self._format_size(entry.size)
+        if entry.directory:
+            return file_browser_ui.TileView("folder", None, label, detail)
+        found, blob = self._cached_file_preview(entry)
+        content = "loading" if not found else "image" if blob is not None else "none"
+        return file_browser_ui.TileView(content, blob, label, detail)
 
     def _handle_file_action(self, action):
         self._require_idle()
@@ -569,51 +489,30 @@ class FileBrowserPagesMixin:
         self._show_page(ScreenPage.FILE_CONFIRM)
 
     def _render_file_confirm(self):
-        entry = self.selected_file
-        repeat = getattr(self, "file_confirm_repeat", False)
-        rebuild_mesh = bool(getattr(
-            self, "file_confirm_rebuild_mesh", False))
-        auto_mesh = bool(getattr(self, "file_confirm_auto_mesh", False))
-        rebuild_hint = (
-            "KAMP ENABLED - FULL MESH WILL RUN INSTEAD"
-            if bool(self._setting("use_kamp", False))
-            else "FOR THIS PRINT ONLY")
-        commands = self.renderer.begin_page(
-            "Print again?" if repeat else "Start print?", back=True)
-        commands.append(self.renderer.text(
-            400, 96, entry.name, ThemeColor.BRIGHT, "Roboto Bold 16pt",
-            "center", "middle", max_width=720, truncate=True))
-        commands.append(self.renderer.text(
-            400, 140, self._format_size(entry.size), ThemeColor.PRIMARY,
-            "Roboto 12pt", "center", "middle"))
-        commands += self._file_confirm_option(
-            "file.mesh.rebuild", 170, "REBUILD BED MESH",
-            rebuild_hint, rebuild_mesh)
-        if rebuild_mesh:
-            commands += self._file_confirm_option(
-                "file.mesh.auto", 238, "SAVE MESH FOR FUTURE PRINTS",
-                "YOU'LL BE ASKED AFTER PRINT", auto_mesh)
-        labels = ("PREVIEW", "PRINT AGAIN" if repeat else "START PRINT")
-        font = self.renderer.normalize_font("Roboto Bold 16pt")
-        button_width = max(self.renderer.text_width(label, font) for label in labels) + 2 * self.renderer.BUTTON_TEXT_PADDING
-        bounds = centered_button_row(
-            labels, 0, 316, 800, measure_text=self.renderer.text_width,
-            font=font, height=96, padding=self.renderer.BUTTON_TEXT_PADDING,
-            minimum=button_width, maximum=760, gap=18, margin=24)
-        for action, label, box in zip(("file.preview", "file.start"), labels, bounds):
-            commands += self.renderer.button(action, *box, label, font=font)
-        self.renderer.send(commands)
+        self._render_screen()
 
-    def _file_confirm_option(self, action, y, label, subtitle, active):
-        commands = [
-            self.renderer.text(44, y + 12, label, ThemeColor.PRIMARY,
-                               "JetBrainsMono Bold 8pt"),
-            self.renderer.text(44, y + 34, subtitle, ThemeColor.DIM,
-                               "JetBrainsMono 8pt"),
-        ]
-        commands += self.renderer.toggle(
-            action, 679, y + 5, 76, 38, active)
-        return commands
+    def _file_confirm_page(self):
+        repeat = bool(getattr(self, "file_confirm_repeat", False))
+        pages = self.__dict__.setdefault("_file_confirm_pages", {})
+        if repeat not in pages:
+            pages[repeat] = file_confirm_ui.create_page(self.renderer, repeat)
+        return pages[repeat]
+
+    def _file_confirm_content(self):
+        title = "Print again?" if getattr(self, "file_confirm_repeat", False) else "Start print?"
+        return self._file_confirm_page(), title, True
+
+    def _write_file_confirm_values(self):
+        entry = self.selected_file
+        keys = file_confirm_ui.ConfirmState
+        self._file_confirm_page().state.update({
+            keys.NAME: entry.name,
+            keys.SIZE: self._format_size(entry.size),
+            keys.HINT: ("KAMP ENABLED - FULL MESH WILL RUN INSTEAD" if bool(self._setting("use_kamp", False))
+                        else "FOR THIS PRINT ONLY"),
+            keys.REBUILD: bool(getattr(self, "file_confirm_rebuild_mesh", False)),
+            keys.AUTO: bool(getattr(self, "file_confirm_auto_mesh", False)),
+        })
 
     def _start_selected_file(self):
         self._require_idle()

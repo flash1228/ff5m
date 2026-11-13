@@ -31,55 +31,18 @@ def get_page():
     return _page_module().PAGE
 
 
-def _changed_refs(module, page, values):
-    ref = module.PrintingRef
-    targets = {
-        PrintingState.FILENAME: (ref.FILENAME,),
-        PrintingState.STATUS: (ref.STATUS,),
-        PrintingState.PROGRESS: (ref.PROGRESS, ref.PROGRESS_VALUE),
-        PrintingState.ELAPSED: (ref.ELAPSED,),
-        PrintingState.REMAINING: (ref.REMAINING,),
-        PrintingState.LAYER: (ref.LAYER,),
-        PrintingState.HEIGHT: (ref.HEIGHT,),
-        PrintingState.PAUSED: (ref.PAUSE,),
-        PrintingState.CONTROLS_READY: (ref.PAUSE, ref.MORE),
-        PrintingState.PENDING_ACTION: (ref.PAUSE,),
-        PrintingState.LIVE_Z_ALLOWED: (ref.Z_ADJUST,),
-        PrintingState.PREVIEW_STATUS: (ref.PREVIEW,),
-    }
-    if any(key not in targets for key in values):
-        return None
-    return tuple(dict.fromkeys(
-        target for key, value in values.items()
-        if value != page.state.get(key)
-        for target in targets[key]))
-
-
-def render(renderer, values, reuse_layout=False):
-    module = _page_module()
-    page = module.PAGE
-    refs = (_changed_refs(module, page, values)
-            if reuse_layout and all(key in values for key in page.state)
-            else None)
-    return page.draw(renderer, values, reuse_layout=reuse_layout,
-                     refs=refs, reuse_styles=refs is not None)
-
-
-def update(renderer, values):
-    module = _page_module()
-    page = module.PAGE
-    refs = _changed_refs(module, page, values)
-    if refs is None:
-        return page.update(renderer, values)
-    return page.update_refs(renderer, values, refs)
-
-
-def update_progress(renderer, values):
-    return update(renderer, values)
+_GEOMETRY = []
 
 
 def rect(ref):
-    return get_page().rect(ref)
+    """Where ref lies on the printing page. The shown page has no layout of its own
+    while the frame loop arranges it, and these places do not move with its values,
+    so a page laid out once answers."""
+    if not _GEOMETRY:
+        page = _page_module().create_page()
+        page.prepare_layout()
+        _GEOMETRY.append(page)
+    return _GEOMETRY[0].rect(ref)
 
 
 def __getattr__(name):
@@ -88,6 +51,5 @@ def __getattr__(name):
 
 __all__ = (
     "PREVIEW_IMAGE_PADDING", "PrintingAction", "PrintingRef",
-    "PrintingRoute", "PrintingState", "get_page", "rect", "render",
-    "update", "update_progress",
+    "PrintingRoute", "PrintingState", "get_page", "rect",
 )

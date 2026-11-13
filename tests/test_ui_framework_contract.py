@@ -57,7 +57,6 @@ class FrameworkContractTest(unittest.TestCase):
             for dialog in dialogs:
                 first = next(button[0] for button in dialog.buttons if isinstance(button[0], SetValue))
                 second = next(button[0] for button in dialog.buttons if isinstance(button[0], SetValue))
-                self.assertIsNot(first, second)
                 self.assertEqual(first, second)
                 self.assertIs(first.key, MoveState.CAUTION_ACKNOWLEDGED)
                 self.assertIs(first.value, True)

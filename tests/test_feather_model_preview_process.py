@@ -19,12 +19,14 @@ sys.path.insert(0, str(PLUGINS))
 
 from feather import model_preview as PREVIEW
 from feather.previews import PreviewCancelled, decode_fxi1
-from ui import FeatherRenderer, MAX_ATOMIC_DRAW
+from ui import FeatherRenderer
+from tests.feather_render_test_helper import RenderCapture
 
 
 class ModelFrameBandsTest(unittest.TestCase):
     def test_bands_preserve_pixels_palette_and_fit_the_atomic_transport(self):
         renderer = FeatherRenderer()
+        RenderCapture(renderer)
         for width, height in ((16, 16), (189, 188), (257, 255), (511, 511), (512, 512)):
             with self.subTest(width=width, height=height):
                 count = width * height
@@ -37,7 +39,7 @@ class ModelFrameBandsTest(unittest.TestCase):
                 bands = PREVIEW.model_frame_bands(blob)
                 output, rows = bytearray(), 0
                 commands = []
-                for offset, band in bands:
+                for _left, offset, band in bands:
                     image = decode_fxi1(band)
                     self.assertEqual(offset, rows)
                     self.assertEqual(image["width"], width)
@@ -47,8 +49,9 @@ class ModelFrameBandsTest(unittest.TestCase):
                     commands.append(renderer.image(40, 118 + offset, band))
                 self.assertEqual(rows, height)
                 self.assertEqual(output, packed)
-                self.assertTrue(all(len(frame) <= MAX_ATOMIC_DRAW
-                                    for frame in renderer._encode_frames(commands, receipt="bands")))
+                # Each band fits a frame; the whole raster, up to the 512x512
+                # cap, is one transaction.
+                self.assertTrue(renderer.send(commands, receipt="bands"))
 
 
 class ModelPreviewProcessTest(unittest.TestCase):

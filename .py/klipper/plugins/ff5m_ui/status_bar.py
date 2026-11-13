@@ -6,13 +6,41 @@
 import math
 
 from ui import FeatherRenderer, ThemeColor, ThemeRole
+from ui.bindings import bind, state
+from ui.identity import StateKey
 from ui.lazy import LazyModule
-from ui.renderer import FOOTER_HEIGHT, FOOTER_Y, FRAME_WIDTH, FRAME_X, SCREEN_HEIGHT, SCREEN_WIDTH
+from ui.renderer import FOOTER_HEIGHT
+
+# The footer's tree is made with its first values: startup builds no
+# declarative tree.
+components = LazyModule("ui.components")
+layout = LazyModule("ui.layout")
 
 
 SEPARATOR = " · "
 FONT = "JetBrainsMono 8pt"
-layout = LazyModule("ui.layout")
+METRICS_COLORS = (ThemeRole.TEMPERATURE_NOZZLE, ThemeRole.TEMPERATURE_BED, ThemeColor.TEXT,
+                  ThemeColor.TEXT, ThemeColor.SUCCESS, ThemeColor.PRIMARY)
+COLORFUL_COLORS = (ThemeColor.SECONDARY, ThemeColor.WARNING, ThemeColor.TEXT, ThemeColor.PRIMARY)
+
+
+class StatusBarState(StateKey):
+    """The status bar's fields: six (METRICS), four (COLORFUL) or the plain left and right texts."""
+
+    __key_namespace__ = "ff5m.status_bar"
+    METRICS = state(bool, default=False)
+    COLORFUL = state(bool, default=False)
+    PLAIN = state(bool, default=True)
+    FIELD_0 = state(str, default="")
+    FIELD_1 = state(str, default="")
+    FIELD_2 = state(str, default="")
+    FIELD_3 = state(str, default="")
+    FIELD_4 = state(str, default="")
+    FIELD_5 = state(str, default="")
+
+
+FIELDS = (StatusBarState.FIELD_0, StatusBarState.FIELD_1, StatusBarState.FIELD_2,
+          StatusBarState.FIELD_3, StatusBarState.FIELD_4, StatusBarState.FIELD_5)
 
 
 def footer_values(extruder, bed, cpu_percent, memory_kib, network, status, style="METRICS"):
@@ -38,46 +66,44 @@ def footer_values(extruder, bed, cpu_percent, memory_kib, network, status, style
     return left, SEPARATOR.join((network, status.upper()))
 
 
+def _pair(first, colors, gap):
+    """Two fields joined by a dim middle dot, each content-sized."""
+    text = components.Text
+    return layout.Row(
+        text(bind(FIELDS[first]), colors[first], FONT, "left").width("content"),
+        text("·", ThemeColor.DIM, FONT, "left").width("content"),
+        text(bind(FIELDS[first + 1]), colors[first + 1], FONT, "left").width("content"),
+        gap=gap).width("content")
+
+
 class PrinterRenderer(FeatherRenderer):
     """Keep the shared footer lifecycle and specialize only FF5M's drawing."""
 
-    def _footer_commands(self, values):
-        left, right = values
+    def _footer_state(self, left, right):
+        values = super()._footer_state(left, right)
         left_fields, right_fields = left.split(SEPARATOR), right.split(SEPARATOR)
-        if len(left_fields) not in (2, 4) or len(right_fields) != 2:
-            return super()._footer_commands(values)
-        fields = left_fields + right_fields
-        if len(left_fields) == 4:
-            colors = (ThemeRole.TEMPERATURE_NOZZLE, ThemeRole.TEMPERATURE_BED,
-                      ThemeColor.TEXT, ThemeColor.TEXT, ThemeColor.SUCCESS, ThemeColor.PRIMARY)
-        else:
-            colors = (ThemeColor.SECONDARY, ThemeColor.WARNING, ThemeColor.TEXT, ThemeColor.PRIMARY)
-        widths = [self.text_width(value, FONT) for value in fields]
-        dot_width = self.text_width("·", FONT)
-        # Compact pairs leave room for a fill-sized center column between the
-        # content-sized temperatures and network/state columns.
-        pair_gap = dot_width if len(fields) == 6 else 3 * dot_width
-        pair_widths = [sum(widths[index:index + 2]) + pair_gap
-                       for index in range(0, len(fields), 2)]
-        columns = layout.split(layout.Rect(20, FOOTER_Y, SCREEN_WIDTH - 40, FOOTER_HEIGHT),
-                               "horizontal", (pair_widths[0], layout.FLEX, pair_widths[-1]), gap=dot_width)
-        starts = [columns[0].x, columns[-1].x]
-        if len(fields) == 6:
-            starts.insert(1, columns[1].x + (columns[1].width - pair_widths[1]) / 2)
-        commands = [
-            self.fill(0, FOOTER_Y - 2, SCREEN_WIDTH,
-                      SCREEN_HEIGHT - FOOTER_Y + 2, ThemeColor.BACKGROUND),
-            self.fill(10, FOOTER_Y, SCREEN_WIDTH - 20, FOOTER_HEIGHT - 1, ThemeColor.PANEL),
-            self.stroke(FRAME_X, FOOTER_Y - 2, FRAME_WIDTH,
-                        SCREEN_HEIGHT - FOOTER_Y - 2, ThemeColor.BORDER, 1),
-        ]
-        for index, x in zip(range(0, len(fields), 2), starts):
-            x = round(x)
-            commands += [
-                self.text(x, FOOTER_Y + 16, fields[index], colors[index], FONT),
-                self.text(round(x + widths[index] + (pair_gap - dot_width) / 2),
-                          FOOTER_Y + 16, "·", ThemeColor.DIM, FONT),
-                self.text(round(x + widths[index] + pair_gap), FOOTER_Y + 16,
-                          fields[index + 1], colors[index + 1], FONT),
-            ]
-        return commands
+        fields = left_fields + right_fields if len(left_fields) in (2, 4) and len(right_fields) == 2 else ()
+        values[StatusBarState.METRICS] = len(fields) == 6
+        values[StatusBarState.COLORFUL] = len(fields) == 4
+        values[StatusBarState.PLAIN] = not fields
+        for index, key in enumerate(FIELDS):
+            values[key] = fields[index] if index < len(fields) else ""
+        return values
+
+    def _footer_content(self):
+        from ui.footer import footer_panel, footer_texts
+        # Columns are a dot's width apart; the dot is measured once, as the
+        # runtime font metrics are the bundled ones.
+        dot = self.text_width("·", FONT)
+        # Content-sized temperatures and network/state pairs; METRICS centers
+        # its CPU/memory pair in the column between them.
+        row, when = layout.Row, layout.When
+        metrics = row(
+            _pair(0, METRICS_COLORS, 0), layout.Overlay(_pair(2, METRICS_COLORS, 0).align("center")).grow(1),
+            _pair(4, METRICS_COLORS, 0), gap=dot)
+        colorful = row(
+            _pair(0, COLORFUL_COLORS, dot), layout.Spacer().grow(1), _pair(2, COLORFUL_COLORS, dot), gap=dot)
+        return footer_panel(
+            when(bind(StatusBarState.PLAIN), layout.Overlay(*footer_texts())),
+            when(bind(StatusBarState.METRICS), metrics.offset(20, 2).size(760, FOOTER_HEIGHT)),
+            when(bind(StatusBarState.COLORFUL), colorful.offset(20, 2).size(760, FOOTER_HEIGHT)))

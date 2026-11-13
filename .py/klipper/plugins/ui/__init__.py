@@ -4,7 +4,7 @@
 
 ## Public Feather UI package.
 
-__version__ = "2.10.0"
+__version__ = "2.12.0"
 FRAMEWORK_API_VERSION = 2
 REFLECTION_SCHEMA_VERSION = "2.4.0"
 FRAMEWORK_CAPABILITIES = (
@@ -21,6 +21,7 @@ FRAMEWORK_CAPABILITIES = (
     "package-relative-themes",
     "typed-theme-tokens",
     "data-driven-list-templates",
+    "list-item-reuse",
     "painted-content-frame",
     "typed-styles",
     "style-inheritance",
@@ -31,6 +32,12 @@ FRAMEWORK_CAPABILITIES = (
     "slider-knob",
     "labelled-slider",
     "stacked-metrics",
+    "page-chrome-geometry",
+    "page-bounds-source",
+    "single-template-list",
+    "page-declarations-source",
+    "page-action-references",
+    "state-case-properties",
 )
 
 
@@ -45,7 +52,7 @@ def framework_manifest():
     }
 
 _EXPORT_GROUPS = (
-    ("screen", ("ScreenLayer", "ScreenRoot")),
+    ("screen", ("ImperativeSurface", "ScreenLayer", "ScreenRoot")),
     ("layout_helpers", (
         "centered_button_row", "dialog_pager_bounds",
         "dialog_vertical_bounds", "layout_dialog_text",
@@ -63,18 +70,14 @@ _EXPORT_GROUPS = (
     )),
     ("renderer", (
         "CONTENT_BOTTOM", "FOOTER_HEIGHT", "FOOTER_Y",
-        "HEADER_BOTTOM", "MAX_ATOMIC_DRAW", "MAX_PENDING_DRAW",
-        "SCREEN_HEIGHT", "SCREEN_WIDTH",
-        "FeatherRenderer", "rectangles_overlap",
-    )),
-    ("render_worker", (
-        "MAX_BATCHES", "MAX_BATCH_BYTES", "RenderBatch",
-        "RenderBatchQueue", "TyperRenderWorker",
+        "HEADER_BOTTOM", "MAX_ATOMIC_DRAW", "MAX_BATCH_BYTES", "MAX_PENDING_DRAW",
+        "SCREEN_HEIGHT", "SCREEN_WIDTH", "PAGE_CHROME_CONTRACT",
+        "PageChromeContract", "FeatherRenderer", "RenderSubmission", "rectangles_overlap",
+        "ButtonEvent", "TapEvent", "TouchDeviceEvent", "TouchEvent",
     )),
     ("render_receipts", (
         "PendingReceipt", "ReceiptMeasurement", "ReceiptTracker",
-        "RenderReceipt", "parse_render_receipt",
-        "validate_render_receipt_token",
+        "RenderReceipt", "validate_render_receipt_token",
     )),
     ("identity", (
         "CommandKey", "FrameworkKey", "PageKey", "StateKey",
@@ -111,15 +114,18 @@ _EXPORT_GROUPS = (
         "Dirty", "Equal", "EqualTracks", "Flex", "Grid", "Insets",
         "LAYOUT_SCHEMA", "LayoutModifierSpec", "LayoutResult", "LayoutSourceContract",
         "List", "ListView", "Node", "Overlay", "Param", "ParamRef", "Template",
-        "Override", "PAGE_DISCOVERY_CONTRACT", "PageDiscoveryContract",
+        "ACTION_REFERENCE_SOURCE_CONTRACT", "ActionReferenceSourceContract",
+        "Override", "PAGE_BOUNDS_SOURCE_CONTRACT", "PAGE_DECLARATIONS_SOURCE_CONTRACT",
+        "PAGE_DISCOVERY_CONTRACT", "PageBoundsSourceContract",
+        "PageDeclarationsSourceContract", "PageDiscoveryContract",
         "PageTree", "Rect", "Row", "Spacer", "Span",
         "StateCase", "StructureContract", "StructureSourceContract", "Tree", "When", "WrapPanel", "split",
         "param", "subdivision_positions",
     )),
     ("components", (
-        "ArrowButton", "Button", "ButtonStyle", "CornerMarks", "Crosshair", "Dialog",
+        "ArrowButton", "Button", "ButtonStyle", "ButtonSurface", "CornerMarks", "Crosshair", "Dialog",
         "DotGrid", "Fill", "Frame", "Hitbox", "JoystickKnob", "Slider", "SliderKnob", "Metric", "Panel", "Popup",
-        "NumericKeypad", "ScrollIndicator", "Section", "Stroke", "Text", "ToggleSwitch", "VerticalGauge",
+        "NumericKeypad", "PathText", "ProgressBar", "Image", "Disc", "ScrollIndicator", "Section", "StatusDialog", "Stroke", "Text", "TextField", "ToggleSwitch", "VerticalGauge",
         "VerticalScale",
     )),
 )
@@ -154,12 +160,11 @@ __all__ = (
     "ThemeSchemaError", "normalize_theme_name", "validate_theme_data",
     "CONTENT_BOTTOM", "FOOTER_HEIGHT", "FOOTER_Y",
     "HEADER_BOTTOM", "MAX_ATOMIC_DRAW", "MAX_PENDING_DRAW",
-    "SCREEN_HEIGHT", "SCREEN_WIDTH",
-    "MAX_BATCHES", "MAX_BATCH_BYTES", "RenderBatch", "RenderBatchQueue",
-    "TyperRenderWorker",
+    "SCREEN_HEIGHT", "SCREEN_WIDTH", "PAGE_CHROME_CONTRACT", "PageChromeContract",
+    "MAX_BATCH_BYTES", "RenderSubmission",
+    "ButtonEvent", "TapEvent", "TouchDeviceEvent", "TouchEvent",
     "PendingReceipt", "ReceiptMeasurement", "ReceiptTracker",
-    "RenderReceipt", "parse_render_receipt",
-    "validate_render_receipt_token",
+    "RenderReceipt", "validate_render_receipt_token",
     "rectangles_overlap", "FeatherRenderer",
     "FrameworkKey", "PageKey", "StateKey", "CommandKey", "serialize_key",
     "Action", "Navigate", "Back", "DismissToast", "Replace", "SetValue",
@@ -184,10 +189,14 @@ __all__ = (
     "LAYOUT_SCHEMA", "LayoutModifierSpec", "LayoutResult",
     "LayoutSourceContract", "List", "ListView",
     "Node", "Overlay", "Override", "Param", "ParamRef", "param", "PAGE_DISCOVERY_CONTRACT", "Template",
+    "PAGE_BOUNDS_SOURCE_CONTRACT", "PageBoundsSourceContract",
+    "PAGE_DECLARATIONS_SOURCE_CONTRACT", "PageDeclarationsSourceContract",
+    "ACTION_REFERENCE_SOURCE_CONTRACT", "ActionReferenceSourceContract",
     "PageDiscoveryContract", "PageTree", "Rect", "Row",
     "Spacer", "Span", "StateCase", "StructureContract", "StructureSourceContract", "Tree", "When", "WrapPanel", "split",
     "subdivision_positions", "ArrowButton", "Button",
-    "ButtonStyle", "CornerMarks", "Crosshair", "Dialog", "DotGrid",
-    "Fill", "Frame", "Hitbox", "JoystickKnob", "Slider", "SliderKnob", "Metric", "NumericKeypad", "Panel", "Popup",
-    "ScrollIndicator", "Section", "Stroke", "Text", "ToggleSwitch", "VerticalGauge", "VerticalScale",
+    "ButtonStyle", "ButtonSurface", "CornerMarks", "Crosshair", "Dialog", "DotGrid",
+    "Fill", "Frame", "Hitbox", "JoystickKnob", "Slider", "SliderKnob", "Metric", "NumericKeypad", "Panel", "PathText", "Popup",
+    "ProgressBar", "Image", "Disc", "ScrollIndicator", "Section", "StatusDialog", "Stroke", "Text", "TextField", "ToggleSwitch", "VerticalGauge",
+    "VerticalScale",
 )

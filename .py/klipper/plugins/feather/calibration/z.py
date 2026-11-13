@@ -5,9 +5,9 @@
 ## This file may be distributed under the terms of the GNU GPLv3 license
 
 from collections import OrderedDict
-from decimal import Decimal, ROUND_HALF_UP
 import logging
 
+from feather.calibration.rounding import round_thousandths, written_fraction
 from ff5m_ui.screen import ScreenPage
 from ff5m_ui.print_state import PrintState
 from ff5m_ui.z_offset import runtime as z_offset_ui
@@ -53,8 +53,7 @@ def rounded_average(values):
 
 
 def round_mm(value):
-    return float(Decimal(str(float(value))).quantize(
-        Decimal("0.001"), rounding=ROUND_HALF_UP))
+    return round_thousandths(*written_fraction(value))
 
 
 class PressureHysteresis:
@@ -290,11 +289,30 @@ class FeatherZCalibrationMixin:
             z_offset_ui.SummaryState.DIALOG: session.dialog,
         }
 
+    def _z_page_content(self, page):
+        """The declarative Z page the screen shows for page, as (tree, title,
+        back, values), or None for Live Z, which render paints."""
+        if page in (ScreenPage.CALIBRATION_Z, ScreenPage.Z_OFFSET_SUMMARY):
+            return (z_offset_ui.SUMMARY_PAGE, "Z offset zones", True,
+                    self._z_summary_ui_state)
+        if page == ScreenPage.SAFE_Z_BRIEFING:
+            return (z_offset_ui.SAFE_BRIEFING_PAGE, "Safe Z calibration", True,
+                    self._safe_z_briefing_ui_state)
+        if page == ScreenPage.SAFE_Z_CALIBRATION:
+            return (z_offset_ui.SAFE_PAGE, "Calibrate Safe Z", True,
+                    self._safe_z_ui_state)
+        if page == ScreenPage.Z_OFFSET_PAPER_BRIEFING:
+            return (z_offset_ui.PAPER_BRIEFING_PAGE, "Paper test", True,
+                    self._z_paper_briefing_ui_state)
+        if page == ScreenPage.Z_OFFSET_PAPER:
+            point = ZONE_BY_KEY[self.z_calibration.zone]
+            return (z_offset_ui.PAPER_PAGE, "Paper test - %s" % point[1], True,
+                    self._z_paper_ui_state)
+        return None
+
     def _render_z_summary(self):
-        commands = self.renderer.begin_page("Z offset zones", back=True)
-        commands += z_offset_ui.render_summary(
-            self.renderer, self._z_summary_ui_state())
-        self.renderer.send(commands)
+        """The Z page's values changed: the next paint writes them."""
+        self._paint_page_values()
 
     def _safe_z_briefing_ui_state(self):
         return {
@@ -302,10 +320,7 @@ class FeatherZCalibrationMixin:
         }
 
     def _render_safe_z_briefing(self):
-        commands = self.renderer.begin_page("Safe Z calibration", back=True)
-        commands += z_offset_ui.render_safe_briefing(
-            self.renderer, self._safe_z_briefing_ui_state())
-        self.renderer.send(commands)
+        self._paint_page_values()
 
     def _safe_z_ui_state(self):
         session = self.z_calibration
@@ -322,22 +337,17 @@ class FeatherZCalibrationMixin:
         }
 
     def _render_safe_z(self):
-        commands = self.renderer.begin_page("Calibrate Safe Z", back=True)
-        commands += z_offset_ui.render_safe(
-            self.renderer, self._safe_z_ui_state())
-        self.renderer.send(commands)
+        self._paint_page_values()
+
+    def _z_paper_briefing_ui_state(self):
+        point = ZONE_BY_KEY[self.z_calibration.zone]
+        return {
+            z_offset_ui.PaperBriefingState.ZONE_LABEL: str(point[1]),
+            z_offset_ui.PaperBriefingState.MANUAL_START: self._safe_z() / 2.0,
+        }
 
     def _render_z_paper_briefing(self):
-        point = ZONE_BY_KEY[self.z_calibration.zone]
-        commands = self.renderer.begin_page(
-            "Paper test", back=True)
-        commands += z_offset_ui.render_paper_briefing(
-            self.renderer, {
-                z_offset_ui.PaperBriefingState.ZONE_LABEL: str(point[1]),
-                z_offset_ui.PaperBriefingState.MANUAL_START:
-                    self._safe_z() / 2.0,
-            })
-        self.renderer.send(commands)
+        self._paint_page_values()
 
     def _z_paper_ui_state(self, eventtime=None):
         session = self.z_calibration
@@ -371,12 +381,7 @@ class FeatherZCalibrationMixin:
         }
 
     def _render_z_paper(self):
-        point = ZONE_BY_KEY[self.z_calibration.zone]
-        commands = self.renderer.begin_page(
-            "Paper test - %s" % point[1], back=True)
-        commands += z_offset_ui.render_paper(
-            self.renderer, self._z_paper_ui_state())
-        self.renderer.send(commands)
+        self._paint_page_values()
 
     def _z_offset_head_state(self):
         status = self.toolhead.get_status(self.reactor.monotonic())

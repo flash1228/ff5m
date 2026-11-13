@@ -72,15 +72,19 @@ class ZCalibrationFeature(FeatherZCalibrationMixin, FeatherControlsMixin,
         self._show_page(ScreenPage.LIVE_Z_OFFSET)
 
     def render(self, page):
-        {
-            ScreenPage.CALIBRATION_Z: self._render_z_summary,
-            ScreenPage.Z_OFFSET_SUMMARY: self._render_z_summary,
-            ScreenPage.Z_OFFSET_PAPER_BRIEFING: self._render_z_paper_briefing,
-            ScreenPage.Z_OFFSET_PAPER: self._render_z_paper,
-            ScreenPage.SAFE_Z_BRIEFING: self._render_safe_z_briefing,
-            ScreenPage.SAFE_Z_CALIBRATION: self._render_safe_z,
-            ScreenPage.LIVE_Z_OFFSET: self._render_live_z_offset,
-        }[page]()
+        # The other pages are the screen's content (page_content).
+        if page == ScreenPage.LIVE_Z_OFFSET:
+            self._render_live_z_offset()
+
+    def page_content(self, page):
+        content = self._z_page_content(page)
+        return None if content is None else content[:3]
+
+    def write_page_values(self, page):
+        content = self._z_page_content(page)
+        if content is not None:
+            tree, _title, _back, values = content
+            tree.state.update(values())
 
     def allows_action(self, page, action):
         exact = {

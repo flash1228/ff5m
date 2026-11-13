@@ -68,11 +68,10 @@ PAGE.title = "Input shaper"
 PAGE.show_back = True
 
 
-def render(renderer, latest, sweep):
+def values(latest, sweep):
     """Summarize the latest history entry; its spectra are not loaded."""
     summary = "No saved calibration"
     if latest is not None:
         date = time.strftime("%Y-%m-%d %H:%M", time.localtime(latest["saved_at"]))
         summary = " / ".join(axis.upper() for axis in latest["axes"]) + "  |  " + date
-    return renderer.begin_page(PAGE.title, back=True) + PAGE.draw(renderer, {
-        StartState.SWEEP: sweep, StartState.HAS_LAST: latest is not None, StartState.SUMMARY: summary})
+    return {StartState.SWEEP: sweep, StartState.HAS_LAST: latest is not None, StartState.SUMMARY: summary}

@@ -218,6 +218,10 @@ macro. Filament and cold-pull workflows continue using their action prompts.
 
 `feather/update_notification.py` owns the process-local update-notification and active-installation UI state. Five seconds after `klippy:ready`, and only while authoritative print state is idle, it sends a fire-and-forget Klipper remote-method call to Moonraker. The optional `[feather_updates]` Moonraker component returns a bounded projection of the already-cached status selected by its `update_key` option through `feather/update_status`; it uses Moonraker's `internal_transport` API for both status and installation, so it neither refreshes Git for a notification nor changes Moonraker's update-manager implementation. Missing or malformed responses fail closed and schedule the existing bounded retry without allowing an optional WebRequest endpoint to shut down Klipper. Only the idle Home page may present the modal. Starting or pausing a print removes it without setting the version-specific in-memory dismissal. The Update action repeats Feather's idle check, and the adapter revalidates idle state and the expected version before delegating the same configured key to the canonical `machine.update.client` OTA path. While that request is active, the adapter forwards only matching `update_manager:update_response` messages to Feather; the UI displays them in its existing non-interactive loader, reports a structured refusal or failure, and treats the managed-service restart as the expected terminal stage.
 
+### Native engine
+
+[`ui/feather_engine.abi3.so`](../../.py/klipper/plugins/ui/feather_engine.abi3.so) is the Feather UI engine for the printer's CPython 3.7 (Forge-X Binary Components License, built in the private native repository). Every framework node is built on it: it owns the node tree, page state, layout and drawing, and its frame loop draws the screen on its own thread. There is no Python fallback: `ui/engine.py` refuses to start with an engine of another ABI, so every framework sync ships the matching module ([testing and change guide](../testing-and-change-guide.md)). Sync removes obsolete `*.so` files in the managed plugin trees like obsolete Python sources.
+
 ## Boot and restart chain
 
 On a non-Stock boot, [`.shell/boot/boot.sh`](../../.shell/boot/boot.sh) starts `netd --adopt-existing` when the mod-owned `network.conf` already exists. The daemon preserves an already-working connection only when its transport, exact Wi-Fi SSID where applicable, address, and DHCP client all match that configuration. It takes ownership of the matching processes and removes the other transport without rewriting network configuration. If the live state cannot be accepted completely, `netd` performs a fresh cleanup and starts the saved target normally. An older installation without `network.conf` starts netd without the adoption flag so the existing one-shot bootstrap can create the mod target first. Feather then boots the MCU and launches [`.shell/commands/zstart_klipper.sh`](../../.shell/commands/zstart_klipper.sh) without waiting for connectivity. The later `S99root` stage invokes [`.root/start.sh`](../../.root/start.sh), after applying the touch settings through `ztouch.sh apply`; `AUTO` starts `S35tslib` for Feather and Guppy before their UI services. Typer tolerates that startup order by retrying a missing touch device until it appears. Guppy and Headless instead invoke `netd-cli wait --timeout 180` before continuing, preserving their Stock fallback behavior. The three-minute limit belongs to boot only; the daemon has no retry quota for its desired network. The Klipper launcher executes `/opt/klipper/start.sh`, optionally under `chrt -r 5`.
@@ -251,7 +255,9 @@ synchronous fallback when page flipping or a usable vsync source is absent.
 Typer enters its resident FIFO loop before vsync calibration completes and
 publishes frames synchronously during calibration. Once the timing model has
 enough valid samples, later frames switch to deferred publication without a
-renderer restart or an unpublished startup frame.
+renderer restart or an unpublished startup frame. At a vsync deadline the page-flip
+ioctl sleeps until that vsync, so the flip-or-copy choice there counts only copy
+work; immediate commits still count the measured pan time.
 
 When a page-flipping Typer session ends — normal exit, `TERM`/`INT`, or
 renderer teardown — it copies the currently visible frame into the boot page
@@ -343,7 +349,12 @@ only a non-blocking publication to a queue capped at 16 batches and a
 conservative 64 KiB weight per batch. Binary payloads remain immutable and are
 measured without assembling or copying their transport frames on the caller.
 Complete surfaces supersede older generations, keyed animation is latest-wins,
-and critical restart/error/shutdown batches evict untouched ordinary work. The
+and critical restart/error/shutdown batches evict untouched ordinary work.
+Surfaces do not repaint the persistent footer, so a batch records the footer
+commands it paints: a superseding surface receives the newest of them first,
+under any scrim it draws, and an obsolete batch already taken by the worker
+still renders them. The footer therefore stays dimmed exactly once under a modal
+and restored on pages regardless of render timing. The
 worker assembles bounded transport frames and blocks in `poll(POLLOUT)` when
 the FIFO is full; no encoding, write retry, or backpressure loop is scheduled
 on the reactor. Typer also locks the draw FIFO to reject a competing daemon.
@@ -376,8 +387,24 @@ Raster acceleration is an explicit runtime choice. Typer defaults to
 The ARM backend checks the kernel NEON capability before accepting the mode and
 otherwise fails startup instead of silently changing rendering behavior. It
 vectorizes solid opaque and source-alpha spans used by fills, strokes, lines,
-and scaled glyph rectangles. Framebuffer publication and individual glyph
-coverage pixels remain on their existing paths.
+and scaled glyph rectangles. Framebuffer copies (stale-tile synchronization and
+copy publication) use VLDM/VSTM bursts: the Cortex-A7 reads uncached
+framebuffer memory in bursts only with VLDM, about 6x faster than memcpy for
+32-pixel tile rows. Individual glyph coverage pixels remain on their existing
+path.
+
+RAM composition is opt-in and off by default because printer memory is scarce.
+By default Typer composes directly in the hidden framebuffer page, so blending
+and stale-tile synchronization read uncached framebuffer memory. Text drawn
+over a fill from the same transaction avoids those reads: Typer remembers
+solid fills that later commands have not drawn over, and strokes leave the
+interior of a fill solid. Feather panels and buttons (fill, border, text)
+therefore compose their text without reading the framebuffer.
+`ram_composition: True` in `[feather_screen]` adds `--ram-composition`: Typer
+keeps the current image in a publisher-owned 1.5 MB (800x480x4) buffer and
+uploads only changed tiles to the hidden page when a frame is published.
+Publication, rollback, page-flip fallback and pixel/input atomicity are the
+same in both modes; the Typer publisher tests run every case in both.
 
 The `[feather_screen]` status object exposes `worker_state`, queue depth/capacity
 and high-watermark, submitted/rendered/coalesced/dropped batch counters,
@@ -429,11 +456,13 @@ lifecycle policy.
 
 Before starting Klipper in Feather mode, the boot script creates the common
 Forge-X screen marker `/tmp/forge_x_screen_busy`. Feather still initializes its
-renderer and runtime, but its renderer output gate discards frames while that
-file exists, leaving the splash and first-boot service logger as the sole
-framebuffer owner. After `S99root start` has closed its `logged` pipeline, it
-removes the file and publishes `action:forge_x_redraw`. Feather releases the
-output gate, clears the complete panel, and renders the current page. If the
+renderer and runtime, but does not start the renderer (Typer is not launched)
+while that file exists: frames are admitted without being written, leaving the
+splash and first-boot service logger as the sole framebuffer owner. After
+`S99root start` has closed its `logged` pipeline, it removes the file and
+publishes `action:forge_x_redraw`. Feather starts the renderer, whose start
+clears the complete panel, and renders the current page whole; a safety screen
+frozen during the hold is drawn and stays frozen. If the
 redraw signal is unavailable, the existing startup-animation callback before
 `klippy:ready`, or the normal one-second UI update afterward, observes the
 removed marker and performs the same release without a separate boot timer.
@@ -477,11 +506,29 @@ The file Preview header offers Settings immediately to the left of Print.
 Settings navigates to `ScreenPage.PREVIEW_SETTINGS`, owned by the lazy settings
 feature. It uses the same list, enum editor, numeric editor, paging and commit
 flow as Mod Settings. `ff5m_ui/parameter_controls.py` declares their common
-rows, category bands, paging controls, choices and NumericKeypad through the
-component model. `ff5m_ui/model_preview/settings.py` supplies only the relevant
+rows, category bands, paging controls, theme preview, text editor and
+NumericKeypad through the component model. Row, Column and Grid allocate the
+available content area instead of placing controls at screen coordinates.
+Narrow lists stack the label, value and description; pagination uses measured
+row heights. Pagination reads the row's shared sizing policy and font metrics
+without constructing off-screen controls. Wide rows use their uniform pitch;
+only the current page constructs component trees. Values and visibility are
+still read again on every render, with no retained parameter-value cache.
+Enum and theme capacities follow the available height. The theme
+preview stacks below its choices on narrow screens, and text keyboard rows
+reflow while retaining `TEXT_KEYBOARD`'s keys and editing behavior.
+`ff5m_ui/model_preview/settings.py` supplies only the relevant
 parameter keys for the selected style. Both UI modules load on demand.
 The settings feature owns the temporary editor text and selection;
 `mod_params` remains the sole owner of persisted values.
+
+Enum and theme choices share `ff5m_ui/selection_controls.py`'s `OptionButton`.
+The selected choice keeps its theme highlight and a native-size one-bit FXI1
+checkmark instead of a textual selection suffix. The complete normal and
+pressed button surfaces own both the caption and image, so press feedback
+cannot erase either. `ff5m_ui/icons.py` provides one bounded immutable resource
+cache for the controls and calibration icon sets; only palette bytes change
+with the theme. No runtime image generation or per-theme pixel cache is used.
 
 The existing `feather_preview_*` parameters remain compatible with stored
 configuration and SET_MOD, but are hidden from the general mod settings list.

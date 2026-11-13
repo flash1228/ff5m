@@ -146,9 +146,9 @@ def _xy_pad():
         SliderKnob(
             "xy", position=bind(MoveState.CURSOR),
             active_action=JOYSTICK_XY,
-            surface_ref=JoystickRef.XY_GRID,
             glyph="cross", track="grid",
-        ).ref(JoystickRef.XY_KNOB),
+        ).margin(left=40, top=24, right=40, bottom=24)
+        .ref(JoystickRef.XY_KNOB),
         Hitbox(JOYSTICK_XY, continuous=True)
         .ref(JoystickRef.XY_HITBOX),
         caution_overlay(),
@@ -219,12 +219,8 @@ def _content():
     ).ref(JoystickRef.ROOT)
 
 
-PAGE = Page(content=_content(), bounds=MOVE_CONTENT, page_id=PAGE_ID)
+def create_page():
+    return Page(content=_content(), bounds=MOVE_CONTENT, page_id=PAGE_ID)
 
 
-def render(renderer, values):
-    return PAGE.draw(renderer, values)
-
-
-def update(renderer, values):
-    return PAGE.update(renderer, values)
+PAGE = create_page()

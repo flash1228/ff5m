@@ -26,7 +26,3 @@ def create_page(bounds=PAGE_BOUNDS):
     result.title = PAGE.title
     result.show_back = PAGE.show_back
     return result
-
-
-def render(renderer, results, reference_name=None):
-    return PAGE.draw(renderer, result_values(results, reference_name))

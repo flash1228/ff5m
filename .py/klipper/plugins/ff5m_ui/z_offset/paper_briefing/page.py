@@ -58,7 +58,3 @@ def _content():
 
 
 PAGE = Page(_content(), CONTENT, page_id=PAGE_ID, styles=UI_STYLES)
-
-
-def render(renderer, values):
-    return PAGE.draw(renderer, values)

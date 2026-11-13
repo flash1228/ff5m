@@ -57,7 +57,7 @@ def model_frame_bands(blob):
         size = (count * width + 1) // 2
         payload = image["packed"][start:start + size]
         header = struct.pack("<4sBBBBHHII", b"FXI1", 1, 0, 8, 4, width, count, size, size)
-        bands.append((y, header + palette + payload))
+        bands.append((0, y, header + palette + payload))
     return tuple(bands)
 
 

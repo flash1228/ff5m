@@ -15,6 +15,12 @@ class ModelPreviewEntryMixin:
         manager = getattr(self, "feature_manager", None)
         return None if manager is None else manager.peek("model_preview")
 
+    def _model_preview_content(self):
+        return self._loaded_model_preview()._model_preview_content()
+
+    def _write_model_preview_values(self, due):
+        self._loaded_model_preview()._write_model_preview_values(due)
+
     def cmd_FEATHER_PREVIEW_LAB(self, gcmd):
         self._require_idle()
         self.feature_manager.get("model_preview").cmd_FEATHER_PREVIEW_LAB(gcmd)
@@ -56,9 +62,9 @@ class ModelPreviewEntryMixin:
         if feature is not None:
             feature._model_preview_render_receipt(receipt)
 
-    def _coalesce_model_preview_moves(self, lines):
+    def _coalesce_model_preview_moves(self, events):
         feature = self._loaded_model_preview()
-        return lines if feature is None else feature._coalesce_model_preview_moves(lines)
+        return events if feature is None else feature._coalesce_model_preview_moves(events)
 
     def _handle_model_preview_touch(self, action, phase, x, y, now):
         feature = self._loaded_model_preview()

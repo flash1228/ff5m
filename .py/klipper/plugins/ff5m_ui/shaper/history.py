@@ -39,7 +39,3 @@ root = Column(
 PAGE = PageTree(root, CONTENT, page_id=AppPage.SHAPER_HISTORY, state_schema=tuple(HistoryState))
 PAGE.title = "Shaper results"
 PAGE.show_back = True
-
-
-def render(renderer, entries):
-    return renderer.begin_page(PAGE.title, back=True) + PAGE.draw(renderer, {HistoryState.ENTRIES: entries})

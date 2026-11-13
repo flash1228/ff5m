@@ -1,5 +1,6 @@
 ## Lazy product-feature runtime contracts for Feather.
 
+import json
 import os
 import pathlib
 import subprocess
@@ -361,7 +362,6 @@ controller.renderer = FeatherRenderer()
 controller.file_worker = DeferredPreviewWorker()
 controller._require_idle = lambda: None
 controller._setting = lambda key, default=None: default
-controller._render_screen = lambda feature=None: controller._render_model_preview()
 controller.virtual_sdcard.get_status = lambda now: {'progress': 0.25}
 controller.toolhead = SimpleNamespace(get_status=lambda now: {'position': (0, 0, 2, 0)})
 controller._close_model_preview()
@@ -487,7 +487,7 @@ assert z_feature is manager.get('z')
 assert 'feather.calibration.z' in sys.modules
 assert not [name for name in sys.modules
             if name.startswith('ff5m_ui.z_offset') and name.endswith('.page')]
-z_feature.render(ScreenPage.SAFE_Z_BRIEFING)
+z_feature.page_content(ScreenPage.SAFE_Z_BRIEFING)
 pages = [name for name in sys.modules
          if name.startswith('ff5m_ui.z_offset') and name.endswith('.page')]
 assert pages == ['ff5m_ui.z_offset.safe_briefing.page'], pages
@@ -570,6 +570,55 @@ with tempfile.TemporaryDirectory() as directory:
             env=environment, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
+
+
+class DeclaredLazyImportTest(unittest.TestCase):
+    """A lazy import fails only when it is first used (a page opening), so every one the product declares must
+    resolve: each module-level LazyModule and each name a module exports in __all__."""
+
+    def test_every_declared_lazy_import_resolves(self):
+        source = """
+import importlib, json, pathlib, sys
+from ui.lazy import LazyModule
+plugins = pathlib.Path(sys.argv[1])
+failures, proxies, exports = [], 0, 0
+for package in ("feather", "ff5m_ui"):
+    for path in sorted((plugins / package).rglob("*.py")):
+        parts = path.relative_to(plugins).with_suffix("").parts
+        name = ".".join(parts[:-1] if parts[-1] == "__init__" else parts)
+        try:
+            module = importlib.import_module(name)
+        except Exception as error:
+            failures.append([name, None, repr(error)])
+            continue
+        for attribute, value in list(vars(module).items()):
+            if isinstance(value, LazyModule):
+                proxies += 1
+                try:
+                    value.__name__
+                except Exception as error:
+                    failures.append([name, attribute, repr(error)])
+        for attribute in getattr(module, "__all__", ()):
+            exports += 1
+            try:
+                getattr(module, attribute)
+            except Exception as error:
+                failures.append([name, attribute, repr(error)])
+print(json.dumps({"failures": failures, "proxies": proxies, "exports": exports}))
+"""
+        environment = dict(os.environ)
+        environment["PYTHONPATH"] = str(PLUGINS)
+        result = subprocess.run([sys.executable, "-c", source, str(PLUGINS)], env=environment,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        found = json.loads(result.stdout.splitlines()[-1])
+        self.assertEqual(found["failures"], [])
+        self.assertTrue(found["proxies"] and found["exports"], found)  # the walk reached the product's modules
+
+    def test_a_proxy_to_a_missing_module_fails_on_first_use(self):
+        proxy = LazyModule("feather.no_such_module_for_this_test")
+        with self.assertRaises(ModuleNotFoundError):
+            proxy.__name__
 
 
 class FeatureHostProxyTest(unittest.TestCase):

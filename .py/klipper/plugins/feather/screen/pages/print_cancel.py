@@ -8,6 +8,7 @@ import logging
 
 from timelapse_state import TimelapsePhase
 from ui import ThemeColor
+from ff5m_ui import dialogs as dialog_ui
 from ff5m_ui.screen import ScreenPage
 
 
@@ -36,8 +37,8 @@ class PrintCancelPagesMixin:
                      if phase == TimelapsePhase.WAITING
                      else "Cancel this print during preparation?"),
                     self.page,
-                    actions=(("timelapse.wait.cancel", "CANCEL PRINT", "danger"),
-                             ("message.ok", "GO BACK", "enabled")),
+                    actions=((dialog_ui.CANCEL_HELD_PRINT, "CANCEL PRINT", "danger"),
+                             (dialog_ui.OK, "GO BACK", "enabled")),
                     title="Cancel print?")
             return
 

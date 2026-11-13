@@ -6,8 +6,8 @@
 from enum import Enum
 
 from ui import ThemeColor
-from ui.components import Fill, Text
-from ui.layout import ComponentTemplate, Overlay, Param, param
+from ui.components import Frame, Text
+from ui.layout import ComponentTemplate, Param, param
 
 from ..styles import UiStyle
 
@@ -22,8 +22,8 @@ VALUE_COLOR = Param("color", field=Text.creation_contract.field("color"))
 VALUE = ComponentTemplate(
     HeatComponent.VALUE,
     parameters=(VALUE_TEXT, VALUE_COLOR),
-    root=Overlay(
-        Fill(ThemeColor.BACKGROUND),
+    root=Frame(
         Text(param(VALUE_TEXT), color=param(VALUE_COLOR)).style(UiStyle.VALUE),
+        background=ThemeColor.BACKGROUND, line_width=0,
     ).repaint_boundary(),
 )

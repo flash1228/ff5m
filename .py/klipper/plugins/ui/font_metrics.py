@@ -11,8 +11,8 @@ import logging
 import os
 import re
 import subprocess
-from functools import lru_cache
 
+from .engine import FontCatalog, FontMetricsBase, font_edit
 from .font_policy import DEFAULT_FONT, FONT_FALLBACKS
 
 
@@ -20,72 +20,75 @@ SCHEMA = "font-metrics/v1"
 WRAP_ALGORITHM = "word-v1"
 FALLBACK_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                              "font_metrics.json")
-_FONT_NAME = re.compile(r"^(.+) (\d+)pt$")
 _WRAP_WORD = re.compile(r"[^ \t\r]+")
+
+# Every edit of a FontMetric or FontMetrics attribute is noted in the engine's
+# count; a FontMetrics rebuilds its engine catalog when the count moves, and the
+# engine reads its classes' catalogs again, so measurement observes every edit.
 
 
 class FontMetric:
     __slots__ = (
         "name", "advance_x", "monospaced", "advance_y", "top", "bottom",
-        "unicode_ranges", "fallback", "_range_offsets",
+        "ascent", "descent", "ascii_top", "ascii_bottom",
+        "unicode_ranges", "fallback", "_catalog",
     )
 
     def __init__(self, name, advance_x, monospaced, advance_y, top, bottom,
-                 unicode_ranges, fallback=None):
+                 unicode_ranges, fallback=None, ascent=None, descent=None,
+                 ascii_top=None, ascii_bottom=None):
         self.name = name
         self.advance_x = advance_x
         self.monospaced = monospaced
         self.advance_y = advance_y
         self.top = top
         self.bottom = bottom
+        # A manifest of an older Typer lacks these: its ink bounds stand in.
+        self.ascent = -top if ascent is None else ascent
+        self.descent = bottom if descent is None else descent
+        self.ascii_top = top if ascii_top is None else ascii_top
+        self.ascii_bottom = bottom if ascii_bottom is None else ascii_bottom
         self.unicode_ranges = unicode_ranges
         self.fallback = fallback
-        offsets = []
-        offset = 0
-        for start, end in unicode_ranges:
-            offsets.append((start, end, offset))
-            offset += end - start + 1
-        self._range_offsets = tuple(offsets)
+
+    def __setattr__(self, name, value):
+        object.__setattr__(self, name, value)
+        object.__setattr__(self, "_catalog", None)
+        font_edit()
 
     @property
     def glyph_height(self):
         return self.bottom - self.top
 
+    def _face(self):
+        """The engine catalog of this face alone."""
+        catalog = self._catalog
+        if catalog is None:
+            catalog = FontCatalog((self,), self.name)
+            object.__setattr__(self, "_catalog", catalog)
+        return catalog
+
     def character_advance(self, character):
-        codepoint = ord(character)
-        for start, end, offset in self._range_offsets:
-            if start <= codepoint <= end:
-                if self.monospaced:
-                    return self.advance_x
-                return self.advance_x[offset + codepoint - start]
-        return 0
+        return self._face().advance(self.name, character)
 
     def text_advance(self, value):
-        value = str(value)
-        # Uniform printable ASCII needs no per-glyph Python lookup. Partial
-        # fonts and control/Unicode characters retain the manifest lookup.
-        if (self.monospaced and value.isascii() and value.isprintable()
-                and self._range_offsets):
-            start, end, _offset = self._range_offsets[0]
-            if start <= 32 and end >= 126:
-                return len(value) * self.advance_x
-        return sum(self.character_advance(character) for character in value)
+        return self._face().advance(self.name, value)
 
     def supports_text(self, value):
-        value = str(value)
-        if (self.monospaced and value.isascii() and value.isprintable()
-                and self._range_offsets):
-            start, end, _offset = self._range_offsets[0]
-            if start <= 32 and end >= 126:
-                return self.advance_x > 0
-        return all(character in "\n\r\t" or self.character_advance(character) > 0
-                   for character in value)
+        return self._face().supports(self.name, value)
 
 
-class FontMetrics:
-    __slots__ = ("fonts", "names", "default_font", "revision")
+class FontMetrics(FontMetricsBase):
+    """The faces of a font manifest. The engine base measures on their catalog (font_catalog, normalize_font,
+    normalize_for_text, metric, text_width, wrap_text, text_height, fitting_font)."""
+
+    __slots__ = (
+        "fonts", "names", "default_font", "revision", "_catalog",
+        "_catalog_edits",
+    )
 
     def __init__(self, fonts, default_font=None):
+        self._catalog_edits = None
         self.fonts = dict((metric.name, metric) for metric in fonts)
         self.names = tuple(sorted(self.fonts))
         if not self.names:
@@ -100,163 +103,13 @@ class FontMetrics:
                     "font fallback %r for %r is not declared" %
                     (metric.fallback, metric.name))
 
+    def __setattr__(self, name, value):
+        object.__setattr__(self, name, value)
+        font_edit()
+
     @property
     def cache_key(self):
         return id(self), self.revision
-
-    def normalize_font(self, font, allow_proportional=False):
-        value = str(font)
-        if value in self.fonts:
-            return value
-        match = _FONT_NAME.match(value)
-        if match is None:
-            logging.warning(
-                "[feather_screen] unsupported font %r; using %s",
-                font, self.default_font)
-            return self.default_font
-        family, requested = match.group(1), int(match.group(2))
-        # ``allow_proportional`` remains in the public signature for callers
-        # written against framework 2.0. The manifest is authoritative: every
-        # declared face is renderable regardless of spacing model.
-        del allow_proportional
-        candidates = []
-        for name in self.names:
-            candidate = _FONT_NAME.match(name)
-            if candidate is not None and candidate.group(1) == family:
-                candidates.append((int(candidate.group(2)), name))
-        if not candidates:
-            logging.warning(
-                "[feather_screen] unsupported font %r; using %s",
-                font, self.default_font)
-            return self.default_font
-        return min(
-            candidates, key=lambda item: (abs(item[0] - requested), item[0]))[1]
-
-    def _supporting_font(self, value, requested):
-        requested_match = _FONT_NAME.match(requested)
-        requested_size = (
-            int(requested_match.group(2)) if requested_match is not None else None)
-        candidates = []
-        for name in self.names:
-            metric = self.fonts[name]
-            if not metric.supports_text(value):
-                continue
-            match = _FONT_NAME.match(name)
-            size = int(match.group(2)) if match is not None else None
-            distance = (
-                abs(size - requested_size)
-                if size is not None and requested_size is not None else 0)
-            candidates.append((distance, name))
-        return min(candidates)[1] if candidates else None
-
-    def normalize_for_text(self, font, value):
-        return self._normalize_for_text(str(font), str(value))
-
-    @lru_cache(maxsize=256)
-    def _normalize_for_text(self, font, value):
-        normalized = self.normalize_font(font)
-        current = normalized
-        visited = set()
-        while current not in visited:
-            visited.add(current)
-            metric = self.fonts[current]
-            if metric.supports_text(value):
-                return current
-            if metric.fallback is None:
-                break
-            current = metric.fallback
-        supporting = self._supporting_font(value, normalized)
-        return supporting or self.default_font
-
-    def metric(self, font):
-        return self.fonts[self.normalize_font(font)]
-
-    def text_width(self, value, font):
-        return self.fonts[self.normalize_for_text(font, value)].text_advance(value)
-
-    def fitting_font(self, value, font, width, height, wrap=False):
-        """Shrink within the supported face sizes; retain the minimum when none fit."""
-        font = self.normalize_for_text(font, value)
-        requested = _FONT_NAME.match(font)
-        if requested is None:
-            return font
-        family, maximum = requested.group(1), int(requested.group(2))
-        candidates = []
-        for name in self.names:
-            match = _FONT_NAME.match(name)
-            if (match is not None and match.group(1) == family
-                    and int(match.group(2)) <= maximum and self.fonts[name].supports_text(value)):
-                candidates.append((int(match.group(2)), name))
-        candidates.sort(reverse=True)
-        chosen = font
-        for _size, chosen in candidates:
-            lines = self.wrap_text(value, chosen, width) if wrap else str(value).split("\n")
-            if (max((self.text_width(line, chosen) for line in lines), default=0) <= width
-                    and self.text_height(value, chosen, max_width=width, wrap=wrap) <= height):
-                break
-        return chosen
-
-    def wrap_text(self, value, font, max_width):
-        """Implement TextDrawer's whitespace and long-word rules (word-v1)."""
-        text = str(value)
-        width = int(max_width)
-        if width <= 0:
-            return [text]
-        font = self.normalize_for_text(font, text)
-        return list(self._wrap_text_lines(text, font, width))
-
-    @lru_cache(maxsize=512)
-    def _wrap_text_lines(self, text, font, width):
-        metric = self.fonts[font]
-
-        def fits(line):
-            return metric.text_advance(line) <= width
-
-        lines = []
-        current = ""
-
-        def append_word(word):
-            nonlocal current
-            if current:
-                candidate = current + " " + word
-                if fits(candidate):
-                    current = candidate
-                    return
-                lines.append(current)
-                current = ""
-            if fits(word):
-                current = word
-                return
-            chunk = ""
-            for character in word:
-                candidate = chunk + character
-                if chunk and not fits(candidate):
-                    lines.append(chunk)
-                    chunk = ""
-                    candidate = character
-                chunk = candidate
-            current = chunk
-
-        for paragraph in text.split("\n"):
-            words = _WRAP_WORD.findall(paragraph)
-            for word in words:
-                append_word(word)
-            if current:
-                lines.append(current)
-                current = ""
-            if not words:
-                lines.append("")
-        return tuple(lines)
-
-    def text_height(self, value, font, max_width=None, wrap=False):
-        font = self.normalize_for_text(font, value)
-        metric = self.fonts[font]
-        if wrap:
-            lines = self.wrap_text(value, font, max_width)
-        else:
-            lines = str(value).split("\n")
-        count = max(1, len(lines))
-        return metric.glyph_height + (count - 1) * metric.advance_y
 
 
 def _integer(value, label, positive=False):
@@ -330,8 +183,23 @@ def parse_manifest(value):
             raise ValueError("glyph bounds must have positive height")
         metrics.append(FontMetric(
             name, advance_x, monospaced, advance_y, top, bottom,
-            tuple(normalized_ranges)))
+            tuple(normalized_ranges), **_placement(entry)))
     return FontMetrics(metrics)
+
+
+def _placement(entry):
+    """The optional text placement metrics of a manifest entry."""
+    if "ascent" not in entry:
+        return {}
+    ascii_bounds = entry.get("ascii_bounds")
+    if not isinstance(ascii_bounds, dict):
+        raise ValueError("ascii_bounds must be an object")
+    return {
+        "ascent": _integer(entry.get("ascent"), "ascent"),
+        "descent": _integer(entry.get("descent"), "descent"),
+        "ascii_top": _integer(ascii_bounds.get("top"), "ascii top"),
+        "ascii_bottom": _integer(ascii_bounds.get("bottom"), "ascii bottom"),
+    }
 
 
 def apply_font_policy(metrics, default_font=None, fallbacks=None):
@@ -367,8 +235,6 @@ def apply_font_policy(metrics, default_font=None, fallbacks=None):
     for name in metrics.names:
         metrics.fonts[name].fallback = normalized_fallbacks.get(name)
     metrics.revision += 1
-    FontMetrics._normalize_for_text.cache_clear()
-    FontMetrics._wrap_text_lines.cache_clear()
     return metrics
 
 
@@ -391,8 +257,6 @@ def _inherit_policy(metrics, policy):
             policy_metric.fallback if policy_metric is not None and
             policy_metric.fallback in metrics.fonts else None)
     metrics.revision += 1
-    FontMetrics._normalize_for_text.cache_clear()
-    FontMetrics._wrap_text_lines.cache_clear()
     return metrics
 
 
@@ -426,7 +290,6 @@ def get_font_metrics():
 def set_font_metrics(metrics):
     global _metrics
     _metrics = metrics
+    font_edit()
     if metrics is not None:
         metrics.revision += 1
-    FontMetrics._normalize_for_text.cache_clear()
-    FontMetrics._wrap_text_lines.cache_clear()

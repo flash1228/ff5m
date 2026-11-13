@@ -448,12 +448,6 @@ class ForgeXUpdateNotification:
         if self.restart_notice:
             self._render_restart_notice()
             return
-        if self.installing:
-            self.host.renderer.loader(
-                getattr(self.host, "busy_message", None)
-                or "UPDATING FORGE-X...",
-                getattr(self.host, "busy_phase", 0))
-            return
         if self.recovery_files:
             self._render_recovery()
             return
@@ -568,7 +562,7 @@ class ForgeXUpdateNotification:
         self.host.busy_message = message
         self.host.busy_phase = 0
         if self.dialog_visible:
-            self.render()
+            self.host._render_screen()
 
     def _clear_install_progress(self):
         if not self.installing and not self.restart_notice:

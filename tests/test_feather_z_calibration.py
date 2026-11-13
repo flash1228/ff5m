@@ -169,6 +169,20 @@ class ZCalibrationMotionTest(unittest.TestCase):
                 self.harness._move_z_paper(-0.01)
 
 
+class ZRoundingTest(unittest.TestCase):
+    def test_millimeters_round_half_up_to_a_thousandth_as_written(self):
+        # As binary floats 2.0005 and 0.0005 lie just below the tie; the written value is what counts.
+        for value, rounded in ((2.0005, 2.001), (0.0005, 0.001), (-0.0005, -0.001), (1.2344, 1.234),
+                               (-1.2346, -1.235), (0.1, 0.1), (5, 5.0), ("0.0125", 0.013)):
+            with self.subTest(value=value):
+                self.assertEqual(ZCAL.round_mm(value), rounded)
+
+    def test_the_average_is_rounded_after_it_is_taken(self):
+        self.assertEqual(ZCAL.rounded_average((0.001, 0.002)), 0.002)
+        self.assertEqual(ZCAL.rounded_average((-0.1, -0.2, -0.3)), -0.2)
+        self.assertIsNone(ZCAL.rounded_average(()))
+
+
 class ZCalibrationStateTest(unittest.TestCase):
     def test_session_uses_the_canonical_default_paper_step(self):
         self.assertEqual(

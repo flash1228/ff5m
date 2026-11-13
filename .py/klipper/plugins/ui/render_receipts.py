@@ -22,26 +22,6 @@ def validate_render_receipt_token(token):
     return token
 
 
-def parse_render_receipt(line):
-    fields = str(line).strip().split()
-    if len(fields) != 6 or fields[0] != "render":
-        return None
-    token = fields[1]
-    status = fields[2]
-    if status not in ("ok", "failed"):
-        return None
-    try:
-        validate_render_receipt_token(token)
-        total_us, cpu_us, flush_us = (
-            int(fields[3]), int(fields[4]), int(fields[5]))
-    except (TypeError, ValueError):
-        return None
-    if min(total_us, cpu_us, flush_us) < 0 or flush_us > total_us:
-        return None
-    return RenderReceipt(
-        token, status == "ok", total_us, cpu_us, flush_us)
-
-
 class ReceiptTracker:
     """Track exactly one optional render receipt without queue semantics."""
 

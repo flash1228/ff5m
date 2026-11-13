@@ -4,7 +4,13 @@
 ##
 ## This file may be distributed under the terms of the GNU GPLv3 license
 
-from .feature import UITestFeature
+import sys
+
+# The modules Klipper had loaded when this package was first imported, before its own imports: which Feather modules
+# a start or a session loaded (the memory report lists them; the harness loads more).
+MODULES_BEFORE = frozenset(sys.modules)
+
+from .feature import UITestFeature  # noqa: E402
 
 
 __all__ = ("UITestFeature",)

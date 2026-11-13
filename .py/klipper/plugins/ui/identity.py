@@ -12,6 +12,11 @@ class FrameworkKey(Enum):
 
     __key_namespace__ = None
 
+    # Members are singletons compared by identity, so the identity hash is
+    # consistent with Enum equality. Enum.__hash__ is a Python function and
+    # state keys are hashed on every state lookup.
+    __hash__ = object.__hash__
+
     def __copy__(self):
         return self
 

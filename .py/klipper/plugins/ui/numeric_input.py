@@ -4,7 +4,6 @@
 ##
 ## This file may be distributed under the terms of the GNU GPLv3 license
 
-from decimal import Decimal, InvalidOperation
 import math
 import re
 
@@ -18,6 +17,9 @@ class NumericInputSpec:
 
     Character-level editing accepts incomplete values such as ``-`` or
     ``12.``. ``parse`` performs the final completeness and range checks.
+
+    Bounds and parsed values are plain ints and floats: a bound is the number
+    its text spells, and the range check compares the value parse returns.
     """
 
     MODES = ("integer", "decimal")
@@ -50,13 +52,27 @@ class NumericInputSpec:
     def _constraint(value, name):
         if value is None:
             return None
+        text = str(value)
         try:
-            result = Decimal(str(value))
-        except (InvalidOperation, ValueError):
+            try:
+                result = int(text)
+            except ValueError:
+                result = float(text)
+        except ValueError:
             raise ValueError("Numeric input %s must be finite" % name)
-        if not result.is_finite():
+        if isinstance(result, float) and not math.isfinite(result):
             raise ValueError("Numeric input %s must be finite" % name)
         return result
+
+    def as_fields(self):
+        """The rules as plain values: the mode, each bound as an int or a
+        float, max_length and fraction_digits."""
+        def plain(bound):
+            if bound is None:
+                return None
+            return int(bound) if bound == int(bound) else bound
+        return {"mode": self.mode, "minimum": plain(self.minimum), "maximum": plain(self.maximum),
+                "max_length": self.max_length, "fraction_digits": self.fraction_digits}
 
     @property
     def allows_decimal(self):
@@ -105,12 +121,7 @@ class NumericInputSpec:
             raise ValueError(
                 "Enter a whole number" if self.mode == "integer"
                 else "Enter a decimal number")
-        try:
-            number = Decimal(value)
-        except InvalidOperation:
-            raise ValueError("Enter a finite number")
-        if not number.is_finite():
-            raise ValueError("Enter a finite number")
+        number = int(value) if self.mode == "integer" else float(value)
         if self.fraction_digits is not None and "." in value:
             if len(value.split(".", 1)[1]) > self.fraction_digits:
                 raise ValueError(
@@ -120,12 +131,9 @@ class NumericInputSpec:
             raise ValueError("Value must be at least %s" % self.minimum)
         if self.maximum is not None and number > self.maximum:
             raise ValueError("Value must be at most %s" % self.maximum)
-        if self.mode == "integer":
-            return int(number)
-        result = float(number)
-        if not math.isfinite(result):
+        if isinstance(number, float) and not math.isfinite(number):
             raise ValueError("Enter a finite number")
-        return result
+        return number
 
     def is_valid(self, text):
         try:

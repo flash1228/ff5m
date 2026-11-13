@@ -13,6 +13,7 @@ import logging
 import math
 import os
 import shutil
+import sys
 import time
 from datetime import datetime
 
@@ -53,10 +54,10 @@ PERSISTENT_ACTIONS = frozenset((
     z_actions.SAFE_SAVE.wire_id,
 ))
 VALID_SUITES = frozenset((
-    "FULL", "UI", "COMPONENT", "RENDER", "MOTION", "HEAT", "SCREWS",
+    "FULL", "UI", "LEAK", "COMPONENT", "RENDER", "MOTION", "HEAT", "SCREWS",
     "MESH", "Z", "CONTEXT_PRINT", "CONTEXT_MATERIAL",
 ))
-NONPHYSICAL_SUITES = frozenset(("UI", "COMPONENT", "RENDER"))
+NONPHYSICAL_SUITES = frozenset(("UI", "LEAK", "COMPONENT", "RENDER"))
 EXTENDED_CONTEXT_SUITES = frozenset(("CONTEXT_PRINT", "CONTEXT_MATERIAL"))
 UI_FINGERPRINT_FILES = (
     "feather_screen.py",
@@ -122,6 +123,7 @@ class UITestRun:
         self.steps = []
         self.step_index = 0
         self.step_runtime = {}
+        self.allocated_blocks = None
         self.gcmd = None
         self.run_id = None
         self.run_directory = None
@@ -138,7 +140,6 @@ class UITestRun:
         self._last_stage_signature = None
         self.calibration_stages = []
         self.test_results = {}
-        self.renderer_dropped = 0
         self.renderer_baseline = None
         self.gcode_errors = []
         self.ui_fingerprint = None
@@ -415,7 +416,7 @@ class UITestRun:
 
     def safety_active_reasons(self, eventtime):
         return (("ui-test",) if self.running and not self.finalizing
-                and self.phase not in ("ui", "component") else ())
+                and self.phase not in ("ui", "leak", "component") else ())
 
     def safety_armed_reasons(self, page, eventtime):
         return ()
@@ -499,6 +500,8 @@ class UITestRun:
         self.started_at = time.time()
         self.abort_requested = False
         self.failures = []
+        self.allocated_blocks = None
+        self._count_blocks("start")
         self.step_index = 0
         self.step_runtime = {}
         self.capture_number = 0
@@ -509,7 +512,6 @@ class UITestRun:
         self.capture_receipts = {}
         self.gcode_errors = []
         self.renderer_baseline = self.host.renderer.get_status()
-        self.renderer_dropped = self.renderer_baseline["dropped_batches"]
         self._capture_original_state()
         self._recover_stale_marker()
         # Recovery may have restored a profile or runtime offset belonging to
@@ -863,7 +865,8 @@ class UITestRun:
             elif kind == "wait":
                 # A failed operation reports through the error dialog while
                 # the page underneath may already satisfy the predicate.
-                self._raise_visible_error()
+                if not step.get("shows_error"):
+                    self._raise_visible_error()
                 if step["predicate"]():
                     self._step_passed(step, 0.05)
                 else:
@@ -943,21 +946,8 @@ class UITestRun:
     def _capture(self, step):
         if self.step_runtime.get("capture_pending"):
             return
-        renderer_status = self.host.renderer.get_status()
-        target = self.step_runtime.setdefault(
-            "render_target", renderer_status["submitted_batches"])
-        settled = (renderer_status["rendered_batches"]
-                   + renderer_status["coalesced_batches"]
-                   + renderer_status["dropped_batches"])
-        if renderer_status["dropped_batches"] > self.renderer_dropped:
-            raise RuntimeError("Render batch dropped before capture")
-        if settled < target:
-            deadline = self.step_runtime.setdefault(
-                "render_deadline", self.reactor.monotonic() + 6.0)
-            if self.reactor.monotonic() >= deadline:
-                raise RuntimeError("Renderer did not settle before capture")
-            self._schedule(0.02)
-            return
+        # Typer applies transactions in order and drops none, so the frame
+        # that presents this receipt shows every batch submitted before it.
         token = self.step_runtime.get("capture_receipt")
         if token is None:
             token = "ui-test:%s:%d:%d" % (
@@ -981,7 +971,6 @@ class UITestRun:
         if not bool(getattr(receipt, "success", False)):
             raise RuntimeError("Typer failed to present frame before capture")
         self.step_runtime["capture_pending"] = True
-        self.renderer_dropped = renderer_status["dropped_batches"]
         self.capture_number += 1
         metadata = self._screen_metadata()
         if step.get("case_id"):
@@ -1072,12 +1061,9 @@ class UITestRun:
 
     def _tap(self, action):
         action = str(action)
-        renderer = self.host.renderer
-        interactive = (
-            action in getattr(renderer, "_buttons", {})
-            or action in getattr(renderer, "_toggles", {})
-            or any(region.action == action for region in getattr(renderer, "hitboxes", ())))
-        if not interactive:
+        # The frame loop builds declarative pages off the reactor, so their
+        # buttons are only in the input Typer holds of the screen.
+        if action not in self.host.renderer.shown_actions():
             raise RuntimeError("Button is absent or disabled: %s" % action)
         if action in PERSISTENT_ACTIONS:
             raise RuntimeError("Persistent action is forbidden: %s" % action)
@@ -1131,6 +1117,11 @@ class UITestRun:
                 failures.append({"step": "renderer", "error": (
                     "Typer reported an error: %s" %
                     after.get("worker_last_error"))})
+            screen_errors = after.get("screen_errors", 0) - before.get("screen_errors", 0)
+            if screen_errors:
+                failures.append({"step": "renderer", "error": (
+                    "%d screen frame(s) not drawn; last: %s" % (
+                        screen_errors, after.get("screen_error")))})
             if after.get("worker_state") != "running":
                 failures.append({"step": "renderer", "error": (
                     "Typer worker is %s" % after.get("worker_state"))})
@@ -1187,6 +1178,7 @@ class UITestRun:
             "_operation_context_artifact": operation_context,
             "started_at": self.started_at, "finished_at": time.time(),
             "duration": time.time() - self.started_at,
+            "allocated_blocks": self._count_blocks("end"),
         }
         self.phase = "finalizing"
         self.worker.finish(summary, self._finished)
@@ -1219,8 +1211,25 @@ class UITestRun:
         if self.on_finished is not None:
             self.on_finished(self)
 
+    def _count_blocks(self, after):
+        """Python's allocated blocks after this event of the run, with the start, the peak and the largest rise from
+        one event to the next, each with the event it was seen after: which step makes the transient peak behind
+        pymalloc's free space after the suite. A memory measurement, not a check."""
+        blocks = sys.getallocatedblocks()
+        record = self.allocated_blocks
+        if record is None:
+            record = self.allocated_blocks = {"start": blocks, "peak": [blocks, after], "rise": [0, after]}
+        elif blocks > record["peak"][0]:
+            record["peak"] = [blocks, after]
+        if blocks - record.get("last", blocks) > record["rise"][0]:
+            record["rise"] = [blocks - record["last"], after]
+        record["last"] = blocks
+        return dict(record)
+
     def _event(self, message):
         logging.info("[feather_ui_test] %s", message)
+        if self.running:
+            self._count_blocks(message)
         if self.worker is not None:
             self.worker.log(message)
 

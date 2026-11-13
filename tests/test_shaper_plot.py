@@ -15,6 +15,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parents[1] / '.py/klipper/plugins'
 from ff5m_ui.shaper.plot import _stroke_commands, plot_commands
 from ui import Rect, ThemeColor, FeatherRenderer
 from ui.renderer import BinaryCommand
+from tests.feather_render_test_helper import accepted_by_loop
 from feather.previews import decode_fxi1
 from ff5m_ui.shaper import plot as plotting
 from ff5m_ui.shaper.components import SpectrumPlot, spectrum_commands
@@ -116,9 +117,31 @@ class StrokeTests(unittest.TestCase):
         commands = plot_commands(renderer, Rect(68,146,700,210),
             [(xs,first,ThemeColor.PRIMARY),(xs,second,ThemeColor.WARNING)], line_width=2)
         self.assertTrue(any(hasattr(c,'payload') for c in commands))
-        self.assertLess(renderer._serialized_size(commands), 50*1024)
-        self.assertTrue(renderer.send(commands))
-        self.assertLessEqual(max(map(len,renderer._encode_frames(commands))),8192)
+        # Within the plot's budget, every command within one transport frame.
+        self.assertTrue(accepted_by_loop(commands, max_batch=50*1024))
+
+
+    def test_a_renderer_without_binary_commands_gets_the_same_rasters(self):
+        # The Designer preview draws FXI1 rasters as image objects of its own
+        # instead of queued binary commands.
+        class PreviewRenderer(FeatherRenderer):
+            def image(self, x, y, blob, format="fxi1"):
+                return {"type": "image", "x": x, "y": y, "blob": bytes(blob)}
+
+        xs = [i * 200. / 63 for i in range(64)]
+        series = [(xs, [abs(math.sin(i / 6.)) for i in range(64)], ThemeColor.PRIMARY)]
+        bounds = Rect(68, 146, 700, 210)
+        sent = []
+        for command in plot_commands(FeatherRenderer(), bounds, series, line_width=2):
+            if not hasattr(command, 'payload'): continue
+            tokens = shlex.split(command)
+            i = tokens.index('-p') + 1
+            sent.append((int(tokens[i]), int(tokens[i+1]), bytes(command.payload)))
+        previewed = [(c["x"], c["y"], c["blob"])
+                     for c in plot_commands(PreviewRenderer(), bounds, series, line_width=2)
+                     if isinstance(c, dict)]
+        self.assertTrue(sent)
+        self.assertEqual(previewed, sent)
 
 
 class NativeStrokeTests(unittest.TestCase):

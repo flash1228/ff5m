@@ -6,9 +6,9 @@
 
 from enum import Enum
 
-from ui import ThemeColor
-from ui.bindings import resolve, state
-from ui.components import Component
+from ui import Fill, Overlay, StateCase, Text, ThemeColor
+from ui.bindings import bind, derived, state
+from ui.components import Image
 from ui.identity import StateKey
 
 
@@ -20,6 +20,7 @@ class PreviewState(StateKey):
     __key_namespace__ = "ff5m_ui.model_preview.PreviewState"
     FILENAME = state(str, default="")
     BANDS = state(tuple, default=())
+    PLACEHOLDER = state(str, default="PREPARING...")
     ERROR = state(str, default="")
     STYLE = state(int, default=4, minimum=0, maximum=4)
     CACHE = state(bool, default=True)
@@ -50,28 +51,18 @@ class PreviewRef(Enum):
     ERROR = "model_preview.error"
 
 
-class ModelFrame(Component):
+class ModelFrame(Image):
     """One opaque raster, transported in bounded FXI1 image bands."""
 
     covers_bounds = True
 
-    def __init__(self, bands, error):
-        super().__init__()
-        self.bands, self.error = bands, error
 
-    def state_signature(self, state):
-        # Bands are immutable worker results; avoid traversing pixel bytes.
-        return id(resolve(self.bands, state)), resolve(self.error, state)
-
-    def draw(self, renderer, state, bounds):
-        bands = resolve(self.bands, state)
-        if bands:
-            return [renderer.image(bounds.x, bounds.y + offset, blob, format="fxi1")
-                    for offset, blob in bands]
-        return [renderer.fill(*bounds, ThemeColor.PANEL),
-                renderer.text(bounds.center_x, bounds.center_y,
-                              "FAILED" if resolve(self.error, state) else "PREPARING...",
-                              ThemeColor.DIM, FONT, "center", "middle")]
+def model_frame():
+    """The raster, or what the page shows until there is one."""
+    return Overlay(
+        ModelFrame(bind(PreviewState.BANDS)),
+        StateCase(Fill(ThemeColor.PANEL), Text(bind(PreviewState.PLACEHOLDER), ThemeColor.DIM, FONT),
+                  selector=derived(bool, bind(PreviewState.PLACEHOLDER)), expected=True))
 
 
 def _selected(value):

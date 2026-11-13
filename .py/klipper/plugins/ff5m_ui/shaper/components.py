@@ -4,13 +4,13 @@
 import math
 from collections import OrderedDict
 
-from ui import Overlay, ThemeColor
+from ui import ThemeColor
 from ui.bindings import resolve
 from ui.components import Component
 from ui.properties import EditorSpec, Invalidation, PropertySpec, SourceSpec, ValidationSpec, property_schema
 from shaper_storage import MAX_SPECTRUM_FREQ, display_max_freq
 
-from .plot import plot_commands
+from .plot import command_bytes, plot_commands
 from .state import METHODS
 
 CACHE_BUDGET_BYTES = 384 * 1024
@@ -69,23 +69,6 @@ def spectrum_commands(renderer, result, method, scale, bounds, before_color=Them
             return tuple((math.log10(max(p, axis["floor"])) - axis["lower_log"]) / 6. for p in values)
         curves = [(xs, transform(ys), color) for xs, ys, color in curves]
     return plot_commands(renderer, bounds, tuple(curves), x_max=max_freq, y_max=axis["top"], line_width=line_width)
-
-
-class MethodRow(Overlay):
-    """Editable button and cells, painted together for touch feedback."""
-
-    def render(self, renderer, state, layout):
-        button, cells = self.children
-        bounds = layout.rect(button)
-        foreground = cells.render(renderer, state, layout)
-        action = resolve(button.action, state)
-        normal = renderer.composite_button(
-            "", *bounds, resolve(button.label, state), resolve(button.state, state),
-            resolve(button.font, state), include_hitbox=False)
-        pressed = renderer.composite_button(
-            "", *bounds, resolve(button.label, state), "pressed",
-            resolve(button.font, state), include_hitbox=False)
-        return renderer.button_surface(action, *bounds, normal + foreground, pressed + foreground)
 
 
 class SpectrumPlot(Component):
@@ -166,7 +149,7 @@ class SpectrumPlot(Component):
                                                        max_freq=signature[7])
                 else:
                     self._commands = plot_commands(renderer, bounds, ())
-                size = sum(len(c) + len(getattr(c, "payload", b"")) + 64 for c in self._commands)
+                size = sum(command_bytes(c) for c in self._commands)
                 size += sum(len(part) * 8 for part in data_key) + 256
                 while self._cache and self._cache_bytes + size > CACHE_BUDGET_BYTES:
                     _, (_, old_size) = self._cache.popitem(last=False)

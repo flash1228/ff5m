@@ -87,12 +87,12 @@ BOTTOM_VALUE = ComponentTemplate(
         BOTTOM_VALUE_TEXT, BOTTOM_VALUE_COLOR, BOTTOM_X, BOTTOM_WIDTH,
         BOTTOM_TEXT_X, BOTTOM_MAX_WIDTH, BOTTOM_REF,
     ),
-    root=Overlay(
-        Fill(ThemeColor.BACKGROUND),
+    root=Frame(
         Text(
             param(BOTTOM_VALUE_TEXT), color=param(BOTTOM_VALUE_COLOR),
             max_width=param(BOTTOM_MAX_WIDTH), truncate=True,
         ).style(UiStyle.TEXT_LEFT).size(param(BOTTOM_MAX_WIDTH), 24).offset(param(BOTTOM_TEXT_X), 5),
+        background=ThemeColor.BACKGROUND, line_width=0,
     ).repaint_boundary().size(param(BOTTOM_WIDTH), 34)
      .offset(param(BOTTOM_X), 393).ref(param(BOTTOM_REF)),
 )

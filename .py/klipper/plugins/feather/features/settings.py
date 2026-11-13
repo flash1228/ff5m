@@ -1,4 +1,8 @@
 ## Settings and Mod Settings feature for Feather.
+##
+## Copyright (C) 2026, Alexander K <https://github.com/drA1ex>
+##
+## This file may be distributed under the terms of the GNU GPLv3 license
 
 from collections import namedtuple
 
@@ -7,6 +11,7 @@ ParameterOption = namedtuple(
     "ParameterOption", ("value", "label", "description", "enabled"))
 
 
+from ff5m_ui import state_screens as state_ui
 from ff5m_ui.screen import ScreenPage
 from feather.features.manager import FeatureHostProxy
 from feather.screen.pages import (
@@ -14,6 +19,9 @@ from feather.screen.pages import (
 )
 from feather.screen.keyboard import is_keyboard_action
 from feather.settings import mod as _mod_ui
+
+
+MOD_LIST_PAGES = (ScreenPage.MOD_SETTINGS, ScreenPage.PREVIEW_SETTINGS)
 
 
 class SettingsFeature(
@@ -72,6 +80,27 @@ class SettingsFeature(
         self._benchmark_taps = 0
         self._benchmark_tap_deadline = 0.0
 
+    def page_content(self, page):
+        if self.mod_update_modal_visible:
+            return state_ui.applying_page(), None, False
+        if page in MOD_LIST_PAGES:
+            return self._mod_settings_content()
+        if page == ScreenPage.PARAMETER_OPTIONS and self.mod_parameter is not None:
+            return self._parameter_options_content()
+        if page == ScreenPage.MOD_VALUE:
+            return self._mod_value_content()
+        return None
+
+    def write_page_values(self, page):
+        if self.mod_update_modal_visible:
+            return
+        if page in MOD_LIST_PAGES:
+            self._write_mod_settings_values()
+        elif page == ScreenPage.PARAMETER_OPTIONS and self.mod_parameter is not None:
+            self._write_parameter_options_values()
+        elif page == ScreenPage.MOD_VALUE and self.mod_parameter is not None:
+            self._write_mod_value_values()
+
     def _reset_benchmark_taps(self):
         self._benchmark_taps = 0
         self._benchmark_tap_deadline = 0.0
@@ -114,8 +143,6 @@ class SettingsFeature(
     def render(self, page):
         {
             ScreenPage.SETTINGS: self._render_settings,
-            ScreenPage.MOD_SETTINGS: self._render_mod_settings,
-            ScreenPage.PREVIEW_SETTINGS: self._render_mod_settings,
             ScreenPage.PARAMETER_OPTIONS: self._render_parameter_options,
             ScreenPage.MOD_VALUE: self._render_mod_value,
         }[page]()
@@ -139,8 +166,6 @@ class SettingsFeature(
         return (action in exact.get(page, ()) or
                 (page in (ScreenPage.MOD_SETTINGS, ScreenPage.PREVIEW_SETTINGS) and
                  action.startswith("mod.item.")) or
-                (page == ScreenPage.PARAMETER_OPTIONS and
-                 action.startswith("mod.option.")) or
                 (page == ScreenPage.MOD_VALUE and
                  (action.startswith("mod.key.") or
                   is_keyboard_action(action))))
@@ -159,6 +184,31 @@ class SettingsFeature(
             self._handle_mod_action(action)
             return True
         return False
+
+    def resolve_semantic_action(self, page, wire_id):
+        if page in MOD_LIST_PAGES:
+            tree = getattr(self, "_mod_tree", None)
+        elif page == ScreenPage.PARAMETER_OPTIONS:
+            tree = getattr(self, "_options_tree", None)
+        elif page == ScreenPage.MOD_VALUE and self.mod_parameter is not None:
+            tree = self._mod_value_content()[0]
+        else:
+            return None
+        return tree.resolve_action(wire_id) if tree is not None else None
+
+    def handle_semantic_action(self, page, action):
+        from ff5m_ui.parameter_controls import ParameterCommand
+        from ui.actions import Command
+        if isinstance(action, Command) and action.key == ParameterCommand.OPEN:
+            index = next((index for index, key in self.mod_action_keys.items() if key == action.payload), None)
+            if index is None:
+                return False
+            self._open_mod_parameter(index, page)
+            return True
+        if isinstance(action, Command) and action.key == ParameterCommand.OPTION:
+            self._choose_parameter_option(action.payload)
+            return True
+        return self.handle_action(page, action.wire_id)
 
     def back(self, page):
         self._reset_benchmark_taps()

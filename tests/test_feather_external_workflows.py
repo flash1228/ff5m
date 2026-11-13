@@ -19,6 +19,8 @@ except ImportError:
     from test_feather_screen import StatusObject, blank_page
 
 
+from ff5m_ui import dialogs as dialog_ui
+
 FEATHER = lazy_tests.FEATHER
 Page = FEATHER.ScreenPage
 Dialog = FEATHER.ScreenDialog
@@ -202,7 +204,7 @@ class ExternalWorkflowTest(unittest.TestCase):
                     Dialog.ACTION_PROMPT: {"title": "Other operation", "text": [], "rows": [],
                                           "footer": [], "buttons": {}, "kind": None},
                     Dialog.MESSAGE: {"message": "Notice", "title": None,
-                                     "actions": (("message.ok", "OK", "enabled"),)},
+                                     "actions": ((dialog_ui.OK, "OK", "enabled"),)},
                     Dialog.ERROR: {"message": "Configuration failed", "category": "error",
                                    "recovery": "restart", "terminal": False},
                     Dialog.TOUCH_UNAVAILABLE: {},

@@ -8,7 +8,7 @@ from copy import deepcopy
 
 from ui import (
     Button, Cell, Slider, Column, Equal, Fill, FLEX, Grid, Metric, Overlay,
-    PageTree, Panel, Rect, Row, Spacer, StateCase, Text, ThemeColor,
+    PageTree, Panel, PathText, Rect, Row, Spacer, StateCase, Text, ThemeColor,
 )
 from ui.bindings import bind, derived
 
@@ -16,7 +16,7 @@ from ..keys import AppPage
 from ..printing.state import PrintingState
 from ..styles import UI_STYLES
 from .actions import PreviewAction, PreviewRoute
-from .common import BUTTON_FONT, FONT, ModelFrame, PreviewRef, PreviewState
+from .common import BUTTON_FONT, FONT, PreviewRef, PreviewState, model_frame
 
 
 TITLE = "Preview"
@@ -54,7 +54,7 @@ CONTENT = Grid(
         Cell(Column(
             Overlay(
                 Panel(border=ThemeColor.PRIMARY, background=ThemeColor.PANEL),
-                ModelFrame(bind(PreviewState.BANDS), bind(PreviewState.ERROR))
+                model_frame()
                 .margin(8).ref(PreviewRef.IMAGE).repaint_boundary(),
                 StateCase(
                     Text(bind(PreviewState.ERROR), color=ThemeColor.WARNING, font=FONT, wrap=True)
@@ -102,8 +102,8 @@ def create_page(before_print=False):
         root = deepcopy(CONTENT, {id(CONTENT.parent): None}).margin(0)
         information = next(node for node in root.walk() if node.key == PreviewRef.INFO)
         metrics = Column(
-            Text(bind(PrintingState.STATUS), color=ThemeColor.PRIMARY, font=FONT,
-                 horizontal="left", truncate=True).height(22),
+            PathText(bind(PrintingState.STATUS), separator=" -> ", trim="", color=ThemeColor.PRIMARY,
+                     font=FONT, horizontal="left").height(22),
             Metric("PROGRESS", derived(lambda value: "%d%%" % value, bind(PrintingState.PROGRESS)),
                    orientation="vertical").height("content"),
             Metric("ELAPSED", bind(PrintingState.ELAPSED), orientation="vertical").height("content"),

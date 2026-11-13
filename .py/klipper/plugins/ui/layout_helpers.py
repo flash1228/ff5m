@@ -7,6 +7,19 @@
 from .font_metrics import get_font_metrics
 
 
+# The screen and the frame of its pages; the header ends at HEADER_BOTTOM and the
+# persistent footer starts below CONTENT_BOTTOM.
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 480
+FRAME_X = 8
+FRAME_Y = 4
+FRAME_WIDTH = 784
+FRAME_HEIGHT = 472
+HEADER_BOTTOM = 55
+FOOTER_Y = 444
+FOOTER_HEIGHT = 32
+CONTENT_BOTTOM = FOOTER_Y - 2
+
 # Leave the same breathing room around a full-height dialog as the
 # application header and persistent footer provide around shorter dialogs.
 DIALOG_TOP = 74

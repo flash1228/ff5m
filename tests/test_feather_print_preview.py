@@ -26,11 +26,12 @@ from ff5m_ui.screen import ScreenPage  # noqa: E402
 from feather.previews import (  # noqa: E402
     PREVIEW_MASK_SIZE, PreviewCache, colorize_preview, decode_fxi1)
 from feather.files import FileEntry  # noqa: E402
+from ui import Fill, Rect, ScreenRoot, ThemeColor  # noqa: E402
 from ui.font_metrics import get_font_metrics  # noqa: E402
 
 from tests.feather_timelapse_test_helper import make_timelapse_state
 from tests.test_feather_screen import Reactor, StatusObject  # noqa: E402
-from tests.feather_render_test_helper import RenderCapture, RenderFrame, full_render_queue  # noqa: E402
+from tests.feather_render_test_helper import RenderCapture, RenderFrame, refused_render, shown_hitboxes  # noqa: E402
 
 
 class ScenarioController(FEATHER.FeatherScreen):
@@ -178,7 +179,8 @@ def _write_gcode(prefix="preview-"):
 def _controller(file_path, worker=None):
     controller = ScenarioController.__new__(ScenarioController)
     controller.renderer = FEATHER.FeatherRenderer()
-    controller.batches = RenderCapture(controller.renderer).batches
+    controller.capture = RenderCapture(controller.renderer)
+    controller.batches = controller.capture.batches
     controller.reactor = PreviewReactor()
     controller.print_state = PrintState.PRINTING
     controller.page = ScreenPage.PRINTING
@@ -251,67 +253,88 @@ class PreviewProcessTest(unittest.TestCase):
 
 
 class PrintStatusUpdateTest(unittest.TestCase):
+    """The printing page as the screen's content: written values reach the
+    panel as frames of the screen."""
+
     def setUp(self):
         self.page = PRINTING_PAGE.create_page()
-        self.page.prepare_layout()
         self.renderer = FEATHER.FeatherRenderer()
-        page_patch = mock.patch.object(PRINTING_PAGE, "PAGE", self.page)
-        page_patch.start()
-        self.addCleanup(page_patch.stop)
+        self.capture = RenderCapture(self.renderer)
         self.values = dict(self.page.initial_state())
         self.values.update({
             printing_ui.PrintingState.FILENAME: "context_print-kamp.gcode",
-            printing_ui.PrintingState.STATUS: "PRINT -> HOMING",
+            printing_ui.PrintingState.STATUS: ("PRINT", "HOMING"),
             printing_ui.PrintingState.PROGRESS: 31,
             printing_ui.PrintingState.HEIGHT: "-125.00 MM",
             printing_ui.PrintingState.CONTROLS_READY: False,
             printing_ui.PrintingState.PREVIEW_STATUS: "loading",
         })
+        self.pending = dict(self.values)
+        self.root = ScreenRoot(
+            self.renderer, Fill(ThemeColor.BACKGROUND), Rect(0, 0, 800, 480), "test.screen",
+            select_content=lambda: (self.page, "PRINTING", False), write_content=self._write)
 
-    def test_first_homing_draw_reuses_prepared_geometry(self):
-        layout = self.page.layout
-        with mock.patch.object(self.page.root, "arrange", side_effect=AssertionError("geometry recalculated")):
-            with mock.patch.object(self.page.root, "update", side_effect=AssertionError("full update")):
-                with mock.patch.object(self.page.styles, "apply", side_effect=AssertionError("style pass")):
-                    commands = printing_ui.render(self.renderer, self.values, reuse_layout=True)
-        self.assertIs(self.page.layout, layout)
-        drawing = "\n".join(commands)
+    def _write(self):
+        values, self.pending = self.pending, {}
+        self.page.state.update(values)
+
+    def paint(self, values=None):
+        """The commands of the frame that shows values, or None without one."""
+        self.pending.update(values or {})
+        frames = len(self.capture.batches)
+        self.root.paint()
+        return "\n".join(self.capture.batches[-1]) if len(self.capture.batches) > frames else None
+
+    def test_first_frame_shows_the_written_values(self):
+        drawing = self.paint()
         for value in ("PRINT -> HOMING", "31%", "-125.00 MM"):
             self.assertIn(value, drawing)
 
-    def test_status_updates_skip_unrelated_components_and_styles(self):
-        printing_ui.render(self.renderer, self.values, reuse_layout=True)
-        layout = self.page.layout
-        elapsed = self.page.node(printing_ui.PrintingRef.ELAPSED)
-        with mock.patch.object(self.page.root, "arrange", side_effect=AssertionError("geometry recalculated")):
-            with mock.patch.object(self.page.root, "update", side_effect=AssertionError("full update")):
-                with mock.patch.object(elapsed, "update", side_effect=AssertionError("unrelated metric")):
-                    with mock.patch.object(self.page.styles, "apply", side_effect=AssertionError("style pass")):
-                        commands = printing_ui.update(self.renderer, {
-                            printing_ui.PrintingState.STATUS: "PRINT -> HEATING"})
-                        self.assertEqual(printing_ui.update(self.renderer, {
-                            printing_ui.PrintingState.STATUS: "PRINT -> HEATING"}), [])
-        self.assertIs(self.page.layout, layout)
-        drawing = "\n".join(commands)
+    def test_status_updates_skip_unrelated_components(self):
+        self.paint()
+        status = {printing_ui.PrintingState.STATUS: ("PRINT", "HEATING")}
+        drawing = self.paint(status)
+        self.assertIsNone(self.paint(status))
         self.assertIn("PRINT -> HEATING", drawing)
         self.assertNotIn("ELAPSED", drawing)
         self.assertNotIn("PREVIEW", drawing)
 
+    def assertDrawsInside(self, drawing, ref):
+        box = self.page.rect(ref)
+        self.assertTrue(drawing)
+        for command in drawing.splitlines():
+            if re.match(r"--batch (clear-hitboxes|hitbox)\b", command):
+                continue  # the frame's input surface, not its pixels
+            match = re.match(r"--batch \w+ -p (\d+) (\d+)", command)
+            self.assertIsNotNone(match, command)
+            x, y = int(match.group(1)), int(match.group(2))
+            self.assertTrue(box.x <= x < box.x + box.width and box.y <= y < box.y + box.height, command)
+
+    def test_loader_turn_repaints_inside_the_preview_box(self):
+        self.paint()
+        drawing = self.paint({printing_ui.PrintingState.LOADER_RADIUS: 9})
+        self.assertDrawsInside(drawing, printing_ui.PrintingRef.PREVIEW_BOX)
+
+    def test_pause_switch_repaints_only_its_button(self):
+        self.paint()
+        drawing = self.paint({printing_ui.PrintingState.PAUSED: True})
+        self.assertIn("RESUME", drawing)
+        self.assertDrawsInside(drawing, printing_ui.PrintingRef.PAUSE)
+
     def test_status_keeps_one_line_without_moving_other_content(self):
-        printing_ui.render(self.renderer, self.values, reuse_layout=True)
+        self.paint()
         original = {key: self.page.rect(key) for key in self.page.layout.keys()}
-        status = "PRINT -> WAITING FOR THE BED AND NOZZLE TO REACH THE REQUESTED TEMPERATURE"
-        for value in (status, "PRINT -> HOMING", ""):
-            commands = printing_ui.update(self.renderer, {printing_ui.PrintingState.STATUS: value})
+        status = ("PRINT", "WAITING FOR THE BED AND NOZZLE TO REACH THE REQUESTED TEMPERATURE")
+        for value in (status, ("PRINT", "HOMING"), ()):
+            drawing = self.paint({printing_ui.PrintingState.STATUS: value})
             self.values[printing_ui.PrintingState.STATUS] = value
             fresh = PRINTING_PAGE.create_page()
             fresh.draw(FEATHER.FeatherRenderer(), self.values)
             for key in self.page.layout.keys():
                 self.assertEqual(self.page.rect(key), fresh.rect(key))
                 self.assertEqual(self.page.rect(key), original[key])
-            self.assertTrue(commands)
-            drawing = "\n".join(commands)
-            self.assertNotIn("--batch fill -p 0 0 -s 800 442", drawing)
+            self.assertTrue(drawing)
+            self.assertNotIn("--batch fill -p 0 0 -s 800", drawing)
             for text in ("PROGRESS", "ELAPSED", "PREVIEW"):
                 self.assertNotIn(text, drawing)
         status_bounds = self.page.rect(printing_ui.PrintingRef.STATUS)
@@ -319,18 +342,16 @@ class PrintStatusUpdateTest(unittest.TestCase):
         self.assertEqual(status_bounds.height, get_font_metrics().metric(font).glyph_height)
 
     def test_status_drops_leading_nodes_only_until_the_remaining_chain_fits(self):
-        prefix = "PRINTING " * 10
-        middle = "BED HEATING " * 10
+        self.paint()
+        prefix = ("PRINTING " * 10).strip()
+        middle = ("BED HEATING " * 10).strip()
         for value, expected in (
-                ("PRINT -> HOMING", "PRINT -> HOMING"),
-                (prefix + " -> HOMING", "-> HOMING"),
-                (prefix + " -> PREPARING -> HOMING", "-> PREPARING -> HOMING"),
-                (prefix + " -> " + middle + " -> HOMING", "-> HOMING"),
-                ("PRINT -> HEATING", "PRINT -> HEATING"),
-                ("", "")):
-            self.values[printing_ui.PrintingState.STATUS] = value
-            commands = printing_ui.render(self.renderer, self.values, reuse_layout=True)
-            frame = RenderFrame(commands, self.renderer)
+                ((prefix, "HOMING"), "-> HOMING"),
+                ((prefix, "PREPARING", "HOMING"), "-> PREPARING -> HOMING"),
+                ((prefix, middle, "HOMING"), "-> HOMING"),
+                (("PRINT", "HEATING"), "PRINT -> HEATING"),
+                (("PRINT", "HOMING"), "PRINT -> HOMING")):
+            frame = RenderFrame(self.paint({printing_ui.PrintingState.STATUS: value}).splitlines(), self.renderer)
             status = next(text for text in frame.texts if text.value.lstrip() == expected)
             self.assertFalse(status.wrap)
             self.assertTrue(status.truncate)
@@ -340,34 +361,24 @@ class PrintStatusUpdateTest(unittest.TestCase):
 
     def test_single_oversized_status_uses_one_line_truncation(self):
         status = "WAITING FOR THE BED AND NOZZLE TO REACH THE REQUESTED TEMPERATURE"
-        self.values[printing_ui.PrintingState.STATUS] = status
-        commands = printing_ui.render(self.renderer, self.values, reuse_layout=True)
-        frame = RenderFrame(commands, self.renderer)
+        frame = RenderFrame(self.paint({printing_ui.PrintingState.STATUS: (status,)}).splitlines(), self.renderer)
         text = frame.text(status)
         self.assertFalse(text.wrap)
         self.assertTrue(text.truncate)
         self.assertLess(text.max_width, get_font_metrics().text_width(status, text.font))
-
-    def test_status_respects_a_narrower_text_limit(self):
-        node = self.page.node(printing_ui.PrintingRef.STATUS)
-        node.kwargs["max_width"] = get_font_metrics().text_width("-> HOMING", node.font)
-        self.values[printing_ui.PrintingState.STATUS] = "PRINT -> PREPARING -> HOMING"
-        commands = self.page.draw(self.renderer, self.values)
-        frame = RenderFrame(commands, self.renderer)
-        self.assertTrue(any(text.value.lstrip() == "-> HOMING" for text in frame.texts))
 
 
 class PrintPreviewLayoutTest(unittest.TestCase):
     def test_preview_decode_starts_after_the_page_frame_unless_cancelled(self):
         worker = DeferredPreviewWorker()
         controller = _controller("/data/part.gcode", worker)
-        controller._render_print_page()
+        controller._render_screen()
         self.assertEqual(worker.submitted, [])
         controller.reactor.flush_callbacks()
         self.assertEqual(len(worker.submitted), 1)
 
         controller._cancel_gcode_preview()
-        controller._render_print_page()
+        controller._render_screen()
         controller._cancel_gcode_preview()
         controller.reactor.flush_callbacks()
         self.assertEqual(len(worker.submitted), 1)
@@ -376,7 +387,7 @@ class PrintPreviewLayoutTest(unittest.TestCase):
         worker = mock.Mock()
         worker.submit.return_value = False
         controller = _controller("/data/part.gcode", worker)
-        controller._render_print_page()
+        controller._render_screen()
         painted = len(controller.batches)
 
         with self.assertLogs(level="INFO"):
@@ -386,80 +397,43 @@ class PrintPreviewLayoutTest(unittest.TestCase):
         self.assertGreater(len(controller.batches), painted)
         self.assertNotIn("--batch image ", "\n".join(controller.batches[-1]))
 
-    def test_ready_preview_redraw_skips_unchanged_metrics_and_styles(self):
+    def test_ready_preview_repaints_only_the_preview_panel(self):
         with PreviewHelper():
             path = _write_gcode()
             try:
                 worker = DeferredPreviewWorker()
                 controller = _controller(path, worker)
-                controller._render_print_page()
+                controller._render_screen()
                 controller.reactor.flush_callbacks()
-                page = printing_ui.get_page()
-                elapsed = page.node(printing_ui.PrintingRef.ELAPSED)
-
-                with mock.patch.object(page.root, "update", side_effect=AssertionError("full update")):
-                    with mock.patch.object(elapsed, "update", side_effect=AssertionError("unchanged metric")):
-                        with mock.patch.object(page.styles, "apply", side_effect=AssertionError("style pass")):
-                            worker.finish(0)
-            finally:
-                pathlib.Path(path).unlink()
-
-        drawing = "\n".join(controller.batches[-1])
-        self.assertIn("--batch image ", drawing)
-        self.assertIn("--batch clear-hitboxes --layer base", drawing)
-
-    def test_incomplete_full_redraw_values_use_regular_update(self):
-        controller = _controller("/data/missing.gcode")
-        controller._render_print_page()
-        controller.reactor.flush_callbacks()
-        page = printing_ui.get_page()
-
-        with mock.patch.object(page.styles, "apply", wraps=page.styles.apply) as apply:
-            commands = printing_ui.render(
-                controller.renderer,
-                {printing_ui.PrintingState.STATUS: "NEW STATUS"},
-                reuse_layout=True)
-
-        apply.assert_called_once()
-        self.assertTrue(any("NEW STATUS" in command for command in commands))
-
-    def test_ready_preview_repaints_full_surface_with_existing_geometry(self):
-        with PreviewHelper():
-            path = _write_gcode()
-            try:
-                worker = DeferredPreviewWorker()
-                controller = _controller(path, worker)
-                controller._render_print_page()
-                controller.reactor.flush_callbacks()
-                layout = printing_ui.get_page().layout
+                box = printing_ui.rect(printing_ui.PrintingRef.PREVIEW_BOX)
                 worker.finish(0)
             finally:
                 pathlib.Path(path).unlink()
 
-        self.assertIs(printing_ui.get_page().layout, layout)
+        self.assertEqual(printing_ui.rect(printing_ui.PrintingRef.PREVIEW_BOX), box)
         drawing = "\n".join(controller.batches[-1])
-        self.assertIn("--batch clear-hitboxes --layer base", drawing)
-        self.assertIn("--batch fill -p 0 0 -s 800 442", drawing)
         self.assertIn("--batch image ", drawing)
-        self.assertIn("print.cancel", controller.renderer._buttons)
-
+        panel_x = printing_ui.rect(printing_ui.PrintingRef.PREVIEW).x
+        for command in controller.batches[-1]:
+            match = re.match(r"--batch (?:fill|stroke|text|image) -p (\d+) (\d+)", command)
+            self.assertIsNotNone(match, command)
+            self.assertGreaterEqual(int(match.group(1)), panel_x, command)
+        self.assertIn("print.cancel", {region.action for region in shown_hitboxes(controller.renderer)})
     def test_first_draw_contains_current_progress_without_a_second_paint(self):
         controller = _controller("/data/missing.gcode")
-        controller._render_print_page()
+        controller._render_screen()
         controller.reactor.flush_callbacks()
         drawing = "\n".join(controller.batches[0])
         self.assertEqual(drawing.count('-t "00:01:40"'), 1)
         self.assertEqual(drawing.count('-t "4.50 MM"'), 1)
         self.assertNotIn('-t "0.00 MM"', drawing)
 
-    def test_unchanged_progress_skips_command_construction(self):
+    def test_unchanged_progress_paints_nothing(self):
         controller = _controller("/data/missing.gcode")
-        controller._render_print_page()
+        controller._render_screen()
         controller.reactor.flush_callbacks()
         controller.batches.clear()
-        with mock.patch.object(printing_ui, "update_progress", wraps=printing_ui.update_progress) as update:
-            controller._update_print_progress(100)
-            update.assert_not_called()
+        controller._update_print_progress(100)
         self.assertEqual(controller.batches, [])
 
     def test_preparation_time_keeps_updating_without_full_page_traversal(self):
@@ -467,28 +441,25 @@ class PrintPreviewLayoutTest(unittest.TestCase):
         controller.print_state = PrintState.PREPARING
         controller.start_print_macro = type("Start", (), {
             "variables": {"print_started": False}})()
-        controller._render_print_page()
+        controller._render_screen()
         controller.reactor.flush_callbacks()
         controller.batches.clear()
         controller.print_stats.status["print_duration"] = 101
-        page = printing_ui.get_page()
-
-        with mock.patch.object(page.root, "update", side_effect=AssertionError("full page update")):
-            with mock.patch.object(page.styles, "apply", side_effect=AssertionError("style pass")):
-                controller._update_print_progress(101)
+        controller._update_print_progress(101)
 
         self.assertEqual(len(controller.batches), 1)
-        self.assertIn('00:01:41', "\n".join(controller.batches[0]))
+        drawing = "\n".join(controller.batches[0])
+        self.assertIn('00:01:41', drawing)
+        for text in ('00:05:00', '5 / 90', '4.50 MM', 'PROGRESS', 'PREVIEW'):
+            self.assertNotIn(text, drawing)
 
     def test_height_only_update_does_not_repaint_other_metrics(self):
         controller = _controller("/data/missing.gcode")
-        controller._render_print_page()
+        controller._render_screen()
         controller.reactor.flush_callbacks()
         controller.batches.clear()
         controller.toolhead.status["position"] = (10.0, 20.0, 6.25, 0.0)
-        elapsed = printing_ui.get_page().node(printing_ui.PrintingRef.ELAPSED)
-        with mock.patch.object(elapsed, "update", side_effect=AssertionError("unchanged metric updated")):
-            controller._update_print_progress(101)
+        controller._update_print_progress(101)
         drawing = "\n".join(controller.batches[0])
         self.assertIn('6.25 MM', drawing)
         for text in ('00:01:40', '00:05:00', '5 / 90', 'PROGRESS'):
@@ -498,13 +469,13 @@ class PrintPreviewLayoutTest(unittest.TestCase):
         controller = _controller("/data/missing.gcode", DeferredPreviewWorker())
         controller.print_state = PrintState.PREPARING
         controller._live_z_adjust_allowed = lambda _eventtime: False
-        controller._render_print_page()
+        controller._render_screen()
         controller.reactor.flush_callbacks()
         preview = controller._gcode_preview
         controller.batches.clear()
         controller.print_state = PrintState.PRINTING
         controller._live_z_adjust_allowed = lambda _eventtime: True
-        with mock.patch.object(controller, "_render_print_page", side_effect=AssertionError("full page paint")):
+        with mock.patch.object(controller, "_render_screen", side_effect=AssertionError("full page paint")):
             controller._update_print_progress(101)
         self.assertIs(controller._gcode_preview, preview)
         self.assertFalse(preview["cancel"].is_set())
@@ -514,21 +485,22 @@ class PrintPreviewLayoutTest(unittest.TestCase):
             self.assertIn(text, drawing)
         for text in ("PREVIEW", "missing.gcode", "ELAPSED", "CANCEL"):
             self.assertNotIn(text, drawing)
-        actions = {region.action for region in controller.renderer.hitboxes}
+        actions = {region.action for region in shown_hitboxes(controller.renderer)}
         self.assertTrue({"print.pause", "print.more", "print.z", "print.cancel"} <= actions)
 
     def test_pending_button_refresh_and_queue_refusal_preserve_visible_input(self):
         controller = _controller("/data/missing.gcode")
-        controller._render_print_page()
+        controller._render_screen()
         controller.reactor.flush_callbacks()
         generation = controller.renderer.generation
         controller.pending_action = "print.pause"
-        with full_render_queue(controller.renderer):
+        with refused_render(controller.renderer):
             controller._update_print_controls()
+        # Typer still holds the input of the last frame it accepted.
         self.assertEqual(controller.renderer.generation, generation)
-        self.assertTrue(any(region.action == "print.pause" for region in controller.renderer.hitboxes))
-        controller._render_print_page()
-        self.assertFalse(any(region.action == "print.pause" for region in controller.renderer.hitboxes))
+        self.assertTrue(controller.capture.latest.has_action("print.pause"))
+        controller._render_screen()
+        self.assertFalse(any(region.action == "print.pause" for region in controller.capture.latest.hitboxes))
         controller.batches.clear()
         controller.pending_action = None
         controller._update_print_controls()
@@ -536,11 +508,11 @@ class PrintPreviewLayoutTest(unittest.TestCase):
         self.assertIn("PAUSE", drawing)
         for text in ("PREVIEW", "ELAPSED", "CANCEL", "MORE", "Z ADJUST"):
             self.assertNotIn(text, drawing)
-        self.assertTrue(any(region.action == "print.pause" for region in controller.renderer.hitboxes))
+        self.assertTrue(any(region.action == "print.pause" for region in controller.capture.latest.hitboxes))
 
     def test_progress_change_updates_track_and_percentage(self):
         controller = _controller("/data/missing.gcode")
-        controller._render_print_page()
+        controller._render_screen()
         controller.reactor.flush_callbacks()
         controller.batches.clear()
         controller.print_stats.status["print_duration"] = 200
@@ -552,7 +524,7 @@ class PrintPreviewLayoutTest(unittest.TestCase):
 
     def test_page_keeps_controls_left_and_panel_right(self):
         controller = _controller("/data/missing.gcode")
-        controller._render_print_page()
+        controller._render_screen()
         controller.reactor.flush_callbacks()
         drawing = "\n".join(controller.batches[0])
 
@@ -562,14 +534,15 @@ class PrintPreviewLayoutTest(unittest.TestCase):
             "fill -p %d %d -s %d %d" % (
                 panel_x, panel_y, panel_width, panel_height), drawing)
         self.assertIn("-t \"PREVIEW\"", drawing)
+        frame = RenderFrame(controller.batches[0], controller.renderer)
         for action in ("print.pause", "print.more", "print.z",
                        "print.cancel"):
-            button = controller.renderer._buttons[action]
+            button = frame.buttons[action]
             self.assertGreaterEqual(
-                button[1], panel_y + panel_height + 18, action)
+                button.bounds.y, panel_y + panel_height + 18, action)
             self.assertLessEqual(
-                get_font_metrics().text_width(button[4], button[6]),
-                button[2] - 2 * FEATHER.FeatherRenderer.BUTTON_TEXT_PADDING,
+                get_font_metrics().text_width(button.label, button.font),
+                button.bounds.width - 2 * FEATHER.FeatherRenderer.BUTTON_TEXT_PADDING,
                 action)
         filename = [line for line in drawing.splitlines()
                     if "missing.gcode" in line][0]
@@ -589,15 +562,13 @@ class PrintPreviewLayoutTest(unittest.TestCase):
         controller.print_stats.status["print_duration"] = 0
         controller.print_stats.status["info"] = {}
         controller.toolhead.status["position"] = (0, 0, 0, 0)
-        controller._render_print_page()
+        controller._render_screen()
         controller.reactor.flush_callbacks()
         controller.batches.clear()
         controller.print_stats.status["print_duration"] = 100
         controller.print_stats.status["info"] = {"current_layer": 5, "total_layer": 90}
         controller.toolhead.status["position"] = (10.0, 20.0, 4.5, 0.0)
         controller._last_print_controls_ready = True
-        controller._last_progress = None
-        controller._last_time = None
 
         controller._update_print_progress(100)
 
@@ -640,7 +611,7 @@ class PrintPreviewLifecycleTest(unittest.TestCase):
             with mock.patch.object(
                     PAGES, "_render_gcode_preview",
                     side_effect=AssertionError("preview helper was called")):
-                controller._render_print_page()
+                controller._render_screen()
                 controller.reactor.flush_callbacks()
         finally:
             pathlib.Path(path).unlink()
@@ -679,7 +650,7 @@ class PrintPreviewLifecycleTest(unittest.TestCase):
                     PAGES, "_render_gcode_preview",
                     return_value=decode_fxi1(
                         _preview_fixture_blob())) as render_preview:
-                controller._render_print_page()
+                controller._render_screen()
                 controller.reactor.flush_callbacks()
         finally:
             pathlib.Path(path).unlink()
@@ -730,9 +701,9 @@ class PrintPreviewLifecycleTest(unittest.TestCase):
                 cache_key = (
                     path, file_stat.st_size, file_stat.st_mtime,
                     width, height)
-                controller._render_print_page()
+                controller._render_screen()
                 controller.reactor.flush_callbacks()
-                controller._render_print_page()
+                controller._render_screen()
                 controller.reactor.flush_callbacks()
             finally:
                 pathlib.Path(path).unlink()
@@ -764,7 +735,7 @@ class PrintPreviewLifecycleTest(unittest.TestCase):
                 controller.print_stats.status["info"] = {
                     "current_layer": 1, "total_layer": 2,
                 }
-                controller._render_print_page()
+                controller._render_screen()
                 controller.reactor.flush_callbacks()
             finally:
                 pathlib.Path(path).unlink()
@@ -846,7 +817,7 @@ class PrintPreviewLifecycleTest(unittest.TestCase):
                 controller.print_stats.status["info"] = {
                     "current_layer": 1, "total_layer": 2,
                 }
-                controller._render_print_page()
+                controller._render_screen()
                 controller.reactor.flush_callbacks()
                 worker = DeferredPreviewWorker()
                 controller.file_worker = worker
@@ -888,9 +859,9 @@ class PrintPreviewLifecycleTest(unittest.TestCase):
             try:
                 worker = SynchronousPreviewWorker()
                 controller = _controller(path, worker)
-                controller._render_print_page()
+                controller._render_screen()
                 controller.reactor.flush_callbacks()
-                controller._render_print_page()
+                controller._render_screen()
                 controller.reactor.flush_callbacks()
             finally:
                 pathlib.Path(path).unlink()

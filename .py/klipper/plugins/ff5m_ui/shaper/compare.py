@@ -4,12 +4,14 @@
 from copy import deepcopy
 from functools import partial
 
-from ui import FLEX, Button, Column, Flex, Grid, PageTree, Text, ThemeColor, ThemeRole, When
+from ui import (
+    FLEX, Button, ButtonSurface, Column, FeatherRenderer, Flex, Frame, Grid, PageTree, Text, ThemeColor,
+    ThemeRole, When,
+)
 from ui.bindings import bind, derived
 
 from ..keys import AppPage
 from .actions import ShaperAction
-from .components import MethodRow
 from .page import CONTENT, FONT, apply_button, axes, save_button
 from .state import ShaperState
 
@@ -18,24 +20,39 @@ def _cell(rows, method, field):
     return rows.get(method, {}).get(field, "--")
 
 
-def method_row(method):
+def _row_cells(method, refs):
+    """The row's values; refs names them on the one face that is the row's own."""
     values = {name: derived(partial(_cell, method=method, field=field), bind(ShaperState.TABLE))
               for name, field in (("name", "name"), ("frequency", "freq"), ("vibrations", "vibrs"),
                                   ("smoothing", "smoothing"), ("acceleration", "max_accel"))}
     color = derived(lambda current: ThemeRole.BUTTON_SELECTED_TEXT if current == method else ThemeColor.TEXT,
                     bind(ShaperState.METHOD))
-    return MethodRow(
-        Button(ShaperAction("method", method), "", font=FONT,
-               state=derived(lambda current: "selected" if current == method else "enabled", bind(ShaperState.METHOD))),
-        Grid(matrix=((
-            Text(values["name"], font=FONT, color=color, horizontal="left", truncate=True)
-                .ref("shaper.row." + method + ".name"),
-            Text(values["frequency"], font=FONT, color=color).ref("shaper.row." + method + ".frequency"),
-            Text(values["vibrations"], font=FONT, color=color).ref("shaper.row." + method + ".vibrations"),
-            Text(values["smoothing"], font=FONT, color=color).ref("shaper.row." + method + ".smoothing"),
-            Text(values["acceleration"], font=FONT, color=color).ref("shaper.row." + method + ".acceleration"),
-        ),), columns=(Flex(2), FLEX, FLEX, FLEX, FLEX), rows=(FLEX,), gap=8).padding(left=16, right=16),
-    ).height(44).ref("shaper.row." + method)
+
+    def cell(name, **layout):
+        node = Text(values[name], font=FONT, color=color, **layout)
+        return node.ref("shaper.row.%s.%s" % (method, name)) if refs else node
+
+    return Grid(matrix=((
+        cell("name", horizontal="left", truncate=True), cell("frequency"), cell("vibrations"),
+        cell("smoothing"), cell("acceleration"),
+    ),), columns=(Flex(2), FLEX, FLEX, FLEX, FLEX), rows=(FLEX,), gap=8).padding(left=16, right=16)
+
+
+def _row_face(method, pressed):
+    """The row drawn as a button in its state, its cells over it."""
+    def colors(current):
+        return FeatherRenderer.BUTTON_COLORS["pressed" if pressed else "selected" if current == method else "enabled"]
+
+    return Frame(
+        _row_cells(method, not pressed),
+        border=derived(lambda current: colors(current)[1], bind(ShaperState.METHOD)),
+        background=derived(lambda current: colors(current)[0], bind(ShaperState.METHOD)), line_width=2,
+    )
+
+
+def method_row(method):
+    return ButtonSurface(ShaperAction("method", method), _row_face(method, False), _row_face(method, True)) \
+        .height(44).ref("shaper.row." + method)
 
 
 caption = Text(bind(ShaperState.RECOMMENDED), font=FONT, color=ThemeColor.DIM,

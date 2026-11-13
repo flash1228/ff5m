@@ -26,6 +26,8 @@ SPEC = importlib.util.spec_from_file_location("feather_screen", MODULE_PATH)
 FEATHER = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(FEATHER)
 UI = __import__("ui")
+from ff5m_ui import dialogs as dialog_ui
+from ff5m_ui import state_screens as state_ui
 from ui.layout_helpers import (
     DIALOG_BUTTON_FONT, dialog_vertical_bounds,
 )
@@ -34,7 +36,8 @@ from ff5m_ui.move import runtime as MOVE_LAYOUT
 from ff5m_ui.z_offset import runtime as Z_OFFSET_LAYOUT
 from feather.features.z import ZCalibrationFeature
 from tests.feather_render_test_helper import (
-    RenderCapture, RenderFrame, full_render_queue)
+    RenderCapture, RenderFrame, page_screen, paint_content, press, prompt_wire, refused_render,
+    shown_hitboxes, state_screen)
 
 # Unit controllers created with __new__ do not receive klippy:ready. Give
 # those isolated fixtures the same catalog that config/material.cfg provides;
@@ -85,6 +88,26 @@ def blank_page(screen, page=FEATHER.ScreenPage.IDLE_HOME):
     """Put dialog tests over a page whose own content is irrelevant."""
     screen.page = page
     screen._paint_page = lambda feature=None: None
+    paint_home(screen, lambda: screen._paint_page())
+
+
+def paint_home(screen, painter):
+    """Show the home page through a painter instead of its declarative page."""
+    from feather.screen.composition import PaintSurface
+
+    surface = PaintSurface(painter)
+    screen._home_content = lambda: (surface, None, False)
+    screen._write_dashboard = lambda eventtime: False
+
+
+def paint_printing(screen, painter):
+    """Show the printing pages through a painter instead of their declarative page."""
+    from feather.screen.composition import PaintSurface
+
+    # PRINTING and PAUSED are one page under another title: each its own content.
+    surfaces = {}
+    screen._print_content = lambda: (surfaces.setdefault(screen.page, PaintSurface(painter)), None, False)
+    screen._write_print_values = lambda eventtime, due: None
 
 
 class StatusObject:
@@ -206,12 +229,24 @@ def mod_controller(params, variables):
 
     feature = SETTINGS.SettingsFeature(host)
 
+    def render_screen(feature_=None, force=False):
+        # As the screen root draws a page: a feature's tree with its values, else its painter.
+        content = feature.page_content(host.page)
+        if content is None:
+            feature.render(host.page)
+            return
+        feature.write_page_values(host.page)
+        paint_content(feature, content)
+
+    host._render_screen = render_screen
+    host._paint_page_values = render_screen
+
     def show_page(page):
         host.previous_page = host.page
         host.page = page
         if page in (FEATHER.ScreenPage.SETTINGS, FEATHER.ScreenPage.MOD_SETTINGS,
                     FEATHER.ScreenPage.PARAMETER_OPTIONS, FEATHER.ScreenPage.MOD_VALUE):
-            feature.render(page)
+            render_screen()
 
     host._show_page = show_page
     return feature
@@ -249,14 +284,8 @@ class FeatherUtilitiesTest(unittest.TestCase):
         value = "before\n--end\nafter"
 
         quoted = FEATHER.FeatherRenderer.quote(value)
-        frame = FEATHER.FeatherRenderer._encode_frames([
-            "--batch text -t %s" % quoted,
-        ])[0].decode("utf-8")
-        payload, separator, remainder = frame.rpartition("\n--end\n")
 
-        self.assertEqual(separator, "\n--end\n")
-        self.assertEqual(remainder, "")
-        self.assertNotIn("\n--end\n", payload)
+        self.assertNotIn("\n--end\n", "\n%s\n" % quoted)
         self.assertEqual(
             shlex.split(quoted), ["before\n --end\nafter"])
 
@@ -281,13 +310,14 @@ class FeatherUtilitiesTest(unittest.TestCase):
                 },
             ],
         })
-        with mock.patch("ui.renderer.get_font_metrics",
-                        return_value=synthetic):
-            normalize = FEATHER.FeatherRenderer.normalize_font
-            self.assertEqual(normalize("Display 9pt"), "Display 8pt")
-            self.assertEqual(normalize("Display 11pt"), "Display 12pt")
-            command = FEATHER.FeatherRenderer().text(
-                10, 10, "Visible", font="Display 10pt")
+        self.addCleanup(font_metrics.set_font_metrics,
+                        font_metrics.get_font_metrics())
+        font_metrics.set_font_metrics(synthetic)
+        normalize = FEATHER.FeatherRenderer.normalize_font
+        self.assertEqual(normalize("Display 9pt"), "Display 8pt")
+        self.assertEqual(normalize("Display 11pt"), "Display 12pt")
+        command = FEATHER.FeatherRenderer().text(
+            10, 10, "Visible", font="Display 10pt")
 
         self.assertIn('-f "Display 8pt"', command)
         self.assertNotIn("10pt", command)
@@ -373,21 +403,6 @@ class FeatherUtilitiesTest(unittest.TestCase):
             value, cursor, shift, symbols = keyboard.apply(
                 value, cursor, "keyboard.right", shift, symbols)
         self.assertEqual((value, cursor), ("ac", 2))
-
-    def test_shared_text_keyboard_keeps_caret_inside_long_value_field(self):
-        renderer = FEATHER.FeatherRenderer()
-        commands = KEYBOARD.TEXT_KEYBOARD.render_value(
-            renderer, "a" * 64, 32, 42, 147, 575,
-            UI.ThemeColor.PRIMARY)
-
-        caret = commands[-1]
-        match = re.search(
-            r"fill -p (\d+) (\d+) -s (\d+) (\d+)", caret)
-        self.assertIsNotNone(match)
-        self.assertGreaterEqual(int(match.group(1)), 42)
-        self.assertLessEqual(int(match.group(1)), 615)
-        self.assertGreater(int(match.group(3)), 0)
-        self.assertGreater(int(match.group(4)), 0)
 
     def test_duration_formatting(self):
         duration = FEATHER.FeatherScreen._duration
@@ -500,21 +515,20 @@ class FeatherUtilitiesTest(unittest.TestCase):
             FEATHER.ScreenPage.WIFI_SCAN, "net.reset.saved"))
         controller.renderer = FEATHER.FeatherRenderer()
         blank_page(controller)
+        def offered(action):
+            return controller._current_dialog_instance().resolve_action(action) is not None
+
         controller._show_message("", controller.page, actions=())
-        self.assertFalse(controller._dialog_action_allowed(
-            FEATHER.ScreenDialog.MESSAGE, "net.reset.saved"))
-        self.assertFalse(controller._dialog_action_allowed(
-            FEATHER.ScreenDialog.MESSAGE, "mesh.save"))
+        self.assertFalse(offered("net.reset.saved"))
+        self.assertFalse(offered("mesh.save"))
         controller._show_message("", controller.page, actions=(
-            ("message.ok", "CANCEL", "enabled"),
-            ("net.reset.saved", "RESET PASSWORD", "warning")))
-        self.assertTrue(controller._dialog_action_allowed(
-            FEATHER.ScreenDialog.MESSAGE, "net.reset.saved"))
+            (dialog_ui.OK, "CANCEL", "enabled"),
+            (dialog_ui.RESET_WIFI_PASSWORD, "RESET PASSWORD", "warning")))
+        self.assertTrue(offered("net.reset.saved"))
         controller._show_message("", controller.page, actions=(
-            ("mesh.save", "SAVE & RESTART", "enabled"),
-            ("message.ok", "LATER", "enabled")))
-        self.assertTrue(controller._dialog_action_allowed(
-            FEATHER.ScreenDialog.MESSAGE, "mesh.save"))
+            (dialog_ui.SAVE_MESH, "SAVE & RESTART", "enabled"),
+            (dialog_ui.OK, "LATER", "enabled")))
+        self.assertTrue(offered("mesh.save"))
         self.assertFalse(allowed(
             FEATHER.ScreenPage.MOD_SETTINGS, "keyboard.key.hash"))
 
@@ -920,7 +934,8 @@ class FeatherUtilitiesTest(unittest.TestCase):
                     if text.truncate and text.max_width is not None:
                         self.assertLessEqual(feature.renderer.text_width(
                             text.value, text.font), text.max_width)
-                value_button = row.button("mod.item.0")
+                from ff5m_ui.parameter_controls import parameter_action
+                value_button = row.button(parameter_action(parameter.key))
                 self.assertLessEqual(feature.renderer.text_width(
                     value_button.label, value_button.font), value_button.bounds.width
                     - 2 * feature.renderer.BUTTON_TEXT_PADDING)
@@ -1410,36 +1425,48 @@ class FeatherUtilitiesTest(unittest.TestCase):
                          {"name": "front left", "direction": "BASE", "turns": "-"})
 
 
+def touch_warning_layer():
+    from ff5m_ui import dialogs as dialog_ui
+    from ui import ScreenLayer
+    return ScreenLayer(dialog_ui.touch_unavailable_page(), retain_background=True, backdrop=True)
+
+
 class RendererStateTest(unittest.TestCase):
     def test_touch_warning_wraps_body_and_invalidates_cached_footer(self):
         renderer = FEATHER.FeatherRenderer()
         batches = RenderCapture(renderer).batches
+
+        def ready():
+            commands = renderer.begin_page("Ready")
+            commands += renderer.button(
+                "ready.confirm", 220, 300, 360, 100, "CONTINUE")
+            renderer.send(commands)
+        shown = [ready]
+        root = page_screen(renderer, lambda: shown[0]())
         renderer.footer(
             "NOZZLE 21/220C | BED 24/60C", "192.168.2.4 | IDLE")
-        commands = renderer.begin_page("Ready")
-        commands += renderer.button(
-            "ready.confirm", 220, 300, 360, 100, "CONTINUE")
-        renderer.send(commands)
+        root.paint()
 
-        renderer.touch_unavailable_modal()
+        warning_layer = touch_warning_layer()
+        root.open(warning_layer)
 
-        warning = "\n".join(batches[-1])
         frame = RenderFrame(batches[-1], renderer)
         title = frame.text("TOUCH INPUT UNAVAILABLE")
         body = frame.text(
             "THE TOUCH DEVICE IS NOT AVAILABLE. "
             "WAITING FOR AUTOMATIC RECONNECTION.")
-        self.assertNotIn(renderer.modal_scrim(), batches[-1])
+        self.assertIn(renderer.modal_scrim(), batches[-1])
         self.assertGreaterEqual(body.y - body.max_height // 2 - title.y, 30)
-        self.assertIn("--max-height 108 --wrap --truncate", warning)
-        self.assertFalse(renderer._footer_drawn)
 
+        # The warning covers the footer: updates wait for the next page.
+        drawn = len(batches)
         renderer.freeze_output()
         renderer.footer(
             "NOZZLE 22/220C | BED 24/60C", "192.168.2.4 | PRINTING")
-        self.assertFalse(renderer._footer_drawn)
+        self.assertEqual(len(batches), drawn)
         renderer.thaw_output()
-        restored = "\n".join(renderer.begin_page("Ready"))
+        root.close(warning_layer)
+        restored = "\n".join(batches[-1])
         footer_clear = renderer.fill(
             0, UI.FOOTER_Y - 2, UI.SCREEN_WIDTH,
             UI.SCREEN_HEIGHT - (UI.FOOTER_Y - 2),
@@ -1451,7 +1478,6 @@ class RendererStateTest(unittest.TestCase):
         renderer = FEATHER.FeatherRenderer()
         batches = RenderCapture(renderer).batches
 
-        renderer.startup_modal("INITIALIZING KLIPPER", "PLEASE WAIT")
         self.assertFalse(renderer.touch_warning_allowed)
 
         renderer.set_header_action("emergency.stop", "STOP")
@@ -1461,11 +1487,12 @@ class RendererStateTest(unittest.TestCase):
         renderer.send(commands)
         self.assertTrue(renderer.touch_warning_allowed)
 
-        renderer.touch_unavailable_modal()
+        page_screen(renderer, lambda: renderer.send(commands)).open(touch_warning_layer())
 
-        warning = "\n".join(batches[-1])
-        self.assertIn("TOUCH INPUT UNAVAILABLE", warning)
-        self.assertNotIn("emergency.stop", warning)
+        self.assertIn("TOUCH INPUT UNAVAILABLE", "\n".join(batches[-1]))
+        # The header action stays dimmed under the warning: nothing on it takes input.
+        self.assertNotIn("STOP", "\n".join(batches[-1]).split(renderer.modal_scrim())[1])
+        self.assertEqual(renderer.shown_actions(), {"global.wake"})
         self.assertFalse(renderer.touch_warning_allowed)
 
     def test_layout_primitives_compose_sections_metrics_and_grids(self):
@@ -1585,8 +1612,8 @@ class RendererStateTest(unittest.TestCase):
         frame = rendering.latest
         self.assertTrue(frame.has_text("First instruction."))
         self.assertTrue(frame.has_text("Second instruction."))
-        self.assertEqual(frame.button("prompt.button.0").bounds.width, 144)
-        self.assertLess(frame.button("prompt.button.0").bounds.y, 370)
+        self.assertEqual(frame.button(prompt_wire(screen)).bounds.width, 144)
+        self.assertLess(frame.button(prompt_wire(screen)).bounds.y, 370)
         self.assertTrue(any(
             shape.kind == "fill" and 480 <= shape.bounds.width < 700
             and shape.bounds.height < 365 for shape in frame.shapes))
@@ -1597,71 +1624,72 @@ class RendererStateTest(unittest.TestCase):
         screen._clear_dialogs()
         screen.page = FEATHER.ScreenPage.IDLE_HOME
         screen._show_touch_unavailable = lambda: None
-        screen._render_home = lambda: screen.renderer.send(
-            screen.renderer.begin_page("Home"))
+        paint_home(screen, lambda: screen.renderer.send(
+            screen.renderer.begin_page("Home")))
         screen._run_script = mock.Mock()
         screen._start_action_prompt("Old")
         screen._append_action_prompt_button("CONFIRM|OLD_COMMAND")
         screen._show_action_prompt()
-        old_action = screen.renderer._wire_action("prompt.button.0")
+        old_wire = prompt_wire(screen)
+        old_action = screen.renderer._wire_action(old_wire)
 
         screen._start_action_prompt("New")
         screen._append_action_prompt_button("CONFIRM|NEW_COMMAND")
-        self.assertEqual(screen.renderer.decode_action(old_action), "prompt.button.0")
-        screen._handle_action_prompt_action("prompt.button.0")
+        self.assertEqual(screen.renderer.decode_action(old_action), old_wire)
+        press(screen, old_wire)
         screen._run_script.assert_called_once_with("OLD_COMMAND")
         screen._run_script.reset_mock()
 
         screen._show_action_prompt()
         self.assertIsNone(screen.renderer.decode_action(old_action))
-        screen._handle_action_prompt_action(
-            screen.renderer.decode_action(old_action) or "")
-        screen._run_script.assert_not_called()
-        screen._handle_action_prompt_action(
-            screen.renderer.decode_action(
-                screen.renderer._wire_action("prompt.button.0")))
+        self.assertIsNone(screen._current_dialog_instance().resolve_action(old_wire))
+        press(screen, screen.renderer.decode_action(screen.renderer._wire_action(prompt_wire(screen))))
         screen._run_script.assert_called_once_with("NEW_COMMAND")
+
+    def test_a_prompt_button_without_a_command_runs_nothing(self):
+        screen = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)
+        screen.renderer = FEATHER.FeatherRenderer()
+        blank_page(screen)
+        screen._run_script = mock.Mock()
+        screen._start_action_prompt("Empty")
+        screen._append_action_prompt_button("")
+        screen._show_action_prompt()
+
+        press(screen, prompt_wire(screen))
+
+        screen._run_script.assert_not_called()
 
     def test_rejected_prompt_frame_keeps_old_commands_until_admitted(self):
         screen = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)
         screen.renderer = FEATHER.FeatherRenderer()
         screen.page = FEATHER.ScreenPage.IDLE_HOME
         screen._show_touch_unavailable = lambda: None
-        screen._render_home = lambda: screen.renderer.send(
-            screen.renderer.begin_page("Home"))
+        paint_home(screen, lambda: screen.renderer.send(
+            screen.renderer.begin_page("Home")))
         screen._run_script = mock.Mock()
         screen._start_action_prompt("Old")
         screen._append_action_prompt_button("CONFIRM|OLD_COMMAND")
         screen._show_action_prompt()
-        old_tap = screen.renderer._wire_action("prompt.button.0")
-        with full_render_queue(screen.renderer):
+        old_tap = screen.renderer._wire_action(prompt_wire(screen))
+        with refused_render(screen.renderer):
             screen._start_action_prompt("New")
             screen._append_action_prompt_button("CONFIRM|NEW_COMMAND")
-            render_prompt = screen._render_action_prompt
-            def paint_new_prompt(instance):
-                screen._handle_action_prompt_action(screen.renderer.decode_action(old_tap))
-                render_prompt(instance)
-            screen._render_action_prompt = paint_new_prompt
             screen._show_action_prompt()
-            screen._run_script.assert_called_once_with("OLD_COMMAND")
-            screen._run_script.reset_mock()
-            screen._render_action_prompt = render_prompt
-            screen._find_dialog(FEATHER.ScreenDialog.ACTION_PROMPT).painter = render_prompt
-            screen._handle_action_prompt_action(screen.renderer.decode_action(old_tap))
+            press(screen, screen.renderer.decode_action(old_tap))
             screen._run_script.assert_called_once_with("OLD_COMMAND")
             screen._run_script.reset_mock()
 
         screen._screen_root.paint()
         self.assertIsNone(screen.renderer.decode_action(old_tap))
-        screen._handle_action_prompt_action("prompt.button.0")
+        press(screen, prompt_wire(screen))
         screen._run_script.assert_called_once_with("NEW_COMMAND")
 
     def test_prompt_end_can_close_visible_instance_while_next_prompt_is_built(self):
         screen = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)
         screen.renderer = FEATHER.FeatherRenderer()
         screen.page = FEATHER.ScreenPage.IDLE_HOME
-        screen._render_home = lambda: screen.renderer.send(
-            screen.renderer.begin_page("Home"))
+        paint_home(screen, lambda: screen.renderer.send(
+            screen.renderer.begin_page("Home")))
         screen._start_action_prompt("Old")
         screen._show_action_prompt()
         screen._start_action_prompt("New draft")
@@ -1700,8 +1728,8 @@ class RendererStateTest(unittest.TestCase):
         screen.page = FEATHER.ScreenPage.IDLE_HOME
         screen._clear_dialogs()
         screen._show_touch_unavailable = lambda: None
-        screen._render_home = lambda: screen.renderer.send(
-            screen.renderer.begin_page("Home"))
+        paint_home(screen, lambda: screen.renderer.send(
+            screen.renderer.begin_page("Home")))
         screen._start_action_prompt("Waiting")
         screen._append_action_prompt_button("CANCEL|CANCEL_COMMAND")
         screen._show_action_prompt()
@@ -1718,7 +1746,7 @@ class RendererStateTest(unittest.TestCase):
         screen._close_dialog(FEATHER.ScreenDialog.MESSAGE)
         self.assertEqual(screen._current_dialog(),
                          FEATHER.ScreenDialog.ACTION_PROMPT)
-        self.assertIn("prompt.button.0", screen.renderer._buttons)
+        self.assertIn(prompt_wire(screen), screen.renderer.shown_actions())
 
         screen._show_message("Notice", screen.page)
         screen._handle_action_prompt_response(
@@ -1758,7 +1786,7 @@ class RendererStateTest(unittest.TestCase):
         screen._handle_print_action("print.cancel")
         screen._show_message.assert_called_once()
         actions = screen._show_message.call_args.kwargs["actions"]
-        self.assertEqual(actions[0][0], "timelapse.wait.cancel")
+        self.assertEqual(actions[0][0], dialog_ui.CANCEL_HELD_PRINT)
 
         screen.print_state = FEATHER.PrintState.PAUSED
         screen.renderer = FEATHER.FeatherRenderer()
@@ -1872,7 +1900,7 @@ class RendererStateTest(unittest.TestCase):
         blank_page(screen, FEATHER.ScreenPage.TIMELAPSE_WAIT)
         screen._show_dialog(FEATHER.ScreenDialog.MESSAGE, content={
             "message": "", "title": None,
-            "actions": (("timelapse.wait.cancel", "CANCEL PRINT", "danger"),)})
+            "actions": ((dialog_ui.CANCEL_HELD_PRINT, "CANCEL PRINT", "danger"),)})
         screen.last_action_time = 0.0
         screen.pending_action = None
         screen._blocking_operation_active = lambda: False
@@ -1930,10 +1958,10 @@ class RendererStateTest(unittest.TestCase):
             + ["// action:prompt_text Instruction %d" % index for index in range(10)]
             + ["// action:prompt_footer_button OK", "// action:prompt_show"]))
 
-        self.assertTrue(rendering.latest.has_action("prompt.next"))
+        self.assertTrue(rendering.latest.has_action(dialog_ui.NEXT_PAGE.wire_id))
         self.assertFalse(rendering.latest.has_text("Instruction 9"))
 
-        screen._handle_action_prompt_action("prompt.next")
+        press(screen, dialog_ui.NEXT_PAGE.wire_id)
         self.assertTrue(rendering.latest.has_text("Instruction 9"))
 
     def test_dialog_expands_for_five_lines_and_a_button(self):
@@ -2010,23 +2038,24 @@ class RendererStateTest(unittest.TestCase):
             "--max-width 584 --max-height 66 --wrap --truncate", wrapped)
         self.assertIn("--max-width 584 --truncate", truncated)
 
-    def test_startup_modal_draws_pulsing_circle_and_loading_text(self):
+    def test_the_startup_screen_pulses_by_a_state_write(self):
         renderer = FEATHER.FeatherRenderer()
         batches = RenderCapture(renderer).batches
+        page = state_ui.startup_page()
 
-        renderer.startup_modal("INITIALIZING KLIPPER", "STARTING", 0)
-        renderer.startup_modal("INITIALIZING KLIPPER", "STARTING", 2)
-
-        first = "\n".join(batches[0])
-        expanded = "\n".join(batches[1])
+        root = state_screen(renderer, page, state_ui.startup_values("INITIALIZING KLIPPER", "STARTING", 0))
+        first = "\n".join(batches[-1])
         self.assertIn("-p 392 232 -s 17 1", first)
-        self.assertIn("-p 384 232 -s 33 1", expanded)
         self.assertIn("--batch clear-hitboxes", first)
+        self.assertEqual(renderer.shown_actions(), {"global.wake"})
 
-        pulse = "\n".join(renderer.startup_pulse(1))
-        self.assertIn("-p 388 232 -s 25 1", pulse)
-        self.assertNotIn("--batch clear-hitboxes", pulse)
-        self.assertNotIn("-p 0 0 -s 800 480", pulse)
+        for phase, row in ((1, "-p 388 232 -s 25 1"), (2, "-p 384 232 -s 33 1")):
+            page.state.update(state_ui.startup_values("INITIALIZING KLIPPER", "STARTING", phase))
+            root.paint()
+            pulse = "\n".join(batches[-1])
+            self.assertIn(row, pulse)
+            self.assertNotIn("--batch clear-hitboxes", pulse)
+            self.assertNotIn("-p 0 0 -s 800 480", pulse)
 
     def test_restart_startup_modal_cancels_late_toggle_animation_frames(self):
         renderer = FEATHER.FeatherRenderer()
@@ -2038,8 +2067,7 @@ class RendererStateTest(unittest.TestCase):
             lambda callback, delay: callbacks.append((delay, callback)))
 
         page_generation = renderer.generation
-        renderer.startup_modal(
-            "INITIALIZING KLIPPER", "RESTARTING", 0, critical=True)
+        state_screen(renderer, state_ui.startup_page(), state_ui.startup_values("INITIALIZING KLIPPER", "RESTARTING"))
         loader_batch_count = len(batches)
         for delay, callback in callbacks:
             callback(100.0 + delay)
@@ -2152,7 +2180,7 @@ class RendererStateTest(unittest.TestCase):
             renderer.text(
                 100, 120, 'file "one" \\ Привет', UI.ThemeColor.BRIGHT, "Roboto 12pt",
                 "center", "middle"),
-            FEATHER.FeatherRenderer._hitbox("print.pause", 20, 315, 175, 100),
+            renderer._hitbox("print.pause", 20, 315, 175, 100),
             "--batch flush",
             "--end",
         ]
@@ -2279,24 +2307,29 @@ class RendererStateTest(unittest.TestCase):
     def test_footer_is_preserved_across_page_frames(self):
         renderer = FEATHER.FeatherRenderer()
         sent = RenderCapture(renderer).batches
+        title = ["Control"]
+        root = page_screen(renderer, lambda: renderer.send(renderer.begin_page(title[0])))
         renderer.footer(
             "NOZZLE 21/220C | BED 24/60C", "192.168.2.4 | IDLE")
+        root.paint()
+        title[0] = "Settings"
+        root.paint(force=True)
 
-        first = renderer.begin_page("Control")
-        second = renderer.begin_page("Settings")
-
-        self.assertEqual(len(sent), 1)
-        self.assertEqual(renderer._last_footer, (
-            "NOZZLE 21/220C | BED 24/60C", "192.168.2.4 | IDLE"))
-        self.assertIn("-s 800 442", "\n".join(first))
-        self.assertNotIn("-s 784 472", "\n".join(first))
-        self.assertIn("-s 784 439", "\n".join(first))
+        # Pages leave the footer's pixels alone; it was drawn once.
+        self.assertEqual(len(sent), 2)
+        self.assertIn("192.168.2.4 | IDLE", "\n".join(sent[0]))
+        page = "\n".join(sent[1])
+        self.assertNotIn("192.168.2.4 | IDLE", page)
+        self.assertIn("-s 800 442", page)
+        self.assertNotIn("-s 784 472", page)
+        self.assertIn("-s 784 439", page)
 
     def test_footer_fits_full_network_and_standby_status(self):
         renderer = FEATHER.FeatherRenderer()
-        drawing = "\n".join(renderer._footer_commands(
-            ("NOZZLE 250/250C | BED 32/0C",
-             "192.168.2.124 | STANDBY")))
+        sent = RenderCapture(renderer).batches
+        page_screen(renderer).paint()
+        renderer.footer("NOZZLE 250/250C | BED 32/0C", "192.168.2.124 | STANDBY")
+        drawing = "\n".join(sent[-1])
 
         self.assertIn('"192.168.2.124 | STANDBY"', drawing)
         self.assertIn("--max-width 340 --truncate", drawing)
@@ -2305,39 +2338,43 @@ class RendererStateTest(unittest.TestCase):
 
     def test_theme_change_repaints_cached_footer(self):
         renderer = FEATHER.FeatherRenderer()
-        RenderCapture(renderer)
+        sent = RenderCapture(renderer).batches
+        root = page_screen(renderer, "Settings")
+        root.paint()
         renderer.footer(
             "NOZZLE 21/220C | BED 24/60C", "192.168.2.4 | IDLE")
 
         self.assertTrue(renderer.set_theme("SYNTH"))
         expected_primary = renderer.color(UI.ThemeColor.PRIMARY)
-        page = "\n".join(renderer.begin_page("Settings"))
-        self.assertIn("-c %s" % expected_primary, page)
+        root.paint(force=True)
+        footer = "\n".join(sent[-1])
+        self.assertIn("-c %s" % expected_primary, footer)
         footer_clear = renderer.fill(
             0, UI.FOOTER_Y - 2, UI.SCREEN_WIDTH,
             UI.SCREEN_HEIGHT - (UI.FOOTER_Y - 2),
             UI.ThemeColor.BACKGROUND)
-        self.assertIn(footer_clear, page)
+        self.assertIn(footer_clear, footer)
 
-        unchanged = "\n".join(renderer.begin_page("Settings"))
-        self.assertNotIn(footer_clear, unchanged)
+        drawn = len(sent)
+        root.paint(force=True)
+        self.assertEqual(len(sent), drawn + 1)
 
     def test_footer_repaint_removes_previous_fullscreen_overlay_pixels(self):
         renderer = FEATHER.FeatherRenderer()
         sent = RenderCapture(renderer).batches
         overlay = renderer.color(UI.ThemeColor.OVERLAY)
-        renderer.startup_modal(
-            "INITIALIZING KLIPPER", "INITIALIZING PRINTER SERVICES")
+        root = state_screen(renderer, state_ui.startup_page(),
+                            state_ui.startup_values("INITIALIZING KLIPPER", "INITIALIZING PRINTER SERVICES"))
 
         colors = dict(UI.FALLBACK_THEME)
         colors["background"] = (
             "abcdef" if overlay != "abcdef" else "fedcba")
         renderer._palette = UI.resolve_theme(colors)
         background = renderer.color(UI.ThemeColor.BACKGROUND)
-        renderer._footer_values = (
-            "NOZZLE 21/220C | BED 24/60C", "192.168.2.4 | IDLE")
-        renderer._footer_drawn = False
-        page = renderer.begin_page("Settings")
+        renderer.footer("NOZZLE 21/220C | BED 24/60C", "192.168.2.4 | IDLE")
+        root.replace_content(page_screen(renderer, "Settings").content)
+        root.paint(force=True)
+        page = [command for batch in sent[1:] for command in batch]
 
         fill_pattern = re.compile(
             r"^--batch fill -p (\d+) (\d+) -s (\d+) (\d+) "
@@ -2423,41 +2460,14 @@ class RendererStateTest(unittest.TestCase):
         write.assert_not_called()
         popen.assert_not_called()
         sleep.assert_not_called()
-        self.assertEqual(renderer.get_status()["queue_depth"], 1)
-
-    def test_large_draw_is_split_into_bounded_complete_frames(self):
-        commands = [
-            "--batch text -p 10 %d -t %s" % (index, "x" * 90)
-            for index in range(100)
-        ]
-        frames = FEATHER.FeatherRenderer._encode_frames(commands)
-        self.assertGreater(len(frames), 1)
-        self.assertTrue(all(len(frame) <= UI.MAX_ATOMIC_DRAW
-                            for frame in frames))
-        self.assertTrue(all(frame.endswith(b"--end\n") for frame in frames))
-        self.assertTrue(all(b"--batch flush" not in frame
-                            for frame in frames[:-1]))
-        self.assertTrue(frames[-1].endswith(b"--batch flush\n--end\n"))
-        self.assertEqual(sum(frame.count(b"--batch flush")
-                             for frame in frames), 1)
-        joined = b"\n".join(frames)
-        for command in commands:
-            self.assertIn(command.encode("utf-8"), joined)
-
-    def test_small_draw_is_committed_once(self):
-        frames = FEATHER.FeatherRenderer._encode_frames([
-            "--batch fill -p 0 0 -s 10 10 -c 030607",
-        ])
-
-        self.assertEqual(len(frames), 1)
-        self.assertTrue(frames[0].endswith(b"--batch flush\n--end\n"))
-        self.assertEqual(frames[0].count(b"--batch flush"), 1)
 
     def test_frame_limit_counts_utf8_bytes(self):
-        command = "--batch text -t " + ("Я" * 4100)
+        renderer = FEATHER.FeatherRenderer()
+        sent = RenderCapture(renderer).batches
 
-        with self.assertRaisesRegex(ValueError, "single Typer command"):
-            FEATHER.FeatherRenderer._encode_frames([command])
+        with self.assertLogs(level="WARNING"):
+            self.assertFalse(renderer.send(["--batch text -t " + ("Я" * 4100)]))
+        self.assertEqual(sent, [])
 
     def test_toast_registers_dismiss_hitbox_in_overlay_layer(self):
         renderer = FEATHER.FeatherRenderer()
@@ -2511,46 +2521,12 @@ class RendererStateTest(unittest.TestCase):
         self.assertEqual(controller.toast_until, 0.0)
         self.assertEqual(controller.toast_message, "")
 
-    def test_keyed_animation_frames_are_latest_wins(self):
-        renderer = FEATHER.FeatherRenderer()
-        renderer.send_animation(["frame 1"], "loader")
-        renderer.send_animation(["frame 2"], "loader")
-        renderer.send_animation(["frame 3"], "loader")
-        status = renderer.get_status()
-        self.assertEqual(status["queue_depth"], 1)
-        self.assertEqual(status["coalesced_batches"], 2)
-        queued = renderer._batch_queue.get()
-        self.assertEqual(queued.commands, ("frame 3",))
-
     def test_render_batch_serialized_size_is_bounded(self):
         renderer = FEATHER.FeatherRenderer()
-        accepted = renderer.send(["x" * (UI.MAX_PENDING_DRAW + 1)])
-        self.assertFalse(accepted)
-        status = renderer.get_status()
-        self.assertEqual(status["queue_depth"], 0)
-        self.assertEqual(status["dropped_batches"], 1)
-
-    def test_renderer_hands_off_touch_fd_before_closing_it(self):
-        renderer = FEATHER.FeatherRenderer()
-        events = []
-        renderer.configure_worker(
-            lambda callback: callback(0.0),
-            lambda old, new: events.append(("handoff", old, new)))
-        # The actual close ordering is exercised on the transport object: its
-        # acknowledged reactor handoff precedes descriptor close.
-        from ui.render_worker import TyperRenderWorker, RenderBatchQueue
-        transport = TyperRenderWorker(
-            RenderBatchQueue(), renderer._encode_frames, False,
-            ("typer", "/tmp/draw", "/tmp/event", "/dev/input/touch"),
-            lambda callback: callback(0.0),
-            lambda old, new: events.append(("handoff", old, new)))
-        transport.event_fd = 10
-        transport.draw_fd = 11
-        with mock.patch("os.close",
-                        side_effect=lambda fd: events.append(("close", fd))):
-            transport._close_transport()
-        self.assertEqual(events, [
-            ("handoff", 10, None), ("close", 10), ("close", 11)])
+        sent = RenderCapture(renderer).batches
+        with self.assertLogs(level="WARNING"):
+            self.assertFalse(renderer.send(["x" * 80] * (UI.MAX_PENDING_DRAW // 80 + 1)))
+        self.assertEqual(sent, [])
 
     def test_button_press_feedback_redraws_without_duplicate_hitbox(self):
         renderer = FEATHER.FeatherRenderer()
@@ -2590,10 +2566,26 @@ class RendererStateTest(unittest.TestCase):
     def test_footer_updates_only_when_values_change(self):
         renderer = FEATHER.FeatherRenderer()
         sent = RenderCapture(renderer).batches
+        page_screen(renderer).paint()
+        drawn = len(sent)
         renderer.footer("NOZZLE 20/0C | BED 25/0C", "Offline | IDLE")
         renderer.footer("NOZZLE 20/0C | BED 25/0C", "Offline | IDLE")
         renderer.footer("NOZZLE 21/0C | BED 25/0C", "Offline | IDLE")
-        self.assertEqual(len(sent), 2)
+        self.assertEqual(len(sent), drawn + 2)
+
+    def test_wifi_password_shows_only_when_asked(self):
+        controller = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)
+        controller.renderer = FEATHER.FeatherRenderer()
+        capture = RenderCapture(controller.renderer)
+        controller.selected_network = {"ssid": "Workshop"}
+        controller.password, controller.password_cursor = "secret123", 4
+        controller.keyboard_symbols = controller.keyboard_shift = False
+        for visible, shown, hidden in ((False, "*" * 9, "secret123"), (True, "secret123", "*" * 9)):
+            with self.subTest(visible=visible):
+                controller.password_visible = visible
+                controller._render_keyboard()
+                self.assertTrue(capture.latest.has_text(shown))
+                self.assertFalse(capture.latest.has_text(hidden))
 
     def test_dynamic_list_and_keyboard_hitboxes_stay_between_chrome(self):
         controller = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)
@@ -2607,8 +2599,8 @@ class RendererStateTest(unittest.TestCase):
         controller.file_page = 0
         controller.file_view = "list"
         controller.file_source = "internal"
-        controller.file_preview_visible_attempted = set()
-        controller._render_file_entries()
+        controller._write_file_browser_values()
+        paint_content(controller, controller._file_browser_content())
         file_buttons = dict(controller.renderer._buttons)
 
         controller.networks = [
@@ -2696,26 +2688,28 @@ class RendererStateTest(unittest.TestCase):
         page = renderer.begin_page("Printing", back=True)
         renderer.send(page)
         page_generation = renderer.generation
-        sent_before_busy = len(sent)
 
         renderer.busy_notice("Klipper busy")
-        renderer.loader("Moving", 0)
+        loader_page = state_ui.loader_page()
+        root = state_screen(renderer, loader_page, state_ui.loader_values("Moving", 0), state_ui.LOADER_TITLE)
         renderer.clear_busy_notice()
 
         self.assertIn("global.abort", "\n".join(page))
         self.assertIn("nav.back", "\n".join(page))
-        self.assertEqual(sent_before_busy + 1, len(sent))
         loader = "\n".join(sent[-1])
-        self.assertEqual(renderer.generation, page_generation + 1)
+        loader_generation = renderer.generation
+        self.assertGreater(loader_generation, page_generation)
         self.assertIn("global.abort", loader)
         self.assertNotIn("nav.back", loader)
-        self.assertEqual(set(renderer._buttons), {"global.abort"})
+        self.assertNotIn("Klipper busy".upper(), loader)
+        self.assertEqual(renderer.shown_actions(), {"global.abort", "global.wake"})
         self.assertIsNone(renderer.decode_action(
             "%d:nav.back" % page_generation))
 
-        renderer.loader("Moving", 1)
-        self.assertEqual(renderer.generation, page_generation + 1)
-        self.assertIn("global.abort", "\n".join(sent[-1]))
+        loader_page.state.update(state_ui.loader_values("Moving", 1))
+        root.paint()
+        self.assertEqual(renderer.generation, loader_generation)
+        self.assertEqual(renderer.shown_actions(), {"global.abort", "global.wake"})
 
     def test_modal_dialog_preserves_emergency_stop_hitbox(self):
         renderer = FEATHER.FeatherRenderer()
@@ -2758,6 +2752,8 @@ class RendererStateTest(unittest.TestCase):
     def test_move_page_has_combined_homing_and_live_toolhead_status(self):
         controller = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)
         controller.renderer = FEATHER.FeatherRenderer()
+        controller.boot_screen_held = False
+        controller.touch_available = None
         batches = RenderCapture(controller.renderer).batches
         controller.reactor = Reactor()
         controller.jog_step = 1.0
@@ -2767,15 +2763,14 @@ class RendererStateTest(unittest.TestCase):
         })
         controller._require_idle = lambda: None
 
+        controller.page = FEATHER.ScreenPage.CONTROL_MOVE
         controller._render_move()
         drawing = "\n".join(command for batch in batches for command in batch)
 
-        self.assertIn(MOVE_LAYOUT.Z_MINUS.wire_id,
-                      controller.renderer._buttons)
-        self.assertIn(MOVE_LAYOUT.Z_PLUS.wire_id,
-                      controller.renderer._buttons)
-        self.assertNotIn(MOVE_LAYOUT.HOME_Z.wire_id,
-                         controller.renderer._buttons)
+        actions = {region.action for region in shown_hitboxes(controller.renderer)}
+        self.assertIn(MOVE_LAYOUT.Z_MINUS.wire_id, actions)
+        self.assertIn(MOVE_LAYOUT.Z_PLUS.wire_id, actions)
+        self.assertNotIn(MOVE_LAYOUT.HOME_Z.wire_id, actions)
         self.assertIn("NOT HOMED: Z", drawing)
         self.assertIn("X  103.45   Y   67.89", drawing)
         self.assertIn("Z    4.20", drawing)
@@ -2783,6 +2778,11 @@ class RendererStateTest(unittest.TestCase):
     def test_move_status_redraws_only_after_toolhead_changes(self):
         controller = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)
         controller.renderer = FEATHER.FeatherRenderer()
+        controller.page = FEATHER.ScreenPage.CONTROL_MOVE
+        controller.boot_screen_held = False
+        controller.touch_available = None
+        controller.reactor = Reactor()
+        controller.jog_step = 1.0
         batches = RenderCapture(controller.renderer).batches
         controller.toolhead = StatusObject({
             "position": (1.0, 2.0, 10.0, 0.0),
@@ -2811,6 +2811,11 @@ class RendererStateTest(unittest.TestCase):
     def test_move_status_accepts_post_home_park_position(self):
         controller = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)
         controller.renderer = FEATHER.FeatherRenderer()
+        controller.page = FEATHER.ScreenPage.CONTROL_MOVE
+        controller.boot_screen_held = False
+        controller.touch_available = None
+        controller.reactor = Reactor()
+        controller.jog_step = 1.0
         batches = RenderCapture(controller.renderer).batches
         controller.toolhead = StatusObject({
             "position": (120.0, 120.0, 230.0, 0.0),
@@ -2854,7 +2859,9 @@ class RendererStateTest(unittest.TestCase):
     def test_joystick_move_page_registers_two_continuous_regions(self):
         controller = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)
         controller.renderer = FEATHER.FeatherRenderer()
-        rendering = RenderCapture(controller.renderer)
+        controller.boot_screen_held = False
+        controller.touch_available = None
+        RenderCapture(controller.renderer)
         controller.reactor = Reactor()
         controller.move_mode = "joystick"
         controller.joystick = type("Planner", (), {
@@ -2863,19 +2870,23 @@ class RendererStateTest(unittest.TestCase):
             "position": (1.0, 2.0, 10.0, 0.0), "homed_axes": "xyz"})
         controller._require_idle = lambda: None
 
+        controller.page = FEATHER.ScreenPage.CONTROL_MOVE
         controller._render_move()
 
-        self.assertIn("navigate.move.step", controller.renderer._buttons)
-        self.assertIn(MOVE_LAYOUT.HOME_Z.wire_id,
-                      controller.renderer._buttons)
+        shown = shown_hitboxes(controller.renderer)
+        actions = {region.action for region in shown}
+        self.assertIn("navigate.move.step", actions)
+        self.assertIn(MOVE_LAYOUT.HOME_Z.wire_id, actions)
         self.assertEqual(
-            {region.action for region in rendering.latest.hitboxes if region.continuous},
+            {region.action for region in shown if region.continuous},
             {MOVE_LAYOUT.JOYSTICK_XY.wire_id,
              MOVE_LAYOUT.JOYSTICK_Z.wire_id})
 
     def test_low_z_move_page_always_warns_and_reports_auto_profile_state(self):
         controller = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)
         controller.renderer = FEATHER.FeatherRenderer()
+        controller.boot_screen_held = False
+        controller.touch_available = None
         batches = RenderCapture(controller.renderer).batches
         controller.reactor = Reactor()
         controller.move_mode = "joystick"
@@ -2890,29 +2901,32 @@ class RendererStateTest(unittest.TestCase):
             "profile_name": "", "profiles": {"auto": {"points": []}}})
         controller._require_idle = lambda: None
 
+        controller.page = FEATHER.ScreenPage.CONTROL_MOVE
         controller._render_move()
         warning = "\n".join(batches[-1])
 
-        self.assertEqual(warning.count("--batch clear-hitboxes"), 2)
-        self.assertEqual(warning.count("--layer overlay"), 1)
+        def starts(actions, prefix):
+            return any(action.startswith(prefix) for action in actions)
+
+        actions = {region.action for region in shown_hitboxes(controller.renderer)}
         dismiss_id = UI.SetValue(
             MOVE_LAYOUT.MoveState.CAUTION_ACKNOWLEDGED, True).wire_id
-        self.assertIn("--id 1:%s" % dismiss_id, warning)
-        self.assertIn("--id 1:move.caution.auto", warning)
-        self.assertIn("--id 1:move.joy.z", warning)
-        self.assertIn("--id 1:move.joy.xy", warning)
+        self.assertEqual(warning.count("--batch clear-hitboxes"), 2)
+        self.assertIn(dismiss_id, actions)
+        self.assertTrue(starts(actions, "move.caution.auto"))
+        self.assertTrue(starts(actions, "move.joy.z"))
+        self.assertTrue(starts(actions, "move.joy.xy"))
 
         controller.bed_mesh.status["profile_name"] = "auto"
+        controller.page = FEATHER.ScreenPage.CONTROL_MOVE
         controller._render_move()
-        safe = "\n".join(batches[-1])
+        actions = {region.action for region in shown_hitboxes(controller.renderer)}
 
-        self.assertEqual(safe.count("--batch clear-hitboxes"), 2)
-        self.assertEqual(safe.count("--layer overlay"), 1)
-        self.assertIn("--id 2:move.caution.unload", safe)
-        self.assertIn("--id 2:%s" % dismiss_id, safe)
-        self.assertIn("--id 2:move.homez", safe)
-        self.assertIn("--id 2:move.joy.z", safe)
-        self.assertIn("--id 2:move.joy.xy", safe)
+        self.assertIn(dismiss_id, actions)
+        self.assertTrue(starts(actions, "move.caution.unload"))
+        self.assertTrue(starts(actions, "move.homez"))
+        self.assertTrue(starts(actions, "move.joy.z"))
+        self.assertTrue(starts(actions, "move.joy.xy"))
         self.assertFalse(controller.move_caution_acknowledged)
 
     def test_joystick_feedback_tracks_cursor_and_position_in_realtime(self):
@@ -2982,9 +2996,9 @@ class RendererStateTest(unittest.TestCase):
         z_hitbox = page.node("z.panel").touch_bounds(page.rect("z.panel"))
 
         for raw_x, raw_y in ((-100, -100), (900, 900)):
-            MOVE_LAYOUT.render_joystick(
+            MOVE_LAYOUT.JOYSTICK_PAGE.draw(
                 renderer, joystick_values(snapshot))
-            drawing = "\n".join(MOVE_LAYOUT.update_joystick(
+            drawing = "\n".join(MOVE_LAYOUT.JOYSTICK_PAGE.update(
                 renderer, joystick_values(
                     snapshot, cursor=(MOVE_LAYOUT.JOYSTICK_XY.wire_id, raw_x, raw_y))))
             strokes = [line for line in drawing.splitlines()
@@ -2998,9 +3012,9 @@ class RendererStateTest(unittest.TestCase):
             self.assertLessEqual(top + 27, xy_pad.bottom)
 
         for raw_y in (-100, 900):
-            MOVE_LAYOUT.render_joystick(
+            MOVE_LAYOUT.JOYSTICK_PAGE.draw(
                 renderer, joystick_values(snapshot))
-            drawing = "\n".join(MOVE_LAYOUT.update_joystick(
+            drawing = "\n".join(MOVE_LAYOUT.JOYSTICK_PAGE.update(
                 renderer, joystick_values(
                     snapshot, cursor=(MOVE_LAYOUT.JOYSTICK_Z.wire_id, 0, raw_y))))
             strokes = [line for line in drawing.splitlines()
@@ -3016,12 +3030,12 @@ class RendererStateTest(unittest.TestCase):
         snapshot = (1.0, 2.0, 10.0, "HOMED: XYZ", True, True)
         old_cursor = (240, 229)
         new_cursor = (320, 180)
-        MOVE_LAYOUT.render_joystick(
+        MOVE_LAYOUT.JOYSTICK_PAGE.draw(
             renderer, joystick_values(
                 snapshot, cursor=(
                     MOVE_LAYOUT.JOYSTICK_XY.wire_id, *old_cursor)))
 
-        commands = MOVE_LAYOUT.update_joystick(
+        commands = MOVE_LAYOUT.JOYSTICK_PAGE.update(
             renderer, joystick_values(
                 snapshot, cursor=(
                     MOVE_LAYOUT.JOYSTICK_XY.wire_id, *new_cursor)))
@@ -3200,6 +3214,10 @@ class RendererStateTest(unittest.TestCase):
     def test_low_z_queued_position_is_used_for_immediate_caution(self):
         controller = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)
         controller.renderer = FEATHER.FeatherRenderer()
+        controller.boot_screen_held = False
+        controller.touch_available = None
+        controller.reactor = Reactor()
+        controller._require_idle = lambda: None
         batches = RenderCapture(controller.renderer).batches
         controller.page = FEATHER.ScreenPage.CONTROL_MOVE
         controller.move_mode = "joystick"
@@ -3210,27 +3228,19 @@ class RendererStateTest(unittest.TestCase):
         controller.bed_mesh = StatusObject({
             "profile_name": "auto", "profiles": {"auto": {"points": []}}})
         stopped = []
-        rendered = []
         controller._stop_joystick = lambda: stopped.append(True)
-        controller._render_move = (
-            lambda snapshot=None, caution=None:
-            rendered.append((snapshot, caution)))
-
-        safe_values = MOVE_LAYOUT.snapshot_values(
-            (0.0, 0.0, 10.0, "HOMED: XYZ", True, True))
-        safe_values[MOVE_LAYOUT.MoveState.CAUTION_ACKNOWLEDGED] = False
-        safe_values[MOVE_LAYOUT.MoveState.AUTO_PROFILE_STATE] = "active"
-        safe_values[MOVE_LAYOUT.MoveState.INERTIA] = 0.0
-        safe_values[MOVE_LAYOUT.MoveState.CURSOR] = None
-        MOVE_LAYOUT.render_joystick(controller.renderer, safe_values)
+        controller._render_move()
+        del batches[:]
+        generation = controller.renderer.generation
 
         controller._update_joystick_feedback(
             1.0, position=(1.0, 2.0, 4.9), force=True)
 
         self.assertEqual(stopped, [])
-        self.assertEqual(rendered, [])
         self.assertEqual(controller.move_caution_signature, (True, "active"))
-        self.assertNotIn("--batch clear-hitboxes", "\n".join(batches[0]))
+        self.assertIn('"CAUTION"', "\n".join(batches[0]))
+        # A gesture under way keeps sending this generation's action.
+        self.assertEqual(generation, controller.renderer.generation)
 
     def test_low_z_overlay_keeps_z_feedback_live(self):
         controller = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)
@@ -3266,24 +3276,27 @@ class RendererStateTest(unittest.TestCase):
         self.assertIn('"   4.8"', drawing)
 
     def test_step_mode_caution_uses_same_overlay_geometry_as_joystick(self):
-        renderer = FEATHER.FeatherRenderer()
-        safe_values = MOVE_LAYOUT.snapshot_values(
-            (0.0, 0.0, 10.0, "HOMED: XYZ", True, True))
-        safe_values[MOVE_LAYOUT.MoveState.JOG_STEP] = 1.0
-        safe_values[MOVE_LAYOUT.MoveState.CAUTION_ACKNOWLEDGED] = False
-        safe_values[MOVE_LAYOUT.MoveState.AUTO_PROFILE_STATE] = "available"
-        MOVE_LAYOUT.render_step(renderer, safe_values)
+        controller = FEATHER.FeatherScreen.__new__(FEATHER.FeatherScreen)
+        controller.renderer = FEATHER.FeatherRenderer()
+        controller.boot_screen_held = False
+        controller.touch_available = None
+        controller.reactor = Reactor()
+        controller.page = FEATHER.ScreenPage.CONTROL_MOVE
+        controller.jog_step = 1.0
+        controller.move_caution_acknowledged = False
+        controller.toolhead = StatusObject({
+            "position": (0.0, 0.0, 10.0, 0.0), "homed_axes": "xyz"})
+        controller.bed_mesh = StatusObject({
+            "profile_name": "auto", "profiles": {"auto": {"points": []}}})
+        controller._require_idle = lambda: None
+        batches = RenderCapture(controller.renderer).batches
+        controller._render_move()
+        del batches[:]
 
-        warning_values = MOVE_LAYOUT.snapshot_values(
-            (0.0, 0.0, 4.9, "HOMED: XYZ", True, True))
-        warning_values[MOVE_LAYOUT.MoveState.JOG_STEP] = 1.0
-        warning_values[MOVE_LAYOUT.MoveState.CAUTION_ACKNOWLEDGED] = False
-        warning_values[MOVE_LAYOUT.MoveState.AUTO_PROFILE_STATE] = "available"
-        commands = MOVE_LAYOUT.render_step_status(
-            renderer, warning_values, axes=True)
-        drawing = "\n".join(commands)
+        controller.toolhead.status["position"] = (0.0, 0.0, 4.9, 0.0)
+        controller._update_move_status(1.0)
+
+        drawing = "\n".join(batches[0])
         overlay = MOVE_LAYOUT.JOYSTICK_PAGE.rect("xy.pad")
-
-        self.assertIn(
-            "-p %d %d -s %d %d" % overlay.as_tuple(), drawing)
-        self.assertNotIn("--batch clear-hitboxes", drawing)
+        self.assertIn('"CAUTION"', drawing)
+        self.assertIn("-p %d %d -s %d %d" % overlay.as_tuple(), drawing)

@@ -7,7 +7,7 @@ from .bindings import (
     Binding, StateStore, binding_metadata, resolve, resolve_deep,
 )
 from .identity import FrameworkKey, serialize_key
-from .layout import Grid, LAYOUT_SCHEMA, List, ListView, Overlay, When, WrapPanel
+from .layout import Grid, LAYOUT_SCHEMA, List, ListView, Overlay, When, WrapPanel, _attributes
 from .components import Frame
 from .properties import property_names
 from .source import (
@@ -84,7 +84,7 @@ def _property_schema(node):
     result = []
     for spec in node.property_schema:
         value = spec.as_dict()
-        fallbacks = getattr(node, "_computed_property_fallbacks", {})
+        fallbacks = node._computed_property_fallbacks
         if spec.name in fallbacks:
             value["default"] = fallbacks[spec.name]
             value["has_default"] = True
@@ -98,7 +98,7 @@ def _property_schema(node):
 
 
 def _layout_schema(node):
-    fallbacks = getattr(node, "_computed_layout_fallbacks", {})
+    fallbacks = node._computed_layout_fallbacks
     result = []
     for spec in LAYOUT_SCHEMA:
         value = spec.as_dict()
@@ -175,7 +175,9 @@ def _list_view_metadata(node, state):
         "items_binding": binding_metadata(node.items_binding, state)
                          if isinstance(node.items_binding, Binding) else None,
         "item_key_binding": binding_metadata(node.item_key_binding, state),
-        "template_key_binding": binding_metadata(node.template_key_binding, state),
+        "template_key_binding": (
+            None if node.template_key_binding is None
+            else binding_metadata(node.template_key_binding, state)),
         "direction": node.direction,
         "gap": node.gap,
         "fallback_template": node.fallback_template,
@@ -290,20 +292,20 @@ def _node(node, page, state, path, inherited_visible=True):
         "property_sources": property_sources,
         "layout_sources": layout_provenance(node),
         "actions": dict((name, action_metadata(value))
-                        for name, value in node.__dict__.items()
+                        for name, value in _attributes(node)
                         if isinstance(value, Action)),
         "action_sources": dict((
             name, property_provenance(node, name, value=value))
-            for name, value in node.__dict__.items()
+            for name, value in _attributes(node)
             if isinstance(value, Action)),
         "container": isinstance(node, (Grid, List, Overlay, WrapPanel, Frame)),
         "style": None if node._style_id is None else _value(node._style_id),
         "style_source": (None if node._style_id is None
                          else style_provenance(node)),
         "property_origins": _json_value(
-            getattr(node, "_computed_property_origins", {})),
+            dict(node._computed_property_origins)),
         "layout_origins": _json_value(
-            getattr(node, "_computed_layout_origins", {})),
+            dict(node._computed_layout_origins)),
         "list_view": (_list_view_metadata(node, state)
                       if isinstance(node, ListView) else None),
         "template_instance": (None if template_instance is None
@@ -425,7 +427,16 @@ def _component_template_catalog(page):
 
 
 def reflect_page(page, state=None):
-    """Return a Designer-neutral description of one arranged page."""
+    """Return a Designer-neutral description of one arranged page.
+
+    A running page applies its styles without provenance, so the style pass
+    runs once more here, with it: each node's origins and fallbacks then
+    describe the current rules. The values are those the page's last pass
+    applied, unless the rules changed since; then this pass applies them, as
+    the page's next update would.
+    """
+    if getattr(page, "styles", None) is not None:
+        page.styles.apply(page.root)
     if state is None:
         current = page.state.copy()
     elif isinstance(state, StateStore):

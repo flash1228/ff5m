@@ -276,13 +276,8 @@ def _content():
     ).padding(left=18, top=1, right=18, bottom=3).ref(StepRef.ROOT)
 
 
-PAGE = Page(content=_content(), bounds=MOVE_CONTENT, page_id=PAGE_ID)
+def create_page():
+    return Page(content=_content(), bounds=MOVE_CONTENT, page_id=PAGE_ID)
 
 
-def render(renderer, values):
-    return PAGE.draw(renderer, values)
-
-
-def update_status(renderer, values, axes=False):
-    del axes
-    return PAGE.update(renderer, values)
+PAGE = create_page()

@@ -10,6 +10,12 @@ from ui.identity import PageKey
 class AppPage(PageKey):
     __key_namespace__ = "ui.pages.keys.AppPage"
     SCREEN_ROOT = "screen.root"
+    DIALOG = "screen.dialog"
+    LOADER = "screen.loader"
+    STARTUP = "screen.startup"
+    APPLYING = "screen.applying"
+    FILE_BROWSER = "files.browser"
+    FILE_CONFIRM = "files.confirm"
     HOME = "home.dashboard"
     PRINTING = "printing.active"
     PRINT_MORE = "printing.more"

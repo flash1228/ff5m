@@ -19,13 +19,16 @@ ROOT = pathlib.Path(__file__).parents[2]
 sys.path.insert(0, str(ROOT / ".py/klipper/plugins"))
 
 from feather_screen import FeatherScreen
-from feather.screen.composition import DialogInstance, PaintSurface
+from feather.screen.composition import PaintSurface
+from tests import feather_render_test_helper as render_helper
 from ui import (
-    Button, Column, Command, CommandKey, FeatherRenderer, Fill, Frame, Node,
+    Button, Column, Command, CommandKey, FeatherRenderer, Fill, Frame,
     Overlay, PageKey, Rect, Row, ScreenRoot, StateKey, Text, ThemeColor,
     bind, state,
 )
 from ui.layout import PageTree
+
+from ..feather_render_test_helper import RenderCapture
 
 
 class Pages(PageKey):
@@ -122,11 +125,20 @@ def _name(node):
     return str(node.key or type(node).__name__)
 
 
-def _tree(node, layout):
+def _controls(root):
+    """The actions Typer holds of the screen (its shown input)."""
+    shown = root.shown_input() or dict(base=(), overlay=())
+    return sorted({region[0] for region in tuple(shown["base"]) + tuple(shown["overlay"])})
+
+
+def _screen_tree(root):
+    """The screen path's composition: the content and visible layers, each
+    drawn in the root's bounds."""
+    sources = [root._content_node] + [layer.node for layer in root.visible_layers]
     return {
-        "node": _name(node), "type": type(node).__name__,
-        "bounds": list(layout.rect(node)),
-        "children": [_tree(child, layout) for child in node.render_children()],
+        "node": "screen", "type": type(root).__name__, "bounds": list(root.bounds),
+        "children": [{"node": _name(node), "type": type(node).__name__,
+                      "bounds": list(root.bounds), "children": []} for node in sources],
     }
 
 
@@ -169,14 +181,13 @@ def _background(layout, renderer, data):
 def run_sequence(layout, theme="DEFAULT"):
     """Keep one native renderer, root and framebuffer history for all steps."""
     renderer = FeatherRenderer()
+    capture = RenderCapture(renderer)
     renderer.set_theme(theme)
-    renderer.footer("STATUS: OLD DATA", "READY", paint=False)
     screen = FeatherScreen.__new__(FeatherScreen)
     screen.renderer = renderer
     data = {"value": "OLD DATA"}
     root = ScreenRoot(renderer, _background(layout, renderer, data),
-                      Rect(0, 60, 800, 380), Pages.COMPOSITION,
-                      title="COMPOSITION / " + layout.upper())
+                      Rect(0, 60, 800, 380), Pages.COMPOSITION)
     dialog_data = dict(title="PROGRESS", lines=("Heating: 100 C", "Waiting for homing"),
                        width=500, height=260, buttons=(("test.cancel", "CANCEL", "enabled"),))
 
@@ -188,7 +199,7 @@ def run_sequence(layout, theme="DEFAULT"):
                 x=(800 - value["width"]) // 2, y=(480 - value["height"]) // 2,
                 width=value["width"], height=value["height"], custom_body=True,
                 tone="info", modal=True))
-        layer = DialogInstance("composition", spec, screen._paint_dialog, paint, (), 0)
+        layer = render_helper.painted_dialog("composition", spec, renderer, paint)
         layer.node.key = "dialog"
         return layer
 
@@ -199,29 +210,29 @@ def run_sequence(layout, theme="DEFAULT"):
     passes = []
     stack = []
 
-    def traced_render(original):
-        def render(node, target, values, geometry):
-            event = dict(node=_name(node), type=type(node).__name__,
+    def traced_record(original):
+        def record(screen_root, source, state):
+            # The screen runs a content's or layer's painter (or its own tree)
+            # only here, when the frame needs the node's output again.
+            event = dict(node=_name(source), type=type(source).__name__,
                          method=original.__qualname__,
-                         bounds=list(geometry.rect(node)), depth=len(stack), commands=0)
+                         bounds=list(screen_root.bounds), depth=0, commands=0)
             calls.append(event)
-            stack.append(node)
             started = time.perf_counter()
             try:
-                commands = original(node, target, values, geometry)
+                commands = original(screen_root, source, state)
                 event["commands"] = len(commands)
                 return commands
             finally:
                 event["milliseconds"] = round((time.perf_counter() - started) * 1000, 3)
-                stack.pop()
-        return render
+        return record
 
     original_full = PageTree._render_full
 
-    def full(tree, target, arrange, refresh_actions, render_from=None):
+    def full(tree, target, arrange, refresh_actions, render_from=None, prepared_layout=None):
         passes.append(dict(arrange=arrange, refresh_actions=refresh_actions,
                            render_from=None if render_from is None else [_name(node) for node in render_from]))
-        return original_full(tree, target, arrange, refresh_actions, render_from)
+        return original_full(tree, target, arrange, refresh_actions, render_from, prepared_layout)
 
     def checkpoint(name, description, action, expected):
         calls.clear()
@@ -230,11 +241,8 @@ def run_sequence(layout, theme="DEFAULT"):
         action()
         elapsed = (time.perf_counter() - started) * 1000
         batches = []
-        while True:
-            batch = renderer._batch_queue.get(timeout=0)
-            if batch is None:
-                break
-            batches.append(dict(kind=batch.kind, generation=batch.generation, commands=list(batch.commands)))
+        while (batch := capture.get()) is not None:
+            batches.append(dict(commands=list(batch.commands)))
         commands = [command for batch in batches for command in batch["commands"]]
         operations = drawing_operations(commands)
         history.extend(operations)
@@ -250,11 +258,11 @@ def run_sequence(layout, theme="DEFAULT"):
             id=layout + "-" + name, label=layout + " / " + name,
             description=description, counts=counts, expected_counts=expected, failures=failures,
             milliseconds=round(elapsed, 3), render_calls=list(calls), passes=list(passes),
-            tree=_tree(root._tree.root, root._tree.layout), batches=batches,
+            tree=_screen_tree(root), batches=batches,
             dirty_operations=operations,
             operation_types=dict(Counter(operation["type"] for operation in operations)),
             dialog_bounds=list(renderer._dialog_bounds),
-            controls=sorted({region.action for region in renderer.hitboxes}),
+            controls=_controls(root),
             # Replaying the entire accepted history on the Designer canvas
             # preserves old pixels and accumulated alpha between checkpoints.
             composition_fixture=dict(title=layout + " / " + name, operations=list(history)),
@@ -267,16 +275,14 @@ def run_sequence(layout, theme="DEFAULT"):
 
     def value(text):
         data["value"] = text
-        renderer.footer("STATUS: " + text, "READY", paint=False)
-        if Values.VALUE in root._tree.state_schema:
+        if layout != "imperative":
             root.update({Values.VALUE: text})
         else:
             root.invalidate()
             root.paint()
 
     with ExitStack() as patches:
-        patches.enter_context(mock.patch.object(Node, "render", traced_render(Node.render)))
-        patches.enter_context(mock.patch.object(PaintSurface, "render", traced_render(PaintSurface.render)))
+        patches.enter_context(mock.patch.object(ScreenRoot, "_record", traced_record(ScreenRoot._record)))
         patches.enter_context(mock.patch.object(PageTree, "_render_full", full))
         checkpoint("background", "Initial layout; all cards/rows/tiles should be visible.", root.paint,
                    dict(background=1, dialog=0, scrim=0, batches=1))

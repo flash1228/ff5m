@@ -12,6 +12,7 @@ PREVIOUS_TIMELAPSE = "previous timelapse"
 COLD_PULL = "cold_pull"
 HEATING_NOZZLE = "heating_nozzle"
 FILAMENT_CHANGE = "filament_change"
+STATUS_KINDS = (COLD_PULL, HEATING_NOZZLE, FILAMENT_CHANGE)
 
 
 def is_cold_pull(prompt):
