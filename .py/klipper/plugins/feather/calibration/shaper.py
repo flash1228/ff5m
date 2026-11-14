@@ -71,7 +71,9 @@ class ShaperSession:
     def __init__(self, feature):
         self.feature = feature
         # Vibration method chosen on the start page; kept while the screen runs.
-        self.sweep = True
+        # Standard pulses by default: they stay in place, while sweeping needs
+        # 20 mm of travel on each side.
+        self.sweep = False
         # Open result page and its raster cache.
         self.view = None
         # Saved records listed in place of the start page.

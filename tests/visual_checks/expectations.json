@@ -3,13 +3,13 @@
     "cases":
     {
         "default-shaper-start": {
-            "description": "Shaper start page with sweeping selected and no saved calibration.",
+            "description": "Shaper start page with standard selected and no saved calibration.",
             "required": [
                 "INPUT SHAPER title and back action",
                 "BEFORE YOU START bed-clearance instructions",
                 "STANDARD and SWEEPING vibration choices",
                 "START CALIBRATION and LAST RESULTS actions",
-                "SWEEPING selected and LAST RESULTS disabled"
+                "STANDARD selected and LAST RESULTS disabled"
             ],
             "forbidden": [
                 "fabricated saved result",

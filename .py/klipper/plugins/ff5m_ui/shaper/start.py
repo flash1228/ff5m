@@ -14,12 +14,14 @@ from .actions import ShaperAction
 
 class StartState(StateKey):
     __key_namespace__ = "ff5m_ui.shaper.start"
-    SWEEP = state(bool, default=True)
+    # ShaperSession owns the choice and writes it before the page is shown.
+    SWEEP = state(bool, default=False)
     HAS_LAST = state(bool, default=False)
     SUMMARY = state(str, default="No saved calibration")
 
 
 def _method(label, sweep):
+    """The button of one method: sweep says which method it is, not which one is chosen."""
     return Button(ShaperAction("vibrations", label.lower()), label,
                   state=derived(lambda chosen: "selected" if chosen == sweep else "enabled",
                                 bind(StartState.SWEEP))) \
@@ -42,8 +44,8 @@ root = Column(
     Row(
         Text("VIBRATIONS").width("content").style(UiStyle.TEXT_LEFT).ref("shaper.start.vibrations.label"),
         Spacer(),
-        _method("STANDARD", True),
-        _method("SWEEPING", False),
+        _method("STANDARD", False),
+        _method("SWEEPING", True),
         gap=8,
     ).height(48),
     Spacer().height(12),

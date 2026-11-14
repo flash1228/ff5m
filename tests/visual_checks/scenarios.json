@@ -708,6 +708,7 @@
       "label": "shaper / start / ready",
       "page": "ui.pages.keys.AppPage.SHAPER_START",
       "state": {
+        "ff5m_ui.shaper.start.SWEEP": true,
         "ff5m_ui.shaper.start.HAS_LAST": true,
         "ff5m_ui.shaper.start.SUMMARY": "X / Y  |  2026-11-02 15:13"
       }

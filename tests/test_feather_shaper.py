@@ -503,21 +503,30 @@ class ShaperWorkflowTests(unittest.TestCase):
         self.host._run_script.assert_called_once()
         return self.host._run_script.call_args.args[0]
 
-    def chosen_vibrations(self):
-        return {method: self.capture.latest.button("cal.shaper.vibrations." + method).state
-                for method in ("standard", "sweeping")}
+    def selected_vibrations(self):
+        """The one vibration method the start page shows selected."""
+        selected = [method for method in ("standard", "sweeping")
+                    if self.capture.latest.button("cal.shaper.vibrations." + method).state == "selected"]
+        self.assertEqual(len(selected), 1, selected)
+        return selected[0]
 
-    def test_vibration_choice_controls_each_start_and_lasts_while_the_screen_runs(self):
+    def choose_vibrations(self, method):
         self.host._show_page(ScreenPage.CALIBRATION_CONFIRM)
-        self.assertEqual(self.chosen_vibrations(), {"standard": "enabled", "sweeping": "selected"})
-        self.assertEqual(self.start_measurement(), "FORGE_SHAPER_CALIBRATE SWEEP=1")
-
-        self.host._show_page(ScreenPage.CALIBRATION_CONFIRM)
-        standard = self.feature.resolve_semantic_action(self.host.page, "cal.shaper.vibrations.standard")
-        self.assertTrue(self.feature.handle_semantic_action(self.host.page, standard))
+        action = self.feature.resolve_semantic_action(self.host.page, "cal.shaper.vibrations." + method)
+        self.assertTrue(self.feature.handle_semantic_action(self.host.page, action))
         self.assertEqual(self.host.page, ScreenPage.CALIBRATION_CONFIRM)
-        self.assertEqual(self.chosen_vibrations(), {"standard": "selected", "sweeping": "enabled"})
-        self.assertEqual(self.start_measurement(), "FORGE_SHAPER_CALIBRATE SWEEP=0")
+
+    def test_start_runs_the_vibration_method_the_page_shows_selected(self):
+        commands = {"standard": "FORGE_SHAPER_CALIBRATE SWEEP=0", "sweeping": "FORGE_SHAPER_CALIBRATE SWEEP=1"}
+        # Whichever method is the default, the selected button is the one START runs.
+        self.host._show_page(ScreenPage.CALIBRATION_CONFIRM)
+        selected = self.selected_vibrations()
+        self.assertEqual(self.start_measurement(), commands[selected])
+
+        for method in ("sweeping", "standard", "sweeping"):
+            self.choose_vibrations(method)
+            self.assertEqual(self.selected_vibrations(), method)
+            self.assertEqual(self.start_measurement(), commands[method])
 
         # Neither the finished job nor another calibration resets the choice.
         self.feature.calibration_kind = "pid_bed"
@@ -525,8 +534,8 @@ class ShaperWorkflowTests(unittest.TestCase):
         self.feature._start_calibration()
         self.feature.calibration_kind = "shaper"
         self.host._show_page(ScreenPage.CALIBRATION_CONFIRM)
-        self.assertEqual(self.chosen_vibrations(), {"standard": "selected", "sweeping": "enabled"})
-        self.assertEqual(self.start_measurement(), "FORGE_SHAPER_CALIBRATE SWEEP=0")
+        self.assertEqual(self.selected_vibrations(), "sweeping")
+        self.assertEqual(self.start_measurement(), commands["sweeping"])
 
     def test_fresh_measurement_after_a_saved_result_asks_before_leaving(self):
         self.pending['input_shaper'] = {'shaper_type_y': 'mzv', 'shaper_freq_y': '55.2'}
