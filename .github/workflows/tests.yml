@@ -36,5 +36,24 @@ jobs:
       - name: Install test dependencies
         run: python -m pip install -r tests/requirements.txt
 
+      # The Feather UI framework needs its native engine. The repository ships only the printer's ARM build, so
+      # the host wheel comes from the private feather-ui-designer runtime release, which GITHUB_TOKEN cannot read.
+      # Move the release, wheel and hash together with ENGINE_ABI in .py/klipper/plugins/ui/engine.py.
+      - name: Install the Feather native engine
+        env:
+          GH_TOKEN: ${{ secrets.FEATHER_RUNTIME_TOKEN }}
+          RUNTIME_RELEASE: runtime-v117.0.0
+          ENGINE_WHEEL: feather_engine-117.0.0-cp37-abi3-manylinux_2_28_x86_64.whl
+          ENGINE_SHA256: 04b789bfa3547b6925d0744bc5ba8c7360b58e11cac6133229e5788168736fb4
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::Set the FEATHER_RUNTIME_TOKEN secret: a token with Contents: read on DrA1ex/feather-ui-designer"
+            exit 1
+          fi
+          gh release download "$RUNTIME_RELEASE" --repo DrA1ex/feather-ui-designer --pattern "$ENGINE_WHEEL" --dir "$RUNNER_TEMP"
+          echo "$ENGINE_SHA256  $RUNNER_TEMP/$ENGINE_WHEEL" | sha256sum -c -
+          python -m pip install --no-deps "$RUNNER_TEMP/$ENGINE_WHEEL"
+          python -c "import feather_engine; print('feather_engine ABI', feather_engine.ABI)"
+
       - name: Run host tests
         run: python tests/run_host_tests.py --verbose
